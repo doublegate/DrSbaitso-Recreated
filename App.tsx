@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Message } from './types';
 import { getDrSbaitsoResponse, synthesizeSpeech } from './services/geminiService';
-import { decode, decodeAudioData, playAudio } from './utils/audio';
+import { decode, decodeAudioData, playAudio, playGlitchSound, playErrorBeep } from './utils/audio';
 
 export default function App() {
   const [userName, setUserName] = useState<string | null>(null);
@@ -133,6 +133,15 @@ export default function App() {
 
     try {
       const drResponseText = await getDrSbaitsoResponse(trimmedInput);
+      
+      // Check for glitch phrases and play sound effect
+      const glitchPhrases = ['PARITY CHECKING', 'IRQ CONFLICT'];
+      if (glitchPhrases.some(phrase => drResponseText.includes(phrase))) {
+        if (audioContextRef.current) {
+            playGlitchSound(audioContextRef.current);
+        }
+      }
+
       const audioPromise = synthesizeSpeech(drResponseText);
       setMessages(prev => [...prev, { author: 'dr', text: '' }]);
 
@@ -154,6 +163,11 @@ export default function App() {
       }
     } catch (error) {
       console.error("An error occurred during response generation:", error);
+      
+      if (audioContextRef.current) {
+        playErrorBeep(audioContextRef.current);
+      }
+
       const errorMessages = [
           'UNEXPECTED DATA STREAM CORRUPTION. PLEASE REBOOT.',
           'INTERNAL PROCESSOR FAULT. PLEASE TRY AGAIN.',
