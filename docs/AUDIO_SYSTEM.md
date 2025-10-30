@@ -4,12 +4,15 @@
 
 The audio system recreates the authentic 8-bit Sound Blaster audio experience of the original 1991 Dr. Sbaitso through a sophisticated Web Audio API processing pipeline. It transforms modern high-quality TTS audio into characteristic low-fidelity retro sound.
 
-## Audio Processing Pipeline
+**Version 1.1.0** introduces configurable audio quality with 4 presets ranging from extreme lo-fi (4-bit) to modern clarity (no bit-crushing). Users can adjust both the bit depth (quantization levels) and playback rate (speed) to customize the retro audio experience.
+
+## Audio Processing Pipeline (v1.1.0)
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
 │                     TTS API (Gemini)                           │
 │           Base64-encoded PCM Audio (24kHz, mono)               │
+│          (Character-specific voice prompts v1.1.0)             │
 └────────────────────┬───────────────────────────────────────────┘
                      │
                      ↓
@@ -26,31 +29,38 @@ The audio system recreates the authentic 8-bit Sound Blaster audio experience of
           └──────────┬───────────┘
                      │
                      ↓
-          ┌──────────────────────────────────────┐
-          │         playAudio()                  │
-          │  ┌────────────────────────────────┐  │
-          │  │  BufferSourceNode              │  │
-          │  │  playbackRate: 1.1             │  │
-          │  └────────────┬───────────────────┘  │
-          │               │                      │
-          │               ↓                      │
-          │  ┌────────────────────────────────┐  │
-          │  │  ScriptProcessorNode           │  │
-          │  │  Bit-Crusher (6-bit, 64 levels)│  │
-          │  │  Quantization Algorithm        │  │
-          │  └────────────┬───────────────────┘  │
-          │               │                      │
-          │               ↓                      │
-          │  ┌────────────────────────────────┐  │
-          │  │  AudioDestination              │  │
-          │  └────────────────────────────────┘  │
-          └──────────────────────────────────────┘
-                     │
-                     ↓
-              ┌──────────────┐
-              │  Speakers    │
-              │ (8-bit sound)│
-              └──────────────┘
+          ┌──────────────────────────────────────────────┐
+          │   playAudio(buffer, ctx, bitDepth, rate)     │
+          │  ┌────────────────────────────────────────┐  │
+          │  │  BufferSourceNode                      │  │
+          │  │  playbackRate: 1.0/1.1/1.2 (v1.1.0)    │  │
+          │  └───────────────┬────────────────────────┘  │
+          │                  │                           │
+          │        ┌─────────┴──────────┐               │
+          │        │   bitDepth > 0?    │               │
+          │        └─────┬──────────┬───┘               │
+          │         YES  │          │  NO                │
+          │              ↓          │                    │
+          │  ┌──────────────────┐  │                    │
+          │  │ScriptProcessor   │  │                    │
+          │  │Bit-Crusher       │  │                    │
+          │  │16/64/256 levels  │  │                    │
+          │  │(v1.1.0 Config)   │  │                    │
+          │  └─────────┬────────┘  │                    │
+          │            │           │                     │
+          │            └───────────┼────────→            │
+          │                        ↓                     │
+          │           ┌───────────────────────────────┐  │
+          │           │   AudioDestination            │  │
+          │           └───────────────────────────────┘  │
+          └──────────────────────────────────────────────┘
+                                   │
+                                   ↓
+                      ┌─────────────────────────┐
+                      │  Speakers               │
+                      │  4/6/8-bit or Modern    │
+                      │  (v1.1.0 Configurable)  │
+                      └─────────────────────────┘
 ```
 
 ## Core Audio Functions
@@ -120,41 +130,106 @@ float32Value = int16Value / 32768.0
 **Output:**
 - AudioBuffer ready for playback or processing
 
-### playAudio(): Promise<void>
+### playAudio(): Promise<void> (v1.1.0 Enhanced)
 
-Main audio playback function with 8-bit effects.
+Main audio playback function with configurable 8-bit effects.
 
 ```typescript
 export function playAudio(
   buffer: AudioBuffer,
-  ctx: AudioContext
+  ctx: AudioContext,
+  bitDepth: number = 64,      // NEW v1.1.0: Quantization levels (0 = disabled)
+  playbackRate: number = 1.1  // NEW v1.1.0: Speed adjustment
 ): Promise<void>
 ```
+
+**Parameters:**
+- `buffer` - AudioBuffer to play
+- `ctx` - AudioContext instance
+- `bitDepth` (v1.1.0) - Number of quantization levels (0, 16, 64, or 256)
+  - `0` = No bit-crushing (modern quality)
+  - `16` = 4-bit audio (extreme lo-fi)
+  - `64` = 6-bit audio (authentic 8-bit, default)
+  - `256` = 8-bit audio (high quality retro)
+- `playbackRate` (v1.1.0) - Speed multiplier (1.0 = normal, 1.1 = 10% faster, 1.2 = 20% faster)
 
 **Returns:**
 - Promise that resolves when audio finishes playing
 
+**Audio Quality Presets (v1.1.0):**
+
+| Preset | bitDepth | playbackRate | Character |
+|--------|----------|--------------|-----------|
+| Extreme Lo-Fi | 16 | 1.2 | Most distorted, fastest |
+| Authentic 8-bit | 64 | 1.1 | Original 1991 quality (default) |
+| High Quality | 256 | 1.0 | Clearer retro sound |
+| Modern | 0 | 1.0 | No bit-crushing |
+
 **Audio Effects Chain:**
 
 #### 1. BufferSourceNode
-- **Purpose:** Audio source with playback rate control
+- **Purpose:** Audio source with configurable playback rate
 - **Configuration:**
   - `source.buffer = buffer` (AudioBuffer)
-  - `source.playbackRate.value = 1.1` (10% faster)
+  - `source.playbackRate.value = playbackRate` (v1.1.0 configurable)
 
 **Playback Rate Effect:**
-- Makes voice deeper (pitch shift)
-- Speeds up cadence (faster speech)
+- `1.0` = Normal speed and pitch
+- `1.1` = 10% faster, slightly deeper (default)
+- `1.2` = 20% faster, deeper voice
 - Mimics CPU speed variations in old systems
 
-#### 2. ScriptProcessorNode (Bit-Crusher)
+#### 2. ScriptProcessorNode (Configurable Bit-Crusher, v1.1.0)
+
+**Conditional Application:**
+```typescript
+if (bitDepth > 0) {
+  // Apply bit-crushing
+  const bitCrusher = ctx.createScriptProcessor(2048, 1, 1);
+  const numLevels = bitDepth;
+  const step = 2.0 / (numLevels - 1);
+
+  bitCrusher.onaudioprocess = function(e) {
+    const input = e.inputBuffer.getChannelData(0);
+    const output = e.outputBuffer.getChannelData(0);
+    for (let i = 0; i < input.length; i++) {
+      output[i] = Math.round(input[i] / step) * step;
+    }
+  };
+
+  source.connect(bitCrusher);
+  bitCrusher.connect(ctx.destination);
+} else {
+  // No bit-crushing, direct connection
+  source.connect(ctx.destination);
+}
+```
 
 **Configuration:**
 ```typescript
 const bufferSize = 2048;  // Process 2048 samples at a time
-const bitCrusher = ctx.createScriptProcessor(bufferSize, 1, 1);
-const numLevels = 64;     // 6-bit audio (2^6 = 64)
-const step = 2.0 / (numLevels - 1);  // 0.031746...
+const numLevels = bitDepth;  // 16, 64, or 256 (configurable v1.1.0)
+const step = 2.0 / (numLevels - 1);
+```
+
+**Quantization Examples:**
+
+**4-bit (16 levels):**
+```
+step = 2.0 / 15 = 0.133
+Quantization: Very coarse, extreme artifacts
+```
+
+**6-bit (64 levels, default):**
+```
+step = 2.0 / 63 = 0.031746
+Quantization: Authentic 1991 Sound Blaster quality
+```
+
+**8-bit (256 levels):**
+```
+step = 2.0 / 255 = 0.00784
+Quantization: Subtle retro character, clearer
 ```
 
 **Quantization Algorithm:**
@@ -164,7 +239,7 @@ bitCrusher.onaudioprocess = function(e) {
   const output = e.outputBuffer.getChannelData(0);
   for (let i = 0; i < input.length; i++) {
     const val = input[i];  // Float32 sample [-1.0, 1.0]
-    output[i] = Math.round(val / step) * step;  // Quantize to 64 levels
+    output[i] = Math.round(val / step) * step;  // Quantize to numLevels
   }
 };
 ```

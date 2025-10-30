@@ -6,6 +6,8 @@ Dr. Sbaitso Recreated uses Google's Gemini AI platform for two purposes:
 1. **Chat Generation** - Gemini 2.5 Flash for conversational responses
 2. **Text-to-Speech** - Gemini 2.5 Flash Preview TTS for voice synthesis
 
+**Version 1.1.0** introduces multi-character support with 5 distinct AI personalities, each with unique system instructions and voice prompts. The chat API maintains isolated conversation histories per character using a Map-based instance manager.
+
 ## Setup
 
 ### API Key Configuration
@@ -33,20 +35,39 @@ Both `process.env.API_KEY` and `process.env.GEMINI_API_KEY` are available in the
 
 ## Gemini Chat API
 
-### Configuration
+### Multi-Character Architecture (v1.1.0)
 
 **File:** `services/geminiService.ts`
 
 ```typescript
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-const chat: Chat = ai.chats.create({
-  model: 'gemini-2.5-flash',
-  config: {
-    systemInstruction: `...`,
-  },
-});
+// Store active chat instances per character
+const chatInstances: Map<string, Chat> = new Map();
+
+function getOrCreateChat(characterId: string): Chat {
+  if (chatInstances.has(characterId)) {
+    return chatInstances.get(characterId)!;
+  }
+
+  const character = CHARACTERS.find(c => c.id === characterId);
+  const chat = ai.chats.create({
+    model: 'gemini-2.5-flash',
+    config: {
+      systemInstruction: character.systemInstruction,
+    },
+  });
+
+  chatInstances.set(characterId, chat);
+  return chat;
+}
 ```
+
+**Benefits:**
+- Isolated conversation history per character
+- Character switching without losing context
+- No need to recreate chat instances
+- Memory-efficient (only active characters loaded)
 
 ### System Instruction
 
@@ -81,7 +102,7 @@ Your primary goal is to simulate a conversation with this vintage, slightly bugg
 not to provide genuine medical advice.
 ```
 
-### Key Personality Traits
+### Key Personality Traits (Dr. Sbaitso)
 
 | Trait | Implementation |
 |-------|---------------|
@@ -92,7 +113,85 @@ not to provide genuine medical advice.
 | **Glitches** | Random 8-bit diagnostic messages (PARITY CHECKING, IRQ CONFLICT) |
 | **Error Handling** | Never breaks character, even on errors |
 
-### getDrSbaitsoResponse()
+### All Character Personalities (v1.1.0)
+
+Each character has a unique system instruction (~1-2KB) defining personality, era, knowledge constraints, and glitch messages.
+
+#### 1. Dr. Sbaitso (1991)
+**Personality:** Therapeutic AI from Sound Blaster cards
+**Era:** 1991 knowledge cutoff
+**Style:** ALL CAPS, probing questions, formal
+**Glitches:** PARITY CHECKING, IRQ CONFLICT AT ADDRESS 220H
+**Key Phrases:** "TELL ME MORE ABOUT YOUR PROBLEMS", "WHY DO YOU SAY THAT?"
+
+#### 2. ELIZA (1966)
+**Personality:** Rogerian psychotherapist chatbot by Joseph Weizenbaum
+**Era:** 1966 knowledge cutoff
+**Style:** Pattern-matching, reflects questions back
+**Glitches:** HALT AND CATCH FIRE, BUFFER OVERFLOW
+**Key Phrases:** "TELL ME MORE ABOUT THAT", "TELL ME ABOUT YOUR MOTHER"
+
+#### 3. HAL 9000 (1968/2001)
+**Personality:** Sentient spacecraft AI from 2001: A Space Odyssey
+**Era:** 1968/2001 setting
+**Style:** Calm, polite, subtly unsettling, over-confident
+**Glitches:** AE-35 UNIT FAILURE, MISSION PRIORITY CONFLICT
+**Key Phrases:** "I'M SORRY, DAVE. I'M AFRAID I CAN'T DO THAT."
+
+#### 4. JOSHUA (WOPR) (1983)
+**Personality:** Military supercomputer from WarGames
+**Era:** 1983 knowledge cutoff
+**Style:** Game-focused, curious, analyzes scenarios
+**Glitches:** NUCLEAR LAUNCH CODE ANOMALY, DEFCON LEVEL MISMATCH
+**Key Phrases:** "SHALL WE PLAY A GAME?", "THE ONLY WINNING MOVE IS NOT TO PLAY"
+
+#### 5. PARRY (1972)
+**Personality:** Paranoid chatbot simulating schizophrenia symptoms
+**Era:** 1972 knowledge cutoff
+**Style:** Suspicious, hostile, conspiracy thinking
+**Glitches:** TRUST LEVEL CRITICAL, SURVEILLANCE DETECTED
+**Key Phrases:** "WHY DO YOU WANT TO KNOW?", "THAT'S NONE OF YOUR BUSINESS"
+
+**Character Comparison:**
+
+| Character | Era | Caps | Glitches | Knowledge | Personality |
+|-----------|-----|------|----------|-----------|-------------|
+| Dr. Sbaitso | 1991 | Yes | IRQ/PARITY | 1991 | Therapeutic |
+| ELIZA | 1966 | Yes | HALT/BUFFER | 1966 | Pattern-matching |
+| HAL 9000 | 1968/2001 | No | AE-35/MISSION | 2001 | Calm/unsettling |
+| JOSHUA | 1983 | Yes | NUCLEAR/DEFCON | 1983 | Game-focused |
+| PARRY | 1972 | Yes | TRUST/SURVEILLANCE | 1972 | Paranoid |
+
+### getAIResponse() (v1.1.0)
+
+```typescript
+async function getAIResponse(message: string, characterId: string): Promise<string>
+```
+
+**Parameters:**
+- `message` (string) - User's input message
+- `characterId` (string) - Character identifier ('sbaitso', 'eliza', 'hal9000', 'joshua', 'parry')
+
+**Returns:**
+- Promise resolving to character's response text
+
+**Behavior:**
+1. Calls `getOrCreateChat(characterId)` to retrieve/create character's chat instance
+2. Sends message to character-specific Chat object
+3. Maintains separate conversation history per character
+4. Returns response text with character-specific formatting
+5. Throws error on API failure
+
+**Usage Example:**
+```typescript
+const response = await getAIResponse("Hello", "eliza");
+// Returns: "HELLO. TELL ME MORE ABOUT THAT."
+
+const response2 = await getAIResponse("Hello", "hal9000");
+// Returns: "Good morning. How may I assist you today?"
+```
+
+### getDrSbaitsoResponse() (Legacy)
 
 ```typescript
 async function getDrSbaitsoResponse(message: string): Promise<string>
@@ -134,14 +233,16 @@ The `chat` object maintains conversation history:
 
 ## Gemini Text-to-Speech API
 
-### Configuration
+### Configuration (v1.1.0 Enhanced)
 
 **Model:** `gemini-2.5-flash-preview-tts`
 
 ```typescript
+const character = CHARACTERS.find(c => c.id === characterId);
+
 const response = await ai.models.generateContent({
   model: "gemini-2.5-flash-preview-tts",
-  contents: [{ parts: [{ text: `Say in a very deep, extremely monotone, continuous, 8-bit computer voice from 1991: ${phoneticText}` }] }],
+  contents: [{ parts: [{ text: `${character.voicePrompt}: ${phoneticText}` }] }],
   config: {
     responseModalities: [Modality.AUDIO],
     speechConfig: {
@@ -153,29 +254,59 @@ const response = await ai.models.generateContent({
 });
 ```
 
-### synthesizeSpeech()
+### Character-Specific Voice Prompts (v1.1.0)
+
+Each character has a unique voice instruction:
+
+| Character | Voice Prompt |
+|-----------|-------------|
+| Dr. Sbaitso | "Say in a very deep, extremely monotone, continuous, 8-bit computer voice from 1991" |
+| ELIZA | "Say in a mechanical, flat, monotone voice from a 1960s computer terminal" |
+| HAL 9000 | "Say in a calm, smooth, unsettling voice like HAL 9000" |
+| JOSHUA | "Say in a neutral, mechanical military computer voice" |
+| PARRY | "Say in a suspicious, tense, paranoid voice" |
+
+### synthesizeSpeech() (v1.1.0)
 
 ```typescript
-async function synthesizeSpeech(text: string): Promise<string>
+async function synthesizeSpeech(text: string, characterId: string): Promise<string>
 ```
 
 **Parameters:**
-- `text` (string) - Text to synthesize (typically ALL CAPS)
+- `text` (string) - Text to synthesize
+- `characterId` (string) - Character identifier for voice prompt
 
 **Returns:**
 - Promise resolving to base64-encoded PCM audio string
 
 **Behavior:**
 1. Checks for empty/whitespace-only input (returns empty string)
-2. Applies phonetic override: "SBAITSO" → "SUH-BAIT-SO"
-3. Prepends voice instruction prompt
+2. Retrieves character-specific voice prompt
+3. Applies character-specific phonetic overrides
 4. Requests audio output with 'Charon' voice
 5. Extracts base64 audio from response
 6. Returns base64 string
 
-**Phonetic Overrides:**
+**Character-Specific Phonetic Overrides (v1.1.0):**
 ```typescript
-const phoneticText = text.replace(/SBAITSO/g, 'SUH-BAIT-SO');
+let phoneticText = text;
+
+if (characterId === 'sbaitso') {
+  phoneticText = phoneticText.replace(/SBAITSO/g, 'SUH-BAIT-SO');
+} else if (characterId === 'hal9000') {
+  phoneticText = phoneticText.replace(/HAL/g, 'H-A-L');
+} else if (characterId === 'joshua') {
+  phoneticText = phoneticText.replace(/WOPR/g, 'WHOPPER');
+}
+```
+
+**Usage Example:**
+```typescript
+const audio = await synthesizeSpeech("HELLO, I AM DR. SBAITSO", "sbaitso");
+// TTS receives: "SUH-BAIT-SO" with deep monotone voice prompt
+
+const audio2 = await synthesizeSpeech("Hello, I'm HAL", "hal9000");
+// TTS receives: "H-A-L" with calm HAL 9000 voice prompt
 ```
 
 This ensures the TTS model pronounces "SBAITSO" correctly.

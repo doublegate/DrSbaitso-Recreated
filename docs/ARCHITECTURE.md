@@ -2,45 +2,68 @@
 
 ## Overview
 
-Dr. Sbaitso Recreated is a single-page React application that recreates the 1991 AI therapist program. The architecture is built around three core systems: UI/State Management, AI Integration, and Audio Processing.
+Dr. Sbaitso Recreated is a single-page React application that recreates the 1991 AI therapist program. The architecture is built around six core systems: UI/State Management, AI Integration, Audio Processing, Session Management, Export System, and Keyboard Navigation.
 
-## System Architecture
+**Version 1.1.0** introduces substantial architectural enhancements:
+- Multi-character personality system with isolated chat instances
+- Theme engine with CSS variable-based dynamic styling
+- Configurable audio quality pipeline with 4 presets
+- localStorage-based session persistence and statistics tracking
+- Multi-format conversation export system
+- Comprehensive keyboard shortcut system with platform detection
+
+## System Architecture (v1.1.0)
 
 ```
-┌────────────────────────────────────────────────────────┐
-│                         App.tsx                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
-│  │ Name Entry   │→ │  Greeting    │→ │ Conversation │  │
-│  │    Phase     │  │  Sequence    │  │    Phase     │  │
-│  └──────────────┘  └──────────────┘  └──────────────┘  │
-└────────────┬────────────────┬────────────────┬─────────┘
-             │                │                │
-    ┌────────▼────────┐  ┌───▼────────┐  ┌───▼──────────┐
-    │ geminiService   │  │ audio.ts   │  │ React State  │
-    │  - Chat API     │  │ - Decode   │  │ - messages   │
-    │  - TTS API      │  │ - Effects  │  │ - loading    │
-    └─────────────────┘  │ - Playback │  │ - userName   │
-                         └────────────┘  └──────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                           App.tsx                            │
+│  ┌──────────┐  ┌───────────┐  ┌──────────┐  ┌────────────┐  │
+│  │   Name   │→ │ Character │→ │ Greeting │→ │Conversation│  │
+│  │  Entry   │  │ Selection │  │ Sequence │  │   Phase    │  │
+│  └──────────┘  └───────────┘  └──────────┘  └────────────┘  │
+└─────┬──────────┬───────────┬───────────┬───────────┬────────┘
+      │          │           │           │           │
+┌─────▼──────┐ ┌▼────────┐ ┌▼────────┐ ┌▼────────┐ ┌▼─────────┐
+│ constants  │ │ gemini  │ │ audio   │ │ session │ │ keyboard │
+│  5 chars   │ │ Service │ │ utils   │ │ Manager │ │shortcuts │
+│  5 themes  │ │Multi-ch │ │Config   │ │localStorage│ │30+ keys │
+│  4 presets │ │ Chat    │ │Quality  │ │Auto-save│ │Ctrl/Cmd │
+└────────────┘ │ Map     │ │Presets  │ │Stats    │ └──────────┘
+               └─────────┘ └─────────┘ └────┬────┘
+                                             │
+                                        ┌────▼─────┐
+                                        │  Export  │
+                                        │ 4 Formats│
+                                        │MD/TXT/   │
+                                        │JSON/HTML │
+                                        └──────────┘
 ```
 
 ## Component Structure
 
-### App.tsx - Main Application (267 lines)
+### App.tsx - Main Application (ENHANCED v1.1.0)
 
-The monolithic component managing the entire application lifecycle.
+The main component managing the entire application lifecycle, now with multi-character support, themes, and session management.
 
-**State Variables:**
+**State Variables (v1.1.0 Extended):**
 - `userName` - User's name (null until provided)
 - `nameInput` - Controlled input for name entry
-- `messages` - Array of Message objects (chat history)
+- `currentCharacter` - Selected AI personality (id from CHARACTERS)
+- `currentTheme` - Active theme (id from THEMES)
+- `audioQuality` - Current audio preset (id from AUDIO_QUALITY_PRESETS)
+- `messages` - Array of Message objects with timestamps and characterId
 - `userInput` - Controlled input for chat
 - `isLoading` - Blocks input during processing
 - `isGreeting` - True during greeting sequence
-- `greetingIndex` - Current greeting line index (0-6)
-- `greetingLines` - Pre-defined greeting text array
+- `greetingIndex` - Current greeting line index
+- `greetingLines` - Character-specific greeting text array
 - `isPreparingGreeting` - True while generating greeting audio
 - `greetingAudio` - Pre-generated base64 audio array
 - `nameError` - Error message for name submission failures
+- `currentSession` - Active ConversationSession object
+- `showSettings` - Settings panel visibility toggle
+- `showStatistics` - Statistics dashboard visibility toggle
+- `showExport` - Export dialog visibility toggle
 
 **Refs:**
 - `audioContextRef` - Singleton AudioContext instance
@@ -143,14 +166,254 @@ Speaker Output (8-bit retro sound)
 - `playGlitchSound()` - 200ms white noise with exponential fade-out
 - `playErrorBeep()` - 300ms square wave at 300Hz
 
-**Bit-Crusher Algorithm:**
+**Bit-Crusher Algorithm (v1.1.0 Enhanced):**
 ```javascript
-numLevels = 64  // 6-bit audio
-step = 2.0 / (numLevels - 1)  // 0.031746...
+// Configurable quality presets
+numLevels = bitDepth  // 16, 64, 256, or 0 (disabled)
+step = 2.0 / (numLevels - 1)
 output[i] = Math.round(input[i] / step) * step
 ```
 
-This quantizes float samples from [-1.0, 1.0] to 64 discrete levels, creating the characteristic 8-bit audio artifact.
+This quantizes float samples from [-1.0, 1.0] to configurable discrete levels (16, 64, or 256), creating adjustable 8-bit audio artifacts. When `bitDepth` is 0, bit-crushing is disabled for modern quality output.
+
+### constants.ts (NEW v1.1.0)
+
+Central configuration file containing all customization data.
+
+**CHARACTERS Array (5 personalities):**
+```typescript
+interface CharacterPersonality {
+  id: string;
+  name: string;
+  description: string;
+  systemInstruction: string;  // Complete AI personality definition
+  voicePrompt: string;         // TTS voice instruction
+}
+```
+
+- Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY
+- Each ~1-2KB system instruction defining personality, era, constraints
+- Unique voice prompts for TTS characterization
+
+**THEMES Array (5 retro themes):**
+```typescript
+interface Theme {
+  id: string;
+  name: string;
+  colors: {
+    primary, background, text, accent, border, shadow
+  };
+}
+```
+
+- DOS Blue, Phosphor Green, Amber Monochrome, Paper White, Matrix Green
+- CSS color values for instant theme switching via CSS variables
+
+**AUDIO_QUALITY_PRESETS Array (4 presets):**
+```typescript
+interface AudioQualityPreset {
+  id: string;
+  name: string;
+  bitDepth: number;      // 16, 64, 256, or 0
+  playbackRate: number;  // 1.0, 1.1, or 1.2
+  description: string;
+}
+```
+
+- Extreme Lo-Fi, Authentic 8-bit, High Quality, Modern
+- Maps directly to audio.ts `playAudio()` parameters
+
+**KEYBOARD_SHORTCUTS Object:**
+- Key definitions for all shortcuts
+- Used by useKeyboardShortcuts hook
+
+### utils/sessionManager.ts (NEW v1.1.0)
+
+Static class managing localStorage-based session persistence.
+
+**Key Methods:**
+
+`createSession(characterId, themeId, audioQualityId): ConversationSession`
+- Generates unique session ID with timestamp and random string
+- Initializes metadata (name, timestamps, counts)
+- Returns new session object
+
+`saveSession(session: ConversationSession): void`
+- Serializes session to JSON
+- Stores in localStorage under `sbaitso_sessions` key
+- Updates existing or appends new
+- ~5-10 KB per 50-100 message session
+
+`getCurrentSession(): ConversationSession | null`
+- Retrieves `sbaitso_current_session` from localStorage
+- Returns null if not found or invalid
+
+`getAllSessions(): ConversationSession[]`
+- Retrieves all sessions array
+- Returns empty array if none exist
+
+`deleteSession(id: string): void`
+- Removes session by ID from array
+- Updates localStorage
+
+`clearAllSessions(): void`
+- Removes all session data from localStorage
+
+**Settings Management:**
+
+`getSettings(): AppSettings`
+- Returns saved settings or defaults
+- Settings include: soundEnabled, autoScroll, showTimestamps
+
+`saveSettings(settings: AppSettings): void`
+- Persists settings to localStorage under `sbaitso_settings` key
+
+**Statistics Tracking:**
+
+`updateStats(session: ConversationSession): void`
+- Increments totalSessions, totalMessages, totalGlitches
+- Updates charactersUsed and themesUsed counts
+- Recalculates averageMessagesPerSession
+- Determines favoriteCharacter and favoriteTheme
+
+`getStats(): SessionStats`
+- Returns aggregated statistics object
+
+`resetStats(): void`
+- Clears all statistics
+
+**Auto-Save Integration:**
+- App.tsx calls `saveSession()` every 60 seconds via setInterval
+- Triggered on every message send
+- No network requests, all client-side
+
+### utils/exportConversation.ts (NEW v1.1.0)
+
+Static class for multi-format conversation export.
+
+**Main Method:**
+
+`exportSession(session: ConversationSession, options: ExportFormat): string`
+- Dispatcher routing to format-specific methods
+- Returns formatted string ready for download
+
+**Format Methods:**
+
+`toMarkdown(session, options): string`
+- Formats with `# Session Name` header
+- Metadata block with character, date, counts
+- Messages as blockquotes: `> Text here`
+- Timestamps in italic if `includeTimestamps: true`
+
+`toText(session, options): string`
+- Plain text with ASCII separators
+- `=` underline for title, `-` separator for metadata
+- ALL CAPS author labels
+- Human-readable timestamps
+
+`toJSON(session, options): string`
+- Pretty-printed JSON with 2-space indentation
+- Full session object or messages-only based on `includeMetadata`
+- Machine-readable, parseable format
+
+`toHTML(session, options): string`
+- Standalone HTML document with embedded CSS
+- Retro styling matching DOS Blue theme
+- Monospace font, blue background, styled messages
+- Viewable directly in browser
+
+**Helper Methods:**
+
+`download(content: string, filename: string, mimeType: string): void`
+- Creates Blob from content string
+- Generates object URL
+- Triggers browser download via temporary `<a>` element
+- Cleanup: removes element and revokes URL
+
+`getFilename(session, format): string`
+- Generates timestamped filename: `session-name_2025-10-29T23-45-30.md`
+
+`getMimeType(format): string`
+- Returns correct MIME type for each format
+
+**Usage Pattern:**
+```typescript
+const content = ConversationExporter.exportSession(session, {
+  format: 'markdown',
+  includeTimestamps: true,
+  includeMetadata: true
+});
+const filename = ConversationExporter.getFilename(session, 'md');
+const mimeType = ConversationExporter.getMimeType('markdown');
+ConversationExporter.download(content, filename, mimeType);
+```
+
+### hooks/useKeyboardShortcuts.ts (NEW v1.1.0)
+
+Custom React hook providing keyboard shortcut functionality.
+
+**Features:**
+- Platform detection (macOS vs Windows/Linux)
+- Single global event listener via event delegation
+- Context-awareness (disables when typing in text inputs)
+- 30+ shortcuts covering all major actions
+
+**Platform Detection:**
+```typescript
+const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+const modKey = isMac ? 'Meta' : 'Control';
+```
+
+**Shortcut Categories:**
+
+**Core Actions:**
+- `Enter` - Send message
+- `${modKey}+L` - Clear conversation
+- `${modKey}+E` - Export
+- `${modKey}+,` - Settings
+- `${modKey}+S` - Statistics
+
+**Character Selection:**
+- `${modKey}+]` / `${modKey}+[` - Cycle characters
+- `${modKey}+1-5` - Direct character selection
+
+**Theme Selection:**
+- `Alt+]` / `Alt+[` - Cycle themes
+- `Alt+1-5` - Direct theme selection
+
+**Audio Controls:**
+- `${modKey}+M` - Toggle mute
+- `${modKey}+Shift+Q` - Cycle audio quality
+- `${modKey}+0` - Stop audio
+
+**Event Handler Pattern:**
+```typescript
+useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    // Skip if typing in input/textarea
+    if (e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    // Check modifiers and key combination
+    if (e.key === 'l' && e[modKey + 'Key'] && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      onClearConversation();
+    }
+    // ... etc for all shortcuts
+  };
+
+  document.addEventListener('keydown', handleKeyDown);
+  return () => document.removeEventListener('keydown', handleKeyDown);
+}, [dependencies]);
+```
+
+**Benefits:**
+- No library dependencies
+- Minimal performance overhead (<1ms response)
+- Prevents browser default behaviors where appropriate
+- Respects user context (doesn't interfere with typing)
 
 ## Data Flow
 
