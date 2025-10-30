@@ -34,6 +34,7 @@ export interface AppSettings {
   characterId: string;
   themeId: string;
   audioQualityId: string;
+  audioMode: 'modern' | 'subtle' | 'authentic' | 'ultra'; // Vintage audio processing level
   soundEnabled: boolean;
   autoScroll: boolean;
   showTimestamps: boolean;
@@ -44,4 +45,15 @@ export interface ExportFormat {
   format: 'markdown' | 'text' | 'json' | 'html';
   includeTimestamps: boolean;
   includeMetadata: boolean;
+}
+
+// Accessibility Settings (v1.4.0)
+export interface AccessibilitySettings {
+  highContrast: boolean;
+  reducedMotion: boolean;
+  fontSize: 'small' | 'medium' | 'large' | 'x-large';
+  screenReaderOptimized: boolean;
+  focusIndicatorStyle: 'default' | 'thick' | 'underline';
+  announceMessages: boolean;
+  keyboardNavigationHints: boolean;
 }

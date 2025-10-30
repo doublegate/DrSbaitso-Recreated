@@ -9,7 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#1e3a8a" />
-    <title>Dr. Sbaitso Recreated</title>
+    <!-- Accessibility meta tags (v1.4.0) -->
+    <meta name="description" content="Dr. Sbaitso Recreated - A modern web-based recreation of the classic 1991 AI therapist with enhanced accessibility features" />
+    <title>Dr. Sbaitso Recreated - AI Therapist (1991)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       body {
@@ -68,6 +70,114 @@
           font-size: 16px !important;
         }
       }
+
+      /* Accessibility Enhancements (v1.4.0) */
+
+      /* Font Size Controls */
+      :root[data-font-size="small"] {
+        font-size: 12px;
+      }
+      :root[data-font-size="medium"] {
+        font-size: 16px;
+      }
+      :root[data-font-size="large"] {
+        font-size: 20px;
+      }
+      :root[data-font-size="x-large"] {
+        font-size: 24px;
+      }
+
+      /* High Contrast Mode */
+      .high-contrast {
+        --text-primary: #ffffff;
+        --text-secondary: #ffff00;
+        --bg-primary: #000000;
+        --bg-secondary: #1a1a1a;
+        --border-color: #ffffff;
+      }
+      .high-contrast body {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+      }
+      .high-contrast button,
+      .high-contrast input,
+      .high-contrast select {
+        border-width: 3px !important;
+        border-color: var(--border-color) !important;
+      }
+
+      /* Reduced Motion */
+      .reduce-motion *,
+      .reduce-motion *::before,
+      .reduce-motion *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+
+      /* Focus Indicators - Default (3px outline) */
+      .user-is-tabbing *:focus {
+        outline: 3px solid #fbbf24 !important;
+        outline-offset: 2px !important;
+      }
+
+      /* Focus Indicators - Thick (5px outline) */
+      :root[data-focus-style="thick"] .user-is-tabbing *:focus {
+        outline-width: 5px !important;
+        outline-offset: 3px !important;
+      }
+
+      /* Focus Indicators - Underline */
+      :root[data-focus-style="underline"] .user-is-tabbing *:focus {
+        outline: none !important;
+        border-bottom: 4px solid #fbbf24 !important;
+        padding-bottom: 2px;
+      }
+
+      /* Keyboard Navigation Hints */
+      .show-keyboard-hints button::after,
+      .show-keyboard-hints a::after {
+        content: attr(data-keyboard-hint);
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e3a8a;
+        color: #fbbf24;
+        padding: 2px 6px;
+        font-size: 10px;
+        border: 1px solid #fbbf24;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+        transition: opacity 0.2s;
+      }
+      .show-keyboard-hints button:focus::after,
+      .show-keyboard-hints a:focus::after {
+        opacity: 1;
+      }
+
+      /* Screen Reader Only */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+      }
+
+      /* Skip Navigation Links */
+      .skip-nav a:focus {
+        clip: auto;
+        height: auto;
+        width: auto;
+        overflow: visible;
+      }
     </style>
   <script type="importmap">
 {
@@ -82,6 +192,8 @@
 </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <!-- Skip navigation anchor points (v1.4.0) -->
+    <div id="skip-to-main"></div>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

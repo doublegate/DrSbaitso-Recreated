@@ -225,6 +225,48 @@ export const AUDIO_QUALITIES: AudioQuality[] = [
 
 export const DEFAULT_AUDIO_QUALITY = 'default';
 
+// Audio mode configurations (Authentic 1991 Dr. Sbaitso Voice Recreation)
+export interface AudioMode {
+  id: 'modern' | 'subtle' | 'authentic' | 'ultra';
+  name: string;
+  description: string;
+  technicalSpecs: string;
+  details: string;
+}
+
+export const AUDIO_MODES: AudioMode[] = [
+  {
+    id: 'modern',
+    name: 'Modern Quality',
+    description: 'Current Gemini TTS - Natural prosody',
+    technicalSpecs: '24 kHz, 16-bit',
+    details: 'Clean, modern text-to-speech with natural intonation and full frequency range'
+  },
+  {
+    id: 'subtle',
+    name: 'Subtle Vintage',
+    description: 'Light retro processing - Enhanced nostalgia',
+    technicalSpecs: '22 kHz, 16-bit, 200-8000 Hz',
+    details: 'Slightly vintage sound with gentle processing for a nostalgic feel'
+  },
+  {
+    id: 'authentic',
+    name: 'Authentic 1991',
+    description: 'Original Dr. Sbaitso sound - Recommended',
+    technicalSpecs: '11 kHz, 8-bit, 300-5000 Hz',
+    details: 'Authentic Sound Blaster 8-bit audio quality matching the 1991 original'
+  },
+  {
+    id: 'ultra',
+    name: 'Ultra Authentic',
+    description: 'Maximum vintage with artifacts - Purist mode',
+    technicalSpecs: '11 kHz, 8-bit, 300-5000 Hz + artifacts',
+    details: 'Maximum authenticity with aliasing and quantization artifacts for true 1991 experience'
+  }
+];
+
+export const DEFAULT_AUDIO_MODE = 'authentic';
+
 // Keyboard shortcuts
 export const KEYBOARD_SHORTCUTS = {
   NEW_MESSAGE: 'Enter',

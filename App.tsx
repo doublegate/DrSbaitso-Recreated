@@ -2,8 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Message } from './types';
 import { getDrSbaitsoResponse, synthesizeSpeech } from './services/geminiService';
 import { decode, decodeAudioData, playAudio, playGlitchSound, playErrorBeep } from './utils/audio';
+import { AUDIO_MODES } from './constants';
+import { useAccessibility } from './hooks/useAccessibility';
+import { useScreenReader } from './hooks/useScreenReader';
+import SkipNav from './components/SkipNav';
+import AccessibilityPanel from './components/AccessibilityPanel';
 
 export default function App() {
+  // Core state
   const [userName, setUserName] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -16,6 +22,15 @@ export default function App() {
   const [greetingAudio, setGreetingAudio] = useState<string[]>([]);
   const [nameError, setNameError] = useState<string | null>(null);
 
+  // Audio mode state (v1.3.0)
+  const [audioMode, setAudioMode] = useState<'modern' | 'subtle' | 'authentic' | 'ultra'>('authentic');
+
+  // Accessibility state (v1.4.0)
+  const { settings: accessibilitySettings, updateSetting, resetSettings } = useAccessibility();
+  const { announce } = useScreenReader();
+  const [showAccessibilityPanel, setShowAccessibilityPanel] = useState(false);
+
+  // Refs
   const audioContextRef = useRef<AudioContext | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
@@ -67,7 +82,7 @@ export default function App() {
     if (audioContextRef.current && base64Audio) {
       try {
         const audioBytes = decode(base64Audio);
-        const audioBuffer = await decodeAudioData(audioBytes, audioContextRef.current, 24000, 1);
+        const audioBuffer = await decodeAudioData(audioBytes, audioContextRef.current, 24000, 1, audioMode);
         await playAudio(audioBuffer, audioContextRef.current);
       } catch (error) {
         console.error("Audio playback failed:", error);
@@ -75,9 +90,9 @@ export default function App() {
         onFinished();
       }
     } else {
-      setTimeout(onFinished, 100); 
+      setTimeout(onFinished, 100);
     }
-  }, []);
+  }, [audioMode]);
 
   const handleNameSubmit = async () => {
     ensureAudioContext();
@@ -168,8 +183,13 @@ export default function App() {
       const base64Audio = await audioPromise;
       if (audioContextRef.current && base64Audio) {
           const audioBytes = decode(base64Audio);
-          const audioBuffer = await decodeAudioData(audioBytes, audioContextRef.current, 24000, 1);
+          const audioBuffer = await decodeAudioData(audioBytes, audioContextRef.current, 24000, 1, audioMode);
           await playAudio(audioBuffer, audioContextRef.current);
+      }
+
+      // Announce to screen readers if enabled (v1.4.0)
+      if (accessibilitySettings.screenReaderOptimized && accessibilitySettings.announceMessages) {
+        announce(`Dr. Sbaitso says: ${drResponseText}`);
       }
     } catch (error) {
       console.error("An error occurred during response generation:", error);
@@ -207,71 +227,204 @@ export default function App() {
     }
   };
 
+  // Global keyboard shortcuts (v1.3.0 + v1.4.0)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + A: Open Accessibility Panel
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !e.shiftKey) {
+        e.preventDefault();
+        setShowAccessibilityPanel(true);
+      }
+
+      // Ctrl/Cmd + Shift + V: Cycle audio modes
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V') {
+        e.preventDefault();
+        const currentIndex = AUDIO_MODES.findIndex(m => m.id === audioMode);
+        const nextIndex = (currentIndex + 1) % AUDIO_MODES.length;
+        setAudioMode(AUDIO_MODES[nextIndex].id);
+        if (accessibilitySettings.screenReaderOptimized) {
+          announce(`Audio mode changed to ${AUDIO_MODES[nextIndex].name}`);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [audioMode, accessibilitySettings.screenReaderOptimized, announce]);
+
   if (!userName) {
     return (
-      <main className="bg-blue-800 text-white font-mono w-screen h-screen flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md text-center">
-          {nameError && (
-            <p className="text-red-500 text-lg mb-4">{nameError}</p>
-          )}
-          {isPreparingGreeting ? (
-            <p className="text-xl mb-4 animate-pulse">PREPARING SESSION...</p>
-          ) : (
-            <>
-              <p className="text-xl mb-4">PLEASE ENTER YOUR NAME:</p>
-              <div className="flex items-center justify-center">
-                <span className="text-yellow-300 mr-2">{'>'}</span>
-                <input
-                  ref={nameInputRef}
-                  type="text"
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleNameSubmit();
-                    }
-                  }}
-                  className="bg-transparent border-none text-yellow-300 w-3/4 focus:outline-none placeholder-gray-500 text-center"
-                  placeholder="TYPE NAME AND PRESS ENTER"
-                  disabled={isPreparingGreeting}
-                />
-              </div>
-            </>
-          )}
-        </div>
-      </main>
+      <>
+        <SkipNav />
+        <main
+          id="main-content"
+          className="bg-blue-800 text-white font-mono w-screen h-screen flex flex-col items-center justify-center p-4"
+          role="main"
+          aria-label="Dr. Sbaitso name entry screen"
+        >
+          <div className="w-full max-w-md text-center">
+            {nameError && (
+              <p
+                className="text-red-500 text-lg mb-4"
+                role="alert"
+                aria-live="assertive"
+              >
+                {nameError}
+              </p>
+            )}
+            {isPreparingGreeting ? (
+              <p
+                className="text-xl mb-4 animate-pulse"
+                role="status"
+                aria-live="polite"
+              >
+                PREPARING SESSION...
+              </p>
+            ) : (
+              <>
+                <label htmlFor="name-input" className="text-xl mb-4 block">
+                  PLEASE ENTER YOUR NAME:
+                </label>
+                <div className="flex items-center justify-center">
+                  <span className="text-yellow-300 mr-2" aria-hidden="true">{'>'}</span>
+                  <input
+                    id="name-input"
+                    ref={nameInputRef}
+                    type="text"
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleNameSubmit();
+                      }
+                    }}
+                    className="bg-transparent border-none text-yellow-300 w-3/4 focus:outline-none placeholder-gray-500 text-center"
+                    placeholder="TYPE NAME AND PRESS ENTER"
+                    disabled={isPreparingGreeting}
+                    aria-label="Enter your name"
+                    aria-describedby="name-input-help"
+                  />
+                </div>
+                <span id="name-input-help" className="sr-only">
+                  Type your name and press Enter to begin your session with Dr. Sbaitso
+                </span>
+              </>
+            )}
+          </div>
+        </main>
+      </>
     );
   }
 
   return (
-    <main className="bg-blue-800 text-white font-mono w-screen h-screen flex flex-col p-2 sm:p-4 overflow-hidden">
-      <div className="w-full max-w-4xl mx-auto flex flex-col flex-grow border-2 border-gray-400 p-4 min-h-0">
-        <div className="flex-grow overflow-y-auto pr-2 min-h-0">
-          {messages.map((msg, index) => (
-            <p key={index} className={msg.author === 'dr' ? 'text-white' : 'text-yellow-300'}>
-              {msg.author === 'user' && '> '}
-              {msg.text}
-              {isLoading && !isGreeting && msg.author === 'dr' && index === messages.length - 1 && (
-                <span className="animate-pulse">_</span>
-              )}
-            </p>
-          ))}
-          <div ref={messagesEndRef} />
+    <>
+      <SkipNav />
+
+      <main
+        className="bg-blue-800 text-white font-mono w-screen h-screen flex flex-col p-2 sm:p-4 overflow-hidden"
+        role="main"
+      >
+        <div className="w-full max-w-4xl mx-auto flex flex-col flex-grow border-2 border-gray-400 p-4 min-h-0">
+          {/* Header with settings (v1.3.0 + v1.4.0) */}
+          <div className="flex-shrink-0 flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-400">
+            {/* Audio Mode Selector */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="audio-mode-select" className="text-sm font-bold">
+                AUDIO MODE:
+              </label>
+              <select
+                id="audio-mode-select"
+                value={audioMode}
+                onChange={(e) => setAudioMode(e.target.value as typeof audioMode)}
+                className="bg-blue-900 border-2 border-gray-400 text-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                aria-label="Select audio quality mode"
+                title={AUDIO_MODES.find(m => m.id === audioMode)?.description || ''}
+              >
+                {AUDIO_MODES.map((mode) => (
+                  <option key={mode.id} value={mode.id}>
+                    {mode.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Accessibility Panel Toggle */}
+            <button
+              onClick={() => setShowAccessibilityPanel(true)}
+              className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+              aria-label="Open accessibility settings (Ctrl+A)"
+              title="Accessibility Settings (Ctrl+A)"
+            >
+              <span aria-hidden="true">♿</span>
+              <span className="ml-1">A11Y</span>
+            </button>
+          </div>
+
+          {/* Messages area */}
+          <div
+            id="main-content"
+            className="flex-grow overflow-y-auto pr-2 min-h-0"
+            role="log"
+            aria-live="polite"
+            aria-label="Conversation messages"
+          >
+            {messages.map((msg, index) => (
+              <p
+                key={index}
+                className={msg.author === 'dr' ? 'text-white' : 'text-yellow-300'}
+                role="article"
+                aria-label={`Message from ${msg.author === 'dr' ? 'Dr. Sbaitso' : 'you'}`}
+              >
+                {msg.author === 'user' && <span aria-hidden="true">{'> '}</span>}
+                {msg.text}
+                {isLoading && !isGreeting && msg.author === 'dr' && index === messages.length - 1 && (
+                  <span className="animate-pulse" aria-hidden="true">_</span>
+                )}
+              </p>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Chat input */}
+          <div className="flex-shrink-0 flex items-center mt-4">
+            <span className="text-yellow-300 mr-2" aria-hidden="true">{'>'}</span>
+            <input
+              id="chat-input"
+              ref={inputRef}
+              type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isLoading}
+              className="bg-transparent border-none text-yellow-300 w-full focus:outline-none placeholder-gray-500"
+              placeholder={isLoading ? '' : 'TYPE HERE AND PRESS ENTER...'}
+              aria-label="Enter your message"
+              aria-describedby="chat-input-help"
+            />
+            <span id="chat-input-help" className="sr-only">
+              Type your message and press Enter to send to Dr. Sbaitso
+            </span>
+          </div>
+
+          {/* Audio mode indicator */}
+          <div className="flex-shrink-0 mt-2 text-xs opacity-50 text-center">
+            <span aria-live="polite" aria-atomic="true">
+              {AUDIO_MODES.find(m => m.id === audioMode)?.name} | Ctrl+Shift+V to cycle | Ctrl+A for accessibility
+            </span>
+          </div>
         </div>
-        <div className="flex-shrink-0 flex items-center mt-4">
-          <span className="text-yellow-300 mr-2">{'>'}</span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isLoading}
-            className="bg-transparent border-none text-yellow-300 w-full focus:outline-none placeholder-gray-500"
-            placeholder={isLoading ? '' : 'TYPE HERE AND PRESS ENTER...'}
-          />
-        </div>
-      </div>
-    </main>
+      </main>
+
+      {/* Accessibility Panel (v1.4.0) */}
+      {showAccessibilityPanel && (
+        <AccessibilityPanel
+          isOpen={showAccessibilityPanel}
+          settings={accessibilitySettings}
+          onClose={() => setShowAccessibilityPanel(false)}
+          onUpdateSetting={updateSetting}
+          onResetSettings={resetSettings}
+        />
+      )}
+    </>
   );
 }

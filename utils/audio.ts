@@ -1,3 +1,13 @@
+import {
+  AuthenticityLevel,
+  getPresetConfig,
+  applyVintageProcessing,
+  type VintageProcessingConfig
+} from './vintageAudioProcessing';
+
+// Re-export for convenience
+export { AuthenticityLevel } from './vintageAudioProcessing';
+
 export function decode(base64: string): Uint8Array {
   const binaryString = atob(base64);
   const len = binaryString.length;
@@ -12,11 +22,12 @@ export async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
   sampleRate: number,
-  numChannels: number
+  numChannels: number,
+  audioMode?: 'modern' | 'subtle' | 'authentic' | 'ultra'
 ): Promise<AudioBuffer> {
   const dataInt16 = new Int16Array(data.buffer);
   const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+  let buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
 
   for (let channel = 0; channel < numChannels; channel++) {
     const channelData = buffer.getChannelData(channel);
@@ -24,7 +35,31 @@ export async function decodeAudioData(
       channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
     }
   }
+
+  // Apply vintage processing if audioMode is specified and not 'modern'
+  if (audioMode && audioMode !== 'modern') {
+    const authenticityLevel = mapAudioModeToAuthenticityLevel(audioMode);
+    const config = getPresetConfig(authenticityLevel);
+    buffer = await applyVintageProcessing(buffer, ctx, config);
+  }
+
   return buffer;
+}
+
+/**
+ * Map audio mode string to AuthenticityLevel enum
+ */
+function mapAudioModeToAuthenticityLevel(mode: 'modern' | 'subtle' | 'authentic' | 'ultra'): AuthenticityLevel {
+  switch (mode) {
+    case 'modern':
+      return AuthenticityLevel.Modern;
+    case 'subtle':
+      return AuthenticityLevel.SubtleVintage;
+    case 'authentic':
+      return AuthenticityLevel.Authentic;
+    case 'ultra':
+      return AuthenticityLevel.UltraAuthentic;
+  }
 }
 
 /**
