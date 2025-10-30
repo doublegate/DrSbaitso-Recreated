@@ -27,11 +27,27 @@ export async function decodeAudioData(
   return buffer;
 }
 
+/**
+ * Play audio buffer with configurable bit-crushing effect
+ *
+ * Attempts to use AudioWorklet for bit-crushing (modern, efficient).
+ * Falls back to ScriptProcessorNode if AudioWorklet is unavailable (legacy browsers).
+ *
+ * @param buffer - AudioBuffer to play
+ * @param ctx - AudioContext instance
+ * @param bitDepth - Number of quantization levels (0 = disabled, 16 = 4-bit, 64 = 6-bit, 256 = 8-bit)
+ * @param playbackRate - Playback speed multiplier (e.g., 1.1 for faster/deeper voice)
+ * @param useWorklet - Whether to attempt AudioWorklet (true) or force ScriptProcessorNode fallback (false)
+ * @returns Promise<void> - Resolves when playback completes
+ *
+ * @version 1.2.0 - Added AudioWorklet support with ScriptProcessorNode fallback
+ */
 export function playAudio(
   buffer: AudioBuffer,
   ctx: AudioContext,
-  bitDepth: number = 64, // Number of quantization levels (0 = disabled)
-  playbackRate: number = 1.1
+  bitDepth: number = 64,
+  playbackRate: number = 1.1,
+  useWorklet: boolean = true
 ): Promise<void> {
   return new Promise((resolve) => {
     if (ctx.state === 'suspended') {
@@ -39,49 +55,67 @@ export function playAudio(
     }
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-
-    // Adjust playback rate. This makes the voice faster and deeper,
-    // mimicking the pitch and cadence of the original program.
     source.playbackRate.value = playbackRate;
 
-    // If bit-crushing is enabled (bitDepth > 0), apply quantization
-    if (bitDepth > 0) {
-      // Bit-crusher effect using a ScriptProcessorNode to quantize audio samples.
-      // This simulates the low-resolution audio of old sound cards.
-      const bufferSize = 2048;
-      const bitCrusher = ctx.createScriptProcessor(bufferSize, 1, 1);
-      const numLevels = bitDepth;
-      const step = 2.0 / (numLevels - 1);
-
-      bitCrusher.onaudioprocess = function(e) {
-        const input = e.inputBuffer.getChannelData(0);
-        const output = e.outputBuffer.getChannelData(0);
-        for (let i = 0; i < input.length; i++) {
-          // Quantize the float sample to a fixed number of levels.
-          const val = input[i];
-          output[i] = Math.round(val / step) * step;
-        }
-      };
-
-      // Connect nodes: source -> bitCrusher -> destination
-      source.connect(bitCrusher);
-      bitCrusher.connect(ctx.destination);
-
+    // If bit-crushing is disabled, connect directly and return
+    if (bitDepth === 0) {
+      source.connect(ctx.destination);
       source.onended = () => {
-          // Disconnect nodes to allow for garbage collection
+        source.disconnect();
+        resolve();
+      };
+      source.start();
+      return;
+    }
+
+    // Attempt AudioWorklet if supported and requested
+    if (useWorklet && 'audioWorklet' in ctx) {
+      try {
+        // Try to create AudioWorkletNode
+        const bitCrusher = new AudioWorkletNode(ctx, 'bit-crusher-processor', {
+          processorOptions: { bitDepth }
+        });
+
+        source.connect(bitCrusher);
+        bitCrusher.connect(ctx.destination);
+
+        source.onended = () => {
           source.disconnect();
           bitCrusher.disconnect();
           resolve();
-      };
-    } else {
-      // No bit-crushing, connect directly
-      source.connect(ctx.destination);
+        };
 
-      source.onended = () => {
-          source.disconnect();
-          resolve();
-      };
+        source.start();
+        return;
+      } catch (error) {
+        console.warn('AudioWorklet failed, falling back to ScriptProcessorNode:', error);
+        // Fall through to ScriptProcessorNode fallback
+      }
     }
+
+    // Fallback: ScriptProcessorNode (deprecated but widely supported)
+    const bufferSize = 2048;
+    const bitCrusher = ctx.createScriptProcessor(bufferSize, 1, 1);
+    const numLevels = bitDepth;
+    const step = 2.0 / (numLevels - 1);
+
+    bitCrusher.onaudioprocess = function(e) {
+      const input = e.inputBuffer.getChannelData(0);
+      const output = e.outputBuffer.getChannelData(0);
+      for (let i = 0; i < input.length; i++) {
+        const val = input[i];
+        output[i] = Math.round(val / step) * step;
+      }
+    };
+
+    source.connect(bitCrusher);
+    bitCrusher.connect(ctx.destination);
+
+    source.onended = () => {
+      source.disconnect();
+      bitCrusher.disconnect();
+      resolve();
+    };
 
     source.start();
   });

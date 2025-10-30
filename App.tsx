@@ -22,10 +22,20 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const playingGreetingIndexRef = useRef<number>(-1);
 
-  const ensureAudioContext = () => {
+  const ensureAudioContext = async () => {
     if (!audioContextRef.current) {
       try {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+
+        // Initialize AudioWorklet module on first AudioContext creation
+        if (audioContextRef.current && 'audioWorklet' in audioContextRef.current) {
+          try {
+            await audioContextRef.current.audioWorklet.addModule('/audio-processor.worklet.js');
+            console.log('AudioWorklet initialized successfully');
+          } catch (error) {
+            console.warn('AudioWorklet initialization failed, will use ScriptProcessorNode fallback:', error);
+          }
+        }
       } catch (e) {
         console.error("Could not create AudioContext:", e);
       }

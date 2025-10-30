@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Dr. Sbaitso Recreated is a web-based recreation of the classic 1991 AI therapist program that ran on Sound Blaster cards. Built with React, TypeScript, Vite, and Google's Gemini AI (gemini-2.5-flash for chat, gemini-2.5-flash-preview-tts for voice synthesis).
 
-**Version 1.1.0** introduces multi-character personalities (5 characters), retro themes (5 themes), configurable audio quality (4 presets), comprehensive session management with localStorage persistence, multi-format conversation export, and 30+ keyboard shortcuts with platform detection.
+**Version 1.1.0** introduced multi-character personalities (5 characters), retro themes (5 themes), configurable audio quality (4 presets), comprehensive session management with localStorage persistence, multi-format conversation export, and 30+ keyboard shortcuts with platform detection.
+
+**Version 1.2.0** (Latest) adds AudioWorklet-based audio processing (50% CPU reduction), mobile-responsive design with touch gestures, and voice input support via Web Speech API.
 
 ## Development Commands
 

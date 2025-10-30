@@ -15,21 +15,21 @@ Dr. Sbaitso Recreated is a single-page React application that recreates the 1991
 ## System Architecture (v1.1.0)
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                           App.tsx                            │
+┌─────────────────────────────────────────────────────────────┐
+│                           App.tsx                           │
 │  ┌──────────┐  ┌───────────┐  ┌──────────┐  ┌────────────┐  │
 │  │   Name   │→ │ Character │→ │ Greeting │→ │Conversation│  │
 │  │  Entry   │  │ Selection │  │ Sequence │  │   Phase    │  │
 │  └──────────┘  └───────────┘  └──────────┘  └────────────┘  │
-└─────┬──────────┬───────────┬───────────┬───────────┬────────┘
-      │          │           │           │           │
-┌─────▼──────┐ ┌▼────────┐ ┌▼────────┐ ┌▼────────┐ ┌▼─────────┐
-│ constants  │ │ gemini  │ │ audio   │ │ session │ │ keyboard │
-│  5 chars   │ │ Service │ │ utils   │ │ Manager │ │shortcuts │
-│  5 themes  │ │Multi-ch │ │Config   │ │localStorage│ │30+ keys │
-│  4 presets │ │ Chat    │ │Quality  │ │Auto-save│ │Ctrl/Cmd │
-└────────────┘ │ Map     │ │Presets  │ │Stats    │ └──────────┘
-               └─────────┘ └─────────┘ └────┬────┘
+└─────┬──────────┬───────────┬───────────┬───────────────┬────┘
+      │          │           │           │               │
+┌─────▼──────┐ ┌─▼────────┐ ┌▼────────┐ ┌▼────────────┐ ┌▼─────────┐
+│ constants  │ │ gemini   │ │ audio   │ │ session     │ │ keyboard │
+│  5 chars   │ │ Service  │ │ utils   │ │ Manager     │ │shortcuts │
+│  5 themes  │ │Multi-ch  │ │Config   │ │localStorage │ │30+ keys  │
+│  4 presets │ │ Chat     │ │Quality  │ │Auto-save    │ │Ctrl/Cmd  │
+└────────────┘ │ Map      │ │Presets  │ │Stats        │ └──────────┘
+               └──────────┘ └─────────┘ └────┬────────┘
                                              │
                                         ┌────▼─────┐
                                         │  Export  │
