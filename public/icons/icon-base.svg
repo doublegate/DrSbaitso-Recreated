@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- DOS Blue Background -->
+  <rect width="512" height="512" fill="#000080"/>
+
+  <!-- Outer CRT Monitor Frame (Gray) -->
+  <rect x="56" y="56" width="400" height="400" rx="20" fill="#808080"/>
+
+  <!-- Inner CRT Screen (Black) -->
+  <rect x="76" y="76" width="360" height="360" rx="10" fill="#000000"/>
+
+  <!-- CRT Screen Glow Effect -->
+  <rect x="86" y="86" width="340" height="340" rx="5" fill="#001a4d" opacity="0.5"/>
+
+  <!-- Retro Terminal Text Lines (Cyan on Black - Classic DOS) -->
+  <g fill="#00FFFF" font-family="monospace" font-size="20" font-weight="bold">
+    <text x="256" y="140" text-anchor="middle">DR. SBAITSO</text>
+    <text x="256" y="175" text-anchor="middle" font-size="14">████████████</text>
+  </g>
+
+  <!-- Large "Dr. S" Logo -->
+  <g fill="#FFFF00" font-family="monospace" font-weight="bold">
+    <text x="256" y="260" text-anchor="middle" font-size="80">Dr.</text>
+    <text x="256" y="340" text-anchor="middle" font-size="120">S</text>
+  </g>
+
+  <!-- Subtitle Text -->
+  <g fill="#00FF00" font-family="monospace" font-size="14">
+    <text x="256" y="380" text-anchor="middle">AI THERAPIST</text>
+    <text x="256" y="400" text-anchor="middle">EST. 1991</text>
+  </g>
+
+  <!-- CRT Scanline Effect -->
+  <defs>
+    <pattern id="scanlines" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="4" height="2" fill="#000000" opacity="0.15"/>
+    </pattern>
+  </defs>
+  <rect x="76" y="76" width="360" height="360" rx="10" fill="url(#scanlines)"/>
+
+  <!-- Screen Highlight (Top-Left Glare) -->
+  <ellipse cx="150" cy="150" rx="80" ry="60" fill="#FFFFFF" opacity="0.1"/>
+</svg>
