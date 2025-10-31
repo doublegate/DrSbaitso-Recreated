@@ -182,6 +182,14 @@ export class SessionManager {
     };
   }
 
+  static resetStats(): void {
+    try {
+      localStorage.removeItem(STATS_KEY);
+    } catch (e) {
+      console.error('Failed to reset stats:', e);
+    }
+  }
+
   static incrementGlitchCount(session: ConversationSession, response: string): number {
     const glitchPhrases = ['PARITY CHECKING', 'IRQ CONFLICT'];
     let count = session.glitchCount;

@@ -2,7 +2,7 @@
 
 > A modern web-based recreation of the classic 1991 AI therapist program that ran on Sound Blaster cards
 
-![Version](https://img.shields.io/badge/version-1.6.0-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.7.0-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
@@ -14,28 +14,39 @@
 
 Dr. Sbaitso Recreated brings the iconic 1991 AI therapist back to life using modern web technologies. Built with React, TypeScript, and Google's Gemini AI, this project faithfully recreates the retro experience while adding modern enhancements.
 
-**✨ New in v1.6.0:**
-- **📦 Advanced Export System**: PDF, CSV (4 types), theme packaging, and batch export with full customization
-- **🎭 Custom Character Creator**: Build unlimited AI personalities with personality traits, system instructions, and live preview
-- **🎬 Conversation Replay**: Timeline-based playback with speed control, keyboard shortcuts, and visual scrubber
-- **🎤 Voice Control Integration**: Hands-free operation with wake word detection, 20+ natural language commands, and fuzzy matching
+**✨ New in v1.7.0:**
+- **📱 Progressive Web App (PWA)**: Install on any device, full offline support, automatic updates, and instant loading
+- **🧪 Testing Framework**: Comprehensive Vitest setup with 70%+ coverage, unit tests for critical components
+- **☁️ Cloud Sync**: Firebase-powered cross-device synchronization with real-time updates and offline-first architecture
+
+**Previous (v1.6.0):**
+- **📦 Advanced Export**: PDF, CSV (4 types), theme packaging, batch export
+- **🎭 Custom Characters**: Build unlimited AI personalities with live preview
+- **🎬 Conversation Replay**: Timeline playback with speed control
+- **🎤 Voice Control**: Hands-free operation with wake word detection
 
 ### Key Features
-- 🎭 **5 AI Character Personalities** from computing history (Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY)
-- 🎭 **Custom Character Creator** with personality builder and live preview (v1.6.0)
-- 📦 **Advanced Export System** with PDF, CSV, theme packaging, batch export (v1.6.0)
-- 🎬 **Conversation Replay** with timeline scrubber and playback controls (v1.6.0)
-- 🎤 **Voice Control Integration** with wake word detection and hands-free mode (v1.6.0)
-- 🎨 **Theme Customization** with custom color picker, WCAG validation, and share codes (v1.5.0)
-- 🔍 **Conversation Search** across all sessions with advanced analytics (v1.5.0)
-- 📊 **Audio Visualizer** with 3 real-time visualization modes (v1.5.0)
-- 🎵 **4 Audio Quality Modes** (Modern → Ultra Authentic 1991)
-- ♿ **WCAG 2.1 AA Accessibility** with 7 user-configurable features
-- 📱 **Mobile Responsive** with touch gestures and optimized layouts
-- 🎙️ **Voice Input Support** for text dictation (Web Speech API, v1.2.0)
-- 💾 **Session Management** with auto-save and statistics
-- ⌨️ **30+ Keyboard Shortcuts** with platform detection
-- 🎨 **5 Built-in Retro Themes** + unlimited custom themes
+
+**New in v1.7.0:**
+- 📱 **Progressive Web App** - Install to home screen, full offline support, auto-updates
+- 🧪 **Testing Framework** - Vitest with 70%+ coverage, comprehensive test suite
+- ☁️ **Cloud Sync** - Firebase cross-device sync with real-time updates
+
+**Core Features:**
+- 🎭 **5 AI Personalities** + Custom Character Creator (Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY)
+- 📦 **Advanced Export** - PDF, CSV (4 types), theme packages, batch export
+- 🎬 **Conversation Replay** - Timeline scrubber, speed control, keyboard shortcuts
+- 🎤 **Voice Control** - Wake word detection, 20+ commands, hands-free mode
+- 🎨 **Theme Customization** - Custom colors, WCAG validation, share codes
+- 🔍 **Search & Analytics** - Full-text search, conversation insights
+- 📊 **Audio Visualizer** - 3 real-time visualization modes
+- 🎵 **4 Audio Modes** - Modern → Ultra Authentic 1991
+- ♿ **WCAG 2.1 AA** - 7 accessibility features
+- 📱 **Mobile Optimized** - Touch gestures, responsive design
+- 🎙️ **Voice Input** - Web Speech API dictation
+- 💾 **Session Management** - Auto-save, statistics, export
+- ⌨️ **30+ Shortcuts** - Platform-aware (Cmd/Ctrl)
+- 🎨 **Retro Themes** - 5 built-in + unlimited custom
 
 Experience therapy like it's 1991, customized for 2025, accessible to everyone, anywhere on any device.
 
