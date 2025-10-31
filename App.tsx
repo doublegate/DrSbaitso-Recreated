@@ -137,7 +137,7 @@ export default function App() {
       setIsPreparingGreeting(true);
       setNameError(null); // Clear previous errors
       const name = nameInput.trim().toUpperCase();
-      
+
       const lines = [
         `HELLO ${name}, MY NAME IS DOCTOR SBAITSO.`,
         "I AM HERE TO HELP YOU.",
@@ -158,9 +158,25 @@ export default function App() {
         setGreetingLines(lines);
         setUserName(name);
         setIsGreeting(true);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to prepare greeting audio:", error);
-        setNameError("SYSTEM ERROR: FAILED TO INITIALIZE. PLEASE REFRESH.");
+
+        // Check if it's a rate limit error (429)
+        const isRateLimit = error?.message?.includes('429') ||
+                           error?.message?.includes('quota') ||
+                           error?.message?.includes('RESOURCE_EXHAUSTED');
+
+        if (isRateLimit) {
+          // Continue without audio - graceful degradation
+          console.warn("Rate limit hit - continuing in text-only mode");
+          setGreetingAudio([]); // No audio
+          setGreetingLines(lines);
+          setUserName(name);
+          setIsGreeting(true);
+        } else {
+          // For other errors, show error message
+          setNameError("SYSTEM ERROR: FAILED TO INITIALIZE. PLEASE REFRESH.");
+        }
       } finally {
         setIsPreparingGreeting(false);
       }
@@ -216,7 +232,11 @@ export default function App() {
         }
       }
 
-      const audioPromise = synthesizeSpeech(drResponseText, 'sbaitso');
+      const audioPromise = synthesizeSpeech(drResponseText, 'sbaitso').catch(err => {
+        // Gracefully handle TTS errors - continue without audio
+        console.warn("TTS failed, continuing text-only:", err);
+        return ""; // Return empty string if TTS fails
+      });
       setMessages(prev => [...prev, { author: 'dr', text: '' }]);
 
       const typingSpeed = 40;

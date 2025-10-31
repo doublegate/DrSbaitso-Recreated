@@ -93,9 +93,12 @@ export async function synthesizeSpeech(text: string, characterId: string): Promi
             throw new Error("No audio data received from TTS API");
         }
         return base64Audio;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error synthesizing speech:", error);
-        throw new Error("Failed to synthesize speech.");
+        // Preserve error details for rate limit detection
+        const errorMessage = error?.message || error?.toString() || "Unknown error";
+        const statusCode = error?.status || error?.code || '';
+        throw new Error(`TTS Error (${statusCode}): ${errorMessage}`);
     }
 }
 
