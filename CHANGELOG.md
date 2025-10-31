@@ -13,6 +13,196 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cloud session sync across devices
 - Custom character creation tools
 
+## [1.5.0] - 2025-10-30
+
+### Added - Theme Customization, Search & Analytics, Audio Visualization
+
+#### 1. Theme Customization System
+- **Custom Theme Creator**: Full-featured theme editor with live preview
+  - Color pickers for all 5 theme colors (primary, background, text, border, accent)
+  - Real-time WCAG accessibility validation with contrast ratio analysis
+  - Accessibility score (0-100) with detailed suggestions
+  - Auto-generate harmonious color schemes from base color
+  - Live preview panel showing how theme looks in application
+- **Theme Management**:
+  - Save custom themes to localStorage
+  - Import/Export themes as JSON
+  - Generate shareable theme codes (base64 encoded)
+  - Import themes from share codes
+  - Copy theme JSON and share codes to clipboard
+- **Accessibility Validation**:
+  - WCAG AA and AAA compliance checking
+  - Text/background contrast ratio: 4.5:1 (AA), 7:1 (AAA)
+  - Accent contrast checking (3:1 minimum)
+  - Border visibility warnings
+  - Color suggestions for improving accessibility
+- **New Utility Functions** (utils/themeValidator.ts):
+  - `generateThemeId()`: Generate unique theme IDs
+  - `isValidCustomTheme()`: Validate theme structure
+  - `darkenColor()`, `lightenColor()`: Color manipulation
+  - `exportThemeJSON()`, `importThemeJSON()`: JSON serialization
+  - `generateShareCode()`, `parseShareCode()`: Base64 theme sharing
+  - Extended with CustomTheme interface and management functions
+
+#### 2. Conversation Search & Analytics
+- **Full-Text Search**:
+  - Search across all saved sessions simultaneously
+  - Context highlighting with matched text emphasis
+  - Filter by character (Dr. Sbaitso, ELIZA, HAL, JOSHUA, PARRY)
+  - Filter by author (User only, AI only, or both)
+  - Real-time search results with session navigation
+  - Click result to jump directly to that session
+- **Analytics Dashboard**:
+  - Overview statistics:
+    - Total sessions count
+    - Total messages exchanged
+    - Average messages per session
+    - Total word count
+  - Character usage breakdown with visual progress bars
+  - Top 10 most common words (filtered by length > 3)
+  - Conversation insights:
+    - Average words per message
+    - Most used character
+    - Vocabulary richness score
+- **Search Results**:
+  - Session name and character display
+  - Message number and author
+  - Context excerpt with highlighted matches
+  - Supports unlimited sessions and messages
+- **New Component**: ConversationSearch.tsx (12KB)
+
+#### 3. Audio Visualizer
+- **Real-Time Audio Visualization**:
+  - Web Audio API AnalyserNode integration
+  - FFT size: 2048 samples
+  - Smooth animation with requestAnimationFrame
+- **Three Visualization Modes**:
+  - **Waveform**: Classic oscilloscope-style time-domain waveform (retro green)
+  - **Frequency**: Full frequency spectrum analysis with gradient coloring
+  - **Bars**: 32-band equalizer-style display with frequency-based coloring
+    - Low frequencies (0-8): Red
+    - Mid-low (8-16): Orange
+    - Mid-high (16-24): Yellow
+    - High (24-32): Green
+- **Interactive Controls**:
+  - Toggle between visualization modes with buttons
+  - Mode indicators: 〰 (waveform), ∿ (frequency), ▃▅▆▇ (bars)
+  - Fixed position in bottom-right corner (z-index 40)
+  - Show/hide visualizer with header button
+- **Retro Styling**:
+  - Black background with current theme border
+  - Phosphor-green waveforms
+  - Gradient frequency displays
+  - Minimal, authentic retro aesthetic
+- **Performance**:
+  - Efficient canvas rendering
+  - Smoothing time constant: 0.8
+  - No audio latency impact
+  - Automatic cleanup on unmount
+- **New Component**: AudioVisualizer.tsx (8KB)
+
+### Changed - Core Architecture (v1.5.0)
+
+#### App.tsx Enhancements
+- **New State Variables**:
+  - `showThemeCustomizer`: Control theme editor modal
+  - `showConversationSearch`: Control search/analytics modal
+  - `showAudioVisualizer`: Toggle visualizer display
+  - `customThemes`: Array of user-created themes
+  - `savedSessions`: Sessions for search functionality
+  - `currentAudioSource`, `isAudioPlaying`: Audio visualizer state
+- **New UI Elements**:
+  - Theme customizer button (🎨) in header
+  - Search button (🔍) for conversation search
+  - Visualizer button (📊) to toggle audio visualization
+  - All buttons with hover states and focus rings
+- **Component Integration**:
+  - ThemeCustomizer modal with save handler
+  - ConversationSearch with session navigation
+  - AudioVisualizer with fixed positioning
+
+#### Type Definitions (types.ts)
+- Extended with ConversationSession type (already existed from v1.1.0)
+- Compatible with new CustomTheme interface from themeValidator
+
+#### Constants (constants.ts)
+- Extended with THEMES array (already exists from v1.1.0)
+- CustomTheme definitions in themeValidator.ts (separate module)
+
+### Technical Implementation (v1.5.0)
+
+#### New Files Created
+1. **components/ThemeCustomizer.tsx** (20KB, ~700 lines):
+   - Full-featured theme editor component
+   - Color pickers with hex input fields
+   - Real-time accessibility validation UI
+   - Import/Export/Share functionality
+   - Live preview panel
+   - Modal dialog with header/footer
+
+2. **components/ConversationSearch.tsx** (12KB, ~420 lines):
+   - Tabbed interface (Search / Analytics)
+   - Search input with filters
+   - Results list with highlighting
+   - Analytics dashboard with charts
+   - Character usage visualization
+   - Word frequency analysis
+
+3. **components/AudioVisualizer.tsx** (8KB, ~270 lines):
+   - Canvas-based audio visualization
+   - Three rendering modes
+   - AnalyserNode integration
+   - Retro-styled UI controls
+   - Real-time animation loop
+
+4. **utils/themeValidator.ts** (Enhanced):
+   - Added CustomTheme management functions (125 lines)
+   - Color manipulation utilities
+   - Import/Export/Share code generation
+   - Base64 encoding/decoding for sharing
+
+#### Bundle Size Impact
+- **Before v1.5.0**: 428.32 kB (109.59 kB gzipped)
+- **After v1.5.0**: 456.13 kB (116.14 kB gzipped)
+- **Increase**: +27.81 kB (+6.55 kB gzipped)
+- **Percentage**: +6.5% size increase for 3 major features
+
+### Browser Compatibility (v1.5.0)
+- All features use standard Web APIs
+- Color pickers: Chrome 20+, Firefox 29+, Safari 14+
+- Canvas API: Universal support
+- Web Audio AnalyserNode: Chrome 14+, Firefox 25+, Safari 6+
+- Base64 encoding (btoa/atob): Universal support
+- localStorage: Universal support
+
+### Performance (v1.5.0)
+- Theme customizer: No runtime overhead (modal-based)
+- Search: O(n*m) complexity (n=sessions, m=messages), fast for typical usage
+- Audio visualizer: ~16ms per frame (60 FPS), minimal CPU impact
+- No network requests (all client-side features)
+- localStorage: ~5-10 KB per custom theme
+
+### User Experience Improvements (v1.5.0)
+1. **Discoverability**: All new features accessible via header buttons
+2. **Visual Feedback**: Icon buttons with hover tooltips
+3. **Non-Intrusive**: Modal-based interfaces don't disrupt conversations
+4. **Accessibility**: Full keyboard navigation, ARIA labels, focus management
+5. **No Breaking Changes**: All existing features continue to work unchanged
+
+### Known Limitations (v1.5.0)
+1. **Theme Persistence**: Custom themes saved to localStorage only (not synced)
+2. **Search Performance**: May slow down with 1000+ sessions (edge case)
+3. **Visualizer Browser Support**: Requires Web Audio API (not available in IE)
+4. **Mobile**: Emoji buttons may render differently across devices
+5. **Share Codes**: Base64 encoding increases size by ~33% (acceptable trade-off)
+
+### Migration Notes (v1.5.0)
+- No breaking changes from v1.4.1
+- New features are opt-in (buttons in header)
+- No automatic data migrations required
+- Custom themes start empty (users create as needed)
+- Visualizer hidden by default (toggle to show)
+
 ## [1.4.1] - 2025-10-30
 
 ### Changed - UI Integration Complete (v1.3.0 + v1.4.0)

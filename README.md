@@ -2,7 +2,7 @@
 
 > A modern web-based recreation of the classic 1991 AI therapist program that ran on Sound Blaster cards
 
-![Version](https://img.shields.io/badge/version-1.4.1-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.5.0-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
@@ -14,14 +14,16 @@
 
 Dr. Sbaitso Recreated brings the iconic 1991 AI therapist back to life using modern web technologies. Built with React, TypeScript, and Google's Gemini AI, this project faithfully recreates the retro experience while adding modern enhancements.
 
-**✨ New in v1.4.1:**
-- **Authentic 1991 Voice**: 4 audio modes including historically accurate vintage processing
-- **Full Accessibility**: WCAG 2.1 Level AA compliant with 7 accessibility features
-- **Complete UI Integration**: All features accessible via intuitive controls and keyboard shortcuts
+**✨ New in v1.5.0:**
+- **🎨 Theme Customization System**: Create, share, and validate custom color themes with WCAG accessibility checking
+- **🔍 Conversation Search & Analytics**: Full-text search across all sessions with comprehensive analytics dashboard
+- **📊 Audio Visualizer**: Real-time audio visualization with 3 modes (waveform, frequency, bars)
 
 ### Key Features
 - 🎭 **5 AI Character Personalities** from computing history (Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY)
-- 🎨 **5 Retro Terminal Themes** with live switching (DOS Blue, Phosphor Green, Amber, Paper, Matrix)
+- 🎨 **Theme Customization** with custom color picker, WCAG validation, and share codes (v1.5.0)
+- 🔍 **Conversation Search** across all sessions with advanced analytics (v1.5.0)
+- 📊 **Audio Visualizer** with 3 real-time visualization modes (v1.5.0)
 - 🎵 **4 Audio Quality Modes** (Modern → Ultra Authentic 1991)
 - ♿ **WCAG 2.1 AA Accessibility** with 7 user-configurable features
 - 📱 **Mobile Responsive** with touch gestures and optimized layouts
@@ -29,11 +31,115 @@ Dr. Sbaitso Recreated brings the iconic 1991 AI therapist back to life using mod
 - 💾 **Session Management** with auto-save and statistics
 - 📤 **Multi-Format Export** (Markdown, Text, JSON, HTML)
 - ⌨️ **30+ Keyboard Shortcuts** with platform detection
-- 📊 **Real-time Statistics** dashboard
+- 🎨 **5 Built-in Retro Themes** + unlimited custom themes
 
-Experience therapy like it's 1991, optimized for 2025, accessible to everyone, anywhere on any device.
+Experience therapy like it's 1991, customized for 2025, accessible to everyone, anywhere on any device.
+
+## v1.5.0 Quick Start
+
+New to the theme customization, search, and visualization features? Here's a 60-second guide:
+
+### 🎨 Theme Customization in 30 Seconds
+1. Click the **🎨 button** in the conversation header
+2. Adjust the 5 color sliders or enter hex codes
+3. Watch the **WCAG accessibility score** update in real-time
+4. Click **Save Theme** to add it to your collection
+5. Share via **Generate Share Code** → Copy → Send to friends
+
+**Try It:** Create a theme with primary=#00ff41 for that authentic Matrix look!
+
+### 🔍 Search & Analytics in 30 Seconds
+1. Click the **🔍 button** in the conversation header
+2. Type any word or phrase in the search box
+3. Use filters to narrow by character or author
+4. Click **Analytics tab** to see your conversation patterns
+5. Review word frequency and character usage charts
+
+**Try It:** Search for "problem" to find all therapy-related discussions!
+
+### 📊 Audio Visualizer in 30 Seconds
+1. Click the **📊 button** in the conversation header
+2. Start a conversation to see the waveform animate
+3. Click **∿ button** to switch to frequency spectrum
+4. Click **▃▅▆▇ button** for 32-band equalizer bars
+5. Toggle off with 📊 button when done
+
+**Try It:** Ask Dr. Sbaitso a question and watch the voice visualization!
 
 ## Features
+
+### 🎨 Theme Customization System (v1.5.0)
+
+Create, save, and share custom color themes with professional-grade tools:
+
+**Theme Editor:**
+- **Full Color Control**: Customize all 5 theme colors (primary, background, text, border, accent)
+- **Visual & Text Input**: Native color pickers + hex code input (#RRGGBB)
+- **Live Preview**: See changes in real-time before saving
+- **Auto-Generate**: Create harmonious color schemes from a base color
+
+**WCAG Accessibility Validation:**
+- Automatic contrast ratio calculation for all color pairs
+- WCAG AA (4.5:1) and AAA (7:1) compliance checking
+- Accessibility score out of 100 with detailed suggestions
+- Separate analysis for text, accent, and border contrast
+
+**Theme Management:**
+- Save unlimited custom themes to localStorage
+- Import/Export themes as JSON files
+- Generate base64 share codes for easy sharing
+- One-click copy to clipboard
+- Theme metadata (name, description, author)
+
+**Access**: Click 🎨 button in conversation header
+
+### 🔍 Conversation Search & Analytics (v1.5.0)
+
+Powerful search and analysis tools for all your conversations:
+
+**Full-Text Search:**
+- Search across all saved sessions simultaneously
+- Context highlighting with matched text emphasis
+- Advanced filters:
+  - By character (Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY)
+  - By author (User only, AI only, or both)
+- Real-time results with session/message navigation
+- Click any result to jump to that conversation
+
+**Analytics Dashboard:**
+- **Overview Metrics**: Total sessions, messages, average msgs/session, word count
+- **Character Usage**: Visual bar charts showing usage percentages
+- **Word Frequency**: Top 10 most common words (4+ characters)
+- **Conversation Insights**: Vocabulary richness, patterns, preferences
+
+**Tabbed Interface:** Switch between Search and Analytics instantly
+
+**Access**: Click 🔍 button in conversation header
+
+### 📊 Audio Visualizer (v1.5.0)
+
+Real-time visual representation of Dr. Sbaitso's voice:
+
+**Three Visualization Modes:**
+- **Waveform (〰)**: Classic oscilloscope-style time-domain display (retro phosphor-green)
+- **Frequency (∿)**: Full spectrum analysis with gradient coloring (FFT-based)
+- **Bars (▃▅▆▇)**: 32-band equalizer with frequency-based colors:
+  - Red (bass) → Orange (low-mid) → Yellow (high-mid) → Green (treble)
+
+**Technical Specifications:**
+- FFT Size: 2048 samples (high resolution)
+- Frame Rate: 60 FPS (smooth animation)
+- Canvas: 600×150px (responsive width)
+- Position: Fixed bottom-right corner
+- Performance: ~1-2% CPU, no audio latency
+
+**Features:**
+- Toggle on/off with 📊 button in header
+- Switch visualization modes instantly
+- Retro styling with black background and theme-colored borders
+- Auto-pause when audio stops
+
+**Access**: Click 📊 button in conversation header
 
 ### 🎭 Multiple AI Personalities (v1.1.0)
 
@@ -428,22 +534,26 @@ DrSbaitso-Recreated/
 └── CLAUDE.md               # Developer guidance for Claude Code
 ```
 
-**New in v1.1.0:**
+**New in v1.1.0-v1.5.0:**
 - `constants.ts` - 5 character personalities, 5 themes, 4 audio presets, 4 audio modes, keyboard shortcuts
 - `utils/sessionManager.ts` - localStorage-based session management and statistics
 - `utils/exportConversation.ts` - Export to Markdown, Text, JSON, HTML
-- `utils/vintageAudioProcessing.ts` - Authentic 1991 voice recreation (NEW v1.3.0)
-- `utils/accessibilityManager.ts` - WCAG 2.1 AA accessibility utilities (NEW v1.4.0)
+- `utils/vintageAudioProcessing.ts` - Authentic 1991 voice recreation (v1.3.0)
+- `utils/themeValidator.ts` - Theme validation, color manipulation, WCAG checking, share codes (v1.5.0)
+- `utils/accessibilityManager.ts` - WCAG 2.1 AA accessibility utilities (v1.4.0)
 - `hooks/useKeyboardShortcuts.ts` - 30+ keyboard shortcuts with platform detection
-- `hooks/useAccessibility.ts` - Accessibility settings management (NEW v1.4.0)
-- `hooks/useFocusTrap.ts` - Modal focus trapping (NEW v1.4.0)
-- `hooks/useScreenReader.ts` - Screen reader announcements (NEW v1.4.0)
-- `components/SkipNav.tsx` - Skip navigation component (NEW v1.4.0)
-- `components/AccessibilityPanel.tsx` - Accessibility settings UI (NEW v1.4.0)
+- `hooks/useAccessibility.ts` - Accessibility settings management (v1.4.0)
+- `hooks/useFocusTrap.ts` - Modal focus trapping (v1.4.0)
+- `hooks/useScreenReader.ts` - Screen reader announcements (v1.4.0)
+- `components/SkipNav.tsx` - Skip navigation component (v1.4.0)
+- `components/AccessibilityPanel.tsx` - Accessibility settings UI (v1.4.0)
+- `components/ThemeCustomizer.tsx` - Custom theme editor with WCAG validation (v1.5.0)
+- `components/ConversationSearch.tsx` - Search & analytics dashboard (v1.5.0)
+- `components/AudioVisualizer.tsx` - Real-time audio visualization (v1.5.0)
 - `docs/FEATURES.md` - Comprehensive feature documentation (88KB)
 - `docs/KEYBOARD_SHORTCUTS.md` - Complete shortcut reference (91KB)
-- `docs/DECTALK_RESEARCH.md` - Historical research (NEW v1.3.0, 32KB)
-- `docs/ACCESSIBILITY.md` - Accessibility guide (NEW v1.4.0, 32KB)
+- `docs/DECTALK_RESEARCH.md` - Historical research (v1.3.0, 32KB)
+- `docs/ACCESSIBILITY.md` - Accessibility guide (v1.4.0, 32KB)
 
 ## Architecture Highlights
 
@@ -583,16 +693,64 @@ GEMINI_API_KEY=your_api_key_here
 
 The Vite config exposes this as both `process.env.API_KEY` and `process.env.GEMINI_API_KEY`.
 
+### localStorage Management
+
+Dr. Sbaitso uses browser localStorage for client-side data persistence. Understanding storage limits helps avoid "QuotaExceededError" issues.
+
+#### Storage Breakdown
+
+| Feature | Size per Item | Example |
+|---------|--------------|---------|
+| Conversation Session | ~5-10 KB | 100 sessions = ~1 MB |
+| Custom Theme | ~2-5 KB | 50 themes = ~250 KB |
+| Settings & Stats | ~5-10 KB | One-time storage |
+| **Browser Limit** | **5-10 MB total** | Varies by browser |
+
+#### Checking Usage
+
+**Chrome DevTools:**
+1. Open DevTools (F12)
+2. Application tab → Storage → Local Storage
+3. Right-click domain → Clear to reset
+
+**Firefox DevTools:**
+1. Open DevTools (F12)
+2. Storage tab → Local Storage
+3. View all keys and sizes
+
+#### Best Practices
+
+✅ **Export before clearing**: Use `Ctrl/Cmd + E` to backup conversations
+✅ **Periodic cleanup**: Delete old sessions you don't need
+✅ **Monitor usage**: Check DevTools if experiencing save failures
+✅ **Selective import**: Only import themes you'll actually use
+
+#### Cleanup Strategies
+
+**Approaching limit? Try these:**
+1. Export important sessions as JSON/HTML
+2. Delete sessions older than 30 days
+3. Remove duplicate or test themes
+4. Clear statistics (Settings → Reset Stats)
+5. Use "Clear All Data" as last resort (exports first!)
+
+**Calculating capacity:**
+- Light user: 50 sessions + 10 themes = ~600 KB (~1% of quota)
+- Heavy user: 500 sessions + 50 themes = ~5.25 MB (~90% of 5MB quota)
+- Power user: 1000+ sessions may exceed limits on some browsers
+
+Plan ahead and manage your data to avoid unexpected storage errors.
+
 ## Browser Compatibility
 
 ### Desktop
 
 | Browser | Version | Status | Features |
 |---------|---------|--------|----------|
-| Chrome  | 88+     | ✅ Full support | AudioWorklet, Web Speech API, Accessibility |
-| Firefox | 85+     | ✅ Full support | Web Audio API, Accessibility |
-| Safari  | 14+     | ✅ Full support | AudioWorklet, Accessibility, webkit fallbacks |
-| Edge    | 88+     | ✅ Full support | Chromium-based, all features |
+| Chrome  | 88+     | ✅ Full support | AudioWorklet, Web Speech API, Canvas API, localStorage, Accessibility |
+| Firefox | 85+     | ✅ Full support | Web Audio API, Canvas API, localStorage, Accessibility |
+| Safari  | 14+     | ✅ Full support | AudioWorklet, Canvas API, localStorage, webkit fallbacks, Accessibility |
+| Edge    | 88+     | ✅ Full support | Chromium-based, all features (AudioWorklet, Canvas, localStorage) |
 
 ### Mobile
 
@@ -621,10 +779,13 @@ The Vite config exposes this as both `process.env.API_KEY` and `process.env.GEMI
 
 ## Performance
 
-- **Initial Load**: ~200KB (gzipped)
+- **Initial Load**: ~116KB (gzipped) - v1.5.0
+- **Bundle Size**: 456KB raw (116KB gzipped)
 - **TTS Latency**: 500-1500ms (network dependent)
 - **Audio Processing**: <1% CPU on modern hardware
+- **Audio Visualizer**: ~1-2% CPU (60 FPS)
 - **Memory Usage**: ~56KB per active audio playback
+- **localStorage**: ~5-10KB per custom theme, ~5-10KB per session
 
 ## Troubleshooting
 
@@ -643,6 +804,41 @@ The Vite config exposes this as both `process.env.API_KEY` and `process.env.GEMI
 **Build fails:**
 - Run `rm -rf node_modules package-lock.json && npm install`
 - Check Node.js version is 18+
+
+### v1.5.0 Feature Issues
+
+**Theme Customizer won't open:**
+- Check browser console for errors
+- Verify localStorage is enabled (Settings → Privacy)
+- Try clearing site data and refreshing
+
+**Theme import fails with "Invalid JSON":**
+- Validate JSON format at jsonlint.com
+- Ensure all required fields present: id, name, colors (5 colors), isCustom, createdAt
+- Check for trailing commas or syntax errors
+
+**Share code doesn't work:**
+- Verify complete code was copied (no truncation)
+- Check for special characters corruption during copy/paste
+- Try exporting as JSON instead and re-importing
+
+**Search returns no results:**
+- Ensure sessions are saved (check localStorage in DevTools)
+- Verify filter settings (character/author filters may be too restrictive)
+- Check search query spelling
+- Try "Analytics" tab to confirm sessions exist
+
+**Visualizer not animating:**
+- Ensure audio is currently playing (start a conversation)
+- Verify Canvas support in browser (Chrome 4+, Firefox 2+, Safari 3.1+)
+- Check browser console for Canvas errors
+- Try toggling visualizer off/on
+
+**localStorage quota exceeded:**
+- Symptoms: "QuotaExceededError" in console, themes/sessions won't save
+- Solution: Export important sessions → Settings → Manage Sessions → Delete old sessions
+- Each session ~5-10KB, each theme ~2-5KB
+- Browser limit: typically 5-10MB total
 
 See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for comprehensive troubleshooting guide.
 
@@ -692,6 +888,25 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for comprehensive trouble
 - Set daily quota limits
 - Monitor usage regularly
 
+### Custom Theme Security (v1.5.0)
+
+⚠️ **Important**: Only import custom themes from trusted sources.
+
+**Potential Risks:**
+- Malformed JSON could crash the application
+- Extremely large theme files could exceed localStorage quota
+- Themes shared via untrusted channels may contain invalid color values
+
+**Best Practices:**
+- ✅ Use the built-in theme validator (automatically checks WCAG compliance)
+- ✅ Preview themes before saving to your collection
+- ✅ Verify the source before importing share codes
+- ✅ Export your themes regularly as backup
+- ❌ Don't import themes from unknown/untrusted sources
+- ❌ Don't share your personal theme collection publicly without review
+
+The application validates all theme imports, but exercise caution with user-generated content.
+
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#security-considerations) for detailed security guidance.
 
 ## Contributing
@@ -724,14 +939,20 @@ Contributions welcome! Areas for enhancement:
 **Completed in v1.4.1:**
 - [x] Full UI integration of audio modes and accessibility
 
-**Planned Future Enhancements (v1.5.0+):**
+**Completed in v1.5.0:**
+- [x] Theme customization system with WCAG validation
+- [x] Conversation search across all sessions
+- [x] Real-time audio visualizer
+
+**Planned Future Enhancements (v1.6.0+):**
 - [ ] Backend API proxy for production security
 - [ ] Additional voice options (Pico, Kali, Aoede)
 - [ ] Cloud session sync across devices
 - [ ] Custom character creation tools
-- [ ] Theme customizer with custom color picker
 - [ ] Multi-language UI (i18n)
 - [ ] Voice control integration
+- [ ] Export custom themes as CSS files
+- [ ] Advanced search filters (date range, sentiment)
 
 ## Roadmap
 
@@ -739,8 +960,9 @@ Contributions welcome! Areas for enhancement:
 - **v1.2.0** ✅ AudioWorklet migration, mobile gestures, voice input
 - **v1.3.0** ✅ Authentic 1991 voice recreation, historical research
 - **v1.4.0** ✅ WCAG 2.1 AA accessibility compliance
-- **v1.4.1** ✅ Complete UI integration (Current)
-- **v1.5.0**: Theme customizer, custom characters, voice control
+- **v1.4.1** ✅ Complete UI integration
+- **v1.5.0** ✅ Theme customization, search & analytics, audio visualizer (Current)
+- **v1.6.0**: Custom character creation, voice control, advanced export
 - **v2.0.0**: Backend API with authentication, cloud sync, real-time collaboration
 
 ## Credits

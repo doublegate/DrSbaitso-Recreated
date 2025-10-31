@@ -2,9 +2,178 @@
 
 ## Overview
 
-Dr. Sbaitso Recreated v1.1.0 introduces substantial enhancements focused on customization, session management, and user experience improvements while maintaining the authentic retro aesthetic.
+Dr. Sbaitso Recreated combines authentic 1991 retro aesthetics with modern AI capabilities. **Version 1.5.0** adds powerful customization, search, and visualization tools while maintaining the classic experience.
 
-## New Features (v1.1.0)
+## New Features (v1.5.0)
+
+### 1. Theme Customization System
+
+Create and share custom color themes with professional-grade tools:
+
+#### Theme Editor Features
+- **Full Color Control**: Customize all 5 theme colors independently
+  - Primary: Main UI accent color
+  - Background: Canvas background color
+  - Text: Primary text color
+  - Border: UI element borders
+  - Accent: Highlights and emphasis
+- **Color Input Methods**:
+  - Visual color picker (native browser control)
+  - Hex code text input (#RRGGBB format)
+  - Auto-generate harmonious themes from base color
+- **Live Preview**: See changes in real-time before saving
+- **WCAG Accessibility Validation**:
+  - Automatic contrast ratio calculation
+  - WCAG AA (4.5:1) and AAA (7:1) compliance checking
+  - Accessibility score out of 100
+  - Detailed suggestions for improvements
+  - Separate scoring for text, accent, and border contrast
+
+#### Theme Management
+- **Save Custom Themes**: Store unlimited themes in browser localStorage
+- **Import/Export**: Share themes as JSON files
+- **Share Codes**: Generate base64-encoded share codes
+  - Copy to clipboard with one click
+  - Import themes from friend's share codes
+  - Perfect for community theme sharing
+- **Theme Metadata**: Name, description, and author fields
+
+#### Usage Example
+```typescript
+// Open theme customizer via header button 🎨
+// 1. Adjust colors with pickers or hex input
+// 2. Review accessibility score and suggestions
+// 3. Preview theme in sample UI
+// 4. Save or export theme
+// 5. Share via JSON or share code
+```
+
+**Keyboard Shortcuts**: No dedicated shortcut (use button in header)
+
+### 2. Conversation Search & Analytics
+
+Powerful search and analysis tools for all your conversations:
+
+#### Full-Text Search
+- **Search Across All Sessions**: Find any conversation instantly
+- **Context Highlighting**: Matched text highlighted in yellow
+- **Advanced Filters**:
+  - Character filter (Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY)
+  - Author filter (User only, AI only, or both)
+  - Real-time results as you type
+- **Search Results Display**:
+  - Session name and character used
+  - Message number within session
+  - Context excerpt (... surrounding matched text ...)
+  - Click any result to open that session
+- **Performance**: Instant search across hundreds of sessions
+
+#### Analytics Dashboard
+Comprehensive statistics and insights:
+
+**Overview Metrics** (4 main cards):
+- Total Sessions: Lifetime conversation count
+- Total Messages: All messages across all sessions
+- Avg Msg/Session: Conversation depth metric
+- Total Words: Complete word count
+
+**Character Usage Analysis**:
+- Visual bar charts showing usage percentage
+- Count and percentage for each character
+- Most-used character identification
+- Helps understand your preferences
+
+**Word Frequency Analysis**:
+- Top 10 most common words (min 4 characters)
+- Frequency count for each word
+- Vocabulary richness percentage
+- Insights into conversation topics
+
+**Conversation Insights**:
+- Average words per message
+- Most frequently used character
+- Vocabulary diversity metrics
+- Conversation quality indicators
+
+#### Tabbed Interface
+- **Search Tab**: Find specific conversations
+- **Analytics Tab**: View statistics and patterns
+- Easy switching between modes
+- No data reloading (instant tab switching)
+
+**Usage Example**:
+```
+1. Click search button (🔍) in header
+2. Enter search term (e.g., "anxiety")
+3. Apply filters if needed
+4. Review results with context
+5. Click result to jump to session
+6. Switch to Analytics tab for overview
+```
+
+### 3. Audio Visualizer
+
+Real-time visual representation of Dr. Sbaitso's voice:
+
+#### Visualization Modes
+
+**Waveform Mode (〰)**:
+- Classic oscilloscope display
+- Time-domain waveform
+- Retro phosphor-green color
+- Shows audio amplitude over time
+- Smooth, flowing visualization
+
+**Frequency Mode (∿)**:
+- Full frequency spectrum analysis
+- Gradient coloring (green → darker green)
+- Shows frequency distribution
+- Real-time FFT analysis
+- Detailed spectrum view
+
+**Bars Mode (▃▅▆▇)**:
+- 32-band equalizer display
+- Color-coded by frequency range:
+  - **Red** (0-8): Bass frequencies
+  - **Orange** (8-16): Low-mids
+  - **Yellow** (16-24): High-mids
+  - **Green** (24-32): Treble
+- Classic bar-graph aesthetic
+- Easy-to-read visualization
+
+#### Technical Specifications
+- **FFT Size**: 2048 samples (high resolution)
+- **Smoothing**: 0.8 time constant (smooth animations)
+- **Frame Rate**: 60 FPS (requestAnimationFrame)
+- **Canvas Size**: 600x150px (responsive width)
+- **Position**: Fixed bottom-right corner
+- **Z-Index**: 40 (above main UI)
+
+#### Features
+- **Toggle On/Off**: Show/hide with header button (📊)
+- **Mode Switching**: Three buttons for instant mode change
+- **Non-Intrusive**: Stays in corner, doesn't block UI
+- **Auto-Pause**: Stops animating when audio finishes
+- **Retro Styling**: Black background, current theme border
+
+**Usage Example**:
+```
+1. Click visualizer button (📊) in header
+2. Visualizer appears in bottom-right
+3. Start conversation with Dr. Sbaitso
+4. Watch real-time audio visualization
+5. Switch modes with mode buttons
+6. Toggle off when not needed
+```
+
+#### Performance Impact
+- Minimal CPU usage (~1-2%)
+- No audio latency added
+- Efficient canvas rendering
+- Automatic cleanup on pause
+- No memory leaks
+
+## Original Features (v1.1.0)
 
 ### 1. Multiple Character Personalities
 

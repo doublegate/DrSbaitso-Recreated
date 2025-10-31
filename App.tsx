@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Message } from './types';
+import { Message, ConversationSession } from './types';
 import { getDrSbaitsoResponse, synthesizeSpeech } from './services/geminiService';
 import { decode, decodeAudioData, playAudio, playGlitchSound, playErrorBeep } from './utils/audio';
-import { AUDIO_MODES } from './constants';
+import { AUDIO_MODES, THEMES } from './constants';
 import { useAccessibility } from './hooks/useAccessibility';
 import { useScreenReader } from './hooks/useScreenReader';
 import SkipNav from './components/SkipNav';
 import AccessibilityPanel from './components/AccessibilityPanel';
+import { ThemeCustomizer } from './components/ThemeCustomizer';
+import { ConversationSearch } from './components/ConversationSearch';
+import { AudioVisualizer } from './components/AudioVisualizer';
+import { CustomTheme } from './utils/themeValidator';
 
 export default function App() {
   // Core state
@@ -29,6 +33,15 @@ export default function App() {
   const { settings: accessibilitySettings, updateSetting, resetSettings } = useAccessibility();
   const { announce } = useScreenReader();
   const [showAccessibilityPanel, setShowAccessibilityPanel] = useState(false);
+
+  // v1.5.0 Feature states
+  const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
+  const [showConversationSearch, setShowConversationSearch] = useState(false);
+  const [showAudioVisualizer, setShowAudioVisualizer] = useState(false);
+  const [customThemes, setCustomThemes] = useState<CustomTheme[]>([]);
+  const [savedSessions, setSavedSessions] = useState<ConversationSession[]>([]);
+  const [currentAudioSource, setCurrentAudioSource] = useState<AudioBufferSourceNode | null>(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   // Refs
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -360,16 +373,42 @@ export default function App() {
               </select>
             </div>
 
-            {/* Accessibility Panel Toggle */}
-            <button
-              onClick={() => setShowAccessibilityPanel(true)}
-              className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
-              aria-label="Open accessibility settings (Ctrl+A)"
-              title="Accessibility Settings (Ctrl+A)"
-            >
-              <span aria-hidden="true">♿</span>
-              <span className="ml-1">A11Y</span>
-            </button>
+            {/* v1.5.0 Feature Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowThemeCustomizer(true)}
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                aria-label="Open theme customizer"
+                title="Theme Customizer"
+              >
+                🎨
+              </button>
+              <button
+                onClick={() => setShowConversationSearch(true)}
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                aria-label="Search conversations"
+                title="Search & Analytics"
+              >
+                🔍
+              </button>
+              <button
+                onClick={() => setShowAudioVisualizer(!showAudioVisualizer)}
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                aria-label="Toggle audio visualizer"
+                title="Audio Visualizer"
+              >
+                📊
+              </button>
+              <button
+                onClick={() => setShowAccessibilityPanel(true)}
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                aria-label="Open accessibility settings (Ctrl+A)"
+                title="Accessibility Settings (Ctrl+A)"
+              >
+                <span aria-hidden="true">♿</span>
+                <span className="ml-1">A11Y</span>
+              </button>
+            </div>
           </div>
 
           {/* Messages area */}
@@ -436,6 +475,42 @@ export default function App() {
           onUpdateSetting={updateSetting}
           onResetSettings={resetSettings}
         />
+      )}
+
+      {/* Theme Customizer (v1.5.0) */}
+      {showThemeCustomizer && (
+        <ThemeCustomizer
+          isOpen={showThemeCustomizer}
+          onClose={() => setShowThemeCustomizer(false)}
+          onSave={(theme) => {
+            setCustomThemes([...customThemes, theme]);
+            console.log('Custom theme saved:', theme);
+            setShowThemeCustomizer(false);
+          }}
+        />
+      )}
+
+      {/* Conversation Search (v1.5.0) */}
+      {showConversationSearch && (
+        <ConversationSearch
+          isOpen={showConversationSearch}
+          onClose={() => setShowConversationSearch(false)}
+          sessions={savedSessions}
+          onOpenSession={(sessionId) => {
+            console.log('Opening session:', sessionId);
+          }}
+        />
+      )}
+
+      {/* Audio Visualizer (v1.5.0) */}
+      {showAudioVisualizer && (
+        <div className="fixed bottom-4 right-4 z-40">
+          <AudioVisualizer
+            audioContext={audioContextRef.current}
+            audioSource={currentAudioSource}
+            isPlaying={isAudioPlaying}
+          />
+        </div>
       )}
     </>
   );
