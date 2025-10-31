@@ -112,8 +112,12 @@ export default function App() {
       ];
 
       try {
-        const audioData = await Promise.all(lines.map(line => synthesizeSpeech(line, 'sbaitso')));
-        setGreetingAudio(audioData);
+        // Combine all greeting text into one TTS call to avoid rate limits
+        const combinedGreeting = lines.filter(line => line.trim()).join('. ');
+        const audioData = await synthesizeSpeech(combinedGreeting, 'sbaitso');
+
+        // Still display lines separately for visual effect
+        setGreetingAudio([audioData]); // Single audio file
         setGreetingLines(lines);
         setUserName(name);
         setIsGreeting(true);
@@ -130,13 +134,21 @@ export default function App() {
     if (isGreeting && greetingIndex < greetingLines.length && playingGreetingIndexRef.current !== greetingIndex) {
       playingGreetingIndexRef.current = greetingIndex; // Prevents double-playback in StrictMode
       const line = greetingLines[greetingIndex];
-      const audio = greetingAudio[greetingIndex];
-      
+
       setMessages(prev => [...prev, { author: 'dr', text: line }]);
-      
-      playAndProgress(audio, () => {
-        setGreetingIndex(prev => prev + 1);
-      });
+
+      // Play audio only on first line (combined greeting audio)
+      if (greetingIndex === 0 && greetingAudio.length > 0) {
+        playAndProgress(greetingAudio[0], () => {
+          // Audio finished, but continue displaying lines
+          setGreetingIndex(prev => prev + 1);
+        });
+      } else {
+        // For subsequent lines, just display with typewriter delay
+        setTimeout(() => {
+          setGreetingIndex(prev => prev + 1);
+        }, 800); // Delay between lines for visual effect
+      }
     } else if (isGreeting && greetingIndex >= greetingLines.length) {
       setIsGreeting(false);
       setIsLoading(false);
