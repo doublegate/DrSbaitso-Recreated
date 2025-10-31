@@ -43,8 +43,9 @@ describe('Audio Utilities', () => {
 
     it('should decode audio data to AudioBuffer', async () => {
       const base64Audio = btoa('test audio data');
+      const audioData = decode(base64Audio);
 
-      const buffer = await decodeAudioData(base64Audio, mockContext);
+      const buffer = await decodeAudioData(audioData, mockContext, 24000, 1);
 
       expect(buffer).toBeDefined();
       expect(buffer.length).toBeGreaterThan(0);
@@ -54,17 +55,19 @@ describe('Audio Utilities', () => {
 
     it('should apply authentic audio mode processing', async () => {
       const base64Audio = btoa('test audio data');
+      const audioData = decode(base64Audio);
 
-      const buffer = await decodeAudioData(base64Audio, mockContext, 'authentic');
+      const buffer = await decodeAudioData(audioData, mockContext, 24000, 1, 'authentic');
 
       expect(buffer).toBeDefined();
-      expect(mockContext.decodeAudioData).toHaveBeenCalled();
+      expect(mockContext.createBuffer).toHaveBeenCalled();
     });
 
     it('should handle modern audio mode (no processing)', async () => {
       const base64Audio = btoa('test audio data');
+      const audioData = decode(base64Audio);
 
-      const buffer = await decodeAudioData(base64Audio, mockContext, 'modern');
+      const buffer = await decodeAudioData(audioData, mockContext, 24000, 1, 'modern');
 
       expect(buffer).toBeDefined();
     });
@@ -72,7 +75,10 @@ describe('Audio Utilities', () => {
     it('should throw error on invalid audio data', async () => {
       const invalidBase64 = 'invalid!!!base64!!!';
 
-      await expect(decodeAudioData(invalidBase64, mockContext)).rejects.toThrow();
+      await expect(async () => {
+        const audioData = decode(invalidBase64);
+        await decodeAudioData(audioData, mockContext, 24000, 1);
+      }).rejects.toThrow();
     });
   });
 
@@ -120,7 +126,11 @@ describe('Audio Utilities', () => {
     });
 
     it('should handle AudioContext resume', async () => {
-      mockContext.state = 'suspended' as AudioContextState;
+      Object.defineProperty(mockContext, 'state', {
+        value: 'suspended',
+        writable: true,
+        configurable: true
+      });
       const resumeSpy = vi.spyOn(mockContext, 'resume');
 
       await playAudio(mockBuffer, mockContext);
@@ -144,7 +154,11 @@ describe('Audio Utilities', () => {
     });
 
     it('should handle suspended AudioContext', () => {
-      mockContext.state = 'suspended' as AudioContextState;
+      Object.defineProperty(mockContext, 'state', {
+        value: 'suspended',
+        writable: true,
+        configurable: true
+      });
       const resumeSpy = vi.spyOn(mockContext, 'resume');
 
       playGlitchSound(mockContext);
@@ -175,7 +189,11 @@ describe('Audio Utilities', () => {
     });
 
     it('should handle suspended AudioContext', () => {
-      mockContext.state = 'suspended' as AudioContextState;
+      Object.defineProperty(mockContext, 'state', {
+        value: 'suspended',
+        writable: true,
+        configurable: true
+      });
       const resumeSpy = vi.spyOn(mockContext, 'resume');
 
       playErrorBeep(mockContext);
@@ -188,9 +206,10 @@ describe('Audio Utilities', () => {
     it('should handle complete audio playback workflow', async () => {
       const mockContext = new AudioContext();
       const base64Audio = btoa('complete audio workflow test');
+      const audioData = decode(base64Audio);
 
       // Decode audio
-      const buffer = await decodeAudioData(base64Audio, mockContext);
+      const buffer = await decodeAudioData(audioData, mockContext, 24000, 1);
 
       // Play audio with bit-crushing
       await playAudio(buffer, mockContext, 64, 1.1);
@@ -201,7 +220,8 @@ describe('Audio Utilities', () => {
     it('should support multiple audio quality presets', async () => {
       const mockContext = new AudioContext();
       const base64Audio = btoa('quality test');
-      const buffer = await decodeAudioData(base64Audio, mockContext);
+      const audioData = decode(base64Audio);
+      const buffer = await decodeAudioData(audioData, mockContext, 24000, 1);
 
       // Test each quality preset
       const presets = [
