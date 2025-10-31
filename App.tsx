@@ -112,7 +112,7 @@ export default function App() {
       ];
 
       try {
-        const audioData = await Promise.all(lines.map(line => synthesizeSpeech(line)));
+        const audioData = await Promise.all(lines.map(line => synthesizeSpeech(line, 'sbaitso')));
         setGreetingAudio(audioData);
         setGreetingLines(lines);
         setUserName(name);
@@ -167,7 +167,7 @@ export default function App() {
         }
       }
 
-      const audioPromise = synthesizeSpeech(drResponseText);
+      const audioPromise = synthesizeSpeech(drResponseText, 'sbaitso');
       setMessages(prev => [...prev, { author: 'dr', text: '' }]);
 
       const typingSpeed = 40;
