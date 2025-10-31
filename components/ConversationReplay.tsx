@@ -11,7 +11,7 @@
  * - Jump to any message via timeline
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, MouseEvent } from 'react';
 import type { ConversationSession, ReplayState } from '../types';
 
 interface ConversationReplayProps {
@@ -209,7 +209,7 @@ export function ConversationReplay({ isOpen, onClose, session }: ConversationRep
     return (index / (messages.length - 1)) * 100;
   };
 
-  const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleTimelineClick = (e: MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = clickX / rect.width;

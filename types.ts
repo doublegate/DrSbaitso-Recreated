@@ -16,6 +16,8 @@ export interface ConversationSession {
   updatedAt: number;
   messageCount: number;
   glitchCount: number;
+  startedAt?: number; // Optional: session start timestamp
+  endedAt?: number; // Optional: session end timestamp
 }
 
 export interface SessionStats {

@@ -100,6 +100,7 @@ export class SessionManager {
       characterId: DEFAULT_CHARACTER,
       themeId: DEFAULT_THEME,
       audioQualityId: DEFAULT_AUDIO_QUALITY,
+      audioMode: 'authentic',
       soundEnabled: true,
       autoScroll: true,
       showTimestamps: false,

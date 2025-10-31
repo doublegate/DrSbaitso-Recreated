@@ -307,7 +307,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
                 <h3 className="text-xl font-semibold mb-4">Character Usage</h3>
                 <div className="space-y-3">
                   {Object.entries(analytics.characterCounts).map(([character, count]) => {
-                    const percentage = Math.round((count / analytics.totalSessions) * 100);
+                    const percentage = Math.round((Number(count) / analytics.totalSessions) * 100);
                     return (
                       <div key={character}>
                         <div className="flex justify-between text-sm mb-1">
@@ -348,7 +348,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
                 <div className="space-y-2 text-sm">
                   <p>• Average words per message: <strong>{analytics.avgWordsPerMessage}</strong></p>
                   <p>• Most used character: <strong className="capitalize">
-                    {Object.entries(analytics.characterCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'}
+                    {Object.entries(analytics.characterCounts).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] || 'N/A'}
                   </strong></p>
                   <p>• Vocabulary richness: <strong>
                     {Math.round((analytics.topWords.length / analytics.totalWords) * 100)}% unique words
