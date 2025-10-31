@@ -99,3 +99,22 @@ export interface ReplayState {
   speed: number;
   loop: boolean;
 }
+
+// Voice Control (v1.6.0)
+export interface VoiceControlSettings {
+  enabled: boolean;
+  wakeWordEnabled: boolean;
+  handsFreeModeEnabled: boolean;
+  confirmDestructiveCommands: boolean;
+  commandThreshold: number; // 0-1, confidence threshold for command matching
+}
+
+export interface VoiceCommandExecution {
+  commandId: string;
+  commandName: string;
+  transcript: string;
+  confidence: number;
+  timestamp: number;
+  success: boolean;
+  errorMessage?: string;
+}

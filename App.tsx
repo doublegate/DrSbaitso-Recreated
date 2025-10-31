@@ -5,6 +5,7 @@ import { decode, decodeAudioData, playAudio, playGlitchSound, playErrorBeep } fr
 import { AUDIO_MODES, THEMES } from './constants';
 import { useAccessibility } from './hooks/useAccessibility';
 import { useScreenReader } from './hooks/useScreenReader';
+import { useVoiceControl } from './hooks/useVoiceControl';
 import SkipNav from './components/SkipNav';
 import AccessibilityPanel from './components/AccessibilityPanel';
 import { ThemeCustomizer } from './components/ThemeCustomizer';
@@ -53,6 +54,72 @@ export default function App() {
   const [showConversationReplay, setShowConversationReplay] = useState(false);
   const [customCharacters, setCustomCharacters] = useState<CustomCharacter[]>([]);
   const [replaySession, setReplaySession] = useState<ConversationSession | null>(null);
+  const [showVoiceControlHelp, setShowVoiceControlHelp] = useState(false);
+
+  // Voice Control (v1.6.0)
+  const voiceControl = useVoiceControl({
+    enabled: true,
+    wakeWordEnabled: true,
+    handsFreeModeEnabled: false,
+    confirmDestructiveCommands: true,
+    onClear: () => {
+      setMessages([]);
+      setUserInput('');
+    },
+    onExport: () => setShowAdvancedExport(true),
+    onSwitchCharacter: (characterId) => {
+      // Character switching logic would go here
+      console.log('Switch to character:', characterId);
+      announce(`Switching to ${characterId}`);
+    },
+    onToggleMute: () => {
+      // Toggle mute logic
+      console.log('Toggle mute');
+    },
+    onToggleSettings: () => {
+      // Toggle settings
+      console.log('Toggle settings');
+    },
+    onToggleStats: () => setShowConversationSearch(true),
+    onStopAudio: () => {
+      if (currentAudioSource) {
+        currentAudioSource.stop();
+        setCurrentAudioSource(null);
+        setIsAudioPlaying(false);
+      }
+    },
+    onCycleTheme: () => {
+      // Cycle theme logic
+      console.log('Cycle theme');
+    },
+    onCycleAudioQuality: () => {
+      const modes = AUDIO_MODES.map(m => m.id);
+      const currentIndex = modes.indexOf(audioMode);
+      const nextIndex = (currentIndex + 1) % modes.length;
+      setAudioMode(modes[nextIndex] as typeof audioMode);
+      announce(`Audio mode changed to ${AUDIO_MODES[nextIndex].name}`);
+    },
+    onOpenAccessibility: () => setShowAccessibilityPanel(true),
+    onOpenSearch: () => setShowConversationSearch(true),
+    onOpenVisualizer: () => setShowAudioVisualizer(!showAudioVisualizer),
+    onHelp: () => {
+      setShowVoiceControlHelp(true);
+      const helpText = voiceControl.showHelp();
+      console.log(helpText);
+    },
+    onCommandExecuted: (command, match) => {
+      announce(`Command executed: ${command.name}`);
+      console.log('Voice command executed:', command.name, 'confidence:', match.confidence);
+    },
+    onWakeWordDetected: () => {
+      announce('Listening for command');
+      console.log('Wake word detected');
+    },
+    onError: (error) => {
+      announce(`Voice control error: ${error}`);
+      console.error('Voice control error:', error);
+    },
+  });
 
   // Refs
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -468,8 +535,73 @@ export default function App() {
                 <span aria-hidden="true">♿</span>
                 <span className="ml-1">A11Y</span>
               </button>
+              <button
+                onClick={() => voiceControl.toggleHandsFreeMode()}
+                className={`px-3 py-1 border-2 ${
+                  voiceControl.isHandsFreeMode ? 'border-green-400 bg-green-900' : 'border-gray-400'
+                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                aria-label={`Voice control: ${voiceControl.isHandsFreeMode ? 'ON' : 'OFF'}`}
+                title={`Voice Control (Hands-Free Mode)\n${voiceControl.isHandsFreeMode ? 'Click to disable' : 'Click to enable'}\nSay "Hey Doctor" followed by a command`}
+                disabled={!voiceControl.isSupported}
+              >
+                <span aria-hidden="true">🎤</span>
+                {voiceControl.isHandsFreeMode && <span className="ml-1 text-green-300">ON</span>}
+              </button>
             </div>
           </div>
+
+          {/* Voice Control Indicator (v1.6.0) */}
+          {voiceControl.isHandsFreeMode && (
+            <div className="mt-2 p-2 border-2 border-green-400 bg-green-900 bg-opacity-30">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className={`${voiceControl.isListeningForWakeWord ? 'animate-pulse' : ''}`}>
+                    {voiceControl.isListeningForWakeWord && '🎤 Listening for "Hey Doctor"...'}
+                    {voiceControl.isListeningForCommand && '🎯 Listening for command...'}
+                    {!voiceControl.isListeningForWakeWord && !voiceControl.isListeningForCommand && '⏸ Standby'}
+                  </span>
+                  {voiceControl.suggestions.length > 0 && (
+                    <span className="text-yellow-300">
+                      Suggestions: {voiceControl.suggestions.map(s => s.name).join(', ')}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowVoiceControlHelp(true)}
+                  className="px-2 py-1 border border-gray-400 hover:border-yellow-300 text-xs"
+                  title="View voice commands"
+                >
+                  Help
+                </button>
+              </div>
+              {voiceControl.error && (
+                <div className="mt-1 text-red-400 text-xs">
+                  ⚠ {voiceControl.error}
+                </div>
+              )}
+              {voiceControl.pendingConfirmation && (
+                <div className="mt-2 p-2 bg-yellow-900 bg-opacity-50 border border-yellow-400">
+                  <div className="text-yellow-300 text-xs mb-2">
+                    Confirm: {voiceControl.pendingConfirmation.name}?
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => voiceControl.confirmCommand()}
+                      className="px-3 py-1 bg-green-700 hover:bg-green-600 text-xs"
+                    >
+                      Yes
+                    </button>
+                    <button
+                      onClick={() => voiceControl.cancelConfirmation()}
+                      className="px-3 py-1 bg-red-700 hover:bg-red-600 text-xs"
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Messages area */}
           <div
@@ -620,6 +752,90 @@ export default function App() {
           }}
           session={replaySession}
         />
+      )}
+
+      {/* Voice Control Help Modal (v1.6.0) */}
+      {showVoiceControlHelp && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-blue-900 border-4 border-gray-400 p-6 max-w-3xl max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-white">VOICE CONTROL COMMANDS</h2>
+              <button
+                onClick={() => setShowVoiceControlHelp(false)}
+                className="text-white hover:text-yellow-300 text-2xl"
+                aria-label="Close help"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-sm">
+              <div>
+                <h3 className="text-yellow-300 font-bold mb-2">HOW TO USE:</h3>
+                <ol className="list-decimal list-inside space-y-1 text-white">
+                  <li>Click the 🎤 button to enable hands-free mode</li>
+                  <li>Say "Hey Doctor" followed by any command</li>
+                  <li>Or click the button again to speak a command directly</li>
+                </ol>
+              </div>
+
+              {voiceControl.commands.length > 0 && (
+                <>
+                  {['conversation', 'character', 'audio', 'navigation', 'settings'].map(category => {
+                    const categoryCommands = voiceControl.commands.filter(c => c.category === category);
+                    if (categoryCommands.length === 0) return null;
+
+                    return (
+                      <div key={category}>
+                        <h3 className="text-yellow-300 font-bold mb-2">{category.toUpperCase()}:</h3>
+                        <ul className="space-y-2">
+                          {categoryCommands.map(cmd => (
+                            <li key={cmd.id} className="text-white">
+                              <span className="text-green-400">"{ cmd.phrases[0]}"</span>
+                              <span className="text-gray-400"> - {cmd.description}</span>
+                              {cmd.phrases.length > 1 && (
+                                <div className="ml-4 text-xs text-gray-400">
+                                  Also: {cmd.phrases.slice(1, 3).join(', ')}
+                                  {cmd.phrases.length > 3 && '...'}
+                                </div>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              <div className="pt-4 border-t-2 border-gray-600">
+                <h3 className="text-yellow-300 font-bold mb-2">WAKE WORDS:</h3>
+                <p className="text-white text-xs">
+                  Say any of these to activate voice control: "Hey Doctor", "Hey Sbaitso", "Doctor Sbaitso", "Okay Doctor", "Listen Doctor"
+                </p>
+              </div>
+
+              <div className="pt-4 border-t-2 border-gray-600">
+                <h3 className="text-yellow-300 font-bold mb-2">TIPS:</h3>
+                <ul className="list-disc list-inside space-y-1 text-white text-xs">
+                  <li>Speak clearly and wait for the command to be recognized</li>
+                  <li>Destructive commands (like "clear") require confirmation</li>
+                  <li>Voice control works best in quiet environments</li>
+                  <li>Not supported in Firefox (use Chrome, Edge, or Safari)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowVoiceControlHelp(false)}
+                className="px-4 py-2 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              >
+                CLOSE
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

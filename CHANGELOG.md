@@ -60,23 +60,79 @@ Technical Details:
 - Typewriter base delay: 40ms/char, adjusted by speed multiplier
 - Auto-advance with 1-second pause between messages
 
+### Added - Voice Control Integration
+
+Complete hands-free operation system with natural language commands:
+- **Wake Word Detection**: Activate voice control with "Hey Doctor", "Hey Sbaitso", "Doctor Sbaitso", "Okay Doctor", "Listen Doctor"
+- **20+ Voice Commands**: Natural language control across 5 categories (conversation, character, audio, navigation, settings)
+- **Hands-Free Mode**: Continuous wake word listening with automatic command execution
+- **Fuzzy Matching**: Levenshtein distance algorithm with 70% confidence threshold for flexible command recognition
+- **Command Confirmation**: Required user confirmation for destructive operations (clear conversation) with 10-second timeout
+- **Real-Time Suggestions**: Live command suggestions during speech recognition
+- **Visual Feedback**: Status indicators showing listening state, matched commands, and errors
+- **Web Speech API Integration**: Native browser speech recognition with continuous and one-shot modes
+- **Accessibility**: Full screen reader announcements for command execution and state changes
+- **Help System**: Voice command reference modal with organized command categories
+
+**Voice Commands by Category**:
+- **Conversation**: Clear conversation, export conversation
+- **Character**: Switch to Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY
+- **Audio**: Toggle mute, stop audio, cycle audio quality
+- **Navigation**: Cycle theme, search conversations, toggle visualizer
+- **Settings**: Open settings, open statistics, open accessibility, show help
+
+Technical Details:
+- `utils/voiceCommands.ts` (580 lines): Command recognition system with fuzzy matching
+  - 5 wake words with 80% similarity threshold
+  - Levenshtein distance algorithm for string similarity (0-1 confidence)
+  - `createVoiceCommands()`: Factory function creating 20+ command definitions
+  - `matchCommand()`: Fuzzy matching with configurable threshold (default 0.7)
+  - `detectWakeWord()`: Wake word detection with exact and fuzzy matching
+  - `getCommandSuggestions()`: Real-time command suggestions based on partial transcript
+- `hooks/useVoiceControl.ts` (417 lines): Main voice control hook
+  - Dual recognition instances: continuous for wake words, one-shot for commands
+  - State management: listening states, commands, suggestions, pending confirmation
+  - Methods: `startWakeWordListening()`, `startListeningForCommand()`, `enableHandsFreeMode()`
+  - Automatic confirmation flow with 10-second timeout for destructive commands
+  - Returns to wake word listening after command execution in hands-free mode
+- `types.ts`: Added VoiceControlSettings and VoiceCommandExecution interfaces
+- `App.tsx`: Voice control integration with 12 command handlers and UI components
+  - 🎤 microphone button with green "ON" indicator when active
+  - Voice control indicator panel showing listening state and suggestions
+  - Command confirmation dialog with Yes/No buttons
+  - Voice control help modal with full command reference
+- `docs/VOICE_CONTROL.md` (16,500+ words): Comprehensive documentation
+  - Quick start guide, system architecture, complete command reference
+  - Browser compatibility matrix, troubleshooting, best practices
+  - Performance metrics (CPU usage, latency, memory)
+
 ### Changed
 
-- **App.tsx**: Added 2 new header buttons (📦 Advanced Export, 🎭 Character Creator), 5 new state variables
+- **App.tsx**: Added 3 new header buttons (📦 Advanced Export, 🎭 Character Creator, 🎤 Voice Control), 6 new state variables
 - **ConversationSearch**: Now triggers ConversationReplay on session selection
 - localStorage loading: Custom characters loaded on app mount
+- Voice control: 12 command handlers integrated with existing features
 
 ### Bundle Size Impact
 
 - **Before (v1.5.0)**: 456.13 kB (116.14 kB gzipped)
-- **After (v1.6.0)**: 502.83 kB (126.46 kB gzipped)
-- **Increase**: +46.7 kB (+10.32 kB gzipped) = +10.2% (+8.9% gzipped)
+- **After (v1.6.0)**: 522.05 kB (131.81 kB gzipped)
+- **Increase**: +65.92 kB (+15.67 kB gzipped) = +14.5% (+13.5% gzipped)
+- **Breakdown**:
+  - Advanced Export + Custom Characters: +46.7 kB (+10.32 kB gzipped)
+  - Voice Control Integration: +19.22 kB (+5.35 kB gzipped)
 
 ### Browser Compatibility
 
 - **PDF/CSV**: All modern browsers (Blob API, File download)
 - **Custom Characters**: localStorage (IE 8+, all modern browsers)
 - **Replay**: requestAnimationFrame (Chrome 24+, Firefox 23+, Safari 10+)
+- **Voice Control**: Web Speech API support required
+  - ✅ Chrome 25+ (full support)
+  - ✅ Edge 79+ (Chromium-based)
+  - ✅ Safari 14.1+ (webkit prefix)
+  - ❌ Firefox (Web Speech API not supported - button disabled)
+  - ✅ Mobile: iOS Safari 14.1+, Chrome Android 88+
 
 ### localStorage Impact
 
@@ -88,6 +144,9 @@ Technical Details:
 - No breaking changes
 - All existing data compatible
 - Custom characters are optional feature
+- Voice control disabled by default (click 🎤 button to enable)
+- Voice control requires microphone permission (browser will prompt on first use)
+- Hands-free mode requires Web Speech API support (gracefully disabled in Firefox)
 
 ## [1.5.0] - 2025-10-30
 

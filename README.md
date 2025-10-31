@@ -18,19 +18,21 @@ Dr. Sbaitso Recreated brings the iconic 1991 AI therapist back to life using mod
 - **📦 Advanced Export System**: PDF, CSV (4 types), theme packaging, and batch export with full customization
 - **🎭 Custom Character Creator**: Build unlimited AI personalities with personality traits, system instructions, and live preview
 - **🎬 Conversation Replay**: Timeline-based playback with speed control, keyboard shortcuts, and visual scrubber
+- **🎤 Voice Control Integration**: Hands-free operation with wake word detection, 20+ natural language commands, and fuzzy matching
 
 ### Key Features
 - 🎭 **5 AI Character Personalities** from computing history (Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY)
 - 🎭 **Custom Character Creator** with personality builder and live preview (v1.6.0)
 - 📦 **Advanced Export System** with PDF, CSV, theme packaging, batch export (v1.6.0)
 - 🎬 **Conversation Replay** with timeline scrubber and playback controls (v1.6.0)
+- 🎤 **Voice Control Integration** with wake word detection and hands-free mode (v1.6.0)
 - 🎨 **Theme Customization** with custom color picker, WCAG validation, and share codes (v1.5.0)
 - 🔍 **Conversation Search** across all sessions with advanced analytics (v1.5.0)
 - 📊 **Audio Visualizer** with 3 real-time visualization modes (v1.5.0)
 - 🎵 **4 Audio Quality Modes** (Modern → Ultra Authentic 1991)
 - ♿ **WCAG 2.1 AA Accessibility** with 7 user-configurable features
 - 📱 **Mobile Responsive** with touch gestures and optimized layouts
-- 🎤 **Voice Input Support** (Web Speech API)
+- 🎙️ **Voice Input Support** for text dictation (Web Speech API, v1.2.0)
 - 💾 **Session Management** with auto-save and statistics
 - ⌨️ **30+ Keyboard Shortcuts** with platform detection
 - 🎨 **5 Built-in Retro Themes** + unlimited custom themes
@@ -412,6 +414,68 @@ Speak your problems, hear the response:
 - Handles virtual keyboard interactions
 - Optimized for touch screens
 
+### 🎤 Voice Control Integration (v1.6.0)
+
+Control the application entirely hands-free with natural language voice commands:
+
+**Wake Word Detection:**
+- Activate voice control by saying: **"Hey Doctor"**, **"Hey Sbaitso"**, **"Doctor Sbaitso"**, **"Okay Doctor"**, or **"Listen Doctor"**
+- Continuous listening in hands-free mode
+- Fuzzy matching with 80% similarity threshold (e.g., "hay doctor" works too)
+- Extract command directly: "Hey Doctor, clear conversation" executes immediately
+
+**20+ Voice Commands (5 Categories):**
+
+| Category | Commands | Examples |
+|----------|----------|----------|
+| **Conversation** | Clear, Export | "clear conversation", "export chat" |
+| **Character** | Switch to characters | "switch to ELIZA", "talk to HAL" |
+| **Audio** | Mute, Stop, Quality | "toggle mute", "stop audio", "change audio quality" |
+| **Navigation** | Theme, Search, Visualizer | "cycle theme", "search conversations", "show visualizer" |
+| **Settings** | Settings, Stats, Accessibility, Help | "open settings", "show statistics", "help" |
+
+**How to Use:**
+1. Click the **🎤 microphone button** in the conversation header
+2. Say **"Hey Doctor"** followed by any command (or say command after wake word)
+3. Watch the indicator panel for listening status and suggestions
+4. Confirm destructive commands (clear conversation) when prompted
+
+**Hands-Free Mode:**
+- Enable with 🎤 button (shows green "ON" indicator)
+- Continuous wake word listening after each command
+- Automatic command execution with visual feedback
+- Confirmation required for destructive operations (10-second timeout)
+
+**Features:**
+- **Fuzzy Matching**: Levenshtein distance algorithm with 70% confidence threshold
+- **Real-Time Suggestions**: Live command hints during speech recognition
+- **Command Confirmation**: Prevents accidental data loss with Yes/No prompts
+- **Error Handling**: User-friendly messages for unrecognized commands
+- **Visual Feedback**: Status indicators (listening, processing, error, success)
+- **Accessibility**: Screen reader announcements for all command executions
+
+**Browser Support:**
+- ✅ Chrome 25+ (full support)
+- ✅ Edge 79+ (Chromium-based)
+- ✅ Safari 14.1+ (webkit prefix)
+- ❌ Firefox (Web Speech API not supported - button disabled)
+- ✅ Mobile: iOS Safari 14.1+, Chrome Android 88+
+
+**Microphone Permission:**
+- Required on first use (browser will prompt)
+- Grant permission for hands-free operation
+- Can be revoked in browser settings
+
+**Technical Details:**
+- Web Speech API with continuous and one-shot recognition modes
+- Dual recognition instances (wake word + commands)
+- State management with React hooks
+- Command handlers integrated with all application features
+
+**Access**: Click 🎤 button in conversation header
+
+**Documentation**: See [docs/VOICE_CONTROL.md](docs/VOICE_CONTROL.md) for complete guide (16,500+ words)
+
 ### 🎮 Authentic Retro Experience
 
 - **8-bit Sound Processing**: Configurable bit-crusher algorithm (4-bit to full resolution)
@@ -519,11 +583,15 @@ DrSbaitso-Recreated/
 ├── utils/
 │   ├── audio.ts            # Configurable audio processing (enhanced v1.1.0)
 │   ├── sessionManager.ts   # Session persistence & stats (NEW v1.1.0)
-│   └── exportConversation.ts  # Multi-format export (NEW v1.1.0)
+│   ├── exportConversation.ts  # Multi-format export (NEW v1.1.0)
+│   └── voiceCommands.ts    # Voice command system (NEW v1.6.0)
 ├── hooks/
-│   └── useKeyboardShortcuts.ts  # Keyboard shortcut handler (NEW v1.1.0)
+│   ├── useKeyboardShortcuts.ts  # Keyboard shortcut handler (NEW v1.1.0)
+│   ├── useVoiceControl.ts       # Voice control hook (NEW v1.6.0)
+│   └── useVoiceRecognition.ts   # Web Speech API integration (v1.2.0)
 ├── docs/
 │   ├── FEATURES.md         # Complete feature documentation (NEW v1.1.0)
+│   ├── VOICE_CONTROL.md    # Voice control guide (NEW v1.6.0)
 │   ├── KEYBOARD_SHORTCUTS.md  # Shortcut reference (NEW v1.1.0)
 │   ├── ARCHITECTURE.md     # System architecture and design
 │   ├── API.md              # Gemini API documentation
@@ -536,17 +604,19 @@ DrSbaitso-Recreated/
 └── CLAUDE.md               # Developer guidance for Claude Code
 ```
 
-**New in v1.1.0-v1.5.0:**
+**New in v1.1.0-v1.6.0:**
 - `constants.ts` - 5 character personalities, 5 themes, 4 audio presets, 4 audio modes, keyboard shortcuts
 - `utils/sessionManager.ts` - localStorage-based session management and statistics
 - `utils/exportConversation.ts` - Export to Markdown, Text, JSON, HTML
 - `utils/vintageAudioProcessing.ts` - Authentic 1991 voice recreation (v1.3.0)
 - `utils/themeValidator.ts` - Theme validation, color manipulation, WCAG checking, share codes (v1.5.0)
 - `utils/accessibilityManager.ts` - WCAG 2.1 AA accessibility utilities (v1.4.0)
+- `utils/voiceCommands.ts` - Voice command recognition system (v1.6.0)
 - `hooks/useKeyboardShortcuts.ts` - 30+ keyboard shortcuts with platform detection
 - `hooks/useAccessibility.ts` - Accessibility settings management (v1.4.0)
 - `hooks/useFocusTrap.ts` - Modal focus trapping (v1.4.0)
 - `hooks/useScreenReader.ts` - Screen reader announcements (v1.4.0)
+- `hooks/useVoiceControl.ts` - Voice control integration (v1.6.0)
 - `components/SkipNav.tsx` - Skip navigation component (v1.4.0)
 - `components/AccessibilityPanel.tsx` - Accessibility settings UI (v1.4.0)
 - `components/ThemeCustomizer.tsx` - Custom theme editor with WCAG validation (v1.5.0)
@@ -556,6 +626,7 @@ DrSbaitso-Recreated/
 - `docs/KEYBOARD_SHORTCUTS.md` - Complete shortcut reference (91KB)
 - `docs/DECTALK_RESEARCH.md` - Historical research (v1.3.0, 32KB)
 - `docs/ACCESSIBILITY.md` - Accessibility guide (v1.4.0, 32KB)
+- `docs/VOICE_CONTROL.md` - Voice control comprehensive guide (v1.6.0, 16.5KB)
 
 ## Architecture Highlights
 
@@ -850,10 +921,11 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for comprehensive trouble
 
 - **[FEATURES.md](docs/FEATURES.md)** - Complete feature guide (88KB)
 - **[KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md)** - Shortcut reference (91KB)
-- **[ACCESSIBILITY.md](docs/ACCESSIBILITY.md)** - Accessibility guide (NEW v1.4.0, 32KB)
+- **[VOICE_CONTROL.md](docs/VOICE_CONTROL.md)** - Voice control comprehensive guide (NEW v1.6.0, 16.5KB)
+- **[ACCESSIBILITY.md](docs/ACCESSIBILITY.md)** - Accessibility guide (v1.4.0, 32KB)
 - **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[MOBILE.md](docs/MOBILE.md)** - Mobile responsive design guide
-- **[VOICE_INPUT.md](docs/VOICE_INPUT.md)** - Voice input documentation
+- **[VOICE_INPUT.md](docs/VOICE_INPUT.md)** - Voice input documentation (v1.2.0)
 
 ### Technical Documentation
 
@@ -946,15 +1018,20 @@ Contributions welcome! Areas for enhancement:
 - [x] Conversation search across all sessions
 - [x] Real-time audio visualizer
 
-**Planned Future Enhancements (v1.6.0+):**
+**Completed in v1.6.0:**
+- [x] Custom character creator with personality builder
+- [x] Advanced export system (PDF, CSV, batch export)
+- [x] Conversation replay with timeline controls
+- [x] Voice control integration with wake word detection
+
+**Planned Future Enhancements (v2.0.0+):**
 - [ ] Backend API proxy for production security
 - [ ] Additional voice options (Pico, Kali, Aoede)
 - [ ] Cloud session sync across devices
-- [ ] Custom character creation tools
 - [ ] Multi-language UI (i18n)
-- [ ] Voice control integration
 - [ ] Export custom themes as CSS files
 - [ ] Advanced search filters (date range, sentiment)
+- [ ] Voice command macros and customization
 
 ## Roadmap
 
@@ -963,8 +1040,8 @@ Contributions welcome! Areas for enhancement:
 - **v1.3.0** ✅ Authentic 1991 voice recreation, historical research
 - **v1.4.0** ✅ WCAG 2.1 AA accessibility compliance
 - **v1.4.1** ✅ Complete UI integration
-- **v1.5.0** ✅ Theme customization, search & analytics, audio visualizer (Current)
-- **v1.6.0**: Custom character creation, voice control, advanced export
+- **v1.5.0** ✅ Theme customization, search & analytics, audio visualizer
+- **v1.6.0** ✅ Custom character creator, advanced export, conversation replay, voice control (Current)
 - **v2.0.0**: Backend API with authentication, cloud sync, real-time collaboration
 
 ## Credits
