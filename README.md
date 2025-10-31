@@ -2,7 +2,7 @@
 
 > A modern web-based recreation of the classic 1991 AI therapist program that ran on Sound Blaster cards
 
-![Version](https://img.shields.io/badge/version-1.5.0-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.6.0-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
@@ -14,13 +14,16 @@
 
 Dr. Sbaitso Recreated brings the iconic 1991 AI therapist back to life using modern web technologies. Built with React, TypeScript, and Google's Gemini AI, this project faithfully recreates the retro experience while adding modern enhancements.
 
-**✨ New in v1.5.0:**
-- **🎨 Theme Customization System**: Create, share, and validate custom color themes with WCAG accessibility checking
-- **🔍 Conversation Search & Analytics**: Full-text search across all sessions with comprehensive analytics dashboard
-- **📊 Audio Visualizer**: Real-time audio visualization with 3 modes (waveform, frequency, bars)
+**✨ New in v1.6.0:**
+- **📦 Advanced Export System**: PDF, CSV (4 types), theme packaging, and batch export with full customization
+- **🎭 Custom Character Creator**: Build unlimited AI personalities with personality traits, system instructions, and live preview
+- **🎬 Conversation Replay**: Timeline-based playback with speed control, keyboard shortcuts, and visual scrubber
 
 ### Key Features
 - 🎭 **5 AI Character Personalities** from computing history (Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY)
+- 🎭 **Custom Character Creator** with personality builder and live preview (v1.6.0)
+- 📦 **Advanced Export System** with PDF, CSV, theme packaging, batch export (v1.6.0)
+- 🎬 **Conversation Replay** with timeline scrubber and playback controls (v1.6.0)
 - 🎨 **Theme Customization** with custom color picker, WCAG validation, and share codes (v1.5.0)
 - 🔍 **Conversation Search** across all sessions with advanced analytics (v1.5.0)
 - 📊 **Audio Visualizer** with 3 real-time visualization modes (v1.5.0)
@@ -29,7 +32,6 @@ Dr. Sbaitso Recreated brings the iconic 1991 AI therapist back to life using mod
 - 📱 **Mobile Responsive** with touch gestures and optimized layouts
 - 🎤 **Voice Input Support** (Web Speech API)
 - 💾 **Session Management** with auto-save and statistics
-- 📤 **Multi-Format Export** (Markdown, Text, JSON, HTML)
 - ⌨️ **30+ Keyboard Shortcuts** with platform detection
 - 🎨 **5 Built-in Retro Themes** + unlimited custom themes
 

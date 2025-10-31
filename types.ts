@@ -57,3 +57,45 @@ export interface AccessibilitySettings {
   announceMessages: boolean;
   keyboardNavigationHints: boolean;
 }
+
+// Custom Character (v1.6.0)
+export interface CustomCharacter {
+  id: string;
+  name: string;
+  description: string;
+  era: number;
+  knowledgeCutoff: number;
+  systemInstruction: string;
+  voicePrompt: string;
+  responseStyle: 'uppercase' | 'mixedcase' | 'lowercase';
+  personalityTraits: string[];
+  glitchMessages: string[];
+  isCustom: true;
+  createdAt: number;
+  author?: string;
+  usageCount: number;
+}
+
+// Export Options (v1.6.0)
+export interface PDFExportOptions {
+  includeCoverPage: boolean;
+  includeStatistics: boolean;
+  includeCharacterInfo: boolean;
+  fontSize: 12 | 14 | 16;
+  pageSize: 'A4' | 'Letter';
+  includeThemeStyling: boolean;
+}
+
+export interface CSVExportOptions {
+  delimiter: ',' | ';' | '\t';
+  includeHeaders: boolean;
+  dateFormat: 'iso' | 'locale' | 'timestamp';
+}
+
+// Replay Options (v1.6.0)
+export interface ReplayState {
+  currentIndex: number;
+  isPlaying: boolean;
+  speed: number;
+  loop: boolean;
+}

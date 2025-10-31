@@ -11,7 +11,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend API proxy for production security
 - Additional retro voice options (Pico, Kali, Aoede)
 - Cloud session sync across devices
-- Custom character creation tools
+
+## [1.6.0] - 2025-01-30
+
+### Added - Advanced Export System
+
+Multi-format export system with extensive customization:
+- **PDF Export**: Print-ready HTML with cover page, statistics, character info, configurable font size (12/14/16pt) and page size (A4/Letter)
+- **CSV Export**: 4 export types (messages, statistics, word frequency, character usage) with configurable delimiters (comma/semicolon/tab), headers, and date formats
+- **Theme Packaging**: Bundle custom themes into shareable JSON packages
+- **Batch Export**: Export multiple sessions simultaneously in combined or separate files
+
+Technical Details:
+- `utils/advancedExport.ts` (773 lines): PDFExporter, CSVExporter, ThemePackager, BatchExporter classes
+- `components/AdvancedExporter.tsx` (686 lines): Tabbed modal interface with 4 export modes
+- Proper HTML escaping for security, CSV quote handling, Blob API for downloads
+
+### Added - Custom Character Creator
+
+Complete AI personality builder system:
+- **Create Custom Characters**: Unlimited custom AI personalities with full personality configuration
+- **Personality Builder**: 9 trait options (robotic, empathetic, curious, suspicious, calm, aggressive, analytical, creative, logical)
+- **System Instructions**: 50-500 character customizable instructions defining behavior
+- **Voice Prompts**: 20-200 character voice synthesis customization
+- **Response Styles**: ALL CAPS, Mixed Case, or lowercase formatting
+- **Custom Glitch Messages**: Define character-specific error messages
+- **Live Preview**: Test characters with Gemini API before saving
+- **Character Gallery**: Edit/delete existing custom characters, track usage count
+
+Technical Details:
+- `components/CharacterCreator.tsx` (764 lines): Dual-tab interface (Create/Gallery) with full validation
+- `types.ts`: CustomCharacter interface with 13 properties
+- localStorage persistence (~10KB per character, recommend max 20)
+- Validation: Name uniqueness, character limits, required fields, era ranges (1960-2025)
+
+### Added - Conversation Replay System
+
+Timeline-based conversation playback with full controls:
+- **Visual Timeline**: Horizontal scrubber with color-coded message markers (blue=user, yellow=AI)
+- **Playback Controls**: Play/Pause, Previous/Next, Jump to Start/End, Loop toggle
+- **Speed Control**: 0.5x, 1x, 2x, 5x playback speed with typewriter effect adaptation
+- **Typewriter Effect**: Character-by-character message display with speed multipliers
+- **Timeline Scrubber**: Click to jump to any message instantly
+- **Keyboard Shortcuts**: Space (play/pause), ←→ (prev/next), Home/End (jump), [] (speed), L (loop)
+
+Technical Details:
+- `components/ConversationReplay.tsx` (463 lines): Full-screen modal with playback state management
+- Typewriter base delay: 40ms/char, adjusted by speed multiplier
+- Auto-advance with 1-second pause between messages
+
+### Changed
+
+- **App.tsx**: Added 2 new header buttons (📦 Advanced Export, 🎭 Character Creator), 5 new state variables
+- **ConversationSearch**: Now triggers ConversationReplay on session selection
+- localStorage loading: Custom characters loaded on app mount
+
+### Bundle Size Impact
+
+- **Before (v1.5.0)**: 456.13 kB (116.14 kB gzipped)
+- **After (v1.6.0)**: 502.83 kB (126.46 kB gzipped)
+- **Increase**: +46.7 kB (+10.32 kB gzipped) = +10.2% (+8.9% gzipped)
+
+### Browser Compatibility
+
+- **PDF/CSV**: All modern browsers (Blob API, File download)
+- **Custom Characters**: localStorage (IE 8+, all modern browsers)
+- **Replay**: requestAnimationFrame (Chrome 24+, Firefox 23+, Safari 10+)
+
+### localStorage Impact
+
+- **Custom Characters**: ~10KB each (recommend max 20 characters = 200KB)
+- **Total v1.6.0 Storage**: ~200KB for typical usage
+
+### Migration from v1.5.0
+
+- No breaking changes
+- All existing data compatible
+- Custom characters are optional feature
 
 ## [1.5.0] - 2025-10-30
 

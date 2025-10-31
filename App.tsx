@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Message, ConversationSession } from './types';
+import { Message, ConversationSession, CustomCharacter } from './types';
 import { getDrSbaitsoResponse, synthesizeSpeech } from './services/geminiService';
 import { decode, decodeAudioData, playAudio, playGlitchSound, playErrorBeep } from './utils/audio';
 import { AUDIO_MODES, THEMES } from './constants';
@@ -11,6 +11,10 @@ import { ThemeCustomizer } from './components/ThemeCustomizer';
 import { ConversationSearch } from './components/ConversationSearch';
 import { AudioVisualizer } from './components/AudioVisualizer';
 import { CustomTheme } from './utils/themeValidator';
+// v1.6.0 Components
+import { AdvancedExporter } from './components/AdvancedExporter';
+import { CharacterCreator } from './components/CharacterCreator';
+import { ConversationReplay } from './components/ConversationReplay';
 
 export default function App() {
   // Core state
@@ -42,6 +46,13 @@ export default function App() {
   const [savedSessions, setSavedSessions] = useState<ConversationSession[]>([]);
   const [currentAudioSource, setCurrentAudioSource] = useState<AudioBufferSourceNode | null>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+
+  // v1.6.0 Feature states
+  const [showAdvancedExport, setShowAdvancedExport] = useState(false);
+  const [showCharacterCreator, setShowCharacterCreator] = useState(false);
+  const [showConversationReplay, setShowConversationReplay] = useState(false);
+  const [customCharacters, setCustomCharacters] = useState<CustomCharacter[]>([]);
+  const [replaySession, setReplaySession] = useState<ConversationSession | null>(null);
 
   // Refs
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -77,6 +88,19 @@ export default function App() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, messages.length > 0 && messages[messages.length-1].text]);
+
+  // Load custom characters from localStorage on mount (v1.6.0)
+  useEffect(() => {
+    const stored = localStorage.getItem('customCharacters');
+    if (stored) {
+      try {
+        const chars = JSON.parse(stored) as CustomCharacter[];
+        setCustomCharacters(chars);
+      } catch (error) {
+        console.error('Failed to load custom characters:', error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // When the name screen is visible and not loading, focus the name input.
@@ -373,7 +397,7 @@ export default function App() {
               </select>
             </div>
 
-            {/* v1.5.0 Feature Buttons */}
+            {/* v1.5.0 & v1.6.0 Feature Buttons */}
             <div className="flex gap-2">
               <button
                 onClick={() => setShowThemeCustomizer(true)}
@@ -398,6 +422,22 @@ export default function App() {
                 title="Audio Visualizer"
               >
                 📊
+              </button>
+              <button
+                onClick={() => setShowAdvancedExport(true)}
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                aria-label="Advanced export options"
+                title="Advanced Export"
+              >
+                📦
+              </button>
+              <button
+                onClick={() => setShowCharacterCreator(true)}
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                aria-label="Character creator"
+                title="Character Creator"
+              >
+                🎭
               </button>
               <button
                 onClick={() => setShowAccessibilityPanel(true)}
@@ -498,6 +538,13 @@ export default function App() {
           sessions={savedSessions}
           onOpenSession={(sessionId) => {
             console.log('Opening session:', sessionId);
+            // Find the session and trigger replay
+            const session = savedSessions.find(s => s.id === sessionId);
+            if (session) {
+              setReplaySession(session);
+              setShowConversationReplay(true);
+              setShowConversationSearch(false);
+            }
           }}
         />
       )}
@@ -511,6 +558,48 @@ export default function App() {
             isPlaying={isAudioPlaying}
           />
         </div>
+      )}
+
+      {/* Advanced Exporter (v1.6.0) */}
+      {showAdvancedExport && (
+        <AdvancedExporter
+          isOpen={showAdvancedExport}
+          onClose={() => setShowAdvancedExport(false)}
+          sessions={savedSessions}
+          themes={customThemes}
+          currentSession={savedSessions[0]} // Use most recent session as current
+        />
+      )}
+
+      {/* Character Creator (v1.6.0) */}
+      {showCharacterCreator && (
+        <CharacterCreator
+          isOpen={showCharacterCreator}
+          onClose={() => setShowCharacterCreator(false)}
+          onSave={(character) => {
+            const updatedCharacters = [...customCharacters, character];
+            setCustomCharacters(updatedCharacters);
+            localStorage.setItem('customCharacters', JSON.stringify(updatedCharacters));
+          }}
+          onDelete={(characterId) => {
+            const updatedCharacters = customCharacters.filter(c => c.id !== characterId);
+            setCustomCharacters(updatedCharacters);
+            localStorage.setItem('customCharacters', JSON.stringify(updatedCharacters));
+          }}
+          existingCharacters={customCharacters}
+        />
+      )}
+
+      {/* Conversation Replay (v1.6.0) */}
+      {showConversationReplay && replaySession && (
+        <ConversationReplay
+          isOpen={showConversationReplay}
+          onClose={() => {
+            setShowConversationReplay(false);
+            setReplaySession(null);
+          }}
+          session={replaySession}
+        />
       )}
     </>
   );
