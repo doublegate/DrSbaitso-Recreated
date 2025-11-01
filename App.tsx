@@ -18,6 +18,9 @@ const AudioVisualizer = lazy(() => import('./components/AudioVisualizer').then(m
 const AdvancedExporter = lazy(() => import('./components/AdvancedExporter').then(module => ({ default: module.AdvancedExporter })));
 const CharacterCreator = lazy(() => import('./components/CharacterCreator').then(module => ({ default: module.CharacterCreator })));
 const ConversationReplay = lazy(() => import('./components/ConversationReplay').then(module => ({ default: module.ConversationReplay })));
+// v1.8.0 Components (lazy-loaded)
+const OnboardingTutorial = lazy(() => import('./components/OnboardingTutorial'));
+const ConversationInsights = lazy(() => import('./components/ConversationInsights'));
 
 export default function App() {
   // Core state
@@ -57,6 +60,17 @@ export default function App() {
   const [customCharacters, setCustomCharacters] = useState<CustomCharacter[]>([]);
   const [replaySession, setReplaySession] = useState<ConversationSession | null>(null);
   const [showVoiceControlHelp, setShowVoiceControlHelp] = useState(false);
+
+  // v1.8.0 Feature states
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try {
+      return localStorage.getItem('sbaitso_onboarding_completed') !== 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+  const [showInsights, setShowInsights] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState('dos-blue');
 
   // Voice Control (v1.6.0)
   const voiceControl = useVoiceControl({
@@ -365,7 +379,7 @@ export default function App() {
     }
   };
 
-  // Global keyboard shortcuts (v1.3.0 + v1.4.0)
+  // Global keyboard shortcuts (v1.3.0 + v1.4.0 + v1.8.0)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       // Ctrl/Cmd + A: Open Accessibility Panel
@@ -383,6 +397,18 @@ export default function App() {
         if (accessibilitySettings.screenReaderOptimized) {
           announce(`Audio mode changed to ${AUDIO_MODES[nextIndex].name}`);
         }
+      }
+
+      // Ctrl/Cmd + I: Toggle conversation insights (v1.8.0)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i' && !e.shiftKey) {
+        e.preventDefault();
+        setShowInsights(prev => !prev);
+      }
+
+      // Ctrl/Cmd + ?: Toggle onboarding tutorial (v1.8.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === '?') {
+        e.preventDefault();
+        setShowOnboarding(true);
       }
     };
 
@@ -466,7 +492,7 @@ export default function App() {
           {/* Header with settings (v1.3.0 + v1.4.0) */}
           <div className="flex-shrink-0 flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-400">
             {/* Audio Mode Selector */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" data-tour-id="audio-settings">
               <label htmlFor="audio-mode-select" className="text-sm font-bold">
                 AUDIO MODE:
               </label>
@@ -487,12 +513,13 @@ export default function App() {
             </div>
 
             {/* v1.5.0 & v1.6.0 Feature Buttons */}
-            <div className="flex gap-2">
+            <div className="flex gap-2" data-tour-id="settings-panel">
               <button
                 onClick={() => setShowThemeCustomizer(true)}
                 className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Open theme customizer"
                 title="Theme Customizer"
+                data-tour-id="theme-button"
               >
                 🎨
               </button>
@@ -501,6 +528,7 @@ export default function App() {
                 className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Search conversations"
                 title="Search & Analytics"
+                data-tour-id="session-panel"
               >
                 🔍
               </button>
@@ -517,6 +545,7 @@ export default function App() {
                 className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Advanced export options"
                 title="Advanced Export"
+                data-tour-id="export-button"
               >
                 📦
               </button>
@@ -525,6 +554,7 @@ export default function App() {
                 className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Character creator"
                 title="Character Creator"
+                data-tour-id="character-selection"
               >
                 🎭
               </button>
@@ -533,6 +563,7 @@ export default function App() {
                 className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Open accessibility settings (Ctrl+A)"
                 title="Accessibility Settings (Ctrl+A)"
+                data-tour-id="shortcuts-help"
               >
                 <span aria-hidden="true">♿</span>
                 <span className="ml-1">A11Y</span>
@@ -631,7 +662,7 @@ export default function App() {
           </div>
 
           {/* Chat input */}
-          <div className="flex-shrink-0 flex items-center mt-4">
+          <div className="flex-shrink-0 flex items-center mt-4" data-tour-id="chat-input">
             <span className="text-yellow-300 mr-2" aria-hidden="true">{'>'}</span>
             <input
               id="chat-input"
@@ -766,6 +797,26 @@ export default function App() {
               setReplaySession(null);
             }}
             session={replaySession}
+          />
+        </Suspense>
+      )}
+
+      {/* Onboarding Tutorial (v1.8.0) */}
+      {showOnboarding && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading tutorial...</div></div>}>
+          <OnboardingTutorial
+            onComplete={() => setShowOnboarding(false)}
+            onSkip={() => setShowOnboarding(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Conversation Insights (v1.8.0) */}
+      {showInsights && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading insights...</div></div>}>
+          <ConversationInsights
+            onClose={() => setShowInsights(false)}
+            currentTheme={currentTheme}
           />
         </Suspense>
       )}

@@ -278,8 +278,8 @@ export const KEYBOARD_SHORTCUTS = {
   PREV_CHARACTER: 'Ctrl+[',
   NEXT_THEME: 'Alt+]',
   PREV_THEME: 'Alt+[',
-  OPEN_INSIGHTS: 'Ctrl+Shift+I', // v1.8.0
-  RESTART_TUTORIAL: 'Ctrl+Shift+T' // v1.8.0
+  OPEN_INSIGHTS: 'Ctrl+I', // v1.8.0
+  RESTART_TUTORIAL: 'Ctrl+?' // v1.8.0
 };
 
 // Onboarding Tutorial Steps (v1.8.0)

@@ -2,7 +2,7 @@
 
 > A modern web-based recreation of the classic 1991 AI therapist program that ran on Sound Blaster cards
 
-![Version](https://img.shields.io/badge/version-1.7.0-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.8.0-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
@@ -14,9 +14,45 @@
 
 Dr. Sbaitso Recreated brings the iconic 1991 AI therapist back to life using modern web technologies. Built with React, TypeScript, and Google's Gemini AI, this project faithfully recreates the retro experience while adding modern enhancements.
 
-**✨ New in v1.7.0:**
+## ✨ What's New in v1.8.0
+
+### 🎓 Interactive Onboarding Tutorial
+First-time users are now greeted with an **8-step interactive tutorial** that guides them through:
+- Character selection and personality overview
+- Theme customization with retro color schemes
+- Keyboard shortcuts (30+ commands)
+- Audio quality settings
+- Conversation features and export options
+- Session management
+- Completion celebration with confetti animation
+
+**Features**:
+- ✅ Keyboard navigation (Enter, Escape, Arrow keys)
+- ✅ Element highlighting with visual spotlight
+- ✅ localStorage persistence (one-time tutorial)
+- ✅ Skip functionality
+- ✅ WCAG 2.1 AA accessibility compliance
+- ✅ Re-triggerable via Ctrl/Cmd + ?
+
+### 📊 Conversation Insights Dashboard
+Analyze your conversations with **visual analytics and sentiment tracking**:
+- **Timeline Chart**: Message volume over time (7/30/90-day ranges)
+- **Sentiment Gauge**: Real-time mood tracking (-100 to +100 scale)
+- **Word Cloud**: Top 50 keywords with frequency-based sizing
+- **Character Usage Pie**: Distribution across AI personalities
+
+**Features**:
+- ✅ Date range filtering (7/30/90 days, all time)
+- ✅ Character filtering (multi-select)
+- ✅ Keyword-based sentiment analysis (~50 positive/negative keywords)
+- ✅ Export to PNG, SVG, or JSON
+- ✅ Theme-aware chart colors
+- ✅ Canvas-based rendering (no external dependencies)
+- ✅ Keyboard shortcut: Ctrl/Cmd + I
+
+**Previous (v1.7.0):**
 - **📱 Progressive Web App (PWA)**: Install to home screen on any device, complete offline functionality with service worker caching, automatic background updates, splash screens, and native app-like experience with 10 custom retro CRT monitor icons (16×16 to 512×512)
-- **🧪 Testing Framework**: Production-ready Vitest test suite with 62 comprehensive tests (37 passing), 70%+ coverage thresholds for lines/functions/branches/statements, unit tests for audio processing, PWA functionality, session management, and hooks with jsdom environment and React Testing Library
+- **🧪 Testing Framework**: Production-ready Vitest test suite with 123 comprehensive tests (100% pass rate), 70%+ coverage thresholds for lines/functions/branches/statements, unit tests for audio processing, PWA functionality, session management, and hooks with jsdom environment and React Testing Library
 - **☁️ Cloud Sync**: Firebase v12.5.0-powered cross-device synchronization with real-time updates, offline-first architecture, automatic conflict resolution, secure authentication, and encrypted data storage
 
 **Previous (v1.6.0):**
@@ -27,9 +63,13 @@ Dr. Sbaitso Recreated brings the iconic 1991 AI therapist back to life using mod
 
 ### Key Features
 
-**New in v1.7.0:**
+**New in v1.8.0:**
+- 🎓 **Interactive Onboarding** - 8-step guided tutorial, keyboard navigation, localStorage persistence
+- 📊 **Conversation Insights** - 4 chart types, sentiment analysis, export to PNG/CSV/JSON
+
+**Previous (v1.7.0):**
 - 📱 **Progressive Web App** - Install to home screen, complete offline support with service worker, auto-updates, 10 custom retro icons
-- 🧪 **Testing Framework** - Vitest with 62 tests (37 passing), 70%+ coverage thresholds, comprehensive test suite
+- 🧪 **Testing Framework** - Vitest with 123 tests (100% pass rate), 70%+ coverage thresholds, comprehensive test suite
 - ☁️ **Cloud Sync** - Firebase v12.5.0 cross-device sync with real-time updates and offline-first architecture
 
 **Core Features:**
@@ -369,7 +409,14 @@ All exports support optional timestamps and metadata inclusion.
 
 30+ shortcuts for power users:
 
-#### New Shortcuts (v1.3.0 - v1.4.1)
+#### New Shortcuts (v1.8.0)
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl/Cmd + I` | Toggle conversation insights dashboard |
+| `Ctrl/Cmd + ?` | Restart/show onboarding tutorial |
+
+#### Previous Shortcuts (v1.3.0 - v1.4.1)
 
 | Shortcut | Action |
 |----------|--------|

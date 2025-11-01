@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Email/password authentication for cloud sync
 - Shared conversations and collaboration features
 
-## [1.8.0] - 2025-01-01
+## [1.8.0] - 2025-11-01
 
 ### Added - Interactive Onboarding & Visual Insights
 
