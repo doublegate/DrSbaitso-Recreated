@@ -277,5 +277,101 @@ export const KEYBOARD_SHORTCUTS = {
   NEXT_CHARACTER: 'Ctrl+]',
   PREV_CHARACTER: 'Ctrl+[',
   NEXT_THEME: 'Alt+]',
-  PREV_THEME: 'Alt+['
+  PREV_THEME: 'Alt+[',
+  OPEN_INSIGHTS: 'Ctrl+Shift+I', // v1.8.0
+  RESTART_TUTORIAL: 'Ctrl+Shift+T' // v1.8.0
+};
+
+// Onboarding Tutorial Steps (v1.8.0)
+import { OnboardingStep } from './types';
+
+export const ONBOARDING_STEPS: OnboardingStep[] = [
+  {
+    id: 'welcome',
+    title: 'Welcome to Dr. Sbaitso Recreated!',
+    content: 'Experience the legendary 1991 AI therapist recreated for the modern web. This quick tutorial will introduce you to all the amazing features. Ready to begin your journey into retro AI therapy?',
+    skipable: true
+  },
+  {
+    id: 'characters',
+    title: 'Choose Your AI Personality',
+    content: 'Meet 5 legendary AI personalities from computing history: Dr. Sbaitso (1991), ELIZA (1966), HAL 9000 (1968), JOSHUA/WOPR (1983), and PARRY (1972). Each has unique conversational styles and historical context. Try the character selector below!',
+    target: '#character-select',
+    action: 'click',
+    actionTarget: '#character-select',
+    skipable: true
+  },
+  {
+    id: 'first-message',
+    title: 'Start a Conversation',
+    content: 'Type your first message in the input box below. Dr. Sbaitso responds in ALL CAPS with authentic 1991 robotic charm. Press Enter to send your message!',
+    target: '#message-input',
+    action: 'type',
+    actionTarget: '#message-input',
+    actionPlaceholder: 'Type "Hello Dr. Sbaitso" and press Enter',
+    skipable: true
+  },
+  {
+    id: 'keyboard-shortcuts',
+    title: 'Master Keyboard Shortcuts',
+    content: 'Work faster with 30+ keyboard shortcuts:\n• Ctrl+S - View statistics\n• Ctrl+E - Export conversation\n• Ctrl+/ - Show all shortcuts\n• Ctrl+Shift+I - Open insights dashboard (new!)\n\nPress Ctrl+/ to see the complete list!',
+    skipable: true
+  },
+  {
+    id: 'voice-control',
+    title: 'Voice Input Support',
+    content: 'Use your voice to chat! Click the microphone button or press Ctrl+M to activate voice input. Speak naturally and Dr. Sbaitso will respond. Note: Your browser must support Web Speech API.',
+    target: '#voice-button',
+    skipable: true
+  },
+  {
+    id: 'accessibility',
+    title: 'Accessibility Features',
+    content: 'Dr. Sbaitso is designed for everyone:\n• Full keyboard navigation (Tab, Enter, Escape)\n• Screen reader support with ARIA labels\n• High contrast themes\n• Customizable font sizes\n• Reduced motion mode\n\nPress Ctrl+A to open the Accessibility Panel!',
+    skipable: true
+  },
+  {
+    id: 'advanced-features',
+    title: 'Explore Advanced Features',
+    content: 'Discover powerful tools:\n• Audio Visualizer - See sound waves in real-time\n• Theme Customizer - Create custom retro color schemes\n• Conversation Search - Find past messages instantly\n• Session Replay - Relive conversations\n• Cloud Sync - Save sessions across devices\n\nCheck the toolbar for quick access!',
+    skipable: true
+  },
+  {
+    id: 'completion',
+    title: 'You\'re All Set!',
+    content: 'Congratulations! You\'ve completed the tutorial. A sample conversation has been loaded so you can explore the interface. You can restart this tutorial anytime from Help → Tutorial.\n\nReady to experience retro AI therapy?',
+    skipable: false
+  }
+];
+
+// Sentiment Analysis Keywords (v1.8.0)
+export const POSITIVE_KEYWORDS = [
+  'happy', 'joy', 'excited', 'great', 'wonderful', 'amazing', 'fantastic',
+  'excellent', 'good', 'better', 'best', 'love', 'like', 'enjoy', 'fun',
+  'peaceful', 'calm', 'relaxed', 'hopeful', 'optimistic', 'confident',
+  'grateful', 'thankful', 'blessed', 'pleased', 'satisfied', 'content',
+  'delighted', 'cheerful', 'bright', 'positive', 'energetic', 'motivated',
+  'inspired', 'proud', 'accomplished', 'successful', 'winning', 'victory',
+  'smile', 'laugh', 'laughing', 'beautiful', 'lovely', 'nice', 'pleasant',
+  'comfortable', 'cozy', 'warm', 'friendly', 'kind', 'helpful', 'caring'
+];
+
+export const NEGATIVE_KEYWORDS = [
+  'sad', 'unhappy', 'depressed', 'down', 'low', 'bad', 'terrible', 'awful',
+  'horrible', 'worst', 'hate', 'dislike', 'angry', 'mad', 'frustrated',
+  'annoyed', 'irritated', 'upset', 'worried', 'anxious', 'stressed',
+  'nervous', 'scared', 'afraid', 'fear', 'fearful', 'panic', 'terrified',
+  'lonely', 'alone', 'isolated', 'abandoned', 'rejected', 'hurt', 'pain',
+  'painful', 'suffering', 'ache', 'aching', 'sick', 'ill', 'tired',
+  'exhausted', 'drained', 'weak', 'helpless', 'hopeless', 'desperate',
+  'confused', 'lost', 'stuck', 'trapped', 'overwhelmed', 'bored', 'empty'
+];
+
+// Chart Colors (v1.8.0) - Retro-themed for insights dashboard
+export const INSIGHT_CHART_COLORS = {
+  'dos-blue': ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe'],
+  'phosphor-green': ['#00ff00', '#00cc00', '#009900', '#006600', '#003300'],
+  'amber-mono': ['#ffb000', '#ff9500', '#ffc947', '#ffd480', '#ffe0b3'],
+  'paper-white': ['#000000', '#4a4a4a', '#8b7355', '#a0826d', '#b69968'],
+  'matrix-green': ['#00ff41', '#008f11', '#00cc2d', '#00b327', '#009922']
 };

@@ -1,5 +1,6 @@
-import { ConversationSession, Message, SessionStats, AppSettings } from '../types';
-import { DEFAULT_CHARACTER, DEFAULT_THEME, DEFAULT_AUDIO_QUALITY } from '../constants';
+import { ConversationSession, Message, SessionStats, AppSettings, InsightsData, InsightsFilter } from '../types';
+import { DEFAULT_CHARACTER, DEFAULT_THEME, DEFAULT_AUDIO_QUALITY, CHARACTERS } from '../constants';
+import { analyzeSentiment, calculateSentimentTrend, extractTopKeywords } from './sentimentAnalysis';
 
 const SESSIONS_KEY = 'sbaitso_sessions';
 const CURRENT_SESSION_KEY = 'sbaitso_current_session';
@@ -207,5 +208,217 @@ export class SessionManager {
     }
 
     return count;
+  }
+
+  // Insights and Analytics (v1.8.0)
+
+  /**
+   * Get messages within a specific date range
+   * @param startDate - Start timestamp (ms)
+   * @param endDate - End timestamp (ms)
+   * @returns Filtered messages
+   */
+  static getMessagesInDateRange(startDate?: number, endDate?: number): Message[] {
+    const sessions = this.getAllSessions();
+    const allMessages: Message[] = [];
+
+    sessions.forEach(session => {
+      session.messages.forEach(message => {
+        const timestamp = message.timestamp || session.createdAt;
+        const afterStart = startDate === undefined || timestamp >= startDate;
+        const beforeEnd = endDate === undefined || timestamp <= endDate;
+
+        if (afterStart && beforeEnd) {
+          allMessages.push({
+            ...message,
+            timestamp: timestamp,
+            characterId: session.characterId
+          });
+        }
+      });
+    });
+
+    return allMessages.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+  }
+
+  /**
+   * Calculate date range timestamps based on filter
+   * @param filter - Insights filter with date range option
+   * @returns Start and end timestamps
+   */
+  static calculateDateRange(filter: InsightsFilter): { startDate?: number; endDate?: number } {
+    const now = Date.now();
+    let startDate: number | undefined;
+    let endDate: number | undefined = now;
+
+    switch (filter.dateRange) {
+      case 'week':
+        startDate = now - 7 * 24 * 60 * 60 * 1000;
+        break;
+      case 'month':
+        startDate = now - 30 * 24 * 60 * 60 * 1000;
+        break;
+      case 'quarter':
+        startDate = now - 90 * 24 * 60 * 60 * 1000;
+        break;
+      case 'all':
+        startDate = undefined;
+        endDate = undefined;
+        break;
+      case 'custom':
+        startDate = filter.startDate;
+        endDate = filter.endDate;
+        break;
+    }
+
+    return { startDate, endDate };
+  }
+
+  /**
+   * Get comprehensive insights data for the dashboard
+   * @param filter - Insights filter options
+   * @returns InsightsData with timeline, sentiment, topics, and character usage
+   */
+  static getInsightsData(filter: InsightsFilter): InsightsData {
+    const { startDate, endDate } = this.calculateDateRange(filter);
+    const sessions = this.getAllSessions();
+
+    // Filter sessions by date range and character
+    let filteredSessions = sessions.filter(session => {
+      const sessionTime = session.updatedAt;
+      const afterStart = startDate === undefined || sessionTime >= startDate;
+      const beforeEnd = endDate === undefined || sessionTime <= endDate;
+      const matchesCharacter = !filter.characterIds || filter.characterIds.length === 0 ||
+                               filter.characterIds.includes(session.characterId);
+      const matchesSession = !filter.sessionIds || filter.sessionIds.length === 0 ||
+                              filter.sessionIds.includes(session.id);
+
+      return afterStart && beforeEnd && matchesCharacter && matchesSession;
+    });
+
+    // Build timeline data (group by date)
+    const timelineMap = new Map<string, Map<string, number>>();
+    filteredSessions.forEach(session => {
+      const date = new Date(session.createdAt).toLocaleDateString();
+
+      if (!timelineMap.has(date)) {
+        timelineMap.set(date, new Map());
+      }
+
+      const characterMap = timelineMap.get(date)!;
+      const count = characterMap.get(session.characterId) || 0;
+      characterMap.set(session.characterId, count + session.messageCount);
+    });
+
+    const timeline: Array<{ date: string; count: number; character: string }> = [];
+    timelineMap.forEach((characterMap, date) => {
+      characterMap.forEach((count, character) => {
+        timeline.push({ date, count, character });
+      });
+    });
+
+    // Sort timeline by date
+    timeline.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Get all messages for sentiment and topic analysis
+    const allMessages: Message[] = [];
+    filteredSessions.forEach(session => {
+      allMessages.push(...session.messages.map(m => ({
+        ...m,
+        timestamp: m.timestamp || session.createdAt,
+        characterId: session.characterId
+      })));
+    });
+
+    // Calculate sentiment
+    const sentimentAnalysis = analyzeSentiment(allMessages.map(m => m.text).join(' '));
+    const trend = allMessages.length > 0 ? calculateSentimentTrend(allMessages) : 'stable';
+
+    // Get recent messages for average (last 7 days)
+    const recentDate = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const recentMessages = allMessages.filter(m => (m.timestamp || 0) >= recentDate);
+    const recentSentiment = analyzeSentiment(recentMessages.map(m => m.text).join(' '));
+
+    const sentiment = {
+      score: sentimentAnalysis.score,
+      trend,
+      recentAverage: recentSentiment.score
+    };
+
+    // Extract topics
+    const topics = extractTopKeywords(allMessages);
+
+    // Calculate character usage
+    const characterCounts = new Map<string, number>();
+    filteredSessions.forEach(session => {
+      const count = characterCounts.get(session.characterId) || 0;
+      characterCounts.set(session.characterId, count + 1);
+    });
+
+    const totalSessions = filteredSessions.length;
+    const characterUsage = Array.from(characterCounts.entries()).map(([character, count]) => ({
+      character: CHARACTERS.find(c => c.id === character)?.name || character,
+      count,
+      percentage: totalSessions > 0 ? Math.round((count / totalSessions) * 100) : 0
+    }));
+
+    return {
+      timeline,
+      sentiment,
+      topics,
+      characterUsage
+    };
+  }
+
+  /**
+   * Calculate overall session statistics for insights
+   * @returns Statistics summary
+   */
+  static calculateSessionStats(): {
+    totalSessions: number;
+    totalMessages: number;
+    avgMessagesPerSession: number;
+    avgConversationDuration: number;
+    oldestSession: number;
+    newestSession: number;
+  } {
+    const sessions = this.getAllSessions();
+
+    if (sessions.length === 0) {
+      return {
+        totalSessions: 0,
+        totalMessages: 0,
+        avgMessagesPerSession: 0,
+        avgConversationDuration: 0,
+        oldestSession: 0,
+        newestSession: 0
+      };
+    }
+
+    const totalMessages = sessions.reduce((sum, s) => sum + s.messageCount, 0);
+    let totalDuration = 0;
+    let sessionsWithDuration = 0;
+
+    sessions.forEach(session => {
+      if (session.messages.length > 1) {
+        const first = session.messages[0];
+        const last = session.messages[session.messages.length - 1];
+        if (first.timestamp && last.timestamp) {
+          totalDuration += (last.timestamp - first.timestamp);
+          sessionsWithDuration++;
+        }
+      }
+    });
+
+    return {
+      totalSessions: sessions.length,
+      totalMessages,
+      avgMessagesPerSession: Math.round(totalMessages / sessions.length),
+      avgConversationDuration: sessionsWithDuration > 0
+        ? Math.round(totalDuration / sessionsWithDuration)
+        : 0,
+      oldestSession: Math.min(...sessions.map(s => s.createdAt)),
+      newestSession: Math.max(...sessions.map(s => s.updatedAt))
+    };
   }
 }

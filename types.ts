@@ -120,3 +120,58 @@ export interface VoiceCommandExecution {
   success: boolean;
   errorMessage?: string;
 }
+
+// Onboarding Tutorial (v1.8.0)
+export interface OnboardingStep {
+  id: string;
+  title: string;
+  content: string;
+  target?: string; // CSS selector for tooltip anchor
+  action?: 'click' | 'type' | 'wait';
+  actionTarget?: string;
+  actionPlaceholder?: string;
+  skipable?: boolean;
+}
+
+export interface OnboardingState {
+  currentStep: number;
+  completed: boolean;
+  skipped: boolean;
+  startedAt: number;
+  completedAt?: number;
+}
+
+// Conversation Insights (v1.8.0)
+export interface InsightsData {
+  timeline: { date: string; count: number; character: string }[];
+  sentiment: { score: number; trend: 'up' | 'down' | 'stable'; recentAverage: number };
+  topics: { word: string; count: number; sentiment: number }[];
+  characterUsage: { character: string; count: number; percentage: number }[];
+}
+
+export interface ChartOptions {
+  width: number;
+  height: number;
+  colors?: string[];
+  backgroundColor?: string;
+  textColor?: string;
+  fontSize?: number;
+  padding?: number;
+}
+
+export interface SentimentAnalysis {
+  score: number; // -100 to +100
+  positiveCount: number;
+  negativeCount: number;
+  neutralCount: number;
+  totalWords: number;
+  trend?: 'up' | 'down' | 'stable';
+}
+
+export interface InsightsFilter {
+  dateRange: 'week' | 'month' | 'quarter' | 'all' | 'custom';
+  startDate?: number;
+  endDate?: number;
+  characterIds?: string[];
+  sessionIds?: string[];
+}
