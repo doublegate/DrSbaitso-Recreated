@@ -39,101 +39,142 @@ afterEach(() => {
 });
 
 // Mock Web Audio API
-global.AudioContext = vi.fn().mockImplementation(() => ({
-  createBuffer: vi.fn((channels, length, sampleRate) => ({
-    length: length || 1000,
-    duration: (length || 1000) / (sampleRate || 24000),
-    sampleRate: sampleRate || 24000,
-    numberOfChannels: channels || 1,
-    getChannelData: vi.fn(() => new Float32Array(length || 1000)),
-  })),
-  createBufferSource: vi.fn(() => ({
-    connect: vi.fn(),
-    start: vi.fn(),
-    stop: vi.fn(),
-    buffer: null,
-    playbackRate: { value: 1 },
-    onended: null,
-  })),
-  createScriptProcessor: vi.fn(() => ({
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    onaudioprocess: null,
-  })),
-  createGain: vi.fn(() => ({
-    connect: vi.fn(),
-    gain: { value: 1 },
-  })),
-  createOscillator: vi.fn(() => ({
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-    start: vi.fn(),
-    stop: vi.fn(),
-    frequency: { value: 440 },
-    type: 'sine',
-    onended: null,
-  })),
-  createAnalyser: vi.fn(() => ({
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-    fftSize: 2048,
-    frequencyBinCount: 1024,
-    getByteTimeDomainData: vi.fn(),
-    getByteFrequencyData: vi.fn(),
-    smoothingTimeConstant: 0.8,
-  })),
-  createBiquadFilter: vi.fn(() => ({
-    connect: vi.fn(),
-    frequency: { value: 1000 },
-    Q: { value: 1 },
-    type: 'lowpass',
-  })),
-  createMediaStreamSource: vi.fn(() => ({
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-  })),
-  destination: {},
-  state: 'running',
-  sampleRate: 24000,
-  resume: vi.fn().mockResolvedValue(undefined),
-  suspend: vi.fn().mockResolvedValue(undefined),
-  close: vi.fn().mockResolvedValue(undefined),
-  decodeAudioData: vi.fn().mockResolvedValue({
+global.AudioContext = vi.fn(function(this: any) {
+  this.createBuffer = vi.fn(function(channels: number, length: number, sampleRate: number) {
+    return {
+      length: length || 1000,
+      duration: (length || 1000) / (sampleRate || 24000),
+      sampleRate: sampleRate || 24000,
+      numberOfChannels: channels || 1,
+      getChannelData: vi.fn(() => new Float32Array(length || 1000)),
+    };
+  });
+  this.createBufferSource = vi.fn(function() {
+    const source = {
+      connect: vi.fn(),
+      start: vi.fn(function() {
+        // Automatically trigger onended after a short delay to simulate playback completion
+        setTimeout(() => {
+          if (source.onended) {
+            source.onended();
+          }
+        }, 0);
+      }),
+      stop: vi.fn(),
+      buffer: null,
+      playbackRate: { value: 1 },
+      disconnect: vi.fn(),
+      onended: null,
+    };
+    return source;
+  });
+  this.createScriptProcessor = vi.fn(function() {
+    return {
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      onaudioprocess: null,
+    };
+  });
+  this.createGain = vi.fn(function() {
+    return {
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+      gain: {
+        value: 1,
+        setValueAtTime: vi.fn(),
+        linearRampToValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+      },
+    };
+  });
+  this.createOscillator = vi.fn(function() {
+    return {
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
+      frequency: {
+        value: 440,
+        setValueAtTime: vi.fn(),
+        linearRampToValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+      },
+      type: 'sine',
+      onended: null,
+    };
+  });
+  this.createAnalyser = vi.fn(function() {
+    return {
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+      fftSize: 2048,
+      frequencyBinCount: 1024,
+      getByteTimeDomainData: vi.fn(),
+      getByteFrequencyData: vi.fn(),
+      smoothingTimeConstant: 0.8,
+    };
+  });
+  this.createBiquadFilter = vi.fn(function() {
+    return {
+      connect: vi.fn(),
+      frequency: { value: 1000 },
+      Q: { value: 1 },
+      type: 'lowpass',
+    };
+  });
+  this.createMediaStreamSource = vi.fn(function() {
+    return {
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+    };
+  });
+  this.destination = {};
+  this.state = 'running';
+  this.sampleRate = 24000;
+  this.currentTime = 0;
+  this.resume = vi.fn().mockResolvedValue(undefined);
+  this.suspend = vi.fn().mockResolvedValue(undefined);
+  this.close = vi.fn().mockResolvedValue(undefined);
+  this.decodeAudioData = vi.fn().mockResolvedValue({
     length: 1000,
     duration: 1,
     sampleRate: 24000,
     numberOfChannels: 1,
     getChannelData: vi.fn(() => new Float32Array(1000)),
-  }),
-}));
+  });
+}) as any;
 
 // Mock OfflineAudioContext
-global.OfflineAudioContext = vi.fn().mockImplementation(() => ({
-  createBuffer: vi.fn(),
-  createBufferSource: vi.fn(() => ({
-    connect: vi.fn(),
-    start: vi.fn(),
-    buffer: null,
-  })),
-  createBiquadFilter: vi.fn(() => ({
-    connect: vi.fn(),
-    frequency: { value: 1000 },
-    Q: { value: 1 },
-    type: 'lowpass',
-  })),
-  destination: {},
-  startRendering: vi.fn().mockResolvedValue({
+global.OfflineAudioContext = vi.fn(function(this: any) {
+  this.createBuffer = vi.fn();
+  this.createBufferSource = vi.fn(function() {
+    return {
+      connect: vi.fn(),
+      start: vi.fn(),
+      buffer: null,
+    };
+  });
+  this.createBiquadFilter = vi.fn(function() {
+    return {
+      connect: vi.fn(),
+      frequency: { value: 1000 },
+      Q: { value: 1 },
+      type: 'lowpass',
+    };
+  });
+  this.destination = {};
+  this.startRendering = vi.fn().mockResolvedValue({
     length: 1000,
     duration: 1,
     sampleRate: 11025,
     numberOfChannels: 1,
     getChannelData: vi.fn(() => new Float32Array(1000)),
-  }),
-  length: 1000,
-  sampleRate: 11025,
-}));
+  });
+  this.length = 1000;
+  this.sampleRate = 11025;
+}) as any;
 
 // Mock AudioWorklet
 Object.defineProperty(global.AudioContext.prototype, 'audioWorklet', {
@@ -144,21 +185,21 @@ Object.defineProperty(global.AudioContext.prototype, 'audioWorklet', {
 });
 
 // Mock Web Speech API
-const mockSpeechRecognition = vi.fn().mockImplementation(() => ({
-  continuous: false,
-  interimResults: false,
-  lang: 'en-US',
-  maxAlternatives: 1,
-  start: vi.fn(),
-  stop: vi.fn(),
-  abort: vi.fn(),
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-  onstart: null,
-  onend: null,
-  onerror: null,
-  onresult: null,
-}));
+const mockSpeechRecognition = vi.fn(function(this: any) {
+  this.continuous = false;
+  this.interimResults = false;
+  this.lang = 'en-US';
+  this.maxAlternatives = 1;
+  this.start = vi.fn();
+  this.stop = vi.fn();
+  this.abort = vi.fn();
+  this.addEventListener = vi.fn();
+  this.removeEventListener = vi.fn();
+  this.onstart = null;
+  this.onend = null;
+  this.onerror = null;
+  this.onresult = null;
+}) as any;
 
 Object.defineProperty(global, 'webkitSpeechRecognition', {
   value: mockSpeechRecognition,

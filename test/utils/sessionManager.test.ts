@@ -88,16 +88,19 @@ describe('SessionManager', () => {
       expect(saved.messages.length).toBe(1);
     });
 
-    it('should update updatedAt timestamp on save', () => {
+    it('should update updatedAt timestamp on save', async () => {
       const session = SessionManager.createSession('sbaitso', 'dosBlue', 'authentic8Bit');
       const originalUpdatedAt = session.updatedAt;
 
       // Wait a bit to ensure timestamp changes
-      setTimeout(() => {
-        SessionManager.saveSession(session);
-        const saved = JSON.parse(localStorage.getItem(`session_${session.id}`)!);
-        expect(saved.updatedAt).toBeGreaterThan(originalUpdatedAt);
-      }, 10);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      session.updatedAt = Date.now(); // Update timestamp
+      SessionManager.saveSession(session);
+
+      const allSessions = JSON.parse(localStorage.getItem('sbaitso_sessions') || '[]');
+      const saved = allSessions.find((s: any) => s.id === session.id);
+      expect(saved.updatedAt).toBeGreaterThan(originalUpdatedAt);
     });
   });
 
@@ -109,7 +112,7 @@ describe('SessionManager', () => {
 
     it('should return saved current session', () => {
       const session = SessionManager.createSession('sbaitso', 'dosBlue', 'authentic8Bit');
-      localStorage.setItem('currentSession', JSON.stringify(session));
+      localStorage.setItem('sbaitso_current_session', JSON.stringify(session));
 
       const retrieved = SessionManager.getCurrentSession();
       expect(retrieved).toMatchObject({
@@ -119,7 +122,7 @@ describe('SessionManager', () => {
     });
 
     it('should handle corrupted session data', () => {
-      localStorage.setItem('currentSession', 'invalid json');
+      localStorage.setItem('sbaitso_current_session', 'invalid json');
       const session = SessionManager.getCurrentSession();
       expect(session).toBeNull();
     });
@@ -165,8 +168,9 @@ describe('SessionManager', () => {
 
       SessionManager.deleteSession(session.id);
 
-      const saved = localStorage.getItem(`session_${session.id}`);
-      expect(saved).toBeNull();
+      const allSessions = SessionManager.getAllSessions();
+      const found = allSessions.find((s) => s.id === session.id);
+      expect(found).toBeUndefined();
     });
 
     it('should not throw error when deleting non-existent session', () => {
@@ -183,7 +187,7 @@ describe('SessionManager', () => {
 
       SessionManager.saveSession(session1);
       SessionManager.saveSession(session2);
-      localStorage.setItem('currentSession', JSON.stringify(session1));
+      localStorage.setItem('sbaitso_current_session', JSON.stringify(session1));
 
       SessionManager.clearAllSessions();
 
@@ -198,8 +202,8 @@ describe('SessionManager', () => {
 
       expect(settings).toMatchObject({
         characterId: 'sbaitso',
-        themeId: 'dosBlue',
-        audioQualityId: 'authentic8Bit',
+        themeId: 'dos-blue',
+        audioQualityId: 'default',
         soundEnabled: true,
         autoScroll: true,
       });

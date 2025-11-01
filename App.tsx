@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Message, ConversationSession, CustomCharacter } from './types';
 import { getDrSbaitsoResponse, synthesizeSpeech } from './services/geminiService';
 import { decode, decodeAudioData, playAudio, playGlitchSound, playErrorBeep } from './utils/audio';
@@ -7,15 +7,17 @@ import { useAccessibility } from './hooks/useAccessibility';
 import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import SkipNav from './components/SkipNav';
-import AccessibilityPanel from './components/AccessibilityPanel';
-import { ThemeCustomizer } from './components/ThemeCustomizer';
-import { ConversationSearch } from './components/ConversationSearch';
-import { AudioVisualizer } from './components/AudioVisualizer';
 import { CustomTheme } from './utils/themeValidator';
-// v1.6.0 Components
-import { AdvancedExporter } from './components/AdvancedExporter';
-import { CharacterCreator } from './components/CharacterCreator';
-import { ConversationReplay } from './components/ConversationReplay';
+
+// Lazy-loaded components (only load when needed)
+const AccessibilityPanel = lazy(() => import('./components/AccessibilityPanel'));
+const ThemeCustomizer = lazy(() => import('./components/ThemeCustomizer').then(module => ({ default: module.ThemeCustomizer })));
+const ConversationSearch = lazy(() => import('./components/ConversationSearch').then(module => ({ default: module.ConversationSearch })));
+const AudioVisualizer = lazy(() => import('./components/AudioVisualizer').then(module => ({ default: module.AudioVisualizer })));
+// v1.6.0 Components (lazy-loaded)
+const AdvancedExporter = lazy(() => import('./components/AdvancedExporter').then(module => ({ default: module.AdvancedExporter })));
+const CharacterCreator = lazy(() => import('./components/CharacterCreator').then(module => ({ default: module.CharacterCreator })));
+const ConversationReplay = lazy(() => import('./components/ConversationReplay').then(module => ({ default: module.ConversationReplay })));
 
 export default function App() {
   // Core state
@@ -660,98 +662,112 @@ export default function App() {
 
       {/* Accessibility Panel (v1.4.0) */}
       {showAccessibilityPanel && (
-        <AccessibilityPanel
-          isOpen={showAccessibilityPanel}
-          settings={accessibilitySettings}
-          onClose={() => setShowAccessibilityPanel(false)}
-          onUpdateSetting={updateSetting}
-          onResetSettings={resetSettings}
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+          <AccessibilityPanel
+            isOpen={showAccessibilityPanel}
+            settings={accessibilitySettings}
+            onClose={() => setShowAccessibilityPanel(false)}
+            onUpdateSetting={updateSetting}
+            onResetSettings={resetSettings}
+          />
+        </Suspense>
       )}
 
       {/* Theme Customizer (v1.5.0) */}
       {showThemeCustomizer && (
-        <ThemeCustomizer
-          isOpen={showThemeCustomizer}
-          onClose={() => setShowThemeCustomizer(false)}
-          onSave={(theme) => {
-            setCustomThemes([...customThemes, theme]);
-            console.log('Custom theme saved:', theme);
-            setShowThemeCustomizer(false);
-          }}
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+          <ThemeCustomizer
+            isOpen={showThemeCustomizer}
+            onClose={() => setShowThemeCustomizer(false)}
+            onSave={(theme) => {
+              setCustomThemes([...customThemes, theme]);
+              console.log('Custom theme saved:', theme);
+              setShowThemeCustomizer(false);
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Conversation Search (v1.5.0) */}
       {showConversationSearch && (
-        <ConversationSearch
-          isOpen={showConversationSearch}
-          onClose={() => setShowConversationSearch(false)}
-          sessions={savedSessions}
-          onOpenSession={(sessionId) => {
-            console.log('Opening session:', sessionId);
-            // Find the session and trigger replay
-            const session = savedSessions.find(s => s.id === sessionId);
-            if (session) {
-              setReplaySession(session);
-              setShowConversationReplay(true);
-              setShowConversationSearch(false);
-            }
-          }}
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+          <ConversationSearch
+            isOpen={showConversationSearch}
+            onClose={() => setShowConversationSearch(false)}
+            sessions={savedSessions}
+            onOpenSession={(sessionId) => {
+              console.log('Opening session:', sessionId);
+              // Find the session and trigger replay
+              const session = savedSessions.find(s => s.id === sessionId);
+              if (session) {
+                setReplaySession(session);
+                setShowConversationReplay(true);
+                setShowConversationSearch(false);
+              }
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Audio Visualizer (v1.5.0) */}
       {showAudioVisualizer && (
-        <div className="fixed bottom-4 right-4 z-40">
-          <AudioVisualizer
-            audioContext={audioContextRef.current}
-            audioSource={currentAudioSource}
-            isPlaying={isAudioPlaying}
-          />
-        </div>
+        <Suspense fallback={<div className="fixed bottom-4 right-4 z-40 text-white">Loading...</div>}>
+          <div className="fixed bottom-4 right-4 z-40">
+            <AudioVisualizer
+              audioContext={audioContextRef.current}
+              audioSource={currentAudioSource}
+              isPlaying={isAudioPlaying}
+            />
+          </div>
+        </Suspense>
       )}
 
       {/* Advanced Exporter (v1.6.0) */}
       {showAdvancedExport && (
-        <AdvancedExporter
-          isOpen={showAdvancedExport}
-          onClose={() => setShowAdvancedExport(false)}
-          sessions={savedSessions}
-          themes={customThemes}
-          currentSession={savedSessions[0]} // Use most recent session as current
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+          <AdvancedExporter
+            isOpen={showAdvancedExport}
+            onClose={() => setShowAdvancedExport(false)}
+            sessions={savedSessions}
+            themes={customThemes}
+            currentSession={savedSessions[0]} // Use most recent session as current
+          />
+        </Suspense>
       )}
 
       {/* Character Creator (v1.6.0) */}
       {showCharacterCreator && (
-        <CharacterCreator
-          isOpen={showCharacterCreator}
-          onClose={() => setShowCharacterCreator(false)}
-          onSave={(character) => {
-            const updatedCharacters = [...customCharacters, character];
-            setCustomCharacters(updatedCharacters);
-            localStorage.setItem('customCharacters', JSON.stringify(updatedCharacters));
-          }}
-          onDelete={(characterId) => {
-            const updatedCharacters = customCharacters.filter(c => c.id !== characterId);
-            setCustomCharacters(updatedCharacters);
-            localStorage.setItem('customCharacters', JSON.stringify(updatedCharacters));
-          }}
-          existingCharacters={customCharacters}
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+          <CharacterCreator
+            isOpen={showCharacterCreator}
+            onClose={() => setShowCharacterCreator(false)}
+            onSave={(character) => {
+              const updatedCharacters = [...customCharacters, character];
+              setCustomCharacters(updatedCharacters);
+              localStorage.setItem('customCharacters', JSON.stringify(updatedCharacters));
+            }}
+            onDelete={(characterId) => {
+              const updatedCharacters = customCharacters.filter(c => c.id !== characterId);
+              setCustomCharacters(updatedCharacters);
+              localStorage.setItem('customCharacters', JSON.stringify(updatedCharacters));
+            }}
+            existingCharacters={customCharacters}
+          />
+        </Suspense>
       )}
 
       {/* Conversation Replay (v1.6.0) */}
       {showConversationReplay && replaySession && (
-        <ConversationReplay
-          isOpen={showConversationReplay}
-          onClose={() => {
-            setShowConversationReplay(false);
-            setReplaySession(null);
-          }}
-          session={replaySession}
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+          <ConversationReplay
+            isOpen={showConversationReplay}
+            onClose={() => {
+              setShowConversationReplay(false);
+              setReplaySession(null);
+            }}
+            session={replaySession}
+          />
+        </Suspense>
       )}
 
       {/* Voice Control Help Modal (v1.6.0) */}

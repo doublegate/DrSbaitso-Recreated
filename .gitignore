@@ -26,3 +26,4 @@ dist-ssr
 # Gemini API Key
 .env.local
 .vercel
+coverage/

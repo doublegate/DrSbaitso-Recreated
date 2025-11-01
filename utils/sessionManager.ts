@@ -54,7 +54,9 @@ export class SessionManager {
   static getAllSessions(): ConversationSession[] {
     try {
       const data = localStorage.getItem(SESSIONS_KEY);
-      return data ? JSON.parse(data) : [];
+      const sessions = data ? JSON.parse(data) : [];
+      // Sort by updatedAt descending (newest first)
+      return sessions.sort((a: ConversationSession, b: ConversationSession) => b.updatedAt - a.updatedAt);
     } catch (e) {
       console.error('Failed to load sessions:', e);
       return [];
@@ -108,9 +110,11 @@ export class SessionManager {
     };
   }
 
-  static saveSettings(settings: AppSettings): void {
+  static saveSettings(settings: Partial<AppSettings>): void {
     try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      const currentSettings = this.getSettings();
+      const mergedSettings = { ...currentSettings, ...settings };
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(mergedSettings));
     } catch (e) {
       console.error('Failed to save settings:', e);
     }
@@ -122,8 +126,12 @@ export class SessionManager {
       const stats = this.getStats();
 
       // Update basic counts
-      stats.totalMessages = session.messageCount;
-      stats.totalGlitches = session.glitchCount;
+      stats.totalSessions++;
+      stats.totalMessages += session.messageCount;
+      stats.totalGlitches += session.glitchCount;
+
+      // Calculate average messages per session
+      stats.averageMessagesPerSession = stats.totalMessages / stats.totalSessions;
 
       // Track character usage
       if (!stats.charactersUsed[session.characterId]) {

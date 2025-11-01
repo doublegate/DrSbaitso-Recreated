@@ -342,19 +342,56 @@ describe('usePWA Hook', () => {
 
       global.caches = mockCaches as any;
 
+      // Mock window.location.reload by replacing the entire location object
+      const originalLocation = window.location;
+      const mockReload = vi.fn();
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: { ...originalLocation, reload: mockReload },
+      });
+
       const { result } = renderHook(() => usePWA());
+
+      // Wait for registration to complete with explicit checks
+      await waitFor(() => {
+        expect(result.current.registration).toBeDefined();
+        expect(result.current.registration).not.toBeNull();
+      }, { timeout: 1000 });
+
+      // Double-check registration exists
+      expect(result.current.registration).toBeTruthy();
 
       await act(async () => {
         await result.current.clearCache();
       });
 
-      expect(mockCaches.keys).toHaveBeenCalled();
+      // Wait for async operations to complete
+      await waitFor(() => {
+        expect(mockCaches.keys).toHaveBeenCalled();
+      });
+
       expect(mockCaches.delete).toHaveBeenCalledWith('cache1');
       expect(mockCaches.delete).toHaveBeenCalledWith('cache2');
+      expect(mockReload).toHaveBeenCalled();
+
+      // Restore original location
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: originalLocation,
+      });
     });
 
     it('should handle cache clearing errors gracefully', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Mock window.location.reload by replacing the entire location object
+      const originalLocation = window.location;
+      const mockReload = vi.fn();
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: { ...originalLocation, reload: mockReload },
+      });
+
       const mockCaches = {
         keys: vi.fn().mockRejectedValue(new Error('Cache error')),
         delete: vi.fn(),
@@ -364,12 +401,27 @@ describe('usePWA Hook', () => {
 
       const { result } = renderHook(() => usePWA());
 
+      // Wait for registration to complete
+      await waitFor(() => {
+        expect(result.current.registration).toBeDefined();
+        expect(result.current.registration).not.toBeNull();
+      });
+
+      // Ensure we have a valid registration before calling clearCache
+      expect(result.current.registration).toBeTruthy();
+
       await act(async () => {
         await result.current.clearCache();
       });
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       consoleErrorSpy.mockRestore();
+
+      // Restore original location
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: originalLocation,
+      });
     });
   });
 
@@ -385,25 +437,75 @@ describe('usePWA Hook', () => {
     it('should detect Android TWA mode', () => {
       Object.defineProperty(document, 'referrer', {
         writable: true,
+        configurable: true,
         value: 'android-app://com.example.app',
       });
 
       const { result } = renderHook(() => usePWA());
 
       expect(result.current.isInstalled).toBe(true);
+
+      // Reset referrer after test
+      Object.defineProperty(document, 'referrer', {
+        writable: true,
+        configurable: true,
+        value: '',
+      });
     });
 
-    it('should update isInstalled after appinstalled event', () => {
+    it('should update isInstalled after appinstalled event', async () => {
+      // Clean up navigator.standalone from previous tests
+      delete (window.navigator as any).standalone;
+
+      // Ensure referrer doesn't indicate TWA mode
+      try {
+        Object.defineProperty(document, 'referrer', {
+          writable: true,
+          configurable: true,
+          value: '',
+        });
+      } catch (e) {
+        // Already configured, skip
+      }
+
+      // Ensure matchMedia initially returns false for standalone mode
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        configurable: true,
+        value: vi.fn().mockImplementation((query) => ({
+          matches: false,
+          media: query,
+          onchange: null,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+        })),
+      });
+
       const { result } = renderHook(() => usePWA());
 
       expect(result.current.isInstalled).toBe(false);
 
+      // Now simulate app installation
       act(() => {
+        // Update matchMedia to return true for standalone mode after install
+        Object.defineProperty(window, 'matchMedia', {
+          writable: true,
+          configurable: true,
+          value: vi.fn().mockImplementation((query) => ({
+            matches: query === '(display-mode: standalone)',
+            media: query,
+            onchange: null,
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+          })),
+        });
         window.dispatchEvent(new Event('appinstalled'));
       });
 
-      // Installation state would be rechecked
-      expect(result.current.isInstalled).toBeDefined();
+      // Wait for state update
+      await waitFor(() => {
+        expect(result.current.isInstalled).toBe(true);
+      });
     });
   });
 });
