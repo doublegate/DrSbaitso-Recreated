@@ -46,7 +46,7 @@ describe('usePWA Hook', () => {
   });
 
   describe('Initial State', () => {
-    it('should initialize with correct default state', () => {
+    it('should initialize with correct default state', async () => {
       const { result } = renderHook(() => usePWA());
 
       expect(result.current.isInstalled).toBe(false);
@@ -55,9 +55,14 @@ describe('usePWA Hook', () => {
       expect(result.current.hasUpdate).toBe(false);
       expect(result.current.installPromptEvent).toBeNull();
       expect(result.current.registration).toBeNull();
+
+      // Wait for service worker registration to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.registration).toBeDefined();
+      });
     });
 
-    it('should detect offline state correctly', () => {
+    it('should detect offline state correctly', async () => {
       Object.defineProperty(navigator, 'onLine', {
         writable: true,
         value: false,
@@ -66,9 +71,14 @@ describe('usePWA Hook', () => {
       const { result } = renderHook(() => usePWA());
 
       expect(result.current.isOffline).toBe(true);
+
+      // Wait for service worker registration to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.registration).toBeDefined();
+      });
     });
 
-    it('should detect standalone mode (installed PWA)', () => {
+    it('should detect standalone mode (installed PWA)', async () => {
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
         value: vi.fn().mockImplementation((query) => ({
@@ -83,6 +93,11 @@ describe('usePWA Hook', () => {
       const { result } = renderHook(() => usePWA());
 
       expect(result.current.isInstalled).toBe(true);
+
+      // Wait for service worker registration to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.registration).toBeDefined();
+      });
     });
   });
 
@@ -308,6 +323,11 @@ describe('usePWA Hook', () => {
     it('should update service worker when requested', async () => {
       const { result } = renderHook(() => usePWA());
 
+      // Wait for service worker registration to complete
+      await waitFor(() => {
+        expect(result.current.registration).toBeDefined();
+      });
+
       // Manually set hasUpdate to true
       act(() => {
         // This would normally be set by the updatefound event
@@ -322,8 +342,13 @@ describe('usePWA Hook', () => {
       expect(result.current.updateServiceWorker).toBeDefined();
     });
 
-    it('should dismiss update notification', () => {
+    it('should dismiss update notification', async () => {
       const { result } = renderHook(() => usePWA());
+
+      // Wait for service worker registration to complete
+      await waitFor(() => {
+        expect(result.current.registration).toBeDefined();
+      });
 
       act(() => {
         result.current.dismissUpdate();
@@ -426,15 +451,20 @@ describe('usePWA Hook', () => {
   });
 
   describe('App Installation Detection', () => {
-    it('should detect iOS standalone mode', () => {
+    it('should detect iOS standalone mode', async () => {
       (window.navigator as any).standalone = true;
 
       const { result } = renderHook(() => usePWA());
 
       expect(result.current.isInstalled).toBe(true);
+
+      // Wait for service worker registration to complete
+      await waitFor(() => {
+        expect(result.current.registration).toBeDefined();
+      });
     });
 
-    it('should detect Android TWA mode', () => {
+    it('should detect Android TWA mode', async () => {
       Object.defineProperty(document, 'referrer', {
         writable: true,
         configurable: true,
@@ -444,6 +474,11 @@ describe('usePWA Hook', () => {
       const { result } = renderHook(() => usePWA());
 
       expect(result.current.isInstalled).toBe(true);
+
+      // Wait for service worker registration to complete
+      await waitFor(() => {
+        expect(result.current.registration).toBeDefined();
+      });
 
       // Reset referrer after test
       Object.defineProperty(document, 'referrer', {

@@ -6,6 +6,7 @@ import { AUDIO_MODES, THEMES } from './constants';
 import { useAccessibility } from './hooks/useAccessibility';
 import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
+import { useSoundEffects } from './hooks/useSoundEffects';
 import SkipNav from './components/SkipNav';
 import { CustomTheme } from './utils/themeValidator';
 
@@ -21,6 +22,8 @@ const ConversationReplay = lazy(() => import('./components/ConversationReplay').
 // v1.8.0 Components (lazy-loaded)
 const OnboardingTutorial = lazy(() => import('./components/OnboardingTutorial'));
 const ConversationInsights = lazy(() => import('./components/ConversationInsights'));
+// v1.9.0 Components (lazy-loaded)
+const SoundSettingsPanel = lazy(() => import('./components/SoundSettingsPanel'));
 
 export default function App() {
   // Core state
@@ -71,6 +74,9 @@ export default function App() {
   });
   const [showInsights, setShowInsights] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('dos-blue');
+
+  // v1.9.0 Feature states
+  const [showSoundSettings, setShowSoundSettings] = useState(false);
 
   // Voice Control (v1.6.0)
   const voiceControl = useVoiceControl({
@@ -136,6 +142,9 @@ export default function App() {
       console.error('Voice control error:', error);
     },
   });
+
+  // Sound Effects (v1.9.0)
+  const soundEffects = useSoundEffects();
 
   // Refs
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -298,7 +307,10 @@ export default function App() {
     if (!trimmedInput || isLoading) {
       return;
     }
-    
+
+    // Play message send sound (v1.9.0)
+    soundEffects.playSound('message-send');
+
     const userMessage: Message = { author: 'user', text: trimmedInput };
     setMessages(prev => [...prev, userMessage]);
     setUserInput('');
@@ -339,13 +351,19 @@ export default function App() {
           await playAudio(audioBuffer, audioContextRef.current);
       }
 
+      // Play message receive sound (v1.9.0)
+      soundEffects.playSound('message-receive');
+
       // Announce to screen readers if enabled (v1.4.0)
       if (accessibilitySettings.screenReaderOptimized && accessibilitySettings.announceMessages) {
         announce(`Dr. Sbaitso says: ${drResponseText}`);
       }
     } catch (error) {
       console.error("An error occurred during response generation:", error);
-      
+
+      // Play error sound (v1.9.0)
+      soundEffects.playSound('error');
+
       if (audioContextRef.current) {
         playErrorBeep(audioContextRef.current);
       }
@@ -374,6 +392,9 @@ export default function App() {
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    // Play keypress sound (v1.9.0)
+    soundEffects.playSound('keypress');
+
     if (event.key === 'Enter') {
       handleUserInput();
     }
@@ -409,6 +430,18 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === '?') {
         e.preventDefault();
         setShowOnboarding(true);
+      }
+
+      // Ctrl/Cmd + Shift + S: Open sound settings (v1.9.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+        e.preventDefault();
+        setShowSoundSettings(true);
+      }
+
+      // Ctrl/Cmd + Shift + I: Open advanced insights (v1.9.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        setShowInsights(true);
       }
     };
 
@@ -817,6 +850,16 @@ export default function App() {
           <ConversationInsights
             onClose={() => setShowInsights(false)}
             currentTheme={currentTheme}
+          />
+        </Suspense>
+      )}
+
+      {/* Sound Settings Panel (v1.9.0) */}
+      {showSoundSettings && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading sound settings...</div></div>}>
+          <SoundSettingsPanel
+            isOpen={showSoundSettings}
+            onClose={() => setShowSoundSettings(false)}
           />
         </Suspense>
       )}

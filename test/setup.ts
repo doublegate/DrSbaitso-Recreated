@@ -51,7 +51,7 @@ global.AudioContext = vi.fn(function(this: any) {
   });
   this.createBufferSource = vi.fn(function() {
     const source = {
-      connect: vi.fn(),
+      connect: vi.fn(function() { return source; }), // Return this for chaining
       start: vi.fn(function() {
         // Automatically trigger onended after a short delay to simulate playback completion
         setTimeout(() => {
@@ -62,6 +62,7 @@ global.AudioContext = vi.fn(function(this: any) {
       }),
       stop: vi.fn(),
       buffer: null,
+      loop: false, // Add loop property for ambience
       playbackRate: { value: 1 },
       disconnect: vi.fn(),
       onended: null,
@@ -78,8 +79,8 @@ global.AudioContext = vi.fn(function(this: any) {
     };
   });
   this.createGain = vi.fn(function() {
-    return {
-      connect: vi.fn(),
+    const gainNode = {
+      connect: vi.fn(function() { return gainNode; }), // Return this for chaining
       disconnect: vi.fn(),
       gain: {
         value: 1,
@@ -88,6 +89,7 @@ global.AudioContext = vi.fn(function(this: any) {
         exponentialRampToValueAtTime: vi.fn(),
       },
     };
+    return gainNode;
   });
   this.createOscillator = vi.fn(function() {
     return {
