@@ -8,15 +8,16 @@ const mockSession: ConversationSession = {
   characterId: 'sbaitso',
   messages: [
     { author: 'user', text: 'Hello Doctor', timestamp: 1699999999000, characterId: 'sbaitso' },
-    { author: 'ai', text: 'HELLO. I AM DR. SBAITSO.', timestamp: 1700000001000, characterId: 'sbaitso' },
+    { author: 'dr', text: 'HELLO. I AM DR. SBAITSO.', timestamp: 1700000001000, characterId: 'sbaitso' },
     { author: 'user', text: 'How are you?', timestamp: 1700000005000, characterId: 'sbaitso' },
-    { author: 'ai', text: 'I AM FUNCTIONING NORMALLY.', timestamp: 1700000007000, characterId: 'sbaitso' }
+    { author: 'dr', text: 'I AM FUNCTIONING NORMALLY.', timestamp: 1700000007000, characterId: 'sbaitso' }
   ],
   createdAt: 1699999990000,
   updatedAt: 1700000010000,
   messageCount: 4,
   glitchCount: 0,
-  themeId: 'dos-blue'
+  themeId: 'dos-blue',
+  audioQualityId: 'authentic'
 };
 
 describe('ConversationExporter', () => {
@@ -167,7 +168,7 @@ describe('ConversationExporter', () => {
         ...mockSession,
         messages: [
           { author: 'user', text: '<b>Bold text</b>', timestamp: Date.now(), characterId: 'sbaitso' },
-          { author: 'ai', text: 'Text with & ampersand', timestamp: Date.now(), characterId: 'sbaitso' }
+          { author: 'dr', text: 'Text with & ampersand', timestamp: Date.now(), characterId: 'sbaitso' }
         ],
         messageCount: 2
       };

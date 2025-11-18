@@ -247,6 +247,7 @@ describe('Theme Validator', () => {
     const sampleTheme = {
       id: 'test-theme',
       name: 'Test Theme',
+      description: 'A test theme',
       colors: {
         primary: '#0000AA',
         background: '#000000',
@@ -254,7 +255,9 @@ describe('Theme Validator', () => {
         border: '#888888',
         accent: '#FFAA00',
         shadow: '#000000'
-      }
+      },
+      isCustom: true as const,
+      createdAt: Date.now()
     };
 
     it('should export theme to JSON string', () => {
@@ -293,6 +296,7 @@ describe('Theme Validator', () => {
     const sampleTheme = {
       id: 'share-test',
       name: 'Share Test',
+      description: 'A share test theme',
       colors: {
         primary: '#FF0000',
         background: '#000000',
@@ -300,7 +304,9 @@ describe('Theme Validator', () => {
         border: '#888888',
         accent: '#00FF00',
         shadow: '#000000'
-      }
+      },
+      isCustom: true as const,
+      createdAt: Date.now()
     };
 
     it('should generate share code for theme', () => {
