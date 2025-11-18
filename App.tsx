@@ -9,6 +9,8 @@ import { useVoiceControl } from './hooks/useVoiceControl';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import SkipNav from './components/SkipNav';
 import { CustomTheme } from './utils/themeValidator';
+import { musicEngine } from './utils/musicEngine';
+import { soundPackPlayer } from './utils/soundPackPlayer';
 
 // Lazy-loaded components (only load when needed)
 const AccessibilityPanel = lazy(() => import('./components/AccessibilityPanel'));
@@ -24,6 +26,11 @@ const OnboardingTutorial = lazy(() => import('./components/OnboardingTutorial'))
 const ConversationInsights = lazy(() => import('./components/ConversationInsights'));
 // v1.9.0 Components (lazy-loaded)
 const SoundSettingsPanel = lazy(() => import('./components/SoundSettingsPanel'));
+// v1.10.0 Components (lazy-loaded)
+const MusicPlayer = lazy(() => import('./components/MusicPlayer'));
+const InstallPrompt = lazy(() => import('./components/InstallPrompt'));
+const SoundPackManager = lazy(() => import('./components/SoundPackManager'));
+const SoundPackCreator = lazy(() => import('./components/SoundPackCreator'));
 
 export default function App() {
   // Core state
@@ -78,6 +85,11 @@ export default function App() {
   // v1.9.0 Feature states
   const [showSoundSettings, setShowSoundSettings] = useState(false);
 
+  // v1.10.0 Feature states
+  const [showMusicPlayer, setShowMusicPlayer] = useState(false);
+  const [showSoundPackManager, setShowSoundPackManager] = useState(false);
+  const [showSoundPackCreator, setShowSoundPackCreator] = useState(false);
+
   // Voice Control (v1.6.0)
   const voiceControl = useVoiceControl({
     enabled: true,
@@ -124,6 +136,8 @@ export default function App() {
     onOpenAccessibility: () => setShowAccessibilityPanel(true),
     onOpenSearch: () => setShowConversationSearch(true),
     onOpenVisualizer: () => setShowAudioVisualizer(!showAudioVisualizer),
+    onToggleMusic: () => setShowMusicPlayer(prev => !prev),
+    onOpenSoundPacks: () => setShowSoundPackManager(true),
     onHelp: () => {
       setShowVoiceControlHelp(true);
       const helpText = voiceControl.showHelp();
@@ -443,6 +457,18 @@ export default function App() {
         e.preventDefault();
         setShowInsights(true);
       }
+
+      // Ctrl/Cmd + M: Toggle music player (v1.10.0)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'm' && !e.shiftKey) {
+        e.preventDefault();
+        setShowMusicPlayer(prev => !prev);
+      }
+
+      // Ctrl/Cmd + Shift + P: Open sound pack manager (v1.10.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        setShowSoundPackManager(true);
+      }
     };
 
     window.addEventListener('keydown', handleGlobalKeyDown);
@@ -612,6 +638,25 @@ export default function App() {
               >
                 <span aria-hidden="true">🎤</span>
                 {voiceControl.isHandsFreeMode && <span className="ml-1 text-green-300">ON</span>}
+              </button>
+              <button
+                onClick={() => setShowMusicPlayer(prev => !prev)}
+                className={`px-3 py-1 border-2 ${
+                  showMusicPlayer ? 'border-green-400 bg-green-900' : 'border-gray-400'
+                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                aria-label="Toggle music player (Ctrl+M)"
+                title="Music Player (Ctrl+M)"
+              >
+                <span aria-hidden="true">🎵</span>
+                {showMusicPlayer && <span className="ml-1 text-green-300">ON</span>}
+              </button>
+              <button
+                onClick={() => setShowSoundPackManager(true)}
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                aria-label="Sound pack manager (Ctrl+Shift+P)"
+                title="Sound Pack Manager (Ctrl+Shift+P)"
+              >
+                🎼
               </button>
             </div>
           </div>
@@ -860,6 +905,62 @@ export default function App() {
           <SoundSettingsPanel
             isOpen={showSoundSettings}
             onClose={() => setShowSoundSettings(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Music Player (v1.10.0) */}
+      {showMusicPlayer && userName && (
+        <Suspense fallback={<div className="fixed bottom-4 left-4 z-40 text-white text-sm">Loading music player...</div>}>
+          <div className="fixed bottom-4 left-4 z-40">
+            <MusicPlayer
+              theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+              audioContext={audioContextRef.current}
+            />
+          </div>
+        </Suspense>
+      )}
+
+      {/* PWA Install Prompt (v1.10.0) */}
+      <Suspense fallback={null}>
+        <InstallPrompt />
+      </Suspense>
+
+      {/* Sound Pack Manager (v1.10.0) */}
+      {showSoundPackManager && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack manager...</div></div>}>
+          <SoundPackManager
+            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+            audioContext={audioContextRef.current}
+            onClose={() => setShowSoundPackManager(false)}
+            onCreateNew={() => {
+              setShowSoundPackManager(false);
+              setShowSoundPackCreator(true);
+            }}
+          />
+        </Suspense>
+      )}
+
+      {/* Sound Pack Creator (v1.10.0) */}
+      {showSoundPackCreator && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack creator...</div></div>}>
+          <SoundPackCreator
+            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+            onClose={() => setShowSoundPackCreator(false)}
+            onSave={(pack) => {
+              // Save to localStorage and close
+              try {
+                const stored = localStorage.getItem('dr_sbaitso_sound_packs');
+                const packs = stored ? JSON.parse(stored) : [];
+                packs.push(pack);
+                localStorage.setItem('dr_sbaitso_sound_packs', JSON.stringify(packs));
+                setShowSoundPackCreator(false);
+                announce(`Sound pack "${pack.metadata.name}" created successfully`);
+              } catch (error) {
+                console.error('Failed to save sound pack:', error);
+                alert('Failed to save sound pack');
+              }
+            }}
           />
         </Suspense>
       )}

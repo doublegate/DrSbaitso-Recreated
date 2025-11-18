@@ -25,6 +25,9 @@ import { SessionManager } from '@/utils/sessionManager';
 import { drawLineChart, drawPieChart, drawWordCloud, drawGauge } from '@/utils/chartUtils';
 import { THEMES, INSIGHT_CHART_COLORS, CHARACTERS } from '@/constants';
 import { generateInsightSummary, type InsightSummary } from '@/utils/insightEngine';
+import { detectEmotions, getEmotionEmoji } from '@/utils/emotionDetection';
+import { analyzeMultiSessionTopicEvolution, getTopicEvolutionSummary, formatTopicName, getTopicColor } from '@/utils/topicEvolution';
+import { clusterConversations, detectRecurringPatterns, getSimilarityAnalysisSummary } from '@/utils/similarityScoring';
 
 interface ConversationInsightsProps {
   onClose: () => void;
@@ -43,6 +46,12 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
   const [showAdvanced, setShowAdvanced] = useState(true); // Toggle for advanced insights
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+
+  // v1.10.0 Advanced analytics state
+  const [emotionData, setEmotionData] = useState<any>(null);
+  const [topicEvolution, setTopicEvolution] = useState<any>(null);
+  const [similarityClusters, setSimilarityClusters] = useState<any>(null);
+  const [recurringPatterns, setRecurringPatterns] = useState<any>(null);
 
   // Canvas refs
   const timelineRef = useRef<HTMLCanvasElement>(null);
@@ -108,6 +117,34 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
       if (allSessions && allSessions.length > 0) {
         const advanced = generateInsightSummary(allSessions);
         setAdvancedInsights(advanced);
+
+        // Generate v1.10.0 analytics
+        // 1. Emotion detection - analyze emotions across all messages
+        const allMessages = allSessions.flatMap(s => s.messages.map(m => m.text));
+        const emotions = allMessages.map(text => detectEmotions(text));
+        const emotionCounts = emotions.reduce((acc, emotion) => {
+          acc[emotion.dominant] = (acc[emotion.dominant] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+
+        // Generate emotion summary
+        const totalEmotions = emotions.length;
+        const dominantEmotion = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0];
+        const summary = `Analyzed ${totalEmotions} messages. Most common emotion: ${dominantEmotion ? dominantEmotion[0] : 'unknown'} (${dominantEmotion ? ((dominantEmotion[1] / totalEmotions) * 100).toFixed(1) : '0'}%)`;
+
+        setEmotionData({ emotions, counts: emotionCounts, summary });
+
+        // 2. Topic evolution - track topics over time
+        const topicEvolutionData = analyzeMultiSessionTopicEvolution(allSessions);
+        setTopicEvolution(topicEvolutionData);
+
+        // 3. Similarity clustering - find similar conversations
+        const clusters = clusterConversations(allSessions, 40);
+        setSimilarityClusters(clusters);
+
+        // 4. Recurring patterns - detect repeated phrases
+        const patterns = detectRecurringPatterns(allSessions, 2);
+        setRecurringPatterns(patterns);
       }
     } catch (error) {
       console.error('Failed to load insights:', error);
@@ -891,6 +928,173 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
               </div>
             )}
           </div>
+
+          {/* Emotion Distribution (v1.10.0) */}
+          {emotionData && (
+          <div
+            className="border-2 rounded p-6"
+            style={{ borderColor: theme.colors.border }}
+          >
+            <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
+              😊 Emotion Distribution
+            </h2>
+            <div className="grid grid-cols-5 gap-3 mb-4">
+              {Object.entries(emotionData.counts).map(([emotion, count]) => {
+                const total = Object.values(emotionData.counts).reduce((a: any, b: any) => a + b, 0);
+                const percentage = ((count as number) / (total as number)) * 100;
+                return (
+                  <div
+                    key={emotion}
+                    className="text-center p-3 border rounded"
+                    style={{ borderColor: theme.colors.border }}
+                  >
+                    <div className="text-3xl mb-2">
+                      {emotion === 'joy' && '😊'}
+                      {emotion === 'anger' && '😠'}
+                      {emotion === 'fear' && '😨'}
+                      {emotion === 'sadness' && '😢'}
+                      {emotion === 'surprise' && '😲'}
+                    </div>
+                    <div className="font-bold capitalize" style={{ color: theme.colors.text }}>
+                      {emotion}
+                    </div>
+                    <div className="text-2xl font-bold my-2" style={{ color: theme.colors.accent }}>
+                      {count as number}
+                    </div>
+                    <div className="text-xs" style={{ color: theme.colors.text }}>
+                      {percentage.toFixed(1)}%
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-sm" style={{ color: theme.colors.text }}>
+              {emotionData.summary}
+            </p>
+          </div>
+          )}
+
+          {/* Topic Evolution (v1.10.0) */}
+          {topicEvolution && topicEvolution.timelines.length > 0 && (
+          <div
+            className="border-2 rounded p-6"
+            style={{ borderColor: theme.colors.border }}
+          >
+            <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
+              📚 Topic Evolution
+            </h2>
+            <div className="space-y-3 mb-4">
+              {topicEvolution.timelines.slice(0, 8).map((timeline: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="border rounded p-3"
+                  style={{ borderColor: theme.colors.border }}
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <span
+                      className="font-bold"
+                      style={{ color: getTopicColor(timeline.topic) }}
+                    >
+                      {formatTopicName(timeline.topic)}
+                    </span>
+                    <span className="text-sm" style={{ color: theme.colors.text }}>
+                      {timeline.totalMentions} mentions
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs" style={{ color: theme.colors.text }}>
+                    <span>Peak: {timeline.peakIntensity.toFixed(1)}</span>
+                    <span>•</span>
+                    <span>Avg: {timeline.averageIntensity.toFixed(1)}</span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
+                    <div
+                      className="h-2 rounded-full"
+                      style={{
+                        width: `${(timeline.totalMentions / Math.max(...topicEvolution.timelines.map((t: any) => t.totalMentions))) * 100}%`,
+                        backgroundColor: getTopicColor(timeline.topic)
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm" style={{ color: theme.colors.text }}>
+              {getTopicEvolutionSummary(topicEvolution)}
+            </p>
+          </div>
+          )}
+
+          {/* Conversation Clusters (v1.10.0) */}
+          {similarityClusters && similarityClusters.length > 0 && (
+          <div
+            className="border-2 rounded p-6"
+            style={{ borderColor: theme.colors.border }}
+          >
+            <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
+              🔗 Similar Conversation Clusters
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {similarityClusters.slice(0, 6).map((cluster: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="border rounded p-3"
+                  style={{
+                    borderColor: theme.colors.border,
+                    backgroundColor: `${theme.colors.accent}11`
+                  }}
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-bold" style={{ color: theme.colors.accent }}>
+                      Cluster {idx + 1}
+                    </span>
+                    <span className="text-sm" style={{ color: theme.colors.text }}>
+                      {cluster.size} conversations
+                    </span>
+                  </div>
+                  <div className="text-xs mb-2" style={{ color: theme.colors.text }}>
+                    Topics: {cluster.commonTopics.slice(0, 3).join(', ')}
+                  </div>
+                  <div className="text-xs" style={{ color: theme.colors.text }}>
+                    Avg Sentiment: {cluster.averageSentiment.toFixed(1)} |
+                    Dominant: {cluster.dominantEmotion}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm mt-4" style={{ color: theme.colors.text }}>
+              {getSimilarityAnalysisSummary(SessionManager.getAllSessions())}
+            </p>
+          </div>
+          )}
+
+          {/* Recurring Patterns (v1.10.0) */}
+          {recurringPatterns && recurringPatterns.length > 0 && (
+          <div
+            className="border-2 rounded p-6"
+            style={{ borderColor: theme.colors.border }}
+          >
+            <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
+              🔁 Recurring Conversation Patterns
+            </h2>
+            <div className="space-y-2">
+              {recurringPatterns.slice(0, 10).map((pattern: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="flex justify-between items-center border-b pb-2"
+                  style={{ borderColor: theme.colors.border }}
+                >
+                  <span className="text-sm" style={{ color: theme.colors.text }}>
+                    "{pattern.pattern}"
+                  </span>
+                  <div className="flex gap-3 text-xs" style={{ color: theme.colors.text }}>
+                    <span>{pattern.occurrences}x</span>
+                    <span>{pattern.confidence.toFixed(0)}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          )}
         </div>
         )}
 
