@@ -1,12 +1,18 @@
 /**
- * Conversation Insights Dashboard Component (v1.8.0)
+ * Conversation Insights Dashboard Component (v1.9.0)
  *
- * Visual analytics for understanding conversation patterns and sentiment over time.
+ * Advanced visual analytics for understanding conversation patterns and sentiment over time.
  * Features:
  * - Timeline chart showing message count over time
  * - Sentiment gauge with trend indicators
  * - Topic word cloud with frequency-based sizing
  * - Character usage pie chart
+ * - 🆕 Conversation Health Score (0-100 composite metric)
+ * - 🆕 Advanced Topic Clustering with keywords
+ * - 🆕 Sentiment Trajectory Analysis
+ * - 🆕 Character Effectiveness Matrix
+ * - 🆕 Conversation Loop Detection
+ * - 🆕 Engagement Metrics Dashboard
  * - Date range filtering (7, 30, 90 days, all time, custom)
  * - Character and session filtering
  * - Export to PNG, PDF, and CSV
@@ -18,6 +24,7 @@ import { InsightsData, InsightsFilter } from '@/types';
 import { SessionManager } from '@/utils/sessionManager';
 import { drawLineChart, drawPieChart, drawWordCloud, drawGauge } from '@/utils/chartUtils';
 import { THEMES, INSIGHT_CHART_COLORS, CHARACTERS } from '@/constants';
+import { generateInsightSummary, type InsightSummary } from '@/utils/insightEngine';
 
 interface ConversationInsightsProps {
   onClose: () => void;
@@ -32,6 +39,8 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
     sessionIds: []
   });
   const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
+  const [advancedInsights, setAdvancedInsights] = useState<InsightSummary | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(true); // Toggle for advanced insights
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
@@ -93,6 +102,13 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
     try {
       const data = SessionManager.getInsightsData(filter);
       setInsightsData(data);
+
+      // Generate advanced insights (v1.9.0)
+      const allSessions = SessionManager.getAllSessions();
+      if (allSessions && allSessions.length > 0) {
+        const advanced = generateInsightSummary(allSessions);
+        setAdvancedInsights(advanced);
+      }
     } catch (error) {
       console.error('Failed to load insights:', error);
     } finally {
@@ -471,7 +487,32 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           </div>
         </div>
 
+        {/* View Toggle */}
+        <div className="px-4 pt-4 flex gap-2">
+          <button
+            onClick={() => setShowAdvanced(false)}
+            className={`px-4 py-2 font-semibold rounded ${!showAdvanced ? 'opacity-100' : 'opacity-60'} hover:opacity-100 focus:outline-none focus:ring-2`}
+            style={{
+              backgroundColor: !showAdvanced ? theme.colors.accent : theme.colors.border,
+              color: !showAdvanced ? theme.colors.background : theme.colors.text
+            }}
+          >
+            📊 Basic Insights
+          </button>
+          <button
+            onClick={() => setShowAdvanced(true)}
+            className={`px-4 py-2 font-semibold rounded ${showAdvanced ? 'opacity-100' : 'opacity-60'} hover:opacity-100 focus:outline-none focus:ring-2`}
+            style={{
+              backgroundColor: showAdvanced ? theme.colors.accent : theme.colors.border,
+              color: showAdvanced ? theme.colors.background : theme.colors.text
+            }}
+          >
+            🧠 Advanced Analytics
+          </button>
+        </div>
+
         {/* Charts Grid */}
+        {!showAdvanced && (
         <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Timeline Chart */}
           <div
@@ -528,6 +569,330 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
             </div>
           </div>
         </div>
+        )}
+
+        {/* Advanced Insights (v1.9.0) */}
+        {showAdvanced && advancedInsights && (
+        <div className="p-4 space-y-6">
+          {/* Health Score */}
+          <div
+            className="border-2 rounded p-6"
+            style={{ borderColor: theme.colors.border }}
+          >
+            <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
+              💚 Conversation Health Score
+            </h2>
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <div
+                  className="text-6xl font-bold mb-2"
+                  style={{
+                    color: advancedInsights.health.score >= 80 ? '#00ff00' :
+                           advancedInsights.health.score >= 60 ? '#ffaa00' : '#ff4444'
+                  }}
+                >
+                  {Math.round(advancedInsights.health.score)}
+                </div>
+                <div className="text-sm" style={{ color: theme.colors.text }}>out of 100</div>
+              </div>
+              <div className="flex-1">
+                <p className="mb-4" style={{ color: theme.colors.text }}>
+                  {advancedInsights.health.recommendation}
+                </p>
+                <div className="space-y-2">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1" style={{ color: theme.colors.text }}>
+                      <span>Sentiment Balance</span>
+                      <span>{Math.round(advancedInsights.health.breakdown.sentimentBalance)}/100</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className="h-2 rounded-full transition-all"
+                        style={{
+                          width: `${advancedInsights.health.breakdown.sentimentBalance}%`,
+                          backgroundColor: theme.colors.accent
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1" style={{ color: theme.colors.text }}>
+                      <span>Topic Diversity</span>
+                      <span>{Math.round(advancedInsights.health.breakdown.topicDiversity)}/100</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className="h-2 rounded-full transition-all"
+                        style={{
+                          width: `${advancedInsights.health.breakdown.topicDiversity}%`,
+                          backgroundColor: theme.colors.accent
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1" style={{ color: theme.colors.text }}>
+                      <span>Engagement Level</span>
+                      <span>{Math.round(advancedInsights.health.breakdown.engagementLevel)}/100</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className="h-2 rounded-full transition-all"
+                        style={{
+                          width: `${advancedInsights.health.breakdown.engagementLevel}%`,
+                          backgroundColor: theme.colors.accent
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1" style={{ color: theme.colors.text }}>
+                      <span>Responsiveness</span>
+                      <span>{Math.round(advancedInsights.health.breakdown.responsiveness)}/100</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className="h-2 rounded-full transition-all"
+                        style={{
+                          width: `${advancedInsights.health.breakdown.responsiveness}%`,
+                          backgroundColor: theme.colors.accent
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {advancedInsights.health.concerns.length > 0 && (
+                  <div className="mt-4 p-3 rounded" style={{ backgroundColor: '#ff444422', borderLeft: `4px solid #ff4444` }}>
+                    <p className="font-bold text-sm mb-2" style={{ color: '#ff4444' }}>⚠️ Concerns:</p>
+                    {advancedInsights.health.concerns.map((concern, i) => (
+                      <p key={i} className="text-sm" style={{ color: theme.colors.text }}>{concern}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Topic Clusters */}
+          <div
+            className="border-2 rounded p-6"
+            style={{ borderColor: theme.colors.border }}
+          >
+            <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
+              🏷️ Topic Clusters
+            </h2>
+            {advancedInsights.topTopics.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {advancedInsights.topTopics.slice(0, 12).map((topic, idx) => (
+                  <div
+                    key={idx}
+                    className="border rounded p-3"
+                    style={{
+                      borderColor: theme.colors.border,
+                      backgroundColor: `${theme.colors.accent}11`
+                    }}
+                  >
+                    <div className="font-bold mb-2" style={{ color: theme.colors.accent }}>
+                      {topic.topic}
+                    </div>
+                    <div className="text-sm mb-2" style={{ color: theme.colors.text }}>
+                      Keywords: {topic.keywords.slice(0, 3).join(', ')}
+                    </div>
+                    <div className="flex justify-between text-xs" style={{ color: theme.colors.text }}>
+                      <span>Mentions: {topic.frequency}</span>
+                      <span style={{
+                        color: topic.sentiment > 0 ? '#00ff00' : topic.sentiment < 0 ? '#ff4444' : theme.colors.text
+                      }}>
+                        {topic.sentiment > 0 ? '😊' : topic.sentiment < 0 ? '😟' : '😐'} {topic.sentiment > 0 ? '+' : ''}{topic.sentiment}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: theme.colors.text }}>Not enough conversation data to cluster topics yet.</p>
+            )}
+          </div>
+
+          {/* Sentiment Trajectory */}
+          <div
+            className="border-2 rounded p-6"
+            style={{ borderColor: theme.colors.border }}
+          >
+            <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
+              📈 Sentiment Trajectory
+            </h2>
+            <div className="mb-4">
+              <div className="flex items-center gap-4 mb-2">
+                <span className="text-lg font-bold" style={{ color: theme.colors.text }}>
+                  Trend: {advancedInsights.sentimentTrend.trend === 'improving' ? '📈 Improving' :
+                          advancedInsights.sentimentTrend.trend === 'declining' ? '📉 Declining' :
+                          advancedInsights.sentimentTrend.trend === 'volatile' ? '⚡ Volatile' : '➡️ Stable'}
+                </span>
+                <span className="text-sm" style={{ color: theme.colors.text }}>
+                  (Strength: {Math.round(advancedInsights.sentimentTrend.trendStrength * 100)}%)
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm" style={{ color: theme.colors.text }}>
+                <div>Recent Average: <span className="font-bold">{Math.round(advancedInsights.sentimentTrend.recentAverage)}</span></div>
+                <div>Overall Average: <span className="font-bold">{Math.round(advancedInsights.sentimentTrend.overallAverage)}</span></div>
+              </div>
+            </div>
+            {advancedInsights.sentimentTrend.timeline.length > 0 && (
+              <div className="relative h-32 border rounded p-2" style={{ borderColor: theme.colors.border }}>
+                {/* Simple sentiment timeline visualization */}
+                <div className="flex items-end justify-around h-full">
+                  {advancedInsights.sentimentTrend.timeline.slice(-15).map((point, idx) => (
+                    <div
+                      key={idx}
+                      className="w-2 rounded-t transition-all"
+                      style={{
+                        height: `${Math.max(10, (point.score + 100) / 2)}%`,
+                        backgroundColor: point.score > 0 ? '#00ff00' : point.score < 0 ? '#ff4444' : theme.colors.border
+                      }}
+                      title={`Score: ${point.score}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Character Effectiveness */}
+          <div
+            className="border-2 rounded p-6"
+            style={{ borderColor: theme.colors.border }}
+          >
+            <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
+              🎭 Character Effectiveness
+            </h2>
+            {advancedInsights.characterPerformance.length > 0 ? (
+              <div className="space-y-3">
+                {advancedInsights.characterPerformance
+                  .sort((a, b) => b.effectiveness - a.effectiveness)
+                  .map((char, idx) => {
+                    const character = CHARACTERS.find(c => c.id === char.characterId);
+                    return (
+                      <div
+                        key={idx}
+                        className="border rounded p-3"
+                        style={{ borderColor: theme.colors.border }}
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-bold" style={{ color: theme.colors.text }}>
+                            {character?.name || char.characterId}
+                          </span>
+                          <span
+                            className="text-2xl font-bold"
+                            style={{ color: char.effectiveness >= 80 ? '#00ff00' : char.effectiveness >= 60 ? '#ffaa00' : theme.colors.text }}
+                          >
+                            {Math.round(char.effectiveness)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: theme.colors.text }}>
+                          <div>Sessions: {char.conversationCount}</div>
+                          <div>Avg Length: {Math.round(char.avgSessionLength)} msgs</div>
+                          <div>Retention: {Math.round(char.userRetention * 100)}%</div>
+                          <div>Sentiment Δ: {char.avgSentimentChange > 0 ? '+' : ''}{Math.round(char.avgSentimentChange)}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            ) : (
+              <p style={{ color: theme.colors.text }}>Start conversations with different characters to see effectiveness metrics.</p>
+            )}
+          </div>
+
+          {/* Conversation Loops */}
+          {advancedInsights.detectedLoops.length > 0 && (
+          <div
+            className="border-2 rounded p-6"
+            style={{ borderColor: theme.colors.border }}
+          >
+            <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
+              🔁 Detected Conversation Loops
+            </h2>
+            <div className="space-y-3">
+              {advancedInsights.detectedLoops.map((loop, idx) => (
+                <div
+                  key={idx}
+                  className="border rounded p-3"
+                  style={{
+                    borderColor: theme.colors.border,
+                    backgroundColor: `${theme.colors.accent}08`
+                  }}
+                >
+                  <div className="font-bold mb-2" style={{ color: theme.colors.accent }}>
+                    Pattern: "{loop.pattern.join(' → ')}"
+                  </div>
+                  <div className="text-sm" style={{ color: theme.colors.text }}>
+                    Occurred {loop.occurrences} times • {loop.potentialCause}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          )}
+
+          {/* Engagement Metrics */}
+          <div
+            className="border-2 rounded p-6"
+            style={{ borderColor: theme.colors.border }}
+          >
+            <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
+              ⚡ Engagement Metrics
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="text-center p-3 border rounded" style={{ borderColor: theme.colors.border }}>
+                <div className="text-2xl font-bold" style={{ color: theme.colors.accent }}>
+                  {Math.round(advancedInsights.engagement.avgMessageLength)}
+                </div>
+                <div className="text-xs" style={{ color: theme.colors.text }}>Avg Chars/Message</div>
+              </div>
+              <div className="text-center p-3 border rounded" style={{ borderColor: theme.colors.border }}>
+                <div className="text-2xl font-bold" style={{ color: theme.colors.accent }}>
+                  {Math.round(advancedInsights.engagement.avgResponseTime / 1000)}s
+                </div>
+                <div className="text-xs" style={{ color: theme.colors.text }}>Avg Response Time</div>
+              </div>
+              <div className="text-center p-3 border rounded" style={{ borderColor: theme.colors.border }}>
+                <div className="text-2xl font-bold" style={{ color: theme.colors.accent }}>
+                  {Math.round(advancedInsights.engagement.avgSessionDuration / 60000)}m
+                </div>
+                <div className="text-xs" style={{ color: theme.colors.text }}>Avg Session</div>
+              </div>
+              <div className="text-center p-3 border rounded" style={{ borderColor: theme.colors.border }}>
+                <div className="text-2xl font-bold" style={{ color: theme.colors.accent }}>
+                  {advancedInsights.engagement.peakEngagementTime !== null ?
+                    `${advancedInsights.engagement.peakEngagementTime}:00` : 'N/A'}
+                </div>
+                <div className="text-xs" style={{ color: theme.colors.text }}>Peak Hour</div>
+              </div>
+            </div>
+            {advancedInsights.engagement.messageFrequency.length > 0 && (
+              <div>
+                <p className="text-sm mb-2" style={{ color: theme.colors.text }}>
+                  Consistency Score: {Math.round(advancedInsights.engagement.consistencyScore)}/100
+                </p>
+                <div className="flex items-end justify-around h-24 border rounded p-2" style={{ borderColor: theme.colors.border }}>
+                  {advancedInsights.engagement.messageFrequency.map((freq, idx) => (
+                    <div
+                      key={idx}
+                      className="w-1 bg-opacity-60 rounded-t"
+                      style={{
+                        height: `${(freq.count / Math.max(...advancedInsights.engagement.messageFrequency.map(f => f.count))) * 100}%`,
+                        backgroundColor: freq.hour === advancedInsights.engagement.peakEngagementTime ? theme.colors.accent : theme.colors.border
+                      }}
+                      title={`${freq.hour}:00 - ${freq.count} messages`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        )}
 
         {/* Footer */}
         <div
