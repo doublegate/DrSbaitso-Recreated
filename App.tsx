@@ -32,9 +32,9 @@ const InstallPrompt = lazy(() => import('./components/InstallPrompt'));
 const SoundPackManager = lazy(() => import('./components/SoundPackManager'));
 const SoundPackCreator = lazy(() => import('./components/SoundPackCreator'));
 // v1.11.0 Components (lazy-loaded - Option C)
-const VoiceInput = lazy(() => import('./components/VoiceInput').then(module => ({ default: module.VoiceInput })));
-const EmotionVisualizer = lazy(() => import('./components/EmotionVisualizer').then(module => ({ default: module.EmotionVisualizer })));
-const TopicFlowDiagram = lazy(() => import('./components/TopicFlowDiagram').then(module => ({ default: module.TopicFlowDiagram })));
+const VoiceInput = lazy(() => import('./components/VoiceInput'));
+const EmotionVisualizer = lazy(() => import('./components/EmotionVisualizer'));
+const TopicFlowDiagram = lazy(() => import('./components/TopicFlowDiagram'));
 const ConversationTemplates = lazy(() => import('./components/ConversationTemplates'));
 
 export default function App() {
@@ -453,7 +453,7 @@ export default function App() {
         // Get AI response
         const response = await getDrSbaitsoResponse(prompt);
         const aiMessage: Message = {
-          author: 'ai',
+          author: 'dr',
           text: response
         };
 
@@ -738,7 +738,7 @@ export default function App() {
                 aria-label="Sound pack manager (Ctrl+Shift+P)"
                 title="Sound Pack Manager (Ctrl+Shift+P)"
               >
-                🎼
+                <span aria-hidden="true">🎼</span>
               </button>
               <button
                 onClick={() => setShowVoiceInput(prev => !prev)}
@@ -779,7 +779,7 @@ export default function App() {
                 aria-label="Conversation templates (Ctrl+Shift+L)"
                 title="Templates (Ctrl+Shift+L)"
               >
-                📝
+                <span aria-hidden="true">📝</span>
               </button>
             </div>
           </div>
