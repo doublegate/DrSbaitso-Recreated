@@ -421,6 +421,14 @@ export default function App() {
     }
   };
 
+  // Handle voice transcript (v1.11.0)
+  const handleVoiceTranscript = useCallback((transcript: string) => {
+    if (transcript.trim()) {
+      setUserInput(prev => prev + (prev ? ' ' : '') + transcript.trim());
+      announce(`Voice input: ${transcript}`);
+    }
+  }, [announce]);
+
   // Global keyboard shortcuts (v1.3.0 + v1.4.0 + v1.8.0)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -475,6 +483,18 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
         e.preventDefault();
         setShowSoundPackManager(true);
+      }
+
+      // Ctrl/Cmd + Shift + V: Toggle voice input (v1.11.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V') {
+        e.preventDefault();
+        setShowVoiceInput(prev => !prev);
+      }
+
+      // Ctrl/Cmd + E: Toggle emotion visualizer (v1.11.0)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e' && !e.shiftKey) {
+        e.preventDefault();
+        setShowEmotionViz(prev => !prev);
       }
     };
 
@@ -664,6 +684,28 @@ export default function App() {
                 title="Sound Pack Manager (Ctrl+Shift+P)"
               >
                 🎼
+              </button>
+              <button
+                onClick={() => setShowVoiceInput(prev => !prev)}
+                className={`px-3 py-1 border-2 ${
+                  showVoiceInput ? 'border-green-400 bg-green-900' : 'border-gray-400'
+                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                aria-label="Toggle voice input (Ctrl+Shift+V)"
+                title="Voice Input (Ctrl+Shift+V)"
+              >
+                <span aria-hidden="true">🗣️</span>
+                {showVoiceInput && <span className="ml-1 text-green-300">ON</span>}
+              </button>
+              <button
+                onClick={() => setShowEmotionViz(prev => !prev)}
+                className={`px-3 py-1 border-2 ${
+                  showEmotionViz ? 'border-green-400 bg-green-900' : 'border-gray-400'
+                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                aria-label="Toggle emotion visualizer (Ctrl+E)"
+                title="Emotion Visualizer (Ctrl+E)"
+              >
+                <span aria-hidden="true">😊</span>
+                {showEmotionViz && <span className="ml-1 text-green-300">ON</span>}
               </button>
             </div>
           </div>
@@ -1054,6 +1096,37 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Voice Input Panel (v1.11.0 - Option C1) */}
+      {showVoiceInput && userName && (
+        <Suspense fallback={<div className="fixed bottom-20 left-4 z-40 text-white text-sm">Loading voice input...</div>}>
+          <div className="fixed bottom-20 left-4 z-40 max-w-md">
+            <VoiceInput
+              onTranscript={handleVoiceTranscript}
+              onError={(error) => {
+                console.error('[VoiceInput Error]', error);
+                announce(`Voice input error: ${error}`);
+              }}
+              isEnabled={true}
+              language="en-US"
+              continuous={false}
+            />
+          </div>
+        </Suspense>
+      )}
+
+      {/* Emotion Visualizer (v1.11.0 - Option C2) */}
+      {showEmotionViz && userName && (
+        <Suspense fallback={<div className="fixed bottom-20 right-4 z-40 text-white text-sm">Loading emotion visualizer...</div>}>
+          <div className="fixed bottom-20 right-4 z-40 max-w-sm">
+            <EmotionVisualizer
+              messages={messages}
+              theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+              maxHistory={10}
+            />
+          </div>
+        </Suspense>
       )}
     </>
   );
