@@ -31,6 +31,9 @@ const MusicPlayer = lazy(() => import('./components/MusicPlayer'));
 const InstallPrompt = lazy(() => import('./components/InstallPrompt'));
 const SoundPackManager = lazy(() => import('./components/SoundPackManager'));
 const SoundPackCreator = lazy(() => import('./components/SoundPackCreator'));
+// v1.11.0 Components (lazy-loaded - Option C)
+const VoiceInput = lazy(() => import('./components/VoiceInput').then(module => ({ default: module.VoiceInput })));
+const EmotionVisualizer = lazy(() => import('./components/EmotionVisualizer').then(module => ({ default: module.EmotionVisualizer })));
 
 export default function App() {
   // Core state
@@ -89,6 +92,10 @@ export default function App() {
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
   const [showSoundPackManager, setShowSoundPackManager] = useState(false);
   const [showSoundPackCreator, setShowSoundPackCreator] = useState(false);
+
+  // v1.11.0 Feature states (Option C)
+  const [showVoiceInput, setShowVoiceInput] = useState(false);
+  const [showEmotionViz, setShowEmotionViz] = useState(false);
 
   // Voice Control (v1.6.0)
   const voiceControl = useVoiceControl({
