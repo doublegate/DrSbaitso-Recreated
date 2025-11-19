@@ -34,6 +34,8 @@ const SoundPackCreator = lazy(() => import('./components/SoundPackCreator'));
 // v1.11.0 Components (lazy-loaded - Option C)
 const VoiceInput = lazy(() => import('./components/VoiceInput').then(module => ({ default: module.VoiceInput })));
 const EmotionVisualizer = lazy(() => import('./components/EmotionVisualizer').then(module => ({ default: module.EmotionVisualizer })));
+const TopicFlowDiagram = lazy(() => import('./components/TopicFlowDiagram').then(module => ({ default: module.TopicFlowDiagram })));
+const ConversationTemplates = lazy(() => import('./components/ConversationTemplates'));
 
 export default function App() {
   // Core state
@@ -96,6 +98,8 @@ export default function App() {
   // v1.11.0 Feature states (Option C)
   const [showVoiceInput, setShowVoiceInput] = useState(false);
   const [showEmotionViz, setShowEmotionViz] = useState(false);
+  const [showTopicDiagram, setShowTopicDiagram] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // Voice Control (v1.6.0)
   const voiceControl = useVoiceControl({
@@ -429,6 +433,45 @@ export default function App() {
     }
   }, [announce]);
 
+  // Handle template selection (v1.11.0)
+  const handleSelectTemplate = useCallback(async (prompts: string[]) => {
+    if (prompts.length === 0 || !userName) return;
+
+    announce('Applying conversation template');
+
+    // Send prompts sequentially with AI responses
+    for (const prompt of prompts) {
+      // Add user message
+      const userMessage: Message = {
+        author: 'user',
+        text: prompt
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+
+      try {
+        // Get AI response
+        const response = await getDrSbaitsoResponse(prompt);
+        const aiMessage: Message = {
+          author: 'ai',
+          text: response
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+
+        // Announce for accessibility
+        announce(response);
+
+        // Small delay between prompts
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error('[Template] Failed to process prompt:', error);
+        announce('Error processing template prompt');
+        break;
+      }
+    }
+  }, [userName, announce]);
+
   // Global keyboard shortcuts (v1.3.0 + v1.4.0 + v1.8.0)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -495,6 +538,18 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.key === 'e' && !e.shiftKey) {
         e.preventDefault();
         setShowEmotionViz(prev => !prev);
+      }
+
+      // Ctrl/Cmd + Shift + T: Toggle topic diagram (v1.11.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
+        e.preventDefault();
+        setShowTopicDiagram(prev => !prev);
+      }
+
+      // Ctrl/Cmd + Shift + L: Open conversation templates (v1.11.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'L') {
+        e.preventDefault();
+        setShowTemplates(true);
       }
     };
 
@@ -706,6 +761,25 @@ export default function App() {
               >
                 <span aria-hidden="true">😊</span>
                 {showEmotionViz && <span className="ml-1 text-green-300">ON</span>}
+              </button>
+              <button
+                onClick={() => setShowTopicDiagram(prev => !prev)}
+                className={`px-3 py-1 border-2 ${
+                  showTopicDiagram ? 'border-green-400 bg-green-900' : 'border-gray-400'
+                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                aria-label="Toggle topic diagram (Ctrl+Shift+T)"
+                title="Topic Diagram (Ctrl+Shift+T)"
+              >
+                <span aria-hidden="true">🔀</span>
+                {showTopicDiagram && <span className="ml-1 text-green-300">ON</span>}
+              </button>
+              <button
+                onClick={() => setShowTemplates(true)}
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                aria-label="Conversation templates (Ctrl+Shift+L)"
+                title="Templates (Ctrl+Shift+L)"
+              >
+                📝
               </button>
             </div>
           </div>
@@ -1126,6 +1200,30 @@ export default function App() {
               maxHistory={10}
             />
           </div>
+        </Suspense>
+      )}
+
+      {/* Topic Flow Diagram (v1.11.0 - Option C3) */}
+      {showTopicDiagram && userName && (
+        <Suspense fallback={<div className="fixed top-20 left-4 z-40 text-white text-sm">Loading topic diagram...</div>}>
+          <div className="fixed top-20 left-4 z-40 max-w-2xl">
+            <TopicFlowDiagram
+              messages={messages}
+              theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+            />
+          </div>
+        </Suspense>
+      )}
+
+      {/* Conversation Templates (v1.11.0 - Option C4) */}
+      {showTemplates && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading templates...</div></div>}>
+          <ConversationTemplates
+            isOpen={showTemplates}
+            onClose={() => setShowTemplates(false)}
+            onSelectTemplate={handleSelectTemplate}
+            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+          />
         </Suspense>
       )}
     </>
