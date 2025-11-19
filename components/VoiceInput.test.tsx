@@ -81,14 +81,20 @@ describe('VoiceInput Component', () => {
     // Setup mock Speech Recognition
     mockRecognitionInstance = new MockSpeechRecognition();
 
-    (window as any).SpeechRecognition = vi.fn(() => mockRecognitionInstance);
-    (window as any).webkitSpeechRecognition = vi.fn(() => mockRecognitionInstance);
+    // Use proper constructor function to avoid Vitest warnings
+    (window as any).SpeechRecognition = function() {
+      return mockRecognitionInstance;
+    };
+    (window as any).webkitSpeechRecognition = function() {
+      return mockRecognitionInstance;
+    };
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    delete (window as any).SpeechRecognition;
-    delete (window as any).webkitSpeechRecognition;
+    // Set to undefined instead of delete (delete fails in test environment)
+    (window as any).SpeechRecognition = undefined;
+    (window as any).webkitSpeechRecognition = undefined;
   });
 
   describe('Browser Support', () => {
@@ -100,8 +106,8 @@ describe('VoiceInput Component', () => {
     });
 
     it('should show error message when speech recognition is not supported', () => {
-      delete (window as any).SpeechRecognition;
-      delete (window as any).webkitSpeechRecognition;
+      (window as any).SpeechRecognition = undefined;
+      (window as any).webkitSpeechRecognition = undefined;
 
       const mockTranscript = vi.fn();
       const mockError = vi.fn();
@@ -413,12 +419,15 @@ describe('useVoiceInput Hook', () => {
 
   beforeEach(() => {
     mockRecognitionInstance = new MockSpeechRecognition();
-    (window as any).SpeechRecognition = vi.fn(() => mockRecognitionInstance);
+    // Use proper constructor function to avoid Vitest warnings
+    (window as any).SpeechRecognition = function() {
+      return mockRecognitionInstance;
+    };
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    delete (window as any).SpeechRecognition;
+    (window as any).SpeechRecognition = undefined;
   });
 
   it('should return isSupported as true when speech recognition is available', () => {
@@ -431,7 +440,7 @@ describe('useVoiceInput Hook', () => {
   });
 
   it('should return isSupported as false when speech recognition is not available', () => {
-    delete (window as any).SpeechRecognition;
+    (window as any).SpeechRecognition = undefined;
 
     const mockTranscript = vi.fn();
     const { result } = renderHook(() =>

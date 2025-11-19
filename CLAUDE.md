@@ -8,7 +8,11 @@ Dr. Sbaitso Recreated is a web-based recreation of the classic 1991 AI therapist
 
 **Version 1.1.0** introduced multi-character personalities (5 characters), retro themes (5 themes), configurable audio quality (4 presets), comprehensive session management with localStorage persistence, multi-format conversation export, and 30+ keyboard shortcuts with platform detection.
 
-**Version 1.2.0** (Latest) adds AudioWorklet-based audio processing (50% CPU reduction), mobile-responsive design with touch gestures, and voice input support via Web Speech API.
+**Version 1.2.0** added AudioWorklet-based audio processing (50% CPU reduction), mobile-responsive design with touch gestures, and voice input support via Web Speech API.
+
+**Version 1.10.0** introduced advanced analytics and immersive features including adaptive conversation difficulty, contextual suggestions, achievement system, and enhanced conversation analysis.
+
+**Version 1.11.0** (Latest) adds production-ready features: Voice Input UI component with Web Speech API integration, Emotion Visualizer with sentiment analysis and D3.js trend graphs, Topic Flow Diagram showing conversation topic transitions, Conversation Templates for quick-start prompts, Performance Profiler for monitoring, Service Worker for offline support, React Error Boundaries, and comprehensive E2E testing with Playwright.
 
 ## Development Commands
 
@@ -112,6 +116,95 @@ The Vite config exposes this as `process.env.API_KEY` and `process.env.GEMINI_AP
     - Audio controls: mute, quality cycle, stop
   - Event delegation with single global listener
   - Context-aware: disables shortcuts when typing in text areas
+
+### v1.11.0 Components
+
+- **components/VoiceInput.tsx** (NEW v1.11.0): Voice input UI component
+  - Web Speech API integration (SpeechRecognition)
+  - Real-time speech-to-text transcription
+  - Interim and final transcript handling
+  - Browser compatibility detection
+  - Error handling for microphone permissions
+  - Visual feedback for listening state
+  - Keyboard accessible controls
+
+- **components/EmotionVisualizer.tsx** (NEW v1.11.0): Emotion analysis and visualization
+  - Real-time emotion detection using `utils/emotionDetection.ts`
+  - Canvas-based trend graph using Chart.js-style rendering
+  - Tracks 5 emotions: joy, sadness, anger, fear, surprise
+  - Emotion history with configurable max length
+  - Confidence scores and dominant emotion display
+  - Progress bars for emotion distribution
+  - Theme-aware styling
+  - `EmotionBadge` mini-component for inline emotion display
+
+- **components/TopicFlowDiagram.tsx** (NEW v1.11.0): D3.js topic visualization
+  - Force-directed graph showing conversation topics
+  - Analyzes topic frequency and transitions
+  - Interactive node hover with details
+  - Sentiment-based color coding
+  - Topic clustering and relationships
+  - Responsive SVG rendering
+  - Uses `utils/topicAnalysis.ts` for topic extraction
+
+- **components/ConversationTemplates.tsx** (NEW v1.11.0): Template management UI
+  - Browse pre-defined conversation templates
+  - 6 categories: therapy, casual, technical, creative, educational, custom
+  - Template search functionality
+  - Customizable prompt fields with placeholders
+  - Usage tracking per template
+  - Multi-step conversation flows
+  - Theme-aware modal interface
+  - Uses `utils/templateManager.ts` for data management
+
+- **utils/performanceProfiler.ts** (NEW v1.11.0): Performance monitoring
+  - `PerformanceProfiler` class for metric tracking
+  - `start()`, `end()`, `mark()` methods
+  - Integration with browser Performance API
+  - Core Web Vitals tracking (FCP, LCP, TTFB)
+  - Memory usage monitoring
+  - Performance report generation
+  - Decorator support for method profiling
+  - Helper functions: `measureFn()`, `measureAsyncFn()`
+
+- **utils/emotionDetection.ts** (NEW v1.11.0): Emotion analysis engine
+  - Keyword-based emotion detection
+  - Supports 5 emotion categories
+  - Confidence scoring algorithm
+  - Weighted pattern matching
+  - Emoji to emotion mapping
+  - Intensity detection
+
+- **utils/topicAnalysis.ts** (NEW v1.11.0): Topic extraction and analysis
+  - NLP-style topic identification
+  - Topic frequency tracking
+  - Sentiment analysis per topic
+  - Topic transition detection
+  - Dominant topic calculation
+  - Exports: `analyzeTopics()`, `getTopicColor()`, `formatTopicName()`
+
+- **utils/templateManager.ts** (NEW v1.11.0): Template data management
+  - `TemplateManager` class with static methods
+  - Default template library with 10+ templates
+  - Category-based filtering
+  - Template search by name/tags/description
+  - Usage tracking and statistics
+  - Custom template creation support
+  - LocalStorage persistence for custom templates
+
+- **components/ErrorBoundary.tsx** (NEW v1.11.0): React error boundary
+  - Catches React component errors
+  - Displays retro-themed error UI
+  - Error logging and reporting
+  - Graceful degradation
+  - Reset functionality
+
+- **public/sw.js** (NEW v1.11.0): Service Worker for offline support
+  - Static asset caching
+  - Runtime caching strategies
+  - Offline fallback pages
+  - Cache versioning and cleanup
+  - Network-first with cache fallback
 
 ### Application Flow (v1.1.0)
 
@@ -251,3 +344,60 @@ Uses Web Audio API features:
 **Documentation:**
 - `docs/FEATURES.md` - Complete feature guide (88KB)
 - `docs/KEYBOARD_SHORTCUTS.md` - Shortcut reference (91KB)
+
+## v1.11.0 Feature Summary
+
+**Phase 1: Quick Integration**
+- Voice Input component with Web Speech API
+- Emotion Visualizer with sentiment analysis and D3 trend graphs
+- Basic integration into main app UI
+
+**Phase 2: Production Hardening**
+- Service Worker (`public/sw.js`) for offline support
+- Error Boundary component for graceful error handling
+- Security headers and CSP configuration
+- Performance optimization
+
+**Option C: Advanced Features (Partial Implementation)**
+- Topic Flow Diagram with D3.js force-directed graphs
+- Conversation Templates with 10+ pre-defined templates
+- Performance Profiler utility for monitoring
+
+**New Files:**
+- `components/VoiceInput.tsx` - Voice input UI (332 lines)
+- `components/EmotionVisualizer.tsx` - Emotion analysis and visualization (254 lines)
+- `components/TopicFlowDiagram.tsx` - D3.js topic graph (200+ lines)
+- `components/ConversationTemplates.tsx` - Template browser UI (312 lines)
+- `components/ErrorBoundary.tsx` - Error boundary (80+ lines)
+- `utils/emotionDetection.ts` - Emotion analysis engine (150+ lines)
+- `utils/topicAnalysis.ts` - Topic extraction (200+ lines)
+- `utils/templateManager.ts` - Template data management (350+ lines)
+- `utils/performanceProfiler.ts` - Performance monitoring (327 lines)
+- `public/sw.js` - Service worker (120+ lines)
+
+**Test Files:**
+- `components/VoiceInput.test.tsx` - 29 unit tests
+- `components/EmotionVisualizer.test.tsx` - 21 unit tests
+- `e2e/voice-input.spec.ts` - 7 E2E tests
+- `e2e/emotion-viz.spec.ts` - 9 E2E tests
+- `e2e/topic-diagram.spec.ts` - 10 E2E tests
+- `e2e/templates.spec.ts` - 13 E2E tests
+
+**Key Features:**
+- **Voice Input**: Browser-based speech recognition with real-time transcription
+- **Emotion Analysis**: Tracks joy, sadness, anger, fear, surprise with confidence scores
+- **Topic Visualization**: D3.js force-directed graph showing topic transitions
+- **Templates**: 10+ conversation templates across 6 categories
+- **Performance**: Monitoring with Core Web Vitals and memory tracking
+- **Offline Support**: Service worker caching for offline functionality
+- **Error Handling**: React error boundaries for graceful degradation
+- **Testing**: 50 component tests + 39 E2E tests with Playwright
+
+**Technical Improvements:**
+- Enhanced TypeScript types for new features
+- D3.js integration for data visualization
+- Web Speech API integration
+- Canvas-based rendering for emotion trends
+- LocalStorage persistence for templates and settings
+- Service Worker registration and lifecycle management
+- Comprehensive test coverage (unit + E2E)
