@@ -1,5 +1,5 @@
 /**
- * Music Player Component (v1.10.0)
+ * Music Player Component (v1.11.0)
  *
  * Control panel for procedural chiptune music
  */

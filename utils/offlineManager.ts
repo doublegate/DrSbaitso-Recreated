@@ -1,5 +1,5 @@
 /**
- * Offline Manager (v1.10.0)
+ * Offline Manager (v1.11.0)
  *
  * Manages offline data storage using IndexedDB for robust offline experience.
  * Stores conversation sessions, settings, and cached data for offline access.
