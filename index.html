@@ -239,7 +239,6 @@
                     // Optionally show a notification to the user
                     if (confirm('A new version of Dr. Sbaitso is available. Reload to update?')) {
                       newWorker.postMessage({ type: 'SKIP_WAITING' });
-                      window.location.reload();
                     }
                   }
                 });

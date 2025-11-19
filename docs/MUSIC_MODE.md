@@ -235,6 +235,6 @@ Music Mode was inspired by:
 
 ---
 
-**Version**: 1.10.0
+**Version**: 1.11.0
 **Last Updated**: November 2025
 **Related**: [Features Overview](./FEATURES.md), [Sound Packs Guide](./SOUND_PACKS_GUIDE.md)
