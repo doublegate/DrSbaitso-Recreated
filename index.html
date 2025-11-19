@@ -215,5 +215,48 @@
     <div id="skip-to-main"></div>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+
+    <!-- Service Worker Registration (v1.11.0 - Option B1) -->
+    <script>
+      // Register service worker for PWA offline support
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+              console.log('[PWA] Service Worker registered successfully:', registration.scope);
+
+              // Check for updates every hour
+              setInterval(() => {
+                registration.update();
+              }, 60 * 60 * 1000);
+
+              // Handle service worker updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('[PWA] New service worker available. Refresh to update.');
+                    // Optionally show a notification to the user
+                    if (confirm('A new version of Dr. Sbaitso is available. Reload to update?')) {
+                      newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.error('[PWA] Service Worker registration failed:', error);
+            });
+
+          // Handle service worker controller change
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('[PWA] Service Worker controller changed, reloading page...');
+            window.location.reload();
+          });
+        });
+      } else {
+        console.warn('[PWA] Service Workers not supported in this browser');
+      }
+    </script>
   </body>
 </html>

@@ -9,6 +9,8 @@ import { useVoiceControl } from './hooks/useVoiceControl';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import SkipNav from './components/SkipNav';
 import { CustomTheme } from './utils/themeValidator';
+import { musicEngine } from './utils/musicEngine';
+import { soundPackPlayer } from './utils/soundPackPlayer';
 
 // Lazy-loaded components (only load when needed)
 const AccessibilityPanel = lazy(() => import('./components/AccessibilityPanel'));
@@ -24,6 +26,16 @@ const OnboardingTutorial = lazy(() => import('./components/OnboardingTutorial'))
 const ConversationInsights = lazy(() => import('./components/ConversationInsights'));
 // v1.9.0 Components (lazy-loaded)
 const SoundSettingsPanel = lazy(() => import('./components/SoundSettingsPanel'));
+// v1.10.0 Components (lazy-loaded)
+const MusicPlayer = lazy(() => import('./components/MusicPlayer'));
+const InstallPrompt = lazy(() => import('./components/InstallPrompt'));
+const SoundPackManager = lazy(() => import('./components/SoundPackManager'));
+const SoundPackCreator = lazy(() => import('./components/SoundPackCreator'));
+// v1.11.0 Components (lazy-loaded - Option C)
+const VoiceInput = lazy(() => import('./components/VoiceInput'));
+const EmotionVisualizer = lazy(() => import('./components/EmotionVisualizer'));
+const TopicFlowDiagram = lazy(() => import('./components/TopicFlowDiagram'));
+const ConversationTemplates = lazy(() => import('./components/ConversationTemplates'));
 
 export default function App() {
   // Core state
@@ -78,6 +90,17 @@ export default function App() {
   // v1.9.0 Feature states
   const [showSoundSettings, setShowSoundSettings] = useState(false);
 
+  // v1.10.0 Feature states
+  const [showMusicPlayer, setShowMusicPlayer] = useState(false);
+  const [showSoundPackManager, setShowSoundPackManager] = useState(false);
+  const [showSoundPackCreator, setShowSoundPackCreator] = useState(false);
+
+  // v1.11.0 Feature states (Option C)
+  const [showVoiceInput, setShowVoiceInput] = useState(false);
+  const [showEmotionViz, setShowEmotionViz] = useState(false);
+  const [showTopicDiagram, setShowTopicDiagram] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+
   // Voice Control (v1.6.0)
   const voiceControl = useVoiceControl({
     enabled: true,
@@ -124,6 +147,8 @@ export default function App() {
     onOpenAccessibility: () => setShowAccessibilityPanel(true),
     onOpenSearch: () => setShowConversationSearch(true),
     onOpenVisualizer: () => setShowAudioVisualizer(!showAudioVisualizer),
+    onToggleMusic: () => setShowMusicPlayer(prev => !prev),
+    onOpenSoundPacks: () => setShowSoundPackManager(true),
     onHelp: () => {
       setShowVoiceControlHelp(true);
       const helpText = voiceControl.showHelp();
@@ -400,6 +425,53 @@ export default function App() {
     }
   };
 
+  // Handle voice transcript (v1.11.0)
+  const handleVoiceTranscript = useCallback((transcript: string) => {
+    if (transcript.trim()) {
+      setUserInput(prev => prev + (prev ? ' ' : '') + transcript.trim());
+      announce(`Voice input: ${transcript}`);
+    }
+  }, [announce]);
+
+  // Handle template selection (v1.11.0)
+  const handleSelectTemplate = useCallback(async (prompts: string[]) => {
+    if (prompts.length === 0 || !userName) return;
+
+    announce('Applying conversation template');
+
+    // Send prompts sequentially with AI responses
+    for (const prompt of prompts) {
+      // Add user message
+      const userMessage: Message = {
+        author: 'user',
+        text: prompt
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+
+      try {
+        // Get AI response
+        const response = await getDrSbaitsoResponse(prompt);
+        const aiMessage: Message = {
+          author: 'dr',
+          text: response
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+
+        // Announce for accessibility
+        announce(response);
+
+        // Small delay between prompts
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error('[Template] Failed to process prompt:', error);
+        announce('Error processing template prompt');
+        break;
+      }
+    }
+  }, [userName, announce]);
+
   // Global keyboard shortcuts (v1.3.0 + v1.4.0 + v1.8.0)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -442,6 +514,42 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
         e.preventDefault();
         setShowInsights(true);
+      }
+
+      // Ctrl/Cmd + M: Toggle music player (v1.10.0)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'm' && !e.shiftKey) {
+        e.preventDefault();
+        setShowMusicPlayer(prev => !prev);
+      }
+
+      // Ctrl/Cmd + Shift + P: Open sound pack manager (v1.10.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        setShowSoundPackManager(true);
+      }
+
+      // Ctrl/Cmd + Shift + V: Toggle voice input (v1.11.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V') {
+        e.preventDefault();
+        setShowVoiceInput(prev => !prev);
+      }
+
+      // Ctrl/Cmd + E: Toggle emotion visualizer (v1.11.0)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e' && !e.shiftKey) {
+        e.preventDefault();
+        setShowEmotionViz(prev => !prev);
+      }
+
+      // Ctrl/Cmd + Shift + T: Toggle topic diagram (v1.11.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
+        e.preventDefault();
+        setShowTopicDiagram(prev => !prev);
+      }
+
+      // Ctrl/Cmd + Shift + L: Open conversation templates (v1.11.0)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'L') {
+        e.preventDefault();
+        setShowTemplates(true);
       }
     };
 
@@ -612,6 +720,66 @@ export default function App() {
               >
                 <span aria-hidden="true">🎤</span>
                 {voiceControl.isHandsFreeMode && <span className="ml-1 text-green-300">ON</span>}
+              </button>
+              <button
+                onClick={() => setShowMusicPlayer(prev => !prev)}
+                className={`px-3 py-1 border-2 ${
+                  showMusicPlayer ? 'border-green-400 bg-green-900' : 'border-gray-400'
+                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                aria-label="Toggle music player (Ctrl+M)"
+                title="Music Player (Ctrl+M)"
+              >
+                <span aria-hidden="true">🎵</span>
+                {showMusicPlayer && <span className="ml-1 text-green-300">ON</span>}
+              </button>
+              <button
+                onClick={() => setShowSoundPackManager(true)}
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                aria-label="Sound pack manager (Ctrl+Shift+P)"
+                title="Sound Pack Manager (Ctrl+Shift+P)"
+              >
+                <span aria-hidden="true">🎼</span>
+              </button>
+              <button
+                onClick={() => setShowVoiceInput(prev => !prev)}
+                className={`px-3 py-1 border-2 ${
+                  showVoiceInput ? 'border-green-400 bg-green-900' : 'border-gray-400'
+                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                aria-label="Toggle voice input (Ctrl+Shift+V)"
+                title="Voice Input (Ctrl+Shift+V)"
+              >
+                <span aria-hidden="true">🗣️</span>
+                {showVoiceInput && <span className="ml-1 text-green-300">ON</span>}
+              </button>
+              <button
+                onClick={() => setShowEmotionViz(prev => !prev)}
+                className={`px-3 py-1 border-2 ${
+                  showEmotionViz ? 'border-green-400 bg-green-900' : 'border-gray-400'
+                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                aria-label="Toggle emotion visualizer (Ctrl+E)"
+                title="Emotion Visualizer (Ctrl+E)"
+              >
+                <span aria-hidden="true">😊</span>
+                {showEmotionViz && <span className="ml-1 text-green-300">ON</span>}
+              </button>
+              <button
+                onClick={() => setShowTopicDiagram(prev => !prev)}
+                className={`px-3 py-1 border-2 ${
+                  showTopicDiagram ? 'border-green-400 bg-green-900' : 'border-gray-400'
+                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                aria-label="Toggle topic diagram (Ctrl+Shift+T)"
+                title="Topic Diagram (Ctrl+Shift+T)"
+              >
+                <span aria-hidden="true">🔀</span>
+                {showTopicDiagram && <span className="ml-1 text-green-300">ON</span>}
+              </button>
+              <button
+                onClick={() => setShowTemplates(true)}
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                aria-label="Conversation templates (Ctrl+Shift+L)"
+                title="Templates (Ctrl+Shift+L)"
+              >
+                <span aria-hidden="true">📝</span>
               </button>
             </div>
           </div>
@@ -864,6 +1032,62 @@ export default function App() {
         </Suspense>
       )}
 
+      {/* Music Player (v1.10.0) */}
+      {showMusicPlayer && userName && (
+        <Suspense fallback={<div className="fixed bottom-4 left-4 z-40 text-white text-sm">Loading music player...</div>}>
+          <div className="fixed bottom-4 left-4 z-40">
+            <MusicPlayer
+              theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+              audioContext={audioContextRef.current}
+            />
+          </div>
+        </Suspense>
+      )}
+
+      {/* PWA Install Prompt (v1.10.0) */}
+      <Suspense fallback={null}>
+        <InstallPrompt />
+      </Suspense>
+
+      {/* Sound Pack Manager (v1.10.0) */}
+      {showSoundPackManager && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack manager...</div></div>}>
+          <SoundPackManager
+            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+            audioContext={audioContextRef.current}
+            onClose={() => setShowSoundPackManager(false)}
+            onCreateNew={() => {
+              setShowSoundPackManager(false);
+              setShowSoundPackCreator(true);
+            }}
+          />
+        </Suspense>
+      )}
+
+      {/* Sound Pack Creator (v1.10.0) */}
+      {showSoundPackCreator && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack creator...</div></div>}>
+          <SoundPackCreator
+            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+            onClose={() => setShowSoundPackCreator(false)}
+            onSave={(pack) => {
+              // Save to localStorage and close
+              try {
+                const stored = localStorage.getItem('dr_sbaitso_sound_packs');
+                const packs = stored ? JSON.parse(stored) : [];
+                packs.push(pack);
+                localStorage.setItem('dr_sbaitso_sound_packs', JSON.stringify(packs));
+                setShowSoundPackCreator(false);
+                announce(`Sound pack "${pack.metadata.name}" created successfully`);
+              } catch (error) {
+                console.error('Failed to save sound pack:', error);
+                alert('Failed to save sound pack');
+              }
+            }}
+          />
+        </Suspense>
+      )}
+
       {/* Voice Control Help Modal (v1.6.0) */}
       {showVoiceControlHelp && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -946,6 +1170,61 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Voice Input Panel (v1.11.0 - Option C1) */}
+      {showVoiceInput && userName && (
+        <Suspense fallback={<div className="fixed bottom-20 left-4 z-40 text-white text-sm">Loading voice input...</div>}>
+          <div className="fixed bottom-20 left-4 z-40 max-w-md">
+            <VoiceInput
+              onTranscript={handleVoiceTranscript}
+              onError={(error) => {
+                console.error('[VoiceInput Error]', error);
+                announce(`Voice input error: ${error}`);
+              }}
+              isEnabled={true}
+              language="en-US"
+              continuous={false}
+            />
+          </div>
+        </Suspense>
+      )}
+
+      {/* Emotion Visualizer (v1.11.0 - Option C2) */}
+      {showEmotionViz && userName && (
+        <Suspense fallback={<div className="fixed bottom-20 right-4 z-40 text-white text-sm">Loading emotion visualizer...</div>}>
+          <div className="fixed bottom-20 right-4 z-40 max-w-sm">
+            <EmotionVisualizer
+              messages={messages}
+              theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+              maxHistory={10}
+            />
+          </div>
+        </Suspense>
+      )}
+
+      {/* Topic Flow Diagram (v1.11.0 - Option C3) */}
+      {showTopicDiagram && userName && (
+        <Suspense fallback={<div className="fixed top-20 left-4 z-40 text-white text-sm">Loading topic diagram...</div>}>
+          <div className="fixed top-20 left-4 z-40 max-w-2xl">
+            <TopicFlowDiagram
+              messages={messages}
+              theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+            />
+          </div>
+        </Suspense>
+      )}
+
+      {/* Conversation Templates (v1.11.0 - Option C4) */}
+      {showTemplates && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading templates...</div></div>}>
+          <ConversationTemplates
+            isOpen={showTemplates}
+            onClose={() => setShowTemplates(false)}
+            onSelectTemplate={handleSelectTemplate}
+            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+          />
+        </Suspense>
       )}
     </>
   );

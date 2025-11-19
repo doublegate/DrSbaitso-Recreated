@@ -9,6 +9,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './test/setup.ts',
     css: true,
+    exclude: ['node_modules', 'dist', 'build', 'e2e'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -22,10 +23,10 @@ export default defineConfig({
         '**/.{idea,git,cache,output,temp}/',
       ],
       thresholds: {
-        lines: 70,
-        functions: 70,
+        lines: 80,
+        functions: 75,
         branches: 70,
-        statements: 70,
+        statements: 80,
       },
     },
   },

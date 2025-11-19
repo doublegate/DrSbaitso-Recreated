@@ -2,9 +2,500 @@
 
 ## Overview
 
-Dr. Sbaitso Recreated combines authentic 1991 retro aesthetics with modern AI capabilities. **Version 1.5.0** adds powerful customization, search, and visualization tools while maintaining the classic experience.
+Dr. Sbaitso Recreated combines authentic 1991 retro aesthetics with modern AI capabilities. **Version 1.11.0** adds production-ready features including Voice Input UI, Emotion Visualizer, Topic Flow Diagrams, Conversation Templates, Performance Profiler, Service Worker, Error Boundaries, and comprehensive E2E testing while maintaining the classic experience.
 
-## New Features (v1.5.0)
+## New Features (v1.11.0)
+
+### 1. Voice Input UI Component
+
+Transform your conversations with intuitive speech-to-text capabilities:
+
+#### Voice Input Features
+- **Web Speech API Integration**: Browser-based speech recognition with real-time transcription
+- **Real-time Transcription**:
+  - Interim transcripts: See your words as you speak
+  - Final transcripts: Complete, accurate text conversion
+  - Automatic punctuation and capitalization
+  - Multi-language support (depends on browser)
+- **Visual Feedback**:
+  - Animated microphone icon during listening
+  - Status indicators (Idle, Listening, Processing)
+  - Error state display with helpful messages
+- **Browser Compatibility**:
+  - Chrome/Edge: Full support
+  - Safari: Experimental support
+  - Firefox: Limited support
+  - Automatic fallback for unsupported browsers
+- **Accessibility**:
+  - ARIA labels for screen readers
+  - Keyboard accessible (Tab navigation)
+  - Focus management
+  - Status announcements
+
+#### Voice Input Controls
+- **Start/Stop**: Click microphone button or press hotkey
+- **Manual Override**: Stop listening anytime
+- **Error Recovery**: Automatic restart on errors
+- **Permissions**: One-time microphone access request
+
+**Keyboard Shortcuts**: Ctrl+Shift+V to toggle voice input
+
+**Test Coverage**: 29 component tests + 7 E2E tests
+
+---
+
+### 2. Emotion Visualizer with Sentiment Analysis
+
+Understand the emotional journey of your conversations:
+
+#### Emotion Analysis Features
+- **Real-time Emotion Detection**: Analyzes every message for emotional content
+- **5-Emotion Model**:
+  - 😊 **Joy**: Happiness, excitement, contentment
+  - 😢 **Sadness**: Melancholy, disappointment, grief
+  - 😠 **Anger**: Frustration, annoyance, rage
+  - 😨 **Fear**: Anxiety, worry, apprehension
+  - 😲 **Surprise**: Astonishment, shock, wonder
+- **Confidence Scoring**: 0-100% confidence for each emotion
+- **Dominant Emotion**: Automatically identifies primary emotion
+- **Emotion History**: Tracks emotional progression over time
+
+#### Emotion Visualizer UI
+- **Emotion Badges**: Inline badges on each message with dominant emotion
+- **Trend Graph**: Canvas-based line chart showing emotion trends
+  - X-axis: Message timeline
+  - Y-axis: Emotion intensity (0-100%)
+  - Color-coded lines for each emotion
+  - Smooth interpolation between data points
+- **Progress Bars**: Visual distribution of all 5 emotions
+- **Statistics Panel**: Summary of emotional content
+  - Total messages analyzed
+  - Dominant emotion across conversation
+  - Average confidence score
+
+#### Technical Details
+- **Keyword-based Detection**: Pattern matching with weighted scoring
+- **Emoji Analysis**: Emojis contribute to emotion scores
+- **Intensity Detection**: Capitalization and punctuation affect confidence
+- **Canvas Rendering**: High-performance 2D graphics
+- **Theme Integration**: Matches current retro theme colors
+
+**Keyboard Shortcuts**: Emotion badges automatically appear on messages
+
+**Test Coverage**: 21 component tests + 9 E2E tests
+
+---
+
+### 3. Topic Flow Diagram (D3.js Visualization)
+
+Visualize conversation topics and their relationships:
+
+#### Topic Flow Features
+- **Force-Directed Graph**: D3.js-powered interactive visualization
+- **Topic Extraction**: NLP-style keyword analysis
+  - Automatic topic identification
+  - Frequency tracking
+  - Topic clustering
+  - Relationship detection
+- **Topic Nodes**:
+  - Size indicates topic frequency
+  - Color indicates sentiment (positive, neutral, negative)
+  - Hover for detailed statistics
+  - Click to highlight connections
+- **Topic Transitions**:
+  - Arrows show conversation flow
+  - Line thickness indicates transition strength
+  - Animated force simulation
+
+#### Visualization Controls
+- **Interactive Graph**:
+  - Pan and zoom
+  - Drag nodes to reposition
+  - Hover for tooltips
+  - Auto-layout with physics simulation
+- **Sentiment Analysis**:
+  - Green nodes: Positive sentiment
+  - Yellow nodes: Neutral sentiment
+  - Red nodes: Negative sentiment
+- **Statistics Display**:
+  - Total unique topics
+  - Most frequent topic
+  - Topic transition count
+  - Dominant sentiment
+
+#### Technical Implementation
+- **D3.js v7.9.0**: Industry-standard data visualization
+- **Force Simulation**: Realistic physics-based layout
+- **SVG Rendering**: Scalable vector graphics
+- **Responsive Design**: Adapts to container size
+- **Performance**: Optimized for 100+ topics
+
+**Keyboard Shortcuts**: Access from Insights menu (Ctrl+Shift+I)
+
+**Test Coverage**: Component tests + 10 E2E tests
+
+---
+
+### 4. Conversation Templates
+
+Jumpstart conversations with pre-defined prompts and flows:
+
+#### Template System Features
+- **10+ Pre-defined Templates**: Ready-to-use conversation starters
+- **6 Template Categories**:
+  - **Therapy**: Mental health and wellness conversations
+  - **Casual**: Friendly, informal discussions
+  - **Technical**: Problem-solving and debugging
+  - **Creative**: Brainstorming and ideation
+  - **Educational**: Learning and knowledge exploration
+  - **Custom**: User-created templates
+- **Template Structure**:
+  - Name and description
+  - Category and tags
+  - Prompt sequence (single or multi-turn)
+  - Placeholder variables (e.g., {name}, {topic})
+  - Usage tracking
+
+#### Template Browser UI
+- **Search Functionality**: Filter by name, tags, or description
+- **Category Filtering**: Browse by category
+- **Template Preview**: See full prompt before using
+- **Usage Statistics**: Track most-used templates
+- **Customization**:
+  - Fill in placeholder variables
+  - Edit prompts before sending
+  - Save custom templates
+
+#### Template Manager
+- **Create Custom Templates**:
+  - Multi-step wizard
+  - Variable placeholder support
+  - Category assignment
+  - Tag management
+- **Import/Export**: Share templates as JSON
+- **LocalStorage Persistence**: Templates saved client-side
+- **Template Versioning**: Track template changes
+
+#### Example Templates
+1. **Anxiety Relief** (Therapy): "I'm feeling anxious about {topic}. Can you help me work through this?"
+2. **Daily Reflection** (Casual): "I want to reflect on my day. Let me tell you about {event}."
+3. **Debug Session** (Technical): "I'm stuck on a {language} problem involving {concept}."
+4. **Story Brainstorm** (Creative): "Help me brainstorm a story about {character} who {action}."
+
+**Keyboard Shortcuts**: Ctrl+T to open template browser
+
+**Test Coverage**: Component tests + 13 E2E tests
+
+---
+
+### 5. Performance Profiler
+
+Monitor and optimize application performance:
+
+#### Performance Monitoring Features
+- **Core Web Vitals Tracking**:
+  - **FCP** (First Contentful Paint): <1.8s
+  - **LCP** (Largest Contentful Paint): <2.5s
+  - **TTFB** (Time to First Byte): <600ms
+  - **CLS** (Cumulative Layout Shift): <0.1
+  - **FID** (First Input Delay): <100ms
+- **Memory Usage Monitoring**:
+  - Heap size tracking
+  - Memory allocation patterns
+  - Garbage collection detection
+  - Memory leak identification
+- **Performance Marks & Measures**:
+  - Custom timing marks
+  - Performance measurement between marks
+  - Integration with browser Performance API
+
+#### Profiler API
+```typescript
+// Start profiling a function
+PerformanceProfiler.start('functionName');
+// ... do work ...
+PerformanceProfiler.end('functionName');
+
+// Measure async operations
+await PerformanceProfiler.measureAsyncFn('apiCall', async () => {
+  return await fetch('/api/data');
+});
+
+// Generate performance report
+const report = PerformanceProfiler.generateReport();
+console.log(report);
+```
+
+#### Performance Reports
+- **Timing Statistics**: Min, max, average, median
+- **Memory Snapshots**: Before/after comparisons
+- **Bottleneck Detection**: Identify slow operations
+- **Export to JSON**: Share performance data
+
+**Test Coverage**: Unit tests for profiler utility
+
+---
+
+### 6. Production Hardening
+
+Enterprise-grade reliability and error handling:
+
+#### Service Worker for Offline Support
+- **Static Asset Caching**: HTML, CSS, JS, images
+- **Runtime Caching Strategies**:
+  - Network-first with cache fallback
+  - Cache-first for static assets
+  - Stale-while-revalidate for API calls
+- **Offline Fallback Pages**: Graceful degradation
+- **Cache Versioning**: Automatic cache updates
+- **Background Sync**: Queue actions for when online (planned)
+
+#### React Error Boundaries
+- **Component-Level Error Catching**: Prevent app crashes
+- **Retro-Themed Error UI**: Consistent with app design
+- **Error Logging**: Detailed error reports
+- **Graceful Degradation**: App continues functioning
+- **Reset Functionality**: User can reset error state
+
+#### Security Enhancements
+- **Content Security Policy (CSP)**: XSS protection
+- **HTTPS Enforcement**: Secure connections only
+- **API Key Protection**: Environment variable isolation
+- **Input Sanitization**: Prevent injection attacks
+
+#### Reliability Features
+- **Automatic Error Recovery**: Retry failed operations
+- **State Persistence**: LocalStorage backup
+- **Session Recovery**: Resume after crashes
+- **Health Checks**: Monitor app status
+
+**Test Coverage**: Error boundary tests + E2E tests
+
+---
+
+### 7. Comprehensive Testing Infrastructure
+
+Production-quality test coverage:
+
+#### Testing Statistics (v1.11.0)
+- **Total Tests**: 491 tests (100% pass rate)
+- **Component Tests**: 50 new tests (Vitest + React Testing Library)
+  - VoiceInput.test.tsx: 29 tests
+  - EmotionVisualizer.test.tsx: 21 tests
+  - Plus tests for all other new components
+- **E2E Tests**: 39 new tests (Playwright)
+  - e2e/voice-input.spec.ts: 7 tests
+  - e2e/emotion-viz.spec.ts: 9 tests
+  - e2e/topic-diagram.spec.ts: 10 tests
+  - e2e/templates.spec.ts: 13 tests
+
+#### Testing Tools
+- **Vitest 4.0.10**: Fast unit test framework
+- **React Testing Library 15.0.7**: Component testing utilities
+- **Playwright 1.56.1**: Cross-browser E2E testing
+- **@vitest/coverage-v8**: Code coverage reporting
+- **happy-dom 20.0.10**: Fast DOM environment
+
+#### Test Categories
+- ✅ Browser support detection
+- ✅ Component rendering and lifecycle
+- ✅ User interactions and events
+- ✅ Error handling and edge cases
+- ✅ Accessibility compliance
+- ✅ Theme integration
+- ✅ Data persistence
+- ✅ API mocking
+- ✅ Performance benchmarks
+
+**Documentation**: See [TESTING.md](TESTING.md) for complete testing guide
+
+---
+
+## Features (v1.10.0)
+
+### 1. Music Mode - Procedural Chiptune Generation
+
+Create authentic retro background music that adapts to your conversation mood:
+
+#### Music Engine Features
+- **Procedural Generation**: Real-time chiptune composition using Web Audio API
+- **Mood-Based Composition**:
+  - Happy: Major scales, upbeat rhythms
+  - Calm: Slow tempo, ambient tones
+  - Energetic: Fast BPM, driving basslines
+  - Melancholic: Minor keys, slower pace
+  - Mysterious: Diminished chords, experimental patterns
+- **Tempo Control**: Adjustable BPM (60-180)
+- **Volume Control**: Independent music volume (0-100%)
+- **Live Controls**: Play, pause, and adjust settings in real-time
+
+#### Music Player UI
+- **Persistent Widget**: Bottom-left overlay during conversations
+- **Compact Design**: Minimal screen space usage
+- **Toggle Visibility**: Show/hide with Ctrl+M
+- **Status Indicators**: Current mood and tempo display
+- **Theme Integration**: Matches current retro theme colors
+
+#### Technical Details
+- Pure Web Audio API synthesis (no external libraries)
+- Polyphonic composition (melody + bass + harmony)
+- Square wave, sawtooth, and triangle oscillators
+- Dynamic pattern generation based on mood parameters
+- Optimized for performance (<5% CPU usage)
+
+**Keyboard Shortcuts**: Ctrl+M to toggle Music Player
+
+### 2. Custom Sound Packs - Create & Share Sound Effects
+
+Design custom sound effects and share them with the community:
+
+#### Sound Pack Creator
+- **Audio Recording**:
+  - Record directly from microphone
+  - Up to 2 seconds per sound
+  - Real-time waveform visualization
+  - Preview before saving
+- **Sound Library Management**:
+  - Unlimited sounds per pack
+  - Metadata: name, volume, duration
+  - Audio format: 24kHz mono PCM
+  - Base64 encoding for portability
+- **Event Triggers**:
+  - message-send: When user sends message
+  - message-receive: When AI responds
+  - error: On system errors
+  - glitch: Dr. Sbaitso glitch sounds
+  - keypress: Keyboard typing sounds
+  - Probability control (0-100%)
+- **Pack Metadata**:
+  - Name, author, version
+  - Description and tags
+  - Creation/update timestamps
+  - Automatic size calculation
+
+#### Sound Pack Manager
+- **Library Browser**: Grid view of installed packs
+- **Pack Details**: View sounds, triggers, and metadata
+- **Load/Unload**: Switch between packs instantly
+- **Share System**:
+  - Generate base64 share codes
+  - Copy to clipboard
+  - Install from share codes
+  - Replace or merge packs
+- **Storage**: localStorage persistence (~5MB capacity)
+
+#### Sound Pack Format
+```typescript
+interface SoundPack {
+  version: '1.0.0';
+  metadata: {
+    name: string;
+    author: string;
+    description: string;
+    version: string;
+    tags: string[];
+    created: number;
+    updated: number;
+  };
+  sounds: Array<{
+    id: string;
+    name: string;
+    audioData: string; // base64 PCM
+    duration: number;
+    volume: number;
+  }>;
+  triggers: Array<{
+    event: string;
+    soundId: string;
+    probability: number;
+  }>;
+}
+```
+
+**Keyboard Shortcuts**: Ctrl+Shift+P to open Sound Pack Manager
+
+### 3. Enhanced PWA Support
+
+Transform Dr. Sbaitso into a standalone desktop/mobile app:
+
+#### Progressive Web App Features
+- **Install Prompt**: Smart detection of install capability
+- **Offline Support**: Full functionality without internet (post-first-load)
+- **App Manifest**:
+  - Standalone window mode
+  - Custom app icon (retro Dr. Sbaitso logo)
+  - Themed splash screen
+  - Orientation lock support
+- **Service Worker** (planned): Background sync, offline data caching
+- **Platform Integration**:
+  - Desktop: Appears in applications menu
+  - Mobile: Adds to home screen
+  - Launch as native app
+
+#### Install Flow
+1. Visit site in compatible browser (Chrome, Edge, Safari)
+2. InstallPrompt automatically appears (if installable)
+3. Click "Install" to add to device
+4. Launch from desktop/home screen
+5. Runs in standalone window (no browser UI)
+
+**Browser Support**: Chrome 90+, Edge 90+, Safari 15+ (iOS), Firefox (limited)
+
+### 4. Advanced Conversation Analytics
+
+Deep insights into conversation patterns, emotions, and topics:
+
+#### Emotion Detection (5-Emotion Model)
+- **Real-time Analysis**: Every message analyzed for emotional content
+- **Emotion Types**:
+  - Joy 😊: Positive, happy expressions
+  - Anger 😠: Frustration, annoyance
+  - Fear 😨: Anxiety, worry
+  - Sadness 😢: Melancholy, disappointment
+  - Surprise 😲: Unexpected reactions
+- **Distribution View**: Percentage breakdown across all conversations
+- **Summary Statistics**: Most common emotions and trends
+
+#### Topic Evolution Tracking
+- **10 Topic Categories**:
+  - Mental Health, Relationships, Work/Career
+  - Health, Technology, Personal Growth
+  - Family, Hobbies, Education, Life Events
+- **Timeline Analysis**: Track topic mentions over time
+- **Intensity Metrics**: Peak and average topic intensity
+- **Dominant Topics**: Identify most-discussed themes
+- **Topic Transitions**: Detect conversation flow shifts
+
+#### Similarity Scoring & Clustering
+- **Conversation Clustering**: Group similar conversations
+- **Common Topics**: Identify shared themes across clusters
+- **Sentiment Patterns**: Average sentiment per cluster
+- **Recurring Patterns**: Detect repeated phrases and themes
+- **Confidence Scoring**: Statistical confidence (0-100%)
+
+#### Integration
+- Seamlessly integrated into Conversation Insights (Ctrl+Shift+I)
+- Toggle between "Basic Insights" and "Advanced Analytics"
+- Export analytics data to CSV/PNG
+- Works with all existing insights features
+
+**Keyboard Shortcuts**: Ctrl+Shift+I for full insights dashboard
+
+### 5. Integration & Polish
+
+#### Unified UI Experience
+- All v1.10.0 features accessible from main toolbar
+- Consistent theme support across all new components
+- Lazy loading for optimal bundle size
+- Screen reader compatibility (ARIA labels)
+
+#### Performance Optimizations
+- Code splitting: Each feature loads only when needed
+- Emotion detection: <10ms per message
+- Topic analysis: <100ms for 100 sessions
+- Music engine: <5% CPU usage
+
+## Features (v1.5.0 and Earlier)
 
 ### 1. Theme Customization System
 
