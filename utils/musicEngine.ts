@@ -1,5 +1,5 @@
 /**
- * Procedural Chiptune Music Engine (v1.10.0)
+ * Procedural Chiptune Music Engine (v1.11.0)
  *
  * Generates retro 8-bit music that adapts to conversation mood.
  * Uses Web Audio API to create chiptune-style sounds procedurally.

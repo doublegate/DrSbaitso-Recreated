@@ -593,6 +593,6 @@ Found a bug? Have a feature request?
 
 ---
 
-**Version**: 1.10.0
+**Version**: 1.11.0
 **Last Updated**: November 2025
 **Related**: [Features Overview](./FEATURES.md), [Music Mode Guide](./MUSIC_MODE.md)

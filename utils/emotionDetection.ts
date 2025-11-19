@@ -1,5 +1,5 @@
 /**
- * Emotion Detection Utility (v1.10.0)
+ * Emotion Detection Utility (v1.11.0)
  *
  * Detects specific emotions beyond basic sentiment.
  * Provides nuanced emotional analysis with 5 core emotions.
