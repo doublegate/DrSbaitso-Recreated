@@ -27,7 +27,7 @@ Dr. Sbaitso Recreated is a static Vite + React application that requires environ
 - **Total Build**: ~350 KB (all chunks combined)
 - **Gzipped Total**: ~110 KB
 
-### New Dependencies
+### New Dependencies (as introduced in v1.11.0; see package.json for current versions)
 - **D3.js v7.9.0**: Data visualization library (64 KB chunk)
 - **@playwright/test v1.56.1**: E2E testing (dev dependency)
 - **React 19.2.0**: Upgraded from v18
@@ -70,7 +70,7 @@ Dr. Sbaitso Recreated is a static Vite + React application that requires environ
 ```
 
 ### Performance Metrics (v1.11.0)
-- **Build Time**: 5.96s (optimized with Vite 6.2)
+- **Build Time**: 5.96s (measured at v1.11.0 with Vite 6.2)
 - **First Contentful Paint (FCP)**: <1.8s target
 - **Largest Contentful Paint (LCP)**: <2.5s target
 - **Time to Interactive (TTI)**: <3.5s target
@@ -479,14 +479,18 @@ export default defineConfig(({ mode }) => {
 // vite.config.ts
 export default defineConfig({
   build: {
-    rollupOptions: {
+    // Vite 8 bundles with Rolldown, which removed the object form of
+    // `manualChunks`; name vendor chunks with `codeSplitting.groups`.
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'gemini-vendor': ['@google/genai'],
-        }
-      }
-    }
+        codeSplitting: {
+          groups: [
+            { name: 'react-vendor', test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+            { name: 'gemini-vendor', test: /[\\/]node_modules[\\/]@google[\\/]genai[\\/]/ },
+          ],
+        },
+      },
+    },
   }
 });
 ```
@@ -628,7 +632,7 @@ jobs:
 - `VERCEL_PROJECT_ID` - Vercel project ID
 
 **v1.11.0 CI/CD Features:**
-- ✅ Type checking with TypeScript 5.8
+- ✅ Type checking with TypeScript (`tsc --noEmit`)
 - ✅ Unit tests (491 tests, 100% pass rate)
 - ✅ E2E tests with Playwright (39 tests)
 - ✅ Code coverage reporting

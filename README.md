@@ -5,8 +5,8 @@
 ![Version](https://img.shields.io/badge/version-1.11.0-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/React-19.3.0-61DAFB?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
-![Vite](https://img.shields.io/badge/Vite-6.2-646CFF?logo=vite)
+![TypeScript](https://img.shields.io/badge/TypeScript-7.0-3178C6?logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?logo=vite)
 ![Mobile](https://img.shields.io/badge/Mobile-Optimized-success?logo=android)
 ![WCAG 2.1 AA](https://img.shields.io/badge/WCAG-2.1%20AA-green.svg)
 
