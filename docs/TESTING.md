@@ -124,8 +124,8 @@ npm run test:coverage
 #### Test Infrastructure
 - **Testing Framework**: Vitest 5.0.1 with React Testing Library 16.3.3
 - **E2E Framework**: Playwright 1.63.0
-- **Test Environment**: happy-dom 20.0.10
-- **Coverage Tool**: @vitest/coverage-v8 4.0.5
+- **Test Environment**: jsdom 30.1.1 (configured in `vitest.config.ts`)
+- **Coverage Tool**: @vitest/coverage-v8 5.0.1
 - **Build Time**: 5.96s
 - **Bundle Size**: 260.95 KB (main), additional chunks for lazy-loaded components
 

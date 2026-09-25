@@ -293,8 +293,8 @@ Production-quality test coverage:
 - **Vitest 5.0.1**: Fast unit test framework
 - **React Testing Library 16.3.3**: Component testing utilities
 - **Playwright 1.63.0**: Cross-browser E2E testing
-- **@vitest/coverage-v8**: Code coverage reporting
-- **happy-dom 20.0.10**: Fast DOM environment
+- **@vitest/coverage-v8 5.0.1**: Code coverage reporting
+- **jsdom 30.1.1**: DOM environment (configured in `vitest.config.ts`)
 
 #### Test Categories
 - ✅ Browser support detection

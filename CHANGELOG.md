@@ -28,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TypeScript 7**: `strict` now defaults to `true`; `tsconfig.json` sets
   `"strict": false` explicitly to keep the checking the project has always had
   (typecheck output is identical before and after the upgrade).
-- **Node.js 22.22+** is now required for development (jsdom 30 and jest-dom 7);
+- **Node.js 22.22.2+ (or 24.15+ / 26+)** is now required for development (jsdom 30
+  and jest-dom 7);
   Vite 8 alone needs 20.19+.
 
 ### Planned

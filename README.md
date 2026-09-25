@@ -4,7 +4,7 @@
 
 ![Version](https://img.shields.io/badge/version-1.11.0-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react)
+![React](https://img.shields.io/badge/React-19.3.0-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
 ![Vite](https://img.shields.io/badge/Vite-6.2-646CFF?logo=vite)
 ![Mobile](https://img.shields.io/badge/Mobile-Optimized-success?logo=android)
@@ -831,7 +831,7 @@ Control the application entirely hands-free with natural language voice commands
 
 **AI & APIs:**
 - **Google Gemini AI 2.5 Flash** (gemini-2.5-flash for chat, gemini-2.5-flash-preview-tts for TTS)
-- **Firebase v12.5.0** for cloud sync, authentication, Firestore, and storage (NEW v1.7.0)
+- **Firebase v12.19.0** for cloud sync, authentication, Firestore, and storage (NEW v1.7.0)
 
 **Audio System:**
 - **Web Audio API** for sophisticated audio processing pipeline
@@ -878,7 +878,7 @@ Playback Rate (configurable: 1.0x-1.2x)
 
 ### Prerequisites
 
-- Node.js 22.22 or higher (the Vitest/jsdom test toolchain requires it; Vite 8 alone needs 20.19+)
+- Node.js 22.22.2+ (or 24.15+ / 26+); the jsdom 30 test toolchain requires one of those ranges, while Vite 8 alone needs 20.19+
 - A Gemini API key ([Get one free](https://aistudio.google.com/apikey))
 
 ### Installation
@@ -1017,7 +1017,7 @@ DrSbaitso-Recreated/
 - `components/ThemeCustomizer.tsx` - Custom theme editor with WCAG validation (v1.5.0)
 - `components/ConversationSearch.tsx` - Search & analytics dashboard (v1.5.0)
 - `components/AudioVisualizer.tsx` - Real-time audio visualization (v1.5.0)
-- `services/firebaseService.ts` - Firebase v12.5.0 integration (v1.7.0)
+- `services/firebaseService.ts` - Firebase v12.19.0 integration (v1.7.0)
 - `test/` directory - Vitest test suite with 62 tests (v1.7.0)
 - `vitest.config.ts` - Test configuration with 70%+ coverage thresholds (v1.7.0)
 - `.npmrc` - npm legacy-peer-deps for React 19 compatibility (v1.7.0)
@@ -1202,11 +1202,11 @@ export default defineConfig({
 
 **Test Environment:**
 - **Framework**: Vitest v5.0.1 (Vite-native test runner)
-- **Testing Library**: @testing-library/react v15.0.0 (React 19 compatible)
+- **Testing Library**: @testing-library/react v16.3.3 (React 19 compatible), with its peer @testing-library/dom v10.4.2
 - **DOM Simulation**: jsdom v30.1.1 (Node.js DOM implementation)
-- **User Interactions**: @testing-library/user-event v14.5.1
-- **Assertions**: @testing-library/jest-dom v6.1.5 (custom matchers)
-- **Coverage**: @vitest/coverage-v8 v4.0.5 (V8 JavaScript engine)
+- **User Interactions**: @testing-library/user-event v14.6.7
+- **Assertions**: @testing-library/jest-dom v7.0.1 (custom matchers)
+- **Coverage**: @vitest/coverage-v8 v5.0.1 (V8 JavaScript engine)
 
 **Test Structure:**
 
