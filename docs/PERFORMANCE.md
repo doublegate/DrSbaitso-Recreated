@@ -140,13 +140,17 @@ const AdvancedExporter = lazy(() => import('./components/AdvancedExporter'));
 // vite.config.ts
 export default defineConfig({
   build: {
-    rollupOptions: {
+    // Vite 8 (Rolldown) removed the object form of `manualChunks`;
+    // vendor chunks are declared as `codeSplitting.groups` instead.
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          // Split large dependencies into separate chunks
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
-          'vendor-gemini': ['@google/genai'],
+        codeSplitting: {
+          groups: [
+            // Split large dependencies into separate chunks
+            { name: 'vendor-react', test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+            { name: 'vendor-firebase', test: /[\\/]node_modules[\\/]@?firebase[\\/]/ },
+            { name: 'vendor-gemini', test: /[\\/]node_modules[\\/]@google[\\/]genai[\\/]/ },
+          ],
         },
       },
     },

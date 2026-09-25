@@ -75,21 +75,31 @@ export default defineConfig(({ mode }) => {
       },
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, '.'),
+          '@': path.resolve(import.meta.dirname, '.'),
         }
       },
       build: {
-        rollupOptions: {
+        // Vite 8 bundles with Rolldown: the object form of `manualChunks` was
+        // removed, so vendor splitting is expressed as `codeSplitting.groups`.
+        rolldownOptions: {
           output: {
-            manualChunks: {
-              // React ecosystem (usually 130-150 KB)
-              'react-vendor': ['react', 'react-dom', 'react/jsx-runtime'],
+            codeSplitting: {
+              groups: [
+                // React ecosystem (usually 130-150 KB)
+                {
+                  name: 'react-vendor',
+                  test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+                },
 
-              // Firebase (already uses dynamic imports, but we'll split the core)
-              // Note: Most firebase modules are already lazy-loaded in cloudSync.ts
+                // Firebase (already uses dynamic imports, but we'll split the core)
+                // Note: Most firebase modules are already lazy-loaded in cloudSync.ts
 
-              // Gemini AI SDK
-              'gemini-vendor': ['@google/genai'],
+                // Gemini AI SDK
+                {
+                  name: 'gemini-vendor',
+                  test: /[\\/]node_modules[\\/]@google[\\/]genai[\\/]/,
+                },
+              ],
             },
           },
         },

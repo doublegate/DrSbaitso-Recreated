@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Dependencies brought to latest compatible versions** (consolidates Dependabot PR #6,
+  the `jws` 4.0.0 -> 4.0.1 security fix, which the regenerated lockfile now resolves
+  as 4.0.1). `npm audit`: 22 vulnerabilities (3 critical, 14 high) -> 0.
+  - Runtime: `@google/genai` 1.27 -> 2.24 (v2's breaking changes are confined to the
+    Interactions API, which this app does not use), `firebase` 12.5 -> 12.19,
+    `react` / `react-dom` 19.2 -> 19.3.
+  - Build: `vite` 6.2 -> 8.3, `@vitejs/plugin-react` 5 -> 6,
+    `rollup-plugin-visualizer` 6 -> 7, `typescript` 5.8 -> 7.0.
+  - Test: `vitest`, `@vitest/ui`, `@vitest/coverage-v8` 4 -> 5,
+    `@testing-library/react` 15 -> 16 (with its now-required peer
+    `@testing-library/dom` 10.4 added explicitly), `@testing-library/jest-dom` 6 -> 7,
+    `jsdom` 23 -> 30, `happy-dom` 20.0 -> 20.14, `@playwright/test` 1.56 -> 1.63,
+    `@types/node` 22 -> 26.
+- **Vite 8 migration**: Rolldown removed the object form of `manualChunks`, so the
+  `react-vendor` and `gemini-vendor` chunks are now declared as
+  `build.rolldownOptions.output.codeSplitting.groups`; `__dirname` in `vite.config.ts`
+  became `import.meta.dirname`.
+- **TypeScript 7**: `strict` now defaults to `true`; `tsconfig.json` sets
+  `"strict": false` explicitly to keep the checking the project has always had
+  (typecheck output is identical before and after the upgrade).
+- **Node.js 22.22.2+ (or 24.15+ / 26+)** is now required for development (jsdom 30
+  and jest-dom 7);
+  Vite 8 alone needs 20.19+.
+
 ### Planned
 - Backend API proxy for production security
 - Additional retro voice options (Pico, Kali, Aoede)

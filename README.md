@@ -4,9 +4,9 @@
 
 ![Version](https://img.shields.io/badge/version-1.11.0-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
-![Vite](https://img.shields.io/badge/Vite-6.2-646CFF?logo=vite)
+![React](https://img.shields.io/badge/React-19.3.0-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-7.0-3178C6?logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?logo=vite)
 ![Mobile](https://img.shields.io/badge/Mobile-Optimized-success?logo=android)
 ![WCAG 2.1 AA](https://img.shields.io/badge/WCAG-2.1%20AA-green.svg)
 
@@ -234,7 +234,7 @@ Analyze your conversations with **visual analytics and sentiment tracking**:
 **Previous (v1.7.0):**
 - **📱 Progressive Web App (PWA)**: Install to home screen on any device, complete offline functionality with service worker caching, automatic background updates, splash screens, and native app-like experience with 10 custom retro CRT monitor icons (16×16 to 512×512)
 - **🧪 Testing Framework**: Production-ready Vitest test suite with 123 comprehensive tests (100% pass rate), 70%+ coverage thresholds for lines/functions/branches/statements, unit tests for audio processing, PWA functionality, session management, and hooks with jsdom environment and React Testing Library
-- **☁️ Cloud Sync**: Firebase v12.5.0-powered cross-device synchronization with real-time updates, offline-first architecture, automatic conflict resolution, secure authentication, and encrypted data storage
+- **☁️ Cloud Sync**: Firebase v12.19.0-powered cross-device synchronization with real-time updates, offline-first architecture, automatic conflict resolution, secure authentication, and encrypted data storage
 
 **Previous (v1.6.0):**
 - **📦 Advanced Export**: PDF, CSV (4 types), theme packaging, batch export
@@ -264,7 +264,7 @@ Analyze your conversations with **visual analytics and sentiment tracking**:
 **Previous (v1.7.0):**
 - 📱 **Progressive Web App** - Install to home screen, complete offline support with service worker, auto-updates, 10 custom retro icons
 - 🧪 **Testing Framework** - Vitest with 491 tests (100% pass rate), 70%+ coverage thresholds, comprehensive test suite
-- ☁️ **Cloud Sync** - Firebase v12.5.0 cross-device sync with real-time updates and offline-first architecture
+- ☁️ **Cloud Sync** - Firebase v12.19.0 cross-device sync with real-time updates and offline-first architecture
 
 **Core Features:**
 - 🎭 **5 AI Personalities** + Custom Character Creator (Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY)
@@ -825,13 +825,13 @@ Control the application entirely hands-free with natural language voice commands
 ### 🛠️ Modern Technology Stack
 
 **Core Framework & Build:**
-- **React 19.2** with TypeScript 5.8 for type-safe development
-- **Vite 6.2** for lightning-fast development and optimized builds (522 KB bundle)
+- **React 19.3** with TypeScript 7.0 for type-safe development
+- **Vite 8.3** (Rolldown bundler) for lightning-fast development and optimized builds (522 KB bundle)
 - **Tailwind CSS** (via CDN) for retro styling and responsive design
 
 **AI & APIs:**
 - **Google Gemini AI 2.5 Flash** (gemini-2.5-flash for chat, gemini-2.5-flash-preview-tts for TTS)
-- **Firebase v12.5.0** for cloud sync, authentication, Firestore, and storage (NEW v1.7.0)
+- **Firebase v12.19.0** for cloud sync, authentication, Firestore, and storage (NEW v1.7.0)
 
 **Audio System:**
 - **Web Audio API** for sophisticated audio processing pipeline
@@ -839,9 +839,9 @@ Control the application entirely hands-free with natural language voice commands
 - **Vintage Processing** pipeline for authentic 1991 voice recreation
 
 **Testing & Quality (NEW v1.7.0):**
-- **Vitest v4.0.5** (Vite-native test runner)
-- **React Testing Library v15.0.0** (React 19 compatible)
-- **jsdom v23.0.1** (DOM simulation)
+- **Vitest v5.0.1** (Vite-native test runner)
+- **React Testing Library v16.3.3** (React 19 compatible)
+- **jsdom v30.1.1** (DOM simulation)
 - **@vitest/coverage-v8** (code coverage with 70%+ thresholds)
 
 **Progressive Web App (NEW v1.7.0):**
@@ -878,7 +878,7 @@ Playback Rate (configurable: 1.0x-1.2x)
 
 ### Prerequisites
 
-- Node.js 18 or higher
+- Node.js 22.22.2+ (or 24.15+ / 26+); the jsdom 30 test toolchain requires one of those ranges, while Vite 8 alone needs 20.19+
 - A Gemini API key ([Get one free](https://aistudio.google.com/apikey))
 
 ### Installation
@@ -992,7 +992,7 @@ DrSbaitso-Recreated/
 ├── vitest.config.ts        # Vitest test configuration (NEW v1.7.0)
 ├── tsconfig.json           # TypeScript configuration
 ├── .npmrc                  # npm configuration for React 19 (NEW v1.7.0)
-├── package.json            # Dependencies (Firebase 12.5.0, Vitest 4.0.5)
+├── package.json            # Dependencies (Firebase 12.19.0, Vitest 5.0.1)
 ├── CHANGELOG.md            # Version history
 └── CLAUDE.md               # Developer guidance for Claude Code
 ```
@@ -1017,7 +1017,7 @@ DrSbaitso-Recreated/
 - `components/ThemeCustomizer.tsx` - Custom theme editor with WCAG validation (v1.5.0)
 - `components/ConversationSearch.tsx` - Search & analytics dashboard (v1.5.0)
 - `components/AudioVisualizer.tsx` - Real-time audio visualization (v1.5.0)
-- `services/firebaseService.ts` - Firebase v12.5.0 integration (v1.7.0)
+- `services/firebaseService.ts` - Firebase v12.19.0 integration (v1.7.0)
 - `test/` directory - Vitest test suite with 62 tests (v1.7.0)
 - `vitest.config.ts` - Test configuration with 70%+ coverage thresholds (v1.7.0)
 - `.npmrc` - npm legacy-peer-deps for React 19 compatibility (v1.7.0)
@@ -1201,12 +1201,12 @@ export default defineConfig({
 ```
 
 **Test Environment:**
-- **Framework**: Vitest v4.0.5 (Vite-native test runner)
-- **Testing Library**: @testing-library/react v15.0.0 (React 19 compatible)
-- **DOM Simulation**: jsdom v23.0.1 (Node.js DOM implementation)
-- **User Interactions**: @testing-library/user-event v14.5.1
-- **Assertions**: @testing-library/jest-dom v6.1.5 (custom matchers)
-- **Coverage**: @vitest/coverage-v8 v4.0.5 (V8 JavaScript engine)
+- **Framework**: Vitest v5.0.1 (Vite-native test runner)
+- **Testing Library**: @testing-library/react v16.3.3 (React 19 compatible), with its peer @testing-library/dom v10.4.2
+- **DOM Simulation**: jsdom v30.1.1 (Node.js DOM implementation)
+- **User Interactions**: @testing-library/user-event v14.6.7
+- **Assertions**: @testing-library/jest-dom v7.0.1 (custom matchers)
+- **Coverage**: @vitest/coverage-v8 v5.0.1 (V8 JavaScript engine)
 
 **Test Structure:**
 
@@ -1338,10 +1338,10 @@ it('should register service worker on mount', async () => {
 
 ### ☁️ Cloud Sync with Firebase (v1.7.0)
 
-Cross-device synchronization powered by Firebase v12.5.0 with real-time updates and offline-first architecture:
+Cross-device synchronization powered by Firebase v12.19.0 with real-time updates and offline-first architecture:
 
 **Firebase Integration:**
-- **Version**: Firebase v12.5.0 (latest stable, security vulnerabilities resolved)
+- **Version**: Firebase v12.19.0 (latest stable, security vulnerabilities resolved)
 - **Services Used**:
   - **Firestore**: Real-time document database for session storage
   - **Authentication**: Secure user authentication (email/password, Google, anonymous)
@@ -1782,7 +1782,7 @@ Contributions welcome! Areas for enhancement:
 
 - **AI**: Google Gemini 2.5 Flash (chat + TTS)
 - **Framework**: React 19 with TypeScript
-- **Build Tool**: Vite 6
+- **Build Tool**: Vite 8
 - **Styling**: Tailwind CSS
 
 ## License

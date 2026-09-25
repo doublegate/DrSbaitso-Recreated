@@ -2,7 +2,7 @@
 
 **Version**: 1.11.0
 **Last Updated**: 2025-11-19
-**Framework**: Playwright 1.56.1
+**Framework**: Playwright 1.63.0
 
 ---
 
@@ -756,7 +756,7 @@ jobs:
 ### Running in Docker
 
 ```dockerfile
-FROM mcr.microsoft.com/playwright:v1.56.1-jammy
+FROM mcr.microsoft.com/playwright:v1.63.0-noble
 
 WORKDIR /app
 
