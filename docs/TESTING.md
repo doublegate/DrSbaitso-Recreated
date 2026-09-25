@@ -122,8 +122,8 @@ npm run test:coverage
   - Template browsing, search, categories, usage tracking, customization
 
 #### Test Infrastructure
-- **Testing Framework**: Vitest 4.0.10 with React Testing Library 15.0.7
-- **E2E Framework**: Playwright 1.56.1
+- **Testing Framework**: Vitest 5.0.1 with React Testing Library 16.3.3
+- **E2E Framework**: Playwright 1.63.0
 - **Test Environment**: happy-dom 20.0.10
 - **Coverage Tool**: @vitest/coverage-v8 4.0.5
 - **Build Time**: 5.96s

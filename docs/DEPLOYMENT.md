@@ -88,7 +88,7 @@ Dr. Sbaitso Recreated is a static Vite + React application that requires environ
 
 ## Prerequisites
 
-- Node.js 18+ installed locally
+- Node.js 22.22+ installed locally
 - Gemini API key from https://aistudio.google.com/apikey
 - Git repository (for automated deployments)
 
