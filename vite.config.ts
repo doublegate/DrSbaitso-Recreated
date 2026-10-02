@@ -103,7 +103,7 @@ export default defineConfig(({ mode }) => {
       devApiPlugin(env),
       // Service worker built from src/sw.ts with a precache manifest of the
       // hashed build output. The web manifest stays in public/manifest.json,
-      // and registration happens in hooks/useServiceWorker.ts.
+      // and registration happens in components/UpdatePrompt.tsx.
       VitePWA({
         strategies: 'injectManifest',
         srcDir: 'src',
