@@ -37,6 +37,9 @@ Byte's patents). Everything else is a factual correction to make either way.
       `src/utils/retroErrors.ts`. (Done in `src/constants.ts`, `src/utils/retroErrors.ts`
       and `src/utils/sessionManager.ts`; `App.tsx` should switch `GLITCH_PHRASES` to the
       engine's `isParityText` / `PARITY_TRIGGER_LINES` during integration.)
+      DOSBox (ref-docs/04) showed the real sequence is a flood of `PARITY ERR ...  <n>`
+      lines, then `RECOVERED` and `PARITY`; PHEW!/YOU ARE BAD never appeared. The engine
+      and the classic screen now do that.
 - [x] Gemini honours `speechMetadata.style` in `generateContent`. Tested 2026-10-02 on
       `gemini-3.8-flash-tts` with the same sentence:
 
@@ -60,16 +63,19 @@ that module; wiring it into `src/App.tsx` is still pending.
       `CALC`, `AUTHOR`, `SHUT UP`, and dot commands such as `.PITCH 0-9`, `.SPEED`,
       `.TONE`, `.VOLUME`, `.PARAM`, `.COLOR` and `.WIDTH 40/80`. (Engine done; UI
       integration pending.)
-- [x] Deterministic handlers: empty Enter (escalating nags), short or garbage input,
-      repeated input, profanity strikes ending in the parity sequence. (Engine done;
-      UI integration pending.)
+- [x] Deterministic handlers: empty Enter (random replies, including the literal
+      `ENTER`), short or garbage input, repeated input, the profanity group ending in
+      the parity flood. (Engine done and wired into the classic screen; order and
+      wording corrected from ref-docs/04.)
 - [x] Persona prompt rebuilt from the original's register (its real lines, spelled-out
       initialisms such as "C P U") instead of invented catchphrases.
 - [ ] Name entry: letters and spaces only, a length limit, each letter spoken as it is
       typed, and "Doctor Sbaitso" spoken first. (Rules done: `validateName`,
-      `isNameCharAllowed`, `NAME_ERROR_TEXT`; the limit of 20 is a guess. Per-letter
-      speech and the spoken title are UI work.)
-- [x] Exit: `BYE` → `GOOD BYE` → `<C>ontinue <N>ew patient <Q>uit`. (Wired into the classic screen: C/N/Q keys, Q quits to a `C:\SB>` prompt.)
+      `isNameCharAllowed`, `NAME_ERROR_TEXT`; the limit of 20 is a guess. The spoken
+      title is done when audio is already unlocked; per-letter speech is open.)
+- [x] Exit: `BYE` / `QUIT` / `.QUIT` → `<C>ontinue <N>ew patient <Q>uit` on the next
+      row. (Classic screen: C continues, N re-asks the name without the intro, Q leaves
+      the banner above a `C:\SB>` prompt.)
 - [x] Opt-in "Keep session history" setting (off by default), shipped as "SAVE HISTORY" in Enhanced mode.
 
 ## Screen (decided: classic default + enhanced toggle)
@@ -77,8 +83,46 @@ that module; wiring it into `src/App.tsx` is still pending.
 - [ ] An 80x25 DOS text screen: `#0000AA` background, white text, `#FFFF55` prompt and
       title, a box-drawn banner, and the IBM VGA font (VileR, CC BY-SA 4.0, attribution
       required).
-- [ ] Mixed-case `Please enter your name ...` on row 6; one-space indent; text printed a
-      line at a time, then spoken; blinking underline cursor.
+- [x] Mixed-case `Please enter your name ...` on row 6; one-space indent on the
+      greeting only; text printed a line at a time, then spoken; blinking underline
+      cursor (114 ms on, 114 ms off).
+
+## DOSBox corrections (ref-docs/04, 2026-10-02)
+
+Applied to the classic screen and `src/engine/sbaitso/`:
+
+- [x] Whole lines, each printed then spoken; the next line waits for the speech. One
+      TTS request per reply; line times are estimated from each line's share of the
+      characters (`src/utils/speechCues.ts`), not measured.
+- [x] A keypress cuts the speech; the remaining lines print unspoken, the key is typed
+      ahead.
+- [x] Parity flood (about 250 lines in 3.5 s, `???` part-way, `RECOVERED`, `PARITY`)
+      with a falling 1 kHz to 0.7 kHz tone; seeded, so tests are deterministic.
+- [x] Profanity group order, ending in the garbled warning and then the flood.
+- [x] `.QUIT` says `GOOD BYE <NAME>` and shows the menu; bare `QUIT` shows the menu;
+      bare `EXIT` gets a short-input reply.
+- [x] Exit menu on the row after the goodbye, no cursor, not spoken; C/N/Q as observed.
+- [x] Empty Enter: random from the group, including `ENTER`; no escalation.
+- [x] `User>` / `Computer:` only under `.PROMPT ON`; `.PROMPT OFF` prints an empty
+      `Computer:` line. CALC prints ` =  5`; `WHAT IS 12*4` prints `12*4 =  48`.
+- [x] Replies at column 0; turn = yellow input line, reply, blank row, `>`; no blank
+      row after `R` or after an age question; dot commands print nothing.
+- [x] Banner pinned, rows 5-23 scroll, row 24 never written.
+- [x] Cursor 114 ms on / 114 ms off, shown only while waiting at `>`.
+- [x] Startup speech "Doctor Sbaitso", "by Creative Labs", then the name prompt, in one
+      TTS request.
+
+Still open:
+
+- [ ] The very first start is silent: browsers block audio until a user gesture, so the
+      spoken intro only plays when audio is already unlocked (a restart after Q).
+- [ ] An Enter typed ahead during speech is ignored; the original consumes it as an
+      empty input.
+- [ ] HELP page 1 clears the whole screen, banner included; page 2 redraws the banner;
+      page 3 ends with a blank row and `>`. The classic screen prints the pages inline.
+- [ ] `.WIDTH` and `.COLOR` clear the area below the banner and restart at row 6; the
+      classic screen keeps the conversation.
+- [ ] Each letter of the name is spoken as it is typed.
 - [ ] Enhanced-mode toggle that restores the toolbar, panels and persona selector.
 
 ## Personas
