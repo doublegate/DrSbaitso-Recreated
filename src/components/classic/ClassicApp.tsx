@@ -72,21 +72,28 @@ interface Cue {
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const randomSeed = () => Math.floor(Math.random() * 0x100000000);
 
+/** Longest input line, as the hidden input enforces it. */
+const MAX_LINE_LENGTH = 160;
+
 interface ClassicAppProps {
   onSwitchMode?: () => void;
   /** Seed for the engine's random replies; random per session when omitted. */
   seed?: number;
   /** Duration of the parity flood, in ms (tests shorten it). */
   floodMs?: number;
+  /** Text shared to the app (Web Share Target): typed, unsent, at the first > prompt. */
+  initialInput?: string;
 }
 
-export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS }: ClassicAppProps) {
+export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, initialInput }: ClassicAppProps) {
   const [screen, setScreen] = useState<Screen>(() => createScreen());
   const [phase, setPhase] = useState<Phase>('intro');
   const [input, setInput] = useState('');
   const [settings, setSettings] = useState<SbaitsoSettings>(DEFAULT_SETTINGS);
   const [transcript, setTranscript] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Used once, at the first prompt after the greeting.
+  const pendingInput = useRef((initialInput ?? '').slice(0, MAX_LINE_LENGTH));
   const engine = useRef<SbaitsoState>(createSbaitsoState('', seed ?? randomSeed()));
   const unmounted = useRef(false);
   const started = useRef(false);
@@ -245,6 +252,10 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS }: C
     if (!unmounted.current) {
       printRows([]);
       setPhase('chat');
+      if (pendingInput.current) {
+        setInput(pendingInput.current);
+        pendingInput.current = '';
+      }
     }
   };
 
@@ -437,7 +448,7 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS }: C
         ref={inputRef}
         className="dos-hidden-input"
         value={input}
-        maxLength={phase === 'name' ? MAX_NAME_LENGTH + 10 : 160}
+        maxLength={phase === 'name' ? MAX_NAME_LENGTH + 10 : MAX_LINE_LENGTH}
         autoComplete="off"
         autoCapitalize="characters"
         spellCheck={false}

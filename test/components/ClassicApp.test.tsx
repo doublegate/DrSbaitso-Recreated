@@ -46,6 +46,16 @@ describe('ClassicApp', () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
+  it('puts shared text on the first > prompt without sending it', async () => {
+    const user = userEvent.setup();
+    render(<ClassicApp seed={1} floodMs={40} initialInput="I feel sad" />);
+    await user.type(screen.getByLabelText('Please enter your name'), 'bob{Enter}');
+    await waitForPrompt();
+    expect(input().value).toBe('I feel sad');
+    expect(rows()).toContain('>I feel sad');
+    expect(chatCalls(fetchMock)).toHaveLength(0);
+  }, 40_000);
+
   it('starts on the banner and the inline name prompt', () => {
     render(<ClassicApp seed={1} />);
     expect(screenText()).toContain('D R   S B A I T S O');
