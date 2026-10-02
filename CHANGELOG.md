@@ -255,6 +255,8 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   page that did not exist and the shortcuts opened actions nothing read. Shared
   text now lands, unsent, on the input line of either screen, and the shortcuts
   open the classic screen or Enhanced mode.
+- **Swipe back on touch screens** (Enhanced mode): swiping right closes the panel
+  opened last.
 - **Enhanced mode shows OFFLINE** in the status bar when the browser has no
   connection, since replies and speech need it. The unused `usePWA` hook and
   `PWAPrompts` component, which duplicated the install and update prompts, are gone.

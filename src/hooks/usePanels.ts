@@ -6,7 +6,7 @@
  * Setting a panel to the value it already has keeps the same state object,
  * so React bails out exactly as it did with separate booleans.
  */
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { ConversationSession } from '../types';
 
 export type PanelId =
@@ -70,11 +70,16 @@ function initialPanels(): PanelState {
 export function usePanels() {
   const [open, setOpen] = useState<PanelState>(initialPanels);
   const [replaySession, setReplaySession] = useState<ConversationSession | null>(null);
+  // Panels in the order they were opened, latest last (for closeLatest).
+  const openOrder = useRef<PanelId[]>([]);
 
   /** Sets one panel, from a value or from its previous value. */
   const setPanel = useCallback((id: PanelId, value: boolean | ((prev: boolean) => boolean)) => {
     setOpen((prev) => {
       const next = typeof value === 'function' ? value(prev[id]) : value;
+      // Idempotent, so React running this updater twice (StrictMode) is harmless.
+      openOrder.current = openOrder.current.filter((p) => p !== id);
+      if (next) openOrder.current.push(id);
       return next === prev[id] ? prev : { ...prev, [id]: next };
     });
   }, []);
@@ -98,7 +103,15 @@ export function usePanels() {
     setReplaySession(null);
   }, [setPanel]);
 
-  return { open, replaySession, setPanel, show, hide, toggle, openReplay, closeReplay };
+  /** Closes the most recently opened panel that is still open (the swipe-back gesture). */
+  const closeLatest = useCallback(() => {
+    const latest = openOrder.current.at(-1);
+    if (!latest) return;
+    if (latest === 'conversationReplay') closeReplay();
+    else setPanel(latest, false);
+  }, [closeReplay, setPanel]);
+
+  return { open, replaySession, setPanel, show, hide, toggle, openReplay, closeReplay, closeLatest };
 }
 
 export type Panels = ReturnType<typeof usePanels>;

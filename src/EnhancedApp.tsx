@@ -1,4 +1,3 @@
-import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useState, useEffect, useRef } from 'react';
 import { useSpeechPlayer } from './hooks/useSpeechPlayer';
 import { AUDIO_MODES } from './constants';
@@ -15,6 +14,8 @@ import { useSoundEffects } from './hooks/useSoundEffects';
 import { usePanels } from './hooks/usePanels';
 import { useChatPipeline } from './hooks/useChatPipeline';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
+import { useGlobalSwipe } from './hooks/useTouchGestures';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 import SkipNav from './components/SkipNav';
 import NameEntry from './components/enhanced/NameEntry';
 import EnhancedHeader from './components/enhanced/EnhancedHeader';
@@ -48,6 +49,8 @@ export default function EnhancedApp({
 
   // Open/closed state of every panel and dialog (hooks/usePanels).
   const panels = usePanels();
+  // Touch screens: swipe right closes the panel opened last, like a back gesture.
+  useGlobalSwipe({ onSwipeRight: panels.closeLatest });
   const { open: panelOpen, setPanel } = panels;
   // Selected colour theme (built-in or custom), persisted and applied.
   const themeChoice = useThemeChoice();

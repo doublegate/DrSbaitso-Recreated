@@ -63,4 +63,36 @@ describe('usePanels', () => {
     expect(result.current.toggle).toBe(toggle);
     expect(result.current.setPanel).toBe(setPanel);
   });
+
+  describe('closeLatest (swipe back)', () => {
+    it('closes the most recently opened panel that is still open', () => {
+      const { result } = renderHook(() => usePanels());
+      act(() => result.current.show('insights'));
+      act(() => result.current.show('templates'));
+      act(() => result.current.closeLatest());
+      expect(result.current.open.templates).toBe(false);
+      expect(result.current.open.insights).toBe(true);
+      act(() => result.current.closeLatest());
+      expect(result.current.open.insights).toBe(false);
+    });
+
+    it('skips panels closed in other ways, and does nothing when none is open', () => {
+      const { result } = renderHook(() => usePanels());
+      act(() => result.current.show('insights'));
+      act(() => result.current.show('templates'));
+      act(() => result.current.hide('templates'));
+      act(() => result.current.closeLatest());
+      expect(result.current.open.insights).toBe(false);
+      expect(() => act(() => result.current.closeLatest())).not.toThrow();
+    });
+
+    it('closes the replay dialog through closeReplay', () => {
+      const { result } = renderHook(() => usePanels());
+      const session = { id: 's' } as Parameters<typeof result.current.openReplay>[0];
+      act(() => result.current.openReplay(session));
+      act(() => result.current.closeLatest());
+      expect(result.current.open.conversationReplay).toBe(false);
+      expect(result.current.replaySession).toBeNull();
+    });
+  });
 });

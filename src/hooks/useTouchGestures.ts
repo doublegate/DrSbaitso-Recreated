@@ -7,7 +7,7 @@
  * @version 1.2.0
  */
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useEffectEvent } from 'react';
 
 export interface SwipeEvent {
   direction: 'left' | 'right' | 'up' | 'down';
@@ -180,7 +180,9 @@ export function useGlobalSwipe(options: {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
 }) {
-  const { onSwipeLeft, onSwipeRight } = options;
+  // Latest handlers without re-subscribing on every render.
+  const swipeLeft = useEffectEvent(() => options.onSwipeLeft?.());
+  const swipeRight = useEffectEvent(() => options.onSwipeRight?.());
 
   useEffect(() => {
     let startX: number | null = null;
@@ -201,9 +203,9 @@ export function useGlobalSwipe(options: {
       if (absX > 75) {
         // Minimum swipe distance
         if (deltaX > 0) {
-          onSwipeRight?.();
+          swipeRight();
         } else {
-          onSwipeLeft?.();
+          swipeLeft();
         }
       }
 
@@ -217,7 +219,7 @@ export function useGlobalSwipe(options: {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [onSwipeLeft, onSwipeRight]);
+  }, []);
 }
 
 /**
