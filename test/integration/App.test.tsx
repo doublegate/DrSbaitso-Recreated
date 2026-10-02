@@ -94,7 +94,7 @@ describe('App', () => {
     await screen.findByPlaceholderText('TYPE NAME AND PRESS ENTER');
     await act(() => new Promise((r) => setTimeout(r, 200)));
 
-    const loopWarnings = consoleError.mock.calls.filter((args) =>
+    const loopWarnings = consoleError.mock.calls.filter((args: unknown[]) =>
       String(args[0]).includes('Maximum update depth'),
     );
     expect(loopWarnings).toEqual([]);

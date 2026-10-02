@@ -65,7 +65,7 @@ global.AudioContext = vi.fn(function(this: any) {
       loop: false, // Add loop property for ambience
       playbackRate: { value: 1 },
       disconnect: vi.fn(),
-      onended: null,
+      onended: null as (() => void) | null,
     };
     return source;
   });

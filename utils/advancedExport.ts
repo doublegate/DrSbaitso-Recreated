@@ -11,6 +11,11 @@
 import type { ConversationSession, Message } from '../types';
 import type { CustomTheme } from './themeValidator';
 
+/** Sessions created by SessionManager carry createdAt but not startedAt. */
+function sessionStart(session: ConversationSession): number {
+  return session.startedAt ?? session.createdAt;
+}
+
 export interface PDFExportOptions {
   includeCoverPage: boolean;
   includeStatistics: boolean;
@@ -233,7 +238,7 @@ export class PDFExporter {
       <div class="cover-page">
         <h1>${this.escapeHTML(session.name)}</h1>
         <p>A conversation with ${this.escapeHTML(session.characterId)}</p>
-        <p>Session Date: ${new Date(session.startedAt).toLocaleDateString()}</p>
+        <p>Session Date: ${new Date(sessionStart(session)).toLocaleDateString()}</p>
         <p>${session.messageCount} messages</p>
         ${session.glitchCount > 0 ? `<p>${session.glitchCount} glitches encountered</p>` : ''}
       </div>
@@ -266,7 +271,7 @@ export class PDFExporter {
    */
   private static generateStatistics(session: ConversationSession): string {
     const duration = session.endedAt
-      ? Math.floor((session.endedAt - session.startedAt) / 1000 / 60)
+      ? Math.floor((session.endedAt - sessionStart(session)) / 1000 / 60)
       : 0;
 
     return `
@@ -357,7 +362,7 @@ export class CSVExporter {
     // Data
     sessions.forEach(session => {
       session.messages.forEach((msg, index) => {
-        const timestamp = this.formatDate(msg.timestamp || session.startedAt, options.dateFormat);
+        const timestamp = this.formatDate(msg.timestamp || sessionStart(session), options.dateFormat);
         rows.push([
           session.name,
           session.characterId,
@@ -402,14 +407,14 @@ export class CSVExporter {
     // Data
     sessions.forEach(session => {
       const duration = session.endedAt
-        ? Math.floor((session.endedAt - session.startedAt) / 1000 / 60)
+        ? Math.floor((session.endedAt - sessionStart(session)) / 1000 / 60)
         : 0;
 
       rows.push([
         session.name,
         session.characterId,
         session.themeId,
-        this.formatDate(session.startedAt, options.dateFormat),
+        this.formatDate(sessionStart(session), options.dateFormat),
         session.endedAt ? this.formatDate(session.endedAt, options.dateFormat) : 'In Progress',
         duration.toString(),
         session.messageCount.toString(),
@@ -681,7 +686,7 @@ export class BatchExporter {
     let md = `# ${session.name}\n\n`;
     md += `**Character:** ${session.characterId}\n`;
     md += `**Theme:** ${session.themeId}\n`;
-    md += `**Started:** ${new Date(session.startedAt).toLocaleString()}\n`;
+    md += `**Started:** ${new Date(sessionStart(session)).toLocaleString()}\n`;
     if (session.endedAt) {
       md += `**Ended:** ${new Date(session.endedAt).toLocaleString()}\n`;
     }

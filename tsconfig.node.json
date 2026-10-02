@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "strict": false,
+    "strict": true,
     "lib": [
       "ES2023"
     ],
