@@ -95,7 +95,8 @@ export default function EnhancedApp({
     onSwitchCharacter: (id) => chat.switchPersona(id),
     onToggleMute: () => toggleMute(),
     onToggleSettings: () => setPanel('soundSettings', (prev) => !prev),
-    onToggleStats: () => setPanel('conversationSearch', true),
+    // "Show statistics" is the insights dashboard.
+    onToggleStats: () => setPanel('insights', true),
     onStopAudio: () => speech.stop(),
     onCycleTheme: () => themeChoice.cycleTheme(),
     onCycleAudioQuality: () => cycleAudioMode(),
@@ -182,7 +183,7 @@ export default function EnhancedApp({
   if (!userName) {
     return (
       <>
-        <SkipNav />
+        <SkipNav links={[{ href: '#main-content', label: 'Skip to main content' }]} />
         <NameEntry
           value={chat.nameInput}
           onChange={chat.setNameInput}

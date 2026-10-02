@@ -76,7 +76,13 @@ export default function EnhancedHeader({
         </span>
       </div>
 
-      <nav aria-label="Tools" className="flex flex-wrap items-center gap-2 ml-auto" data-tour-id="settings-panel">
+      <nav
+        id="tools"
+        tabIndex={-1}
+        aria-label="Tools"
+        className="flex flex-wrap items-center gap-2 ml-auto"
+        data-tour-id="settings-panel"
+      >
         <span data-tour-id="session-panel">
           <MenuGroup
             label="CONVERSATION"

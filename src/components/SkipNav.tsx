@@ -20,7 +20,7 @@ export interface SkipNavProps {
 const DEFAULT_LINKS = [
   { href: '#main-content', label: 'Skip to main content' },
   { href: '#chat-input', label: 'Skip to chat input' },
-  { href: '#settings', label: 'Skip to settings' },
+  { href: '#tools', label: 'Skip to menus and settings' },
 ];
 
 export default function SkipNav({ links = DEFAULT_LINKS }: SkipNavProps) {
