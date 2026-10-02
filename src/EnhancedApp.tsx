@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useEffectEvent, useRef, useCallback, lazy, Suspense } from 'react';
-import { Message, ConversationSession } from './types';
+import { Message } from './types';
 import { getAIResponse, resetChat, synthesizeSpeech } from './services/geminiService';
 import { playGlitchSound, playErrorBeep } from './utils/audio';
 import { getSharedAudioContext, ensureAudioReady } from './utils/sharedAudio';
@@ -20,6 +20,7 @@ import { useThemeChoice } from './hooks/useThemeChoice';
 import { usePersona } from './hooks/usePersona';
 import { matchShortcut, shortcutLabel, type ShortcutId } from './utils/shortcuts';
 import { useSoundEffects } from './hooks/useSoundEffects';
+import { usePanels } from './hooks/usePanels';
 import SkipNav from './components/SkipNav';
 
 // Lazy-loaded components (only load when needed)
@@ -106,29 +107,15 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   // Accessibility state (v1.4.0)
   const { settings: accessibilitySettings, updateSetting, resetSettings } = useAccessibility();
   const { announce } = useScreenReader();
-  const [showAccessibilityPanel, setShowAccessibilityPanel] = useState(false);
 
   // v1.5.0 Feature states
-  const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
-  const [showConversationSearch, setShowConversationSearch] = useState(false);
-  const [showAudioVisualizer, setShowAudioVisualizer] = useState(false);
 
   // v1.6.0 Feature states
-  const [showAdvancedExport, setShowAdvancedExport] = useState(false);
-  const [showCharacterCreator, setShowCharacterCreator] = useState(false);
-  const [showConversationReplay, setShowConversationReplay] = useState(false);
-  const [replaySession, setReplaySession] = useState<ConversationSession | null>(null);
-  const [showVoiceControlHelp, setShowVoiceControlHelp] = useState(false);
 
   // v1.8.0 Feature states
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    try {
-      return localStorage.getItem('sbaitso_onboarding_completed') !== 'true';
-    } catch (e) {
-      return false;
-    }
-  });
-  const [showInsights, setShowInsights] = useState(false);
+  // Open/closed state of every panel and dialog (hooks/usePanels).
+  const panels = usePanels();
+  const { open: panelOpen, setPanel } = panels;
   // Selected colour theme (built-in or custom), persisted and applied.
   const themeChoice = useThemeChoice();
   const currentTheme = themeChoice.theme.id;
@@ -143,22 +130,13 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
 
 
   // v1.9.0 Feature states
-  const [showSoundSettings, setShowSoundSettings] = useState(false);
 
   // v1.10.0 Feature states
-  const [showMusicPlayer, setShowMusicPlayer] = useState(false);
-  const [showSoundPackManager, setShowSoundPackManager] = useState(false);
-  const [showSoundPackCreator, setShowSoundPackCreator] = useState(false);
-  const [showCloudSync, setShowCloudSync] = useState(false);
 
   // v1.11.0 Feature states (Option C)
-  const [showVoiceInput, setShowVoiceInput] = useState(false);
-  const [showEmotionViz, setShowEmotionViz] = useState(false);
-  const [showTopicDiagram, setShowTopicDiagram] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(false);
 
   // Keeps keyboard focus inside the voice-help dialog while it is open.
-  const voiceHelpRef = useFocusTrap(showVoiceControlHelp);
+  const voiceHelpRef = useFocusTrap(panelOpen.voiceControlHelp);
 
   // PWA install banner: only offered when the browser supports installing.
   const installPrompt = useInstallPrompt();
@@ -170,21 +148,21 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     handsFreeModeEnabled: false,
     confirmDestructiveCommands: true,
     onClear: () => clearConversation(),
-    onExport: () => setShowAdvancedExport(true),
+    onExport: () => setPanel('advancedExport', true),
     onSwitchCharacter: (id) => switchPersona(id),
     onToggleMute: () => toggleMute(),
-    onToggleSettings: () => setShowSoundSettings(prev => !prev),
-    onToggleStats: () => setShowConversationSearch(true),
+    onToggleSettings: () => setPanel('soundSettings', prev => !prev),
+    onToggleStats: () => setPanel('conversationSearch', true),
     onStopAudio: () => speech.stop(),
     onCycleTheme: () => themeChoice.cycleTheme(),
     onCycleAudioQuality: () => cycleAudioMode(),
-    onOpenAccessibility: () => setShowAccessibilityPanel(true),
-    onOpenSearch: () => setShowConversationSearch(true),
-    onOpenVisualizer: () => setShowAudioVisualizer(!showAudioVisualizer),
-    onToggleMusic: () => setShowMusicPlayer(prev => !prev),
-    onOpenSoundPacks: () => setShowSoundPackManager(true),
+    onOpenAccessibility: () => setPanel('accessibility', true),
+    onOpenSearch: () => setPanel('conversationSearch', true),
+    onOpenVisualizer: () => setPanel('audioVisualizer', !panelOpen.audioVisualizer),
+    onToggleMusic: () => setPanel('musicPlayer', prev => !prev),
+    onOpenSoundPacks: () => setPanel('soundPackManager', true),
     onHelp: () => {
-      setShowVoiceControlHelp(true);
+      setPanel('voiceControlHelp', true);
       const helpText = voiceControl.showHelp();
       console.log(helpText);
     },
@@ -480,17 +458,17 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     if (!id) return;
     e.preventDefault();
     const actions: Record<ShortcutId, () => void> = {
-      accessibility: () => setShowAccessibilityPanel(true),
+      accessibility: () => setPanel('accessibility', true),
       cycleAudioMode,
-      insights: () => setShowInsights(prev => !prev),
-      tutorial: () => setShowOnboarding(true),
-      soundSettings: () => setShowSoundSettings(true),
-      musicPlayer: () => setShowMusicPlayer(prev => !prev),
-      soundPacks: () => setShowSoundPackManager(true),
-      voiceInput: () => setShowVoiceInput(prev => !prev),
-      emotionViz: () => setShowEmotionViz(prev => !prev),
-      topicDiagram: () => setShowTopicDiagram(prev => !prev),
-      templates: () => setShowTemplates(true),
+      insights: () => setPanel('insights', prev => !prev),
+      tutorial: () => setPanel('onboarding', true),
+      soundSettings: () => setPanel('soundSettings', true),
+      musicPlayer: () => setPanel('musicPlayer', prev => !prev),
+      soundPacks: () => setPanel('soundPackManager', true),
+      voiceInput: () => setPanel('voiceInput', prev => !prev),
+      emotionViz: () => setPanel('emotionViz', prev => !prev),
+      topicDiagram: () => setPanel('topicDiagram', prev => !prev),
+      templates: () => setPanel('templates', true),
       switchMode: () => {}, // handled by App
     };
     actions[id]();
@@ -604,10 +582,10 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
                 <MenuGroup
                   label="CONVERSATION"
                   items={[
-                    { id: 'search', icon: '🔍', label: 'Search and replay', onSelect: () => setShowConversationSearch(true) },
-                    { id: 'export', icon: '📦', label: 'Export', onSelect: () => setShowAdvancedExport(true) },
-                    { id: 'templates', icon: '📝', label: 'Templates', shortcut: shortcutLabel('templates'), onSelect: () => setShowTemplates(true) },
-                    { id: 'insights', icon: '📈', label: 'Insights', shortcut: shortcutLabel('insights'), onSelect: () => setShowInsights(true) },
+                    { id: 'search', icon: '🔍', label: 'Search and replay', onSelect: () => setPanel('conversationSearch', true) },
+                    { id: 'export', icon: '📦', label: 'Export', onSelect: () => setPanel('advancedExport', true) },
+                    { id: 'templates', icon: '📝', label: 'Templates', shortcut: shortcutLabel('templates'), onSelect: () => setPanel('templates', true) },
+                    { id: 'insights', icon: '📈', label: 'Insights', shortcut: shortcutLabel('insights'), onSelect: () => setPanel('insights', true) },
                     { id: 'clear', icon: '🧹', label: 'Clear conversation', onSelect: clearConversation },
                   ]}
                 />
@@ -615,32 +593,32 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
               <MenuGroup
                 label="VISUALS"
                 items={[
-                  { id: 'emotions', icon: '😊', label: 'Emotion visualizer', shortcut: shortcutLabel('emotionViz'), active: showEmotionViz, onSelect: () => setShowEmotionViz(v => !v) },
-                  { id: 'topics', icon: '🔀', label: 'Topic diagram', shortcut: shortcutLabel('topicDiagram'), active: showTopicDiagram, onSelect: () => setShowTopicDiagram(v => !v) },
-                  { id: 'audioviz', icon: '📊', label: 'Audio visualizer', active: showAudioVisualizer, onSelect: () => setShowAudioVisualizer(v => !v) },
+                  { id: 'emotions', icon: '😊', label: 'Emotion visualizer', shortcut: shortcutLabel('emotionViz'), active: panelOpen.emotionViz, onSelect: () => setPanel('emotionViz', v => !v) },
+                  { id: 'topics', icon: '🔀', label: 'Topic diagram', shortcut: shortcutLabel('topicDiagram'), active: panelOpen.topicDiagram, onSelect: () => setPanel('topicDiagram', v => !v) },
+                  { id: 'audioviz', icon: '📊', label: 'Audio visualizer', active: panelOpen.audioVisualizer, onSelect: () => setPanel('audioVisualizer', v => !v) },
                 ]}
               />
               <MenuGroup
                 label="SOUND"
                 items={[
-                  { id: 'voice-input', icon: '🗣️', label: 'Voice input', shortcut: shortcutLabel('voiceInput'), active: showVoiceInput, onSelect: () => setShowVoiceInput(v => !v) },
+                  { id: 'voice-input', icon: '🗣️', label: 'Voice input', shortcut: shortcutLabel('voiceInput'), active: panelOpen.voiceInput, onSelect: () => setPanel('voiceInput', v => !v) },
                   { id: 'hands-free', icon: '🎤', label: 'Hands-free voice control', active: voiceControl.isHandsFreeMode, disabled: !voiceControl.isSupported, onSelect: () => voiceControl.toggleHandsFreeMode() },
                   { id: 'mute', icon: muted ? '🔇' : '🔈', label: muted ? 'Unmute speech' : 'Mute speech', active: muted, onSelect: toggleMute },
-                  { id: 'music', icon: '🎵', label: 'Music player', shortcut: shortcutLabel('musicPlayer'), active: showMusicPlayer, onSelect: () => setShowMusicPlayer(v => !v) },
-                  { id: 'packs', icon: '🎼', label: 'Sound packs', shortcut: shortcutLabel('soundPacks'), onSelect: () => setShowSoundPackManager(true) },
-                  { id: 'sound-settings', icon: '🔊', label: 'Sound settings', shortcut: shortcutLabel('soundSettings'), onSelect: () => setShowSoundSettings(true) },
+                  { id: 'music', icon: '🎵', label: 'Music player', shortcut: shortcutLabel('musicPlayer'), active: panelOpen.musicPlayer, onSelect: () => setPanel('musicPlayer', v => !v) },
+                  { id: 'packs', icon: '🎼', label: 'Sound packs', shortcut: shortcutLabel('soundPacks'), onSelect: () => setPanel('soundPackManager', true) },
+                  { id: 'sound-settings', icon: '🔊', label: 'Sound settings', shortcut: shortcutLabel('soundSettings'), onSelect: () => setPanel('soundSettings', true) },
                 ]}
               />
               <span data-tour-id="theme-button">
                 <MenuGroup
                   label="SETTINGS"
                   items={[
-                    { id: 'theme', icon: '🎨', label: 'Theme customizer', onSelect: () => setShowThemeCustomizer(true) },
-                    { id: 'characters', icon: '🎭', label: 'Character creator', onSelect: () => setShowCharacterCreator(true) },
-                    { id: 'a11y', icon: '♿', label: 'Accessibility', shortcut: shortcutLabel('accessibility'), onSelect: () => setShowAccessibilityPanel(true) },
-                    { id: 'voice-help', icon: '❔', label: 'Voice commands', onSelect: () => setShowVoiceControlHelp(true) },
-                    { id: 'cloud-sync', icon: '☁️', label: 'Cloud sync', onSelect: () => setShowCloudSync(true) },
-                    { id: 'tutorial', icon: '🎓', label: 'Tutorial', shortcut: shortcutLabel('tutorial'), onSelect: () => setShowOnboarding(true) },
+                    { id: 'theme', icon: '🎨', label: 'Theme customizer', onSelect: () => setPanel('themeCustomizer', true) },
+                    { id: 'characters', icon: '🎭', label: 'Character creator', onSelect: () => setPanel('characterCreator', true) },
+                    { id: 'a11y', icon: '♿', label: 'Accessibility', shortcut: shortcutLabel('accessibility'), onSelect: () => setPanel('accessibility', true) },
+                    { id: 'voice-help', icon: '❔', label: 'Voice commands', onSelect: () => setPanel('voiceControlHelp', true) },
+                    { id: 'cloud-sync', icon: '☁️', label: 'Cloud sync', onSelect: () => setPanel('cloudSync', true) },
+                    { id: 'tutorial', icon: '🎓', label: 'Tutorial', shortcut: shortcutLabel('tutorial'), onSelect: () => setPanel('onboarding', true) },
                   ]}
                 />
               </span>
@@ -674,7 +652,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
                   )}
                 </div>
                 <button
-                  onClick={() => setShowVoiceControlHelp(true)}
+                  onClick={() => setPanel('voiceControlHelp', true)}
                   className="px-2 py-1 border border-gray-400 hover:border-yellow-300 text-xs"
                   title="View voice commands"
                 >
@@ -759,11 +737,11 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
             </span>
             <button
               type="button"
-              onClick={() => setShowVoiceInput(v => !v)}
+              onClick={() => setPanel('voiceInput', v => !v)}
               className="enh-icon-button"
               data-tour-id="voice-input"
               aria-label="Speak instead of typing"
-              aria-pressed={showVoiceInput}
+              aria-pressed={panelOpen.voiceInput}
               title={`Voice input (${shortcutLabel('voiceInput')})`}
             >
               <span aria-hidden="true">🎤</span>
@@ -830,12 +808,12 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       </main>
 
       {/* Accessibility Panel (v1.4.0) */}
-      {showAccessibilityPanel && (
+      {panelOpen.accessibility && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <AccessibilityPanel
-            isOpen={showAccessibilityPanel}
+            isOpen={panelOpen.accessibility}
             settings={accessibilitySettings}
-            onClose={() => setShowAccessibilityPanel(false)}
+            onClose={() => setPanel('accessibility', false)}
             onUpdateSetting={updateSetting}
             onResetSettings={resetSettings}
           />
@@ -843,42 +821,38 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Theme Customizer (v1.5.0) */}
-      {showThemeCustomizer && (
+      {panelOpen.themeCustomizer && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <ThemeCustomizer
-            isOpen={showThemeCustomizer}
-            onClose={() => setShowThemeCustomizer(false)}
+            isOpen={panelOpen.themeCustomizer}
+            onClose={() => setPanel('themeCustomizer', false)}
             onSave={(theme) => {
               themeChoice.addCustomTheme(theme);
-              setShowThemeCustomizer(false);
+              setPanel('themeCustomizer', false);
             }}
           />
         </Suspense>
       )}
 
       {/* Conversation Search (v1.5.0) */}
-      {showConversationSearch && (
+      {panelOpen.conversationSearch && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <ConversationSearch
-            isOpen={showConversationSearch}
-            onClose={() => setShowConversationSearch(false)}
+            isOpen={panelOpen.conversationSearch}
+            onClose={() => setPanel('conversationSearch', false)}
             sessions={savedSessions}
             onOpenSession={(sessionId) => {
               console.log('Opening session:', sessionId);
               // Find the session and trigger replay
               const session = savedSessions.find(s => s.id === sessionId);
-              if (session) {
-                setReplaySession(session);
-                setShowConversationReplay(true);
-                setShowConversationSearch(false);
-              }
+              if (session) panels.openReplay(session);
             }}
           />
         </Suspense>
       )}
 
       {/* Audio Visualizer (v1.5.0) */}
-      {showAudioVisualizer && (
+      {panelOpen.audioVisualizer && (
         <Suspense fallback={<div className="fixed bottom-4 right-4 z-40 text-white">Loading...</div>}>
           <div className="fixed bottom-4 right-4 z-40">
             <AudioVisualizer
@@ -891,11 +865,11 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Advanced Exporter (v1.6.0) */}
-      {showAdvancedExport && (
+      {panelOpen.advancedExport && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <AdvancedExporter
-            isOpen={showAdvancedExport}
-            onClose={() => setShowAdvancedExport(false)}
+            isOpen={panelOpen.advancedExport}
+            onClose={() => setPanel('advancedExport', false)}
             sessions={savedSessions}
             themes={themeChoice.customThemes}
             currentSession={currentSession ?? undefined}
@@ -904,11 +878,11 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Character Creator (v1.6.0) */}
-      {showCharacterCreator && (
+      {panelOpen.characterCreator && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <CharacterCreator
-            isOpen={showCharacterCreator}
-            onClose={() => setShowCharacterCreator(false)}
+            isOpen={panelOpen.characterCreator}
+            onClose={() => setPanel('characterCreator', false)}
             onSave={(character) => personaState.saveCustomCharacter(character)}
             onDelete={(id) => personaState.deleteCustomCharacter(id)}
             existingCharacters={personaState.customCharacters}
@@ -917,51 +891,48 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Conversation Replay (v1.6.0) */}
-      {showConversationReplay && replaySession && (
+      {panelOpen.conversationReplay && panels.replaySession && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <ConversationReplay
-            isOpen={showConversationReplay}
-            onClose={() => {
-              setShowConversationReplay(false);
-              setReplaySession(null);
-            }}
-            session={replaySession}
+            isOpen={panelOpen.conversationReplay}
+            onClose={panels.closeReplay}
+            session={panels.replaySession}
           />
         </Suspense>
       )}
 
       {/* Onboarding Tutorial (v1.8.0) */}
-      {showOnboarding && (
+      {panelOpen.onboarding && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading tutorial...</div></div>}>
           <OnboardingTutorial
-            onComplete={() => setShowOnboarding(false)}
-            onSkip={() => setShowOnboarding(false)}
+            onComplete={() => setPanel('onboarding', false)}
+            onSkip={() => setPanel('onboarding', false)}
           />
         </Suspense>
       )}
 
       {/* Conversation Insights (v1.8.0) */}
-      {showInsights && (
+      {panelOpen.insights && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading insights...</div></div>}>
           <ConversationInsights
-            onClose={() => setShowInsights(false)}
+            onClose={() => setPanel('insights', false)}
             currentTheme={currentTheme}
           />
         </Suspense>
       )}
 
       {/* Sound Settings Panel (v1.9.0) */}
-      {showSoundSettings && (
+      {panelOpen.soundSettings && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound settings...</div></div>}>
           <SoundSettingsPanel
-            isOpen={showSoundSettings}
-            onClose={() => setShowSoundSettings(false)}
+            isOpen={panelOpen.soundSettings}
+            onClose={() => setPanel('soundSettings', false)}
           />
         </Suspense>
       )}
 
       {/* Music Player (v1.10.0) */}
-      {showMusicPlayer && userName && (
+      {panelOpen.musicPlayer && userName && (
         <Suspense fallback={<div className="fixed bottom-4 left-4 z-40 text-white text-sm">Loading music player...</div>}>
           <div className="fixed bottom-4 left-4 z-40">
             <MusicPlayer
@@ -984,25 +955,25 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Sound Pack Manager (v1.10.0) */}
-      {showSoundPackManager && (
+      {panelOpen.soundPackManager && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack manager...</div></div>}>
           <SoundPackManager
             theme={activeTheme}
-            onClose={() => setShowSoundPackManager(false)}
+            onClose={() => setPanel('soundPackManager', false)}
             onCreateNew={() => {
-              setShowSoundPackManager(false);
-              setShowSoundPackCreator(true);
+              setPanel('soundPackManager', false);
+              setPanel('soundPackCreator', true);
             }}
           />
         </Suspense>
       )}
 
       {/* Sound Pack Creator (v1.10.0) */}
-      {showSoundPackCreator && (
+      {panelOpen.soundPackCreator && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack creator...</div></div>}>
           <SoundPackCreator
             theme={activeTheme}
-            onClose={() => setShowSoundPackCreator(false)}
+            onClose={() => setPanel('soundPackCreator', false)}
             onSave={async (pack) => {
               // Packs live in IndexedDB (decoded audio can exceed localStorage
               // quota). A failure propagates: the creator shows it and stays open.
@@ -1014,10 +985,10 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Cloud sync: uploads only saved history, so nothing leaves the browser while SAVE HISTORY is off. */}
-      {showCloudSync && (
+      {panelOpen.cloudSync && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading cloud sync...</div></div>}>
           <CloudSyncPanel
-            onClose={() => setShowCloudSync(false)}
+            onClose={() => setPanel('cloudSync', false)}
             getLocalData={() => ({
               sessions: savedSessions,
               updatedAt: savedSessions.reduce((latest, s) => Math.max(latest, s.updatedAt), 0),
@@ -1031,20 +1002,20 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Voice Control Help Modal (v1.6.0) */}
-      {showVoiceControlHelp && (
+      {panelOpen.voiceControlHelp && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div
             ref={voiceHelpRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="voice-help-title"
-            onKeyDown={(e) => e.key === 'Escape' && setShowVoiceControlHelp(false)}
+            onKeyDown={(e) => e.key === 'Escape' && setPanel('voiceControlHelp', false)}
             className="bg-blue-900 border-4 border-gray-400 p-6 max-w-3xl max-h-[80vh] overflow-y-auto"
           >
             <div className="flex justify-between items-center mb-4">
               <h2 id="voice-help-title" className="text-2xl font-bold text-white">VOICE CONTROL COMMANDS</h2>
               <button
-                onClick={() => setShowVoiceControlHelp(false)}
+                onClick={() => setPanel('voiceControlHelp', false)}
                 className="text-white hover:text-yellow-300 text-2xl"
                 aria-label="Close help"
               >
@@ -1111,7 +1082,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
 
             <div className="mt-6 flex justify-end">
               <button
-                onClick={() => setShowVoiceControlHelp(false)}
+                onClick={() => setPanel('voiceControlHelp', false)}
                 className="px-4 py-2 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
               >
                 CLOSE
@@ -1122,7 +1093,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Voice Input Panel (v1.11.0 - Option C1) */}
-      {showVoiceInput && userName && (
+      {panelOpen.voiceInput && userName && (
         <Suspense fallback={<div className="fixed bottom-20 left-4 z-40 text-white text-sm">Loading voice input...</div>}>
           <div className="fixed bottom-20 left-4 z-40 max-w-md">
             <VoiceInput
@@ -1140,7 +1111,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Emotion Visualizer (v1.11.0 - Option C2) */}
-      {showEmotionViz && userName && (
+      {panelOpen.emotionViz && userName && (
         <Suspense fallback={<div className="fixed bottom-20 right-4 z-40 text-white text-sm">Loading emotion visualizer...</div>}>
           <div className="fixed bottom-20 right-4 z-40 max-w-sm">
             <EmotionVisualizer
@@ -1153,7 +1124,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Topic Flow Diagram (v1.11.0 - Option C3) */}
-      {showTopicDiagram && userName && (
+      {panelOpen.topicDiagram && userName && (
         <Suspense fallback={<div className="fixed top-20 left-4 z-40 text-white text-sm">Loading topic diagram...</div>}>
           <div className="fixed top-20 left-4 z-40 max-w-2xl">
             <TopicFlowDiagram
@@ -1165,11 +1136,11 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       )}
 
       {/* Conversation Templates (v1.11.0 - Option C4) */}
-      {showTemplates && (
+      {panelOpen.templates && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading templates...</div></div>}>
           <ConversationTemplates
-            isOpen={showTemplates}
-            onClose={() => setShowTemplates(false)}
+            isOpen={panelOpen.templates}
+            onClose={() => setPanel('templates', false)}
             onSelectTemplate={handleSelectTemplate}
             theme={activeTheme}
           />
