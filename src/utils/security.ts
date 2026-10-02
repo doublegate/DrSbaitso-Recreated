@@ -171,53 +171,39 @@ export class RateLimiter {
 }
 
 /**
- * Content Security Policy Configuration
- * Returns CSP directives for secure application
+ * Content Security Policy, the single definition: `vercel.json` deploys exactly
+ * this string (test/utils/csp.test.ts pins the two together).
+ *
+ * - Scripts only from this origin: the build has no inline scripts, no eval and
+ *   no CDN. Gemini is reached through `/api`, never from the browser.
+ * - Inline styles are allowed: React `style` attributes and the print/export
+ *   document (a `srcdoc` iframe, which inherits this policy) need them.
+ * - connect-src adds only the Firebase hosts that optional cloud sync calls
+ *   (Firestore, Auth, Installations), taken from the installed SDK.
  */
 export function getCSPDirectives(): Record<string, string[]> {
   return {
     'default-src': ["'self'"],
-    'script-src': [
-      "'self'",
-      "'unsafe-inline'", // Required for Vite dev and Tailwind CDN
-      'https://cdn.tailwindcss.com',
-      'https://aistudiocdn.com'
-    ],
-    'style-src': [
-      "'self'",
-      "'unsafe-inline'", // Required for Tailwind and inline styles
-      'https://cdn.tailwindcss.com'
-    ],
-    'img-src': [
-      "'self'",
-      'data:', // Required for canvas toDataURL
-      'blob:',
-      'https:'
-    ],
-    'font-src': [
-      "'self'",
-      'data:'
-    ],
+    'script-src': ["'self'"],
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'img-src': ["'self'", 'data:', 'blob:'],
+    'font-src': ["'self'"],
     'connect-src': [
       "'self'",
-      'https://generativelanguage.googleapis.com', // Gemini API
-      'https://aistudiocdn.com' // CDN for dependencies
+      'https://firestore.googleapis.com',
+      'https://identitytoolkit.googleapis.com',
+      'https://securetoken.googleapis.com',
+      'https://firebaseinstallations.googleapis.com',
     ],
-    'media-src': [
-      "'self'",
-      'blob:',
-      'data:'
-    ],
-    'worker-src': [
-      "'self'",
-      'blob:'
-    ],
-    'frame-src': ["'none'"],
+    'media-src': ["'self'", 'blob:', 'data:'],
+    'worker-src': ["'self'"],
+    'manifest-src': ["'self'"],
+    'frame-src': ["'self'"],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],
     'frame-ancestors': ["'none'"],
-    'upgrade-insecure-requests': []
+    'upgrade-insecure-requests': [],
   };
 }
 

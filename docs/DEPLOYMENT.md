@@ -46,6 +46,11 @@ What `vercel.json` configures:
 - All non-`/api` paths rewrite to `index.html` (SPA routing).
 - Security headers on every response: HSTS, `X-Frame-Options: DENY`, `nosniff`,
   `Referrer-Policy` and a `Permissions-Policy` that allows only the microphone.
+- A Content-Security-Policy: scripts only from the site, connections only to the
+  site and the Firebase hosts cloud sync uses, no framing. Change it in
+  `getCSPDirectives()` (`src/utils/security.ts`) and copy the string into
+  `vercel.json`; `test/utils/csp.test.ts` fails until the two match, and
+  `e2e/csp.spec.ts` runs the app under it.
 - `no-cache` for the service worker, the audio worklet and the manifest, so updates
   arrive promptly. Hashed `assets/` are cached as immutable.
 

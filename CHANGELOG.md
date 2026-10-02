@@ -11,6 +11,11 @@ Work toward 2.0.0 (branch `fix/v2-audit-remediation`). The deployed app was brok
 it crashed right after name entry and leaked its Gemini API key in the client bundle.
 
 ### Security
+- **Content-Security-Policy in production.** Scripts load only from the site
+  itself (no inline code, eval or CDN), connections go only to the site and the
+  Firebase hosts optional cloud sync uses, and the page cannot be framed. The
+  policy is defined once (`src/utils/security.ts`), deployed by `vercel.json`, and
+  an end-to-end test runs both screens under it and fails on any violation.
 - **The Gemini API key no longer reaches the browser.** It was inlined into the
   client bundle by Vite `define` and was readable on the live site (the key has been
   rotated). Chat and speech now go through server-side Vercel Functions
