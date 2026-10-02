@@ -12,8 +12,14 @@ import {
   validateSoundPack,
   exportSoundPack,
   importSoundPack,
-  getSoundPackSize
+  getSoundPackSize,
+  decodeAudioFileForPack,
+  MAX_IMPORT_BYTES
 } from '@/utils/soundPackFormat';
+import { getSharedAudioContext } from '@/utils/sharedAudio';
+
+/** Largest audio file accepted for decoding (the decoded sound is capped separately). */
+const MAX_AUDIO_FILE_BYTES = 20 * 1024 * 1024;
 
 interface SoundPackCreatorProps {
   theme: Theme;
@@ -134,28 +140,33 @@ export default function SoundPackCreator({
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
+      if (file.size > MAX_AUDIO_FILE_BYTES) {
+        setErrors([`Audio file is too large (limit ${MAX_AUDIO_FILE_BYTES / 1024 / 1024} MB).`]);
+        return;
+      }
+
       try {
-        const arrayBuffer = await file.arrayBuffer();
-        const base64 = btoa(
-          new Uint8Array(arrayBuffer).reduce(
-            (data, byte) => data + String.fromCharCode(byte),
-            ''
+        const ctx = getSharedAudioContext();
+        if (!ctx) throw new Error('Audio is not available in this browser.');
+        // Decode the real file (WAV/MP3/OGG...) and store portable PCM16.
+        const decoded = await decodeAudioFileForPack(await file.arrayBuffer(), ctx);
+        setPack(prev => ({
+          ...prev,
+          sounds: prev.sounds.map((sound, i) =>
+            i === index
+              ? { ...sound, audioData: decoded.audioData, duration: decoded.duration, sampleRate: decoded.sampleRate }
+              : sound
           )
-        );
-
-        updateSound(index, 'audioData', base64);
-
-        // Estimate duration (rough approximation)
-        const durationMs = (arrayBuffer.byteLength / (24000 * 2)) * 1000;
-        updateSound(index, 'duration', Math.round(durationMs));
+        }));
+        setErrors([]);
       } catch (error) {
         console.error('Failed to import audio:', error);
-        alert('Failed to import audio file');
+        setErrors([error instanceof Error ? error.message : 'Failed to import audio file']);
       }
     };
 
     input.click();
-  }, [updateSound]);
+  }, []);
 
   // Validate pack
   const validatePack = useCallback(() => {
@@ -185,7 +196,8 @@ export default function SoundPackCreator({
       a.href = url;
       a.download = `${pack.metadata.name.replace(/\s+/g, '_')}.soundpack.json`;
       a.click();
-      URL.revokeObjectURL(url);
+      // Revoking synchronously cancels the download in Firefox and Safari.
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
     } catch (error) {
       alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -201,6 +213,10 @@ export default function SoundPackCreator({
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > MAX_IMPORT_BYTES) {
+      setErrors([`Sound pack file is too large (limit ${Math.round(MAX_IMPORT_BYTES / 1024 / 1024)} MB).`]);
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -455,6 +471,7 @@ export default function SoundPackCreator({
                   <option value="message_sent">Message Sent</option>
                   <option value="message_received">Message Received</option>
                   <option value="error">Error</option>
+                  <option value="glitch">Glitch</option>
                   <option value="startup">Startup</option>
                   <option value="character_switch">Character Switch</option>
                   <option value="theme_change">Theme Change</option>

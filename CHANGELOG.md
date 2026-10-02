@@ -108,6 +108,15 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Music player panel.** Reopening the panel shows the music's real state.
   Music keeps playing after the panel closes, and the panel used to show OFF
   while it played.
+- **Sound packs.** Uploaded WAV/MP3/OGG files were stored as raw file bytes and then
+  played as headerless PCM: noise, or a `RangeError` on an odd byte count. They are
+  now decoded by the browser and stored as 24 kHz mono PCM16; packs saved by older
+  versions are recognised and decoded as files. Packs live in IndexedDB instead of
+  localStorage (one pack could exhaust the quota) and are migrated automatically.
+  Imported JSON and share codes are schema-checked and size-capped, base64
+  encoding no longer builds strings byte by byte, copying uses the Clipboard API,
+  and the active pack is remembered across reloads. A new `glitch` trigger joins
+  the existing events.
 
 ### Changed
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
