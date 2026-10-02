@@ -160,11 +160,11 @@ describe('App', () => {
       [...document.querySelectorAll('nav[aria-label="Skip navigation"] a')].map((a) => a.getAttribute('href')!);
     renderApp();
     await screen.findByPlaceholderText('TYPE NAME AND PRESS ENTER');
-    for (const href of skipTargets()) expect(document.querySelector(href), href).not.toBeNull();
+    expect(skipTargets().filter((href) => !document.querySelector(href))).toEqual([]);
     await user.type(screen.getByPlaceholderText('TYPE NAME AND PRESS ENTER'), 'ALICE{Enter}');
     await waitFor(() => expect(document.getElementById('chat-input')).not.toBeNull(), { timeout: 15_000 });
     expect(skipTargets()).toHaveLength(3);
-    for (const href of skipTargets()) expect(document.querySelector(href), href).not.toBeNull();
+    expect(skipTargets().filter((href) => !document.querySelector(href))).toEqual([]);
   }, 30_000);
 
   it('marks the keyboard user once Tab is pressed (focus outlines)', async () => {
