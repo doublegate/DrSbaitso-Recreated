@@ -54,6 +54,20 @@ describe('usePersona', () => {
     expect(result.current.formatReply('Hello There')).toBe('hello there');
   });
 
+  it('exposes the processing route of the active persona', () => {
+    localStorage.setItem(CUSTOM_CHARACTERS_KEY, JSON.stringify([robo]));
+    const { result } = renderHook(() => usePersona());
+    expect(result.current.voiceProcessing).toBe('sbaitso');
+    act(() => result.current.selectPersona('hal9000'));
+    expect(result.current.voiceProcessing).toBe('hal');
+    act(() => result.current.selectPersona('joshua'));
+    expect(result.current.voiceProcessing).toBe('wopr');
+    act(() => result.current.selectPersona('parry'));
+    expect(result.current.voiceProcessing).toBe('clean');
+    act(() => result.current.selectPersona('custom_robo'));
+    expect(result.current.voiceProcessing).toBe('sbaitso');
+  });
+
   it('built-in personas need no extra options', () => {
     const { result } = renderHook(() => usePersona());
     expect(result.current.chatOptions).toEqual({});

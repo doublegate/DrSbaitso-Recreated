@@ -4,6 +4,7 @@
  * it can be stopped or visualised.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { VoiceProcessing } from '../constants';
 import { decode, decodeAudioData, getPlaybackSettings, playAudio, type AudioModeId } from '../utils/audio';
 import { endPunctuationOf } from '../utils/lpcMonotone';
 import { ensureAudioReady } from '../utils/sharedAudio';
@@ -20,9 +21,11 @@ export function useSpeechPlayer(mode: AudioModeId) {
   /**
    * Resolves when playback ends or is stopped; rejects if audio is unreadable.
    * `text` is what the audio says: its final punctuation sets the end of the
-   * pitch contour in the Authentic and Ultra modes (fall, or rise for "?"/"!").
+   * pitch contour in the Authentic and Ultra modes (fall, or rise for "?"/"!"),
+   * and the HAL and WOPR chains use its words. `processing` is the persona's
+   * route (default 'sbaitso', the only route the audio mode applies to).
    */
-  const speak = useCallback(async (base64Audio: string, text?: string) => {
+  const speak = useCallback(async (base64Audio: string, text?: string, options: { processing?: VoiceProcessing } = {}) => {
     if (!base64Audio) return;
     const ctx = await ensureAudioReady();
     if (!ctx) return;
@@ -35,6 +38,7 @@ export function useSpeechPlayer(mode: AudioModeId) {
       1,
       activeMode,
       text === undefined ? null : endPunctuationOf(text),
+      { processing: options.processing ?? 'sbaitso', text },
     );
     const { bitDepth, playbackRate } = getPlaybackSettings(activeMode);
     try {

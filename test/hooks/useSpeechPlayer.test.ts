@@ -36,6 +36,21 @@ describe('useSpeechPlayer', () => {
     expect(decodeAudioData.mock.calls[1][5]).toBeNull();
   });
 
+  it('uses the Sbaitso processing route unless told otherwise', async () => {
+    playAudio.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSpeechPlayer('authentic'));
+    await act(() => result.current.speak('AAAA', 'HELLO.'));
+    expect(decodeAudioData.mock.calls[0][6]).toEqual({ processing: 'sbaitso', text: 'HELLO.' });
+  });
+
+  it('passes a persona processing route and the text to the decoder', async () => {
+    playAudio.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSpeechPlayer('authentic'));
+    await act(() => result.current.speak('AAAA', 'SHALL WE PLAY A GAME?', { processing: 'wopr' }));
+    expect(decodeAudioData.mock.calls[0][4]).toBe('authentic');
+    expect(decodeAudioData.mock.calls[0][6]).toEqual({ processing: 'wopr', text: 'SHALL WE PLAY A GAME?' });
+  });
+
   it('does nothing for empty audio', async () => {
     const { result } = renderHook(() => useSpeechPlayer('authentic'));
     await act(() => result.current.speak(''));
