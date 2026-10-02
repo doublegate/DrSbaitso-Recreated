@@ -33,6 +33,18 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - Voice commands for the music player and the sound-pack manager.
 - `npm run lint` (oxlint, with React hooks, accessibility and test rules) and
   `npm run analyze` (bundle report on demand).
+- **Local Dr. Sbaitso engine** (`src/engine/sbaitso/`), the deterministic half of a
+  hybrid design: the original's commands and canned behaviours are answered locally,
+  and only open conversation goes to Gemini. Built from the v2.20 string table
+  (`ref-docs/01`): `HELP` (three pages, `M` for more), `R`, `SAY`, `CALC` and
+  `WHAT IS <sum>` (a safe evaluator, no `eval`), `AUTHOR`, `SHUT UP`, `BYE` and the
+  `<C>ontinue <N>ew patient <Q>uit` exit menu, the dot commands (`.QUIT`, `.TONE`,
+  `.VOLUME`, `.PITCH`, `.SPEED`, `.PARAM`, `.ECHO`, `.PROMPT`, `.WIDTH`, `.COLOR`,
+  `.MASTER`, `.READ`) with the original range errors, escalating empty-Enter nags,
+  short, garbage and repeated input, profanity strikes ending in the real
+  `PARITY ERR ... RECOVERED / PHEW!   THAT WAS CLOSE!` sequence, and the age prompt.
+  Also the exact v2.20 greeting layout and the name rules (letters and spaces only,
+  `NAME TOO LONG`). Pure functions with 98% test coverage; not yet wired into the UI.
 
 ### Fixed
 - **Crash right after name entry.** `<InstallPrompt />` was rendered without its
