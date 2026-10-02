@@ -96,8 +96,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip chrome extensions
-  if (url.protocol === 'chrome-extension:') {
+  // Only handle same-origin requests; never touch the Gemini proxy, whose
+  // responses are per-conversation and must not be cached.
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
     return;
   }
 
@@ -140,7 +141,7 @@ async function cacheFirstStrategy(request, cacheName) {
     console.error('[ServiceWorker] Cache-first error:', error);
 
     // Return offline fallback for HTML pages
-    if (request.headers.get('accept').includes('text/html')) {
+    if ((request.headers.get('accept') || '').includes('text/html')) {
       return getOfflineFallback();
     }
 

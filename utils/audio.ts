@@ -18,6 +18,26 @@ export function decode(base64: string): Uint8Array {
   return bytes;
 }
 
+/**
+ * Returns the PCM payload of a RIFF/WAVE buffer, or the input unchanged when
+ * it is already raw PCM. Gemini 3.x TTS returns WAV; the proxy strips the
+ * header, so this is a defensive second line.
+ */
+function stripWavHeader(data: Uint8Array): Uint8Array {
+  const tag = (o: number) => String.fromCharCode(data[o], data[o + 1], data[o + 2], data[o + 3]);
+  if (data.byteLength < 12 || tag(0) !== 'RIFF' || tag(8) !== 'WAVE') return data;
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  let offset = 12;
+  while (offset + 8 <= data.byteLength) {
+    const size = view.getUint32(offset + 4, true);
+    if (tag(offset) === 'data') {
+      return data.subarray(offset + 8, Math.min(offset + 8 + size, data.byteLength));
+    }
+    offset += 8 + size + (size % 2);
+  }
+  return data.subarray(data.byteLength);
+}
+
 export async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
@@ -25,14 +45,18 @@ export async function decodeAudioData(
   numChannels: number,
   audioMode?: 'modern' | 'subtle' | 'authentic' | 'ultra'
 ): Promise<AudioBuffer> {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
+  const pcm = stripWavHeader(data);
+  // DataView respects byteOffset and avoids Int16Array's even-length and
+  // alignment requirements; a trailing odd byte is ignored.
+  const view = new DataView(pcm.buffer, pcm.byteOffset, pcm.byteLength);
+  const sampleCount = Math.floor(pcm.byteLength / 2);
+  const frameCount = Math.floor(sampleCount / numChannels);
   let buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
 
   for (let channel = 0; channel < numChannels; channel++) {
     const channelData = buffer.getChannelData(channel);
     for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+      channelData[i] = view.getInt16((i * numChannels + channel) * 2, true) / 32768.0;
     }
   }
 

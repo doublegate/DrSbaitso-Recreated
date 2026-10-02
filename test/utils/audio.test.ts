@@ -72,6 +72,58 @@ describe('Audio Utilities', () => {
       expect(buffer).toBeDefined();
     });
 
+    // A context whose buffers keep their sample data, so values can be checked.
+    function recordingContext() {
+      const channel: { data?: Float32Array } = {};
+      const ctx = {
+        createBuffer: (_c: number, length: number, sampleRate: number) => {
+          channel.data = new Float32Array(length);
+          return { length, sampleRate, numberOfChannels: 1, getChannelData: () => channel.data! };
+        },
+      } as unknown as AudioContext;
+      return { ctx, channel };
+    }
+
+    const pcm16 = (...samples: number[]) => new Uint8Array(new Int16Array(samples).buffer);
+
+    it('decodes little-endian PCM16 sample values', async () => {
+      const { ctx, channel } = recordingContext();
+      await decodeAudioData(pcm16(16384, -32768), ctx, 24000, 1);
+      expect(Array.from(channel.data!)).toEqual([0.5, -1]);
+    });
+
+    it('skips a WAV (RIFF) header instead of playing it as noise', async () => {
+      const samples = pcm16(16384, -16384);
+      const wav = new Uint8Array(44 + samples.length);
+      const v = new DataView(wav.buffer);
+      [...'RIFF'].forEach((c, i) => (wav[i] = c.charCodeAt(0)));
+      [...'WAVE'].forEach((c, i) => (wav[8 + i] = c.charCodeAt(0)));
+      [...'fmt '].forEach((c, i) => (wav[12 + i] = c.charCodeAt(0)));
+      v.setUint32(16, 16, true);
+      v.setUint32(24, 24000, true);
+      [...'data'].forEach((c, i) => (wav[36 + i] = c.charCodeAt(0)));
+      v.setUint32(40, samples.length, true);
+      wav.set(samples, 44);
+
+      const { ctx, channel } = recordingContext();
+      const buffer = await decodeAudioData(wav, ctx, 24000, 1);
+      expect(buffer.length).toBe(2);
+      expect(Array.from(channel.data!)).toEqual([0.5, -0.5]);
+    });
+
+    it('tolerates an odd byte length instead of throwing a RangeError', async () => {
+      const { ctx } = recordingContext();
+      const buffer = await decodeAudioData(new Uint8Array([0, 64, 7]), ctx, 24000, 1);
+      expect(buffer.length).toBe(1);
+    });
+
+    it('respects the byteOffset of a subarray view', async () => {
+      const backing = new Uint8Array([9, 9, 0, 64]);
+      const { ctx, channel } = recordingContext();
+      await decodeAudioData(backing.subarray(2), ctx, 24000, 1);
+      expect(Array.from(channel.data!)).toEqual([0.5]);
+    });
+
     it('should throw error on invalid audio data', async () => {
       const invalidBase64 = 'invalid!!!base64!!!';
 

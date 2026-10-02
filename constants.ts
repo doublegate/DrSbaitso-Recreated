@@ -104,6 +104,31 @@ export const CHARACTERS: CharacterPersonality[] = [
 
 export const DEFAULT_CHARACTER = 'sbaitso';
 
+// Voice profiles (ported from the Google AI Studio version of the app).
+// `voiceName` is a Gemini prebuilt voice; `style` is appended to the
+// persona's own delivery style.
+export type VoiceProfileId = 'classic' | 'deep' | 'glitchy';
+
+export interface VoiceProfile {
+  id: VoiceProfileId;
+  label: string;
+  voiceName: string;
+  style: string;
+}
+
+export const VOICE_PROFILES: Record<VoiceProfileId, VoiceProfile> = {
+  classic: { id: 'classic', label: 'CLASSIC SBAITSO', voiceName: 'Charon', style: '' },
+  deep: { id: 'deep', label: 'DEEP MONOTONE', voiceName: 'Fenrir', style: 'incredibly deep, resonant and slow' },
+  glitchy: {
+    id: 'glitchy',
+    label: 'SLIGHTLY GLITCHY',
+    voiceName: 'Puck',
+    style: 'slightly unstable, glitchy and robotic, with occasional pitch shifts',
+  },
+};
+
+export const DEFAULT_VOICE_PROFILE: VoiceProfileId = 'classic';
+
 // Theme configurations
 export interface Theme {
   id: string;
@@ -285,7 +310,7 @@ export const KEYBOARD_SHORTCUTS = {
 };
 
 // Onboarding Tutorial Steps (v1.8.0)
-import { OnboardingStep } from './types';
+import type { OnboardingStep } from './types';
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {

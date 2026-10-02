@@ -1,108 +1,117 @@
-import { GoogleGenAI, Chat, Modality } from "@google/genai";
-import { CHARACTERS, CharacterPersonality } from "../constants";
+/**
+ * Browser client for the Gemini proxy (`/api/chat`, `/api/tts`).
+ *
+ * The API key lives only on the server. This module keeps each persona's
+ * visible conversation history in memory and sends it with every turn, since
+ * the proxy is stateless.
+ */
+import type { VoiceProfileId } from '../constants';
 
-const API_KEY = process.env.API_KEY;
+export type ServiceErrorCode =
+  | 'BAD_REQUEST'
+  | 'RATE_LIMITED'
+  | 'EMPTY_RESPONSE'
+  | 'UPSTREAM_ERROR'
+  | 'UNAVAILABLE'
+  | 'NOT_CONFIGURED'
+  | 'NETWORK_ERROR'
+  | 'UNKNOWN';
 
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable is not set");
+export class GeminiServiceError extends Error {
+  constructor(
+    message: string,
+    readonly code: ServiceErrorCode,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = 'GeminiServiceError';
+  }
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+export interface ChatTurn {
+  role: 'user' | 'model';
+  text: string;
+}
 
-// Store active chat instances per character
-const chatInstances: Map<string, Chat> = new Map();
+export interface CustomCharacterInput {
+  name: string;
+  systemInstruction: string;
+}
 
-function getOrCreateChat(characterId: string): Chat {
-  if (chatInstances.has(characterId)) {
-    return chatInstances.get(characterId)!;
+const histories = new Map<string, ChatTurn[]>();
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new GeminiServiceError('Network request failed.', 'NETWORK_ERROR', 0);
   }
 
-  const character = CHARACTERS.find(c => c.id === characterId);
-  if (!character) {
-    throw new Error(`Character ${characterId} not found`);
+  let data: any = null;
+  try {
+    data = await response.json();
+  } catch {
+    // Non-JSON error page (e.g. a platform 5xx); handled below.
   }
 
-  const chat = ai.chats.create({
-    model: 'gemini-2.5-flash',
-    config: {
-      systemInstruction: character.systemInstruction,
-    },
-  });
+  if (!response.ok) {
+    const code: ServiceErrorCode = data?.code ?? 'UNKNOWN';
+    const detail = data?.error ?? response.statusText;
+    // Keep the status and Google's quota wording in the message: older
+    // callers detect rate limiting by matching these strings.
+    const suffix = code === 'RATE_LIMITED' ? ' RESOURCE_EXHAUSTED' : '';
+    throw new GeminiServiceError(`${response.status} ${code}${suffix}: ${detail}`, code, response.status);
+  }
+  return data as T;
+}
 
-  chatInstances.set(characterId, chat);
-  return chat;
+export function getHistory(characterId: string): ChatTurn[] {
+  return [...(histories.get(characterId) ?? [])];
 }
 
 export function resetChat(characterId: string): void {
-  chatInstances.delete(characterId);
+  histories.delete(characterId);
 }
 
 export function resetAllChats(): void {
-  chatInstances.clear();
+  histories.clear();
 }
 
-export async function getAIResponse(message: string, characterId: string): Promise<string> {
-  try {
-    const chat = getOrCreateChat(characterId);
-    const response = await chat.sendMessage({ message });
-    return response.text;
-  } catch (error) {
-    console.error("Error getting response from Gemini:", error);
-    throw new Error("I APOLOGIZE, BUT I AM EXPERIENCING A TEMPORARY MALFUNCTION.");
-  }
+export async function getAIResponse(
+  message: string,
+  characterId: string,
+  options: { customCharacter?: CustomCharacterInput } = {},
+): Promise<string> {
+  const history = histories.get(characterId) ?? [];
+  const target = options.customCharacter ? { customCharacter: options.customCharacter } : { characterId };
+
+  const { text } = await post<{ text: string }>('/api/chat', { ...target, history, message });
+
+  histories.set(characterId, [...history, { role: 'user', text: message }, { role: 'model', text }]);
+  return text;
 }
 
-export async function synthesizeSpeech(text: string, characterId: string): Promise<string> {
-    if (!text || text.trim().length === 0) {
-        return "";
-    }
+/** Returns base64-encoded PCM16 mono audio (24 kHz), or '' for empty text. */
+export async function synthesizeSpeech(
+  text: string,
+  characterId: string,
+  options: { voiceProfile?: VoiceProfileId; voicePrompt?: string } = {},
+): Promise<string> {
+  if (!text || text.trim().length === 0) return '';
 
-    try {
-        const character = CHARACTERS.find(c => c.id === characterId);
-        if (!character) {
-          throw new Error(`Character ${characterId} not found`);
-        }
+  const target = options.voicePrompt ? { voicePrompt: options.voicePrompt } : { characterId };
+  const body = options.voiceProfile ? { text, ...target, voiceProfile: options.voiceProfile } : { text, ...target };
 
-        // Apply pronunciation overrides
-        let phoneticText = text;
-
-        // Character-specific overrides
-        if (characterId === 'sbaitso') {
-          phoneticText = phoneticText.replace(/SBAITSO/g, 'SUH-BAIT-SO');
-        } else if (characterId === 'hal9000') {
-          phoneticText = phoneticText.replace(/HAL/g, 'H-A-L');
-        } else if (characterId === 'joshua') {
-          phoneticText = phoneticText.replace(/WOPR/g, 'WHOPPER');
-        }
-
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-preview-tts",
-          contents: [{ parts: [{ text: `${character.voicePrompt}: ${phoneticText}` }] }],
-          config: {
-            responseModalities: [Modality.AUDIO],
-            speechConfig: {
-                voiceConfig: {
-                  prebuiltVoiceConfig: { voiceName: 'Charon' },
-                },
-            },
-          },
-        });
-
-        const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        if (!base64Audio) {
-            throw new Error("No audio data received from TTS API");
-        }
-        return base64Audio;
-    } catch (error: any) {
-        console.error("Error synthesizing speech:", error);
-        // Preserve error details for rate limit detection
-        const errorMessage = error?.message || error?.toString() || "Unknown error";
-        const statusCode = error?.status || error?.code || '';
-        throw new Error(`TTS Error (${statusCode}): ${errorMessage}`);
-    }
+  const { audio } = await post<{ audio: string }>('/api/tts', body);
+  return audio ?? '';
 }
 
-// Legacy exports for backward compatibility
-export async function getDrSbaitsoResponse(message: string): Promise<string> {
+/** Legacy entry point kept for existing callers. */
+export function getDrSbaitsoResponse(message: string): Promise<string> {
   return getAIResponse(message, 'sbaitso');
 }

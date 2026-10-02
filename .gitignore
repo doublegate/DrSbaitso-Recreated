@@ -27,3 +27,6 @@ dist-ssr
 .env.local
 .vercel
 coverage/
+
+# Bundle analysis output (npm run analyze)
+reports/

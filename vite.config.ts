@@ -1,5 +1,5 @@
 import path from 'path';
-import { defineConfig, loadEnv, Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 
@@ -52,27 +52,67 @@ function securityHeadersPlugin(): Plugin {
   };
 }
 
+
+/**
+ * Serves the Vercel Functions in `api/` from the dev server, so `npm run dev`
+ * behaves like production: the browser calls /api/*, and the Gemini key is read
+ * from .env.local on the server side only. Not used in production builds.
+ */
+function devApiPlugin(env: Record<string, string>): Plugin {
+  return {
+    name: 'dev-api',
+    apply: 'serve',
+    configureServer(server: ViteDevServer) {
+      for (const key of ['GEMINI_API_KEY', 'GEMINI_CHAT_MODEL', 'GEMINI_TTS_MODEL']) {
+        if (env[key] && !process.env[key]) process.env[key] = env[key];
+      }
+      server.middlewares.use(async (req, res, next) => {
+        const match = /^\/api\/(chat|tts)(?:\?.*)?$/.exec(req.url ?? '');
+        if (!match) return next();
+        try {
+          const chunks: Buffer[] = [];
+          for await (const chunk of req) chunks.push(chunk as Buffer);
+          const body = chunks.length ? Buffer.concat(chunks) : undefined;
+          const headers = new Headers();
+          for (const [k, v] of Object.entries(req.headers)) {
+            if (typeof v === 'string') headers.set(k, v);
+          }
+          const request = new Request(`http://localhost${req.url}`, {
+            method: req.method,
+            headers,
+            body: req.method === 'GET' || req.method === 'HEAD' ? undefined : body,
+          });
+          const mod = await server.ssrLoadModule(`/api/${match[1]}.ts`);
+          const response: Response = await mod.POST(request);
+          res.statusCode = response.status;
+          response.headers.forEach((value, key) => res.setHeader(key, value));
+          res.end(Buffer.from(await response.arrayBuffer()));
+        } catch (error) {
+          next(error);
+        }
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       server: {
         port: 3000,
-        host: '0.0.0.0',
+        // Loopback only by default; use `npm run dev -- --host` to expose it.
+        host: 'localhost',
       },
       plugins: [
         react(),
         securityHeadersPlugin(), // v1.11.0: Security headers
-        visualizer({
-          filename: './dist/stats.html',
-          open: true,
-          gzipSize: true,
-          brotliSize: true,
-        }),
+        devApiPlugin(env),
+        // Bundle report on demand only (`npm run analyze`); never into dist/,
+        // which would publish it, and never opening a browser in CI.
+        process.env.ANALYZE
+          ? visualizer({ filename: './reports/bundle-stats.html', gzipSize: true, brotliSize: true })
+          : null,
       ],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
       resolve: {
         alias: {
           '@': path.resolve(import.meta.dirname, '.'),
@@ -89,15 +129,6 @@ export default defineConfig(({ mode }) => {
                 {
                   name: 'react-vendor',
                   test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-                },
-
-                // Firebase (already uses dynamic imports, but we'll split the core)
-                // Note: Most firebase modules are already lazy-loaded in cloudSync.ts
-
-                // Gemini AI SDK
-                {
-                  name: 'gemini-vendor',
-                  test: /[\\/]node_modules[\\/]@google[\\/]genai[\\/]/,
                 },
               ],
             },
