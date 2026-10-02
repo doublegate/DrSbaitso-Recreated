@@ -37,8 +37,18 @@ Byte's patents). Everything else is a factual correction to make either way.
       `src/utils/retroErrors.ts`. (Done in `src/constants.ts`, `src/utils/retroErrors.ts`
       and `src/utils/sessionManager.ts`; `App.tsx` should switch `GLITCH_PHRASES` to the
       engine's `isParityText` / `PARITY_TRIGGER_LINES` during integration.)
-- [ ] Check whether Gemini honours `speechMetadata.style` in `generateContent` (A/B test
-      with an extreme style). If it doesn't, the voice styles do nothing.
+- [x] Gemini honours `speechMetadata.style` in `generateContent`. Tested 2026-10-02 on
+      `gemini-3.8-flash-tts` with the same sentence:
+
+      | Style | Duration | Level |
+      |---|---|---|
+      | none | 4.84 s | -19.8 dB |
+      | "whisper, very slow" | 7.04 s | -34.3 dB |
+      | "shout, very fast" | 2.96 s | -16.8 dB |
+
+      The old inline "Say in ...:" prefix ran 13.92 s, so on 3.x it is most likely
+      spoken aloud as part of the text. Keep the prefix for 2.5 models only, as
+      `api/_lib/gemini.ts` does.
 
 ## Behaviour (decided: hybrid engine)
 
