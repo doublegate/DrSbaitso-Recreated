@@ -567,7 +567,8 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       >
         <div className="w-full max-w-4xl mx-auto flex flex-col grow border-2 border-(--color-border) p-4 min-h-0">
           {/* Header: persona and tool menus */}
-          <header className="shrink-0 flex flex-wrap items-center gap-x-4 gap-y-2 mb-3 pb-2 border-b-2 border-(--color-border)">
+          {/* z-50: the menus stay above the floating panels (z-40), which they toggle. */}
+          <header className="relative z-50 shrink-0 flex flex-wrap items-center gap-x-4 gap-y-2 mb-3 pb-2 border-b-2 border-(--color-border)">
             <div className="flex items-center gap-2 min-w-0" data-tour-id="character-selection">
               <label htmlFor="persona-select" className="text-sm font-bold">
                 PERSONA:

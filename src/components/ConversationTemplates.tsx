@@ -157,9 +157,20 @@ export function ConversationTemplates({
             )}
 
             {filteredTemplates.map(template => (
+              // A div with a button role: the card holds a heading, which a
+              // <button> may not contain.
               <div
                 key={template.id}
+                role="button"
+                tabIndex={0}
+                aria-pressed={selectedTemplate?.id === template.id}
                 onClick={() => handleSelectTemplate(template)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleSelectTemplate(template);
+                  }
+                }}
                 className="p-4 border-2 cursor-pointer transition-all"
                 style={{
                   borderColor: getCategoryColor(template.category),
