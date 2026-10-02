@@ -253,8 +253,11 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   client's list, and unknown codes are now reported as UNKNOWN.
 - **Sharing to the app and the app shortcuts work.** The share target posted to a
   page that did not exist and the shortcuts opened actions nothing read. Shared
-  text now lands on the input line (classic screen), and the shortcuts open the
-  classic screen or Enhanced mode.
+  text now lands, unsent, on the input line of either screen, and the shortcuts
+  open the classic screen or Enhanced mode.
+- **Enhanced mode shows OFFLINE** in the status bar when the browser has no
+  connection, since replies and speech need it. The unused `usePWA` hook and
+  `PWAPrompts` component, which duplicated the install and update prompts, are gone.
 - **App name and dates.** The page title, description, onboarding and audio-mode
   names called the original a 1991 program (it shipped in 1990 and 1992), and the
   audio modes listed sample rates and filters the voice chain no longer uses.

@@ -16,6 +16,7 @@ function props(overrides: Partial<StatusBarProps> = {}): StatusBarProps {
     voiceProfile: 'classic',
     onVoiceProfileChange: vi.fn(),
     showVoiceProfile: true,
+    offline: false,
     ...overrides,
   };
 }
@@ -33,5 +34,14 @@ describe('StatusBar voice profile', () => {
   it('is hidden for personas the profiles do not apply to', () => {
     render(<StatusBar {...props({ showVoiceProfile: false })} />);
     expect(screen.queryByLabelText('Voice profile')).toBeNull();
+  });
+});
+
+describe('StatusBar connection', () => {
+  it('says when the browser is offline (replies need the network)', () => {
+    const { rerender } = render(<StatusBar {...props()} />);
+    expect(screen.queryByText('OFFLINE')).toBeNull();
+    rerender(<StatusBar {...props({ offline: true })} />);
+    expect(screen.getByText('OFFLINE')).toBeInTheDocument();
   });
 });

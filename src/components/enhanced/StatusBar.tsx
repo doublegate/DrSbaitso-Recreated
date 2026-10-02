@@ -16,6 +16,8 @@ export interface StatusBarProps {
   voiceProfile: VoiceProfileId;
   onVoiceProfileChange: (id: VoiceProfileId) => void;
   showVoiceProfile: boolean;
+  /** The browser is offline: replies and speech cannot reach /api. */
+  offline: boolean;
 }
 
 export default function StatusBar({
@@ -30,6 +32,7 @@ export default function StatusBar({
   voiceProfile,
   onVoiceProfileChange,
   showVoiceProfile,
+  offline,
 }: StatusBarProps) {
   return (
     <footer className="shrink-0 mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" data-tour-id="audio-settings">
@@ -91,6 +94,11 @@ export default function StatusBar({
         SAVE HISTORY
       </label>
       {muted && <span aria-live="polite">SPEECH MUTED</span>}
+      {offline && (
+        <span role="status" className="text-(--color-accent)" title="Replies and speech need a network connection">
+          OFFLINE
+        </span>
+      )}
       <span className="ml-auto opacity-60 hidden sm:inline">
         {shortcutLabel('switchMode')} classic screen
       </span>

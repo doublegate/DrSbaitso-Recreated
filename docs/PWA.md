@@ -12,7 +12,7 @@ loaded once. Replies and speech need the network, because they come from
 | Precache list | generated at build time | Every hashed file in `dist/` (JS, CSS, HTML, icons, worklet, manifest) |
 | Registration and updates | `src/components/UpdatePrompt.tsx` | `useRegisterSW` from `virtual:pwa-register/react` |
 | Install banner | `src/hooks/useInstallPrompt.ts` + `src/components/InstallPrompt.tsx` | Shown only when the browser fires `beforeinstallprompt` |
-| Web app manifest | `public/manifest.json` | Icons, shortcuts and the share target |
+| Web app manifest | `public/manifest.json` | Icons (`any` and `maskable`), shortcuts and the share target |
 | Retired worker | `public/service-worker.js` | A kill switch for browsers that installed the v1.x worker (see below) |
 
 ## Caching rules
@@ -23,6 +23,18 @@ loaded once. Replies and speech need the network, because they come from
   offline. `/api/*` is excluded.
 - **`/api/*`**: never cached; conversations are per user and per turn.
 - **Other same-origin images**: cache-first, at most 60 entries for 30 days.
+
+## Shortcuts, sharing and offline
+
+- **Shortcuts** (long-press the installed icon): *Classic Screen* opens
+  `/?mode=classic`, *Enhanced Mode* opens `/?mode=enhanced`.
+- **Share target**: sharing text or a link to the installed app opens
+  `GET /share?title=&text=&url=`. Any path serves the app, so no server route
+  exists; `src/utils/shareTarget.ts` reads the parameters once, clears the URL, and
+  the text appears unsent on the input line after the greeting (both screens).
+- **Offline**: the app shell loads offline, but replies and speech need `/api`.
+  Enhanced mode shows OFFLINE in the status bar; on the classic screen a failed
+  reply prints the in-character `CARRIER LOST` message.
 
 ## Updates
 
