@@ -38,7 +38,8 @@ export interface SyncOptions {
   enabled: boolean;
   autoSync: boolean;
   syncInterval: number; // milliseconds
-  conflictResolution: 'last-write-wins' | 'manual';
+  /** Newer `updatedAt` wins. The only strategy implemented; a saved 'manual' is read as this. */
+  conflictResolution: 'last-write-wins';
 }
 
 export interface SyncStatus {
@@ -592,7 +593,7 @@ export class CloudSync {
       syncInterval: Number.isFinite(interval)
         ? Math.min(MAX_INTERVAL_MS, Math.max(MIN_INTERVAL_MS, interval))
         : DEFAULT_OPTIONS.syncInterval,
-      conflictResolution: options.conflictResolution === 'manual' ? 'manual' : 'last-write-wins',
+      conflictResolution: 'last-write-wins',
     };
   }
 
