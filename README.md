@@ -1,50 +1,51 @@
 # Dr. Sbaitso Recreated
 
-> The Sound Blaster "AI therapist" from 1990-1992, rebuilt for the web with Google Gemini for conversation and speech.
+> The Sound Blaster "AI therapist" from 1990-1992, rebuilt for the web: its original
+> screen and behaviour, with Google Gemini for open conversation and speech.
 
-[![Live demo](https://img.shields.io/badge/demo-dr--sbaitso--recreated.vercel.app-000080)](https://dr-sbaitso-recreated.vercel.app)
+[![Live demo](https://img.shields.io/badge/demo-dr--sbaitso--recreated.vercel.app-0000AA)](https://dr-sbaitso-recreated.vercel.app)
+[![CI](https://github.com/doublegate/DrSbaitso-Recreated/actions/workflows/ci.yml/badge.svg)](https://github.com/doublegate/DrSbaitso-Recreated/actions/workflows/ci.yml)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7%20(strict)-3178C6?logo=typescript)
-![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Type your name, and DOCTOR SBAITSO greets you in ALL CAPS with a crunchy, synthesised
-voice, then asks about your problems, just like the DOS program that shipped with
-Creative Labs sound cards.
+![The classic screen](public/screenshots/classic-wide.png)
 
-- **Classic mode** (the default) recreates the original v2.20 screen: an 80x25 DOS text
-  display in the IBM VGA font, with the box-drawn banner and the exact greeting and
-  prompts. It is based on [sourced research](ref-docs) into the original program.
-- **Enhanced mode** adds a modern toolbar and panels, plus four other classic computer
-  personalities: ELIZA, HAL 9000, JOSHUA/WOPR and PARRY. Switch modes with
-  **Alt+Shift+X**.
+Type your name, and DOCTOR SBAITSO greets you in his flat 8-bit voice and asks about
+your problems, just like the DOS program that shipped with Creative Labs sound cards.
 
 **Try it:** <https://dr-sbaitso-recreated.vercel.app>
 
-> **Status (October 2026):** version 2.0 is in progress on
-> `fix/v2-audit-remediation`. It fixes the crash that broke the live site, moves the
-> Gemini key server-side, and reconnects several features that existed in the code
-> but could not be reached from the UI. Items marked *(2.0)* below are still being
-> wired up. See [CHANGELOG.md](CHANGELOG.md).
+## Two ways to use it
+
+- **Classic screen** (the default) recreates v2.20 as measured from the original
+  running in DOSBox: the 80x25 VGA text screen and font, the banner, the greeting,
+  HELP, CALC, SAY, R, the dot commands, the parity-error flood and the
+  `<C>ontinue <N>ew patient <Q>uit` menu. The commands run locally; only open
+  conversation goes to the model.
+- **Enhanced mode** (**Alt+Shift+X**, or `?mode=enhanced`) adds four more classic
+  computer personalities, each with its own local engine and voice: ELIZA (the 1965
+  script, entirely offline), HAL 9000, JOSHUA/WOPR (with tic-tac-toe) and PARRY.
+  It also has your own characters, themes, visualisations, templates, export,
+  sound packs, voice input, and opt-in conversation history with optional cloud sync.
 
 ## Features
 
-- **Five vintage personalities** with period-accurate system prompts, plus a character
-  creator for your own *(2.0: persona selector)*.
-- **Authentic voice**: Gemini text-to-speech run through Sound Blaster-style processing
-  (11 kHz, 8-bit, band-limited), with four audio modes from *Modern* to *Ultra
-  Authentic*, and three voice profiles *(2.0: profile selector)*.
-- **Retro terminal UI**: five themes plus a theme customiser, a typewriter effect, and
-  glitches such as `PARITY CHECKING...`.
-- **Conversation tools**: emotion and topic visualisations and templates, plus
-  search, replay, an insights dashboard and export to Markdown, text, JSON, HTML,
-  CSV and print *(2.0: session saving, which these depend on)*.
-- **Voice**: speech input and hands-free voice commands (Web Speech API).
-- **Sound**: retro UI sound effects, procedural chiptune music and custom sound packs.
+- **The original's voice, approximated from measurements**: Gemini speech
+  resampled to 8,475 Hz, 8-bit with sample-and-hold, pitch flattened like the 1992
+  voice. Four audio modes and three voice profiles. HAL and JOSHUA get their own
+  audio chains.
+- **Faithful behaviour**: local engines reproduce what the originals did
+  mechanically; the model only fills in open conversation
+  ([ADR-0003](docs/adr/0003-hybrid-local-engines.md)).
+- **Private by default**: memory is wiped when you leave, as the original promised.
+  Turn on SAVE HISTORY to keep conversations in your browser.
 - **Accessible and installable**: keyboard shortcuts, screen-reader support, high
-  contrast and font scaling; installs as a PWA.
+  contrast and font scaling; installs as a PWA. Offline, the app and the local
+  engines still run (ELIZA fully), but model replies and speech need the network.
 
-See [docs/FEATURES.md](docs/FEATURES.md) for the full guide and
-[docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md) for shortcuts.
+See [docs/FEATURES.md](docs/FEATURES.md) and
+[docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md).
 
 ## Quick start
 
@@ -63,38 +64,37 @@ npm run dev                  # http://localhost:3000
 | `npm run dev` | Dev server, including the `/api` functions |
 | `npm run build` / `npm run preview` | Production build and local preview |
 | `npm run test:run` | Unit and integration tests (Vitest) |
-| `npm run test:e2e` | End-to-end tests (Playwright, Chromium) |
-| `npm run typecheck` / `npm run lint` | TypeScript (strict) and oxlint |
-| `npm run analyze` | Bundle size report in `reports/` |
+| `npm run test:e2e` | End-to-end tests (Playwright, `/api` mocked) |
+| `npm run lint` / `npm run typecheck` / `npm run format:check` | oxlint, TypeScript (strict), Prettier |
+| `npm run check:secrets` | Fails if the build contains anything shaped like an API key |
 
 ## How it works
 
 ```
-Browser (React SPA)                     Vercel Functions                Google Gemini
- chat UI, typewriter, audio  ── POST /api/chat ──▶ validate, rate-limit ──▶ gemini-3.8-flash
- Web Audio vintage pipeline  ── POST /api/tts ───▶ persona voice + style ─▶ gemini-3.8-flash-tts
-                                                   (model fallback on 503/429)
+Browser (React SPA)                         Vercel Functions                  Google Gemini
+ classic screen | Enhanced mode
+ local engines (sbaitso, eliza, ...)
+   open conversation  ── POST /api/chat ──▶ validate, rate-limit, persona ──▶ gemini-3.8-flash
+   speech             ── POST /api/tts ───▶ voice + style, PCM16 24 kHz  ──▶ gemini-3.8-flash-tts
+ Web Audio voice chains                     (model fallback on 503/429/timeout)
 ```
 
-The browser never holds the API key. The functions in [`api/`](api) look up each
-persona's system prompt on the server, keep requests within size limits, and convert
-the TTS output to raw PCM. The client then plays that PCM through a bit-crushing
-Web Audio pipeline.
-Architecture details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+The browser never holds the API key ([ADR-0001](docs/adr/0001-gemini-behind-a-server-proxy.md)),
+and a strict Content-Security-Policy keeps it that way. Architecture:
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); decisions: [docs/adr/](docs/adr).
 
 ## Deployment
 
 Deploy to Vercel with the included `vercel.json`, and set `GEMINI_API_KEY` under
 **Project → Settings → Environment Variables** for Production and Preview. Optional
 model overrides are listed in [`.env.example`](.env.example). See
-[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for other hosts and for rate-limit settings.
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for other hosts and rate limiting.
 
 ## Documentation
 
 - [CHANGELOG.md](CHANGELOG.md): release history
-- [docs/TESTING.md](docs/TESTING.md): test strategy and how to run each suite
-- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md): common problems
-- [ref-docs/](ref-docs): sourced research on the original program (history, voice, screen)
+- [docs/](docs): architecture, API, testing, deployment, troubleshooting and feature guides
+- [ref-docs/](ref-docs): sourced research on the original program and the other personas
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute
 - [to-dos/](to-dos): roadmap and open work
 
@@ -102,15 +102,15 @@ model overrides are listed in [`.env.example`](.env.example). See
 
 The original Dr. Sbaitso was created by Creative Labs (1990-1992) for MS-DOS and Sound
 Blaster cards. This is an unofficial fan recreation and is not affiliated with Creative
-Technology. It started as a Google AI Studio app and is built with React, Vite and
-Google Gemini.
+Technology. ELIZA's 1965 DOCTOR script is public domain (CC0); the other personas are
+reimplemented from published research ([ref-docs/](ref-docs)).
 
 IBM VGA font: [The Ultimate Oldschool PC Font Pack](https://int10h.org/oldschool-pc-fonts/)
 by VileR, CC BY-SA 4.0. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## License
 
-[MIT](LICENSE), except for the bundled third-party assets listed in
+[MIT](LICENSE), except for the bundled third-party material listed in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 <div align="center">
