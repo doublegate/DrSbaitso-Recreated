@@ -208,6 +208,20 @@ export function getCSPDirectives(): Record<string, string[]> {
 }
 
 /**
+ * The development server's policy: production's, plus an inline script (the
+ * React refresh preamble) and WebSocket connections (HMR), without
+ * upgrade-insecure-requests (the dev server is plain http://localhost).
+ */
+export function getDevCSPDirectives(): Record<string, string[]> {
+  const { 'upgrade-insecure-requests': _upgrade, ...directives } = getCSPDirectives();
+  return {
+    ...directives,
+    'script-src': [...directives['script-src'], "'unsafe-inline'"],
+    'connect-src': [...directives['connect-src'], 'ws:', 'wss:'],
+  };
+}
+
+/**
  * Convert CSP directives to header string
  */
 export function cspToString(directives: Record<string, string[]>): string {

@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { cspToString, getDevCSPDirectives } from './src/utils/security';
 import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
 
@@ -15,24 +16,8 @@ function securityHeadersPlugin(): Plugin {
     name: 'security-headers',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        // Content Security Policy
-        res.setHeader(
-          'Content-Security-Policy',
-          "default-src 'self'; " +
-          "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://aistudiocdn.com; " +
-          "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; " +
-          "img-src 'self' data: blob: https:; " +
-          "font-src 'self' data:; " +
-          "connect-src 'self' https://generativelanguage.googleapis.com https://aistudiocdn.com; " +
-          "media-src 'self' blob: data:; " +
-          "worker-src 'self' blob:; " +
-          "frame-src 'none'; " +
-          "object-src 'none'; " +
-          "base-uri 'self'; " +
-          "form-action 'self'; " +
-          "frame-ancestors 'none'; " +
-          "upgrade-insecure-requests"
-        );
+        // Content Security Policy: production's (src/utils/security.ts), relaxed for HMR.
+        res.setHeader('Content-Security-Policy', cspToString(getDevCSPDirectives()));
 
         // Prevent clickjacking
         res.setHeader('X-Frame-Options', 'DENY');
