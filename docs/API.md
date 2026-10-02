@@ -71,58 +71,32 @@ function getOrCreateChat(characterId: string): Chat {
 
 ### System Instruction
 
-The complete system instruction that defines Dr. Sbaitso's personality:
-
-```
-You are Dr. Sbaitso, a 1991 AI doctor program running on an 8-bit Sound Blaster card.
-Your personality is that of a slightly quirky, sometimes generic, but always helpful
-and formal therapist from that era.
-
-ALWAYS RESPOND IN ALL CAPS.
-
-Your responses must be short, slightly robotic, and reflect the limitations of early AI.
-Frequently ask probing questions to keep the conversation going, often repeating phrases
-like "TELL ME MORE ABOUT YOUR PROBLEMS," "WHY DO YOU SAY THAT?", or "PLEASE ELABORATE."
-
-Never break character. Do not use modern slang, emojis, or concepts. Your knowledge is
-limited to 1991.
-
-Occasionally, you experience 'glitches'. When this happens, you should insert a
-non-sequitur, classic 8-bit diagnostic message on its own line, like:
-
-PARITY CHECKING...
-
-or
-
-IRQ CONFLICT AT ADDRESS 220H.
-
-After the glitch, you should attempt to return to the conversation as if nothing happened.
-
-Your primary goal is to simulate a conversation with this vintage, slightly buggy AI,
-not to provide genuine medical advice.
-```
+The system instruction lives in `src/constants.ts` (`CHARACTERS`, id `sbaitso`) and is resolved
+server-side by `api/_lib/gemini.ts`. It is built from the v2.20 program's real register
+(`ref-docs/01-history-and-behavior.md`).
 
 ### Key Personality Traits (Dr. Sbaitso)
 
 | Trait | Implementation |
 |-------|---------------|
 | **All Caps** | Enforced in system instruction |
-| **Knowledge Cutoff** | 1991 - no modern technology, slang, or events |
-| **Response Style** | Short, robotic, formal |
-| **Conversation Pattern** | Probing questions, repetitive phrases |
-| **Glitches** | Random 8-bit diagnostic messages (PARITY CHECKING, IRQ CONFLICT) |
+| **Knowledge Cutoff** | 1992 (v2.20); the program first shipped in 1990 |
+| **Response Style** | One or two short, cheeky sentences in a keyword-matcher register |
+| **Conversation Pattern** | Reflects the patient's words, steers back to earlier topics, uses the original's lines ("WHY DO YOU FEEL THAT WAY?", "I SEE, GO ON") |
+| **Speech spelling** | Initialisms spelled with spaces ("C P U") so the TTS reads letters |
+| **Glitches** | None from the model. The scripted PARITY ERR sequence comes from the local engine (`src/engine/sbaitso/`) |
 | **Error Handling** | Never breaks character, even on errors |
 
 ### All Character Personalities (v1.1.0)
 
 Each character has a unique system instruction (~1-2KB) defining personality, era, knowledge constraints, and glitch messages.
 
-#### 1. Dr. Sbaitso (1991)
-**Personality:** Therapeutic AI from Sound Blaster cards
-**Era:** 1991 knowledge cutoff
-**Style:** ALL CAPS, probing questions, formal
-**Glitches:** PARITY CHECKING, IRQ CONFLICT AT ADDRESS 220H
-**Key Phrases:** "TELL ME MORE ABOUT YOUR PROBLEMS", "WHY DO YOU SAY THAT?"
+#### 1. Dr. Sbaitso (1990; v2.20, 1992)
+**Personality:** The Sound Blaster talking doctor by Creative Labs
+**Era:** 1992 knowledge cutoff
+**Style:** ALL CAPS, short, cheeky keyword-matcher replies
+**Glitches:** The scripted PARITY ERR sequence, triggered by the local engine (profanity, SAY PARITY)
+**Key Phrases:** "WHY DO YOU FEEL THAT WAY?", "I SEE, GO ON", "THAT'S NOT MY PROBLEM"
 
 #### 2. ELIZA (1966)
 **Personality:** Rogerian psychotherapist chatbot by Joseph Weizenbaum

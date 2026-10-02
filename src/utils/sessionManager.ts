@@ -1,6 +1,7 @@
 import { ConversationSession, Message, SessionStats, AppSettings, InsightsData, InsightsFilter } from '../types';
 import { DEFAULT_CHARACTER, DEFAULT_THEME, DEFAULT_AUDIO_QUALITY, CHARACTERS } from '../constants';
 import { analyzeSentiment, calculateSentimentTrend, extractTopKeywords } from './sentimentAnalysis';
+import { isParityText } from '../engine/sbaitso';
 
 const SESSIONS_KEY = 'sbaitso_sessions';
 const CURRENT_SESSION_KEY = 'sbaitso_current_session';
@@ -199,15 +200,9 @@ export class SessionManager {
     }
   }
 
+  /** Count a reply that contains the original's parity-error sequence as one glitch. */
   static incrementGlitchCount(session: ConversationSession, response: string): number {
-    const glitchPhrases = ['PARITY CHECKING', 'IRQ CONFLICT'];
-    let count = session.glitchCount;
-
-    if (glitchPhrases.some(phrase => response.includes(phrase))) {
-      count++;
-    }
-
-    return count;
+    return isParityText(response) ? session.glitchCount + 1 : session.glitchCount;
   }
 
   // Insights and Analytics (v1.8.0)

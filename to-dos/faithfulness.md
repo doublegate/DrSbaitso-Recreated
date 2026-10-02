@@ -34,22 +34,33 @@ Byte's patents). Everything else is a factual correction to make either way.
 - [ ] "PARITY CHECKING" and "IRQ CONFLICT AT ADDRESS 220H" never appear in the original.
       The real glitch is "PARITY ERR ... RECOVERED / PHEW! THAT WAS CLOSE!", triggered
       by swearing. Fix in `src/constants.ts`, `src/App.tsx` (`GLITCH_PHRASES`) and
-      `src/utils/retroErrors.ts`.
+      `src/utils/retroErrors.ts`. (Done in `src/constants.ts`, `src/utils/retroErrors.ts`
+      and `src/utils/sessionManager.ts`; `App.tsx` should switch `GLITCH_PHRASES` to the
+      engine's `isParityText` / `PARITY_TRIGGER_LINES` during integration.)
 - [ ] Check whether Gemini honours `speechMetadata.style` in `generateContent` (A/B test
       with an extreme style). If it doesn't, the voice styles do nothing.
 
 ## Behaviour (decided: hybrid engine)
 
-- [ ] Local command parser before the model: `HELP` (3 pages), `R` (repeat), `SAY`,
+Decided: **hybrid** engine. `src/engine/sbaitso/` answers the original's commands and
+canned cases locally; everything else goes to Gemini. Items ticked below are done in
+that module; wiring it into `src/App.tsx` is still pending.
+
+- [x] Local command parser before the model: `HELP` (3 pages), `R` (repeat), `SAY`,
       `CALC`, `AUTHOR`, `SHUT UP`, and dot commands such as `.PITCH 0-9`, `.SPEED`,
-      `.TONE`, `.VOLUME`, `.PARAM`, `.COLOR` and `.WIDTH 40/80`.
-- [ ] Deterministic handlers: empty Enter (escalating nags), short or garbage input,
-      repeated input, profanity strikes ending in the parity sequence.
-- [ ] Persona prompt rebuilt from the original's register (its real lines, spelled-out
+      `.TONE`, `.VOLUME`, `.PARAM`, `.COLOR` and `.WIDTH 40/80`. (Engine done; UI
+      integration pending.)
+- [x] Deterministic handlers: empty Enter (escalating nags), short or garbage input,
+      repeated input, profanity strikes ending in the parity sequence. (Engine done;
+      UI integration pending.)
+- [x] Persona prompt rebuilt from the original's register (its real lines, spelled-out
       initialisms such as "C P U") instead of invented catchphrases.
 - [ ] Name entry: letters and spaces only, a length limit, each letter spoken as it is
-      typed, and "Doctor Sbaitso" spoken first.
-- [ ] Exit: `BYE` → `GOOD BYE` → `<C>ontinue <N>ew patient <Q>uit`.
+      typed, and "Doctor Sbaitso" spoken first. (Rules done: `validateName`,
+      `isNameCharAllowed`, `NAME_ERROR_TEXT`; the limit of 20 is a guess. Per-letter
+      speech and the spoken title are UI work.)
+- [x] Exit: `BYE` → `GOOD BYE` → `<C>ontinue <N>ew patient <Q>uit`. (Engine returns
+      `exit` with `exitMenuText()` / `resolveExitChoice()`; UI integration pending.)
 - [x] Opt-in "Keep session history" setting (off by default), shipped as "SAVE HISTORY" in Enhanced mode.
 
 ## Screen (decided: classic default + enhanced toggle)
