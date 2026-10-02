@@ -390,6 +390,10 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   only (see "Per-persona voices").
 
 ### Changed
+- **Enhanced mode restructured** with no visible change: the turn pipeline, panel
+  state and shortcuts are hooks (`useChatPipeline`, `usePanels`,
+  `useGlobalShortcuts`), and the screen is split into components under
+  `src/components/enhanced/`. `EnhancedApp.tsx` went from 1,180 to 262 lines.
 - **HAL 9000 and JOSHUA persona prompts rewritten from the research** (`ref-docs/07`,
   `ref-docs/08`). HAL now writes in sentence case (he is a spoken character; the
   capitals had no basis in the film). He is courteous, uses the user's first name,
