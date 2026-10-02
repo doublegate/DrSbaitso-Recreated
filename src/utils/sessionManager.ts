@@ -8,6 +8,26 @@ const CURRENT_SESSION_KEY = 'sbaitso_current_session';
 const SETTINGS_KEY = 'sbaitso_settings';
 const STATS_KEY = 'sbaitso_stats';
 
+/** Minimal structural check for a session from outside this browser. */
+export function isConversationSession(value: unknown): value is ConversationSession {
+  if (typeof value !== 'object' || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    v.id.length > 0 &&
+    typeof v.updatedAt === 'number' &&
+    Number.isFinite(v.updatedAt) &&
+    Array.isArray(v.messages) &&
+    v.messages.every(
+      (m: unknown) =>
+        typeof m === 'object' &&
+        m !== null &&
+        ((m as Message).author === 'user' || (m as Message).author === 'dr') &&
+        typeof (m as Message).text === 'string',
+    )
+  );
+}
+
 export class SessionManager {
   // Session management
   static createSession(characterId: string, themeId: string, audioQualityId: string): ConversationSession {
@@ -31,10 +51,12 @@ export class SessionManager {
    * session pointer alone. Returns how many sessions were written.
    */
   static mergeSessions(incoming: ConversationSession[]): number {
+    // Cloud data is untrusted: keep only records shaped like a session.
+    if (!Array.isArray(incoming)) return 0;
     try {
       const sessions = this.getAllSessions();
       let written = 0;
-      for (const session of incoming) {
+      for (const session of incoming.filter(isConversationSession)) {
         const index = sessions.findIndex((s) => s.id === session.id);
         if (index < 0) {
           sessions.push(session);
