@@ -8,6 +8,7 @@ import {
   processHalVoice,
 } from '@/utils/personaVoices';
 import { estimatePitch } from '@/utils/lpcMonotone';
+import { bestCpuMs } from '../helpers/cpuTime';
 
 const FS = 24000;
 
@@ -130,16 +131,8 @@ describe('processHalVoice', () => {
 
   it('processes five seconds of 24 kHz speech in under 150 ms', () => {
     const input = vowel(120, 5);
-    processHalVoice(input.subarray(0, 4800), FS); // warm up the JIT
-    // Best of three: the suite runs files in parallel, so one run can be
-    // preempted. Standalone it takes about 30 ms.
-    let best = Infinity;
-    for (let run = 0; run < 3; run++) {
-      const started = performance.now();
-      processHalVoice(input, FS);
-      best = Math.min(best, performance.now() - started);
-    }
-    expect(best).toBeLessThan(150);
+    // About 30 ms standalone.
+    expect(bestCpuMs(() => processHalVoice(input, FS))).toBeLessThan(150);
   });
 });
 
