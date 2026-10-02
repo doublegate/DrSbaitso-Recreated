@@ -1,12 +1,10 @@
 @import 'tailwindcss' source(none);
 
-/* Scan only application sources (not docs/, which would add stray classes). */
+/* Scan the whole application source tree plus index.html (not docs/, which
+   would add stray classes). Whole directories, not file names: listing
+   individual files once dropped every class used only in a renamed file. */
 @source '../index.html';
-@source './App.tsx';
-@source './components';
-@source './hooks';
-@source './utils';
-@source './constants.ts';
+@source '.';
 
 @theme {
   --animate-slide-up: slide-up 0.3s ease-out;
