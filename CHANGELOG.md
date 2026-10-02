@@ -7,7 +7,91 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Work toward 2.0.0 (branch `fix/v2-audit-remediation`). The deployed app was broken:
+it crashed right after name entry and leaked its Gemini API key in the client bundle.
+
+### Security
+- **The Gemini API key no longer reaches the browser.** It was inlined into the
+  client bundle by Vite `define` and was readable on the live site (the key has been
+  rotated). Chat and speech now go through server-side Vercel Functions
+  (`api/chat.ts`, `api/tts.ts`). They validate and size-cap input, rate-limit per
+  client, and never echo upstream error details. **`GEMINI_API_KEY` must now be set
+  as a Vercel environment variable** (see `.env.example`).
+- Security headers on every response (HSTS, `X-Frame-Options`, `nosniff`,
+  Referrer-Policy, Permissions-Policy) via `vercel.json`.
+- The dev server binds to `localhost` by default instead of `0.0.0.0`.
+- The bundle-analysis report is no longer written into `dist/` and published.
+
+### Added
+- **Model fallback.** When a model is overloaded (503), out of quota (429) or slow,
+  the proxy tries the next one within a 50-second budget. The defaults are
+  `gemini-3.8-flash` (then 3.7, 3.5, flash-latest) for chat and `gemini-3.8-flash-tts`
+  (then the lite TTS model) for speech. All model ids can be overridden through
+  environment variables.
+- **Voice profiles** (`classic` Charon, `deep` Fenrir, `glitchy` Puck), ported from
+  the Google AI Studio version of the app and accepted by `/api/tts`.
+- Voice commands for the music player and the sound-pack manager.
+- `npm run lint` (oxlint, with React hooks, accessibility and test rules) and
+  `npm run analyze` (bundle report on demand).
+
+### Fixed
+- **Crash right after name entry.** `<InstallPrompt />` was rendered without its
+  props, threw, and the error screen replaced the app. It now appears only when the
+  browser actually offers installation.
+- **Endless re-render loop.** `useVoiceControl` re-rendered forever from the moment
+  the app mounted (in tests, a 4 GB heap filled in about 35 seconds). Voice
+  recognisers were also rebuilt on every render, so voice control and voice input
+  could not work.
+- **Missing app in key-less builds.** Without a key, the build compiled to a
+  top-level `throw`, and the bundler dropped the entire app.
+- **Speech with current models.** Speech uses `gemini-3.8-flash-tts`, whose WAV
+  output is converted to the PCM the player expects. The old preview TTS model has
+  been dropped from Google's supported list.
+- **Doubled characters in development.** The reply typewriter mutated React state,
+  so every character appeared twice.
+- **Lost replies.** A reply was deleted if its audio could not be played. Speech
+  failures now never remove text the user has already read. The greeting continues
+  in text-only mode on any speech failure (previously only on rate limits).
+- **Clearer error messages.** Chat errors now explain the cause (rate limited,
+  busy, offline, not configured) instead of a random fault message.
+- **Audio modes.** "Modern" audio was still bit-crushed and sped up; every mode
+  added a second crush on top of vintage processing. Each mode now uses its own
+  settings.
+- **Audio resources.** There is now a single shared AudioContext (it had been up to
+  four, never closed). The audio worklet is awaited before first use, and worklet
+  nodes are released after each utterance instead of piling up.
+- **Audio visualizer and "stop audio".** Both now receive the playing source; they
+  were no-ops.
+- **Emotion panel crash.** Opening the emotion panel after typing threw: the panel
+  read a data shape the detector never returns. It also now backfills history.
+- **CSV exports.** CSV exports threw `RangeError`, and the print/Markdown exports
+  showed "Invalid Date" for sessions created by the session manager.
+- **Stale closures in hooks.** Voice input, the onboarding tutorial, replay
+  shortcuts and the insights charts all called handlers from earlier renders. They
+  use `useEffectEvent` or refs now.
+- **Templates.** They run through the normal reply flow (loading state, typing,
+  speech) instead of racing the user's input.
+- **Clear conversation.** Clearing the conversation now also clears the model's
+  memory, as the greeting promises.
+- **Styling.** Three modals rendered unstyled because their `--color-*` theme
+  variables were never defined. The undefined `animate-slide-up` animation is now
+  defined too.
+- **Zoom and copy.** The page blocked zooming (WCAG 1.4.4) and prevented selecting
+  or copying conversation text.
+- **Profiler.** `performanceProfiler` shadowed the global `performance` API.
+
 ### Changed
+- **Tailwind v4, compiled at build time.** The Tailwind v3 Play CDN (meant for
+  development only) has been replaced by Tailwind v4 through `@tailwindcss/vite`.
+  The leftover AI Studio import map is gone.
+- **TypeScript.** The project now typechecks with `strict: true` and 0 errors; it
+  had 64 errors before. `tsconfig` is split into browser app, Node/functions and
+  tests.
+- **Install and audit.** The `@grpc/grpc-js` override clears the remaining
+  firebase advisories (`npm audit`: 0). `.npmrc` `legacy-peer-deps` was removed, and
+  `engines.node` is now `>=22.12.0`.
+
+### Changed (dependency consolidation, PR #7)
 - **Dependencies brought to latest compatible versions** (consolidates Dependabot PR #6,
   the `jws` 4.0.0 -> 4.0.1 security fix, which the regenerated lockfile now resolves
   as 4.0.1). `npm audit`: 22 vulnerabilities (3 critical, 14 high) -> 0.
@@ -21,19 +105,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `@testing-library/dom` 10.4 added explicitly), `@testing-library/jest-dom` 6 -> 7,
     `jsdom` 23 -> 30, `happy-dom` 20.0 -> 20.14, `@playwright/test` 1.56 -> 1.63,
     `@types/node` 22 -> 26.
-- **Vite 8 migration**: Rolldown removed the object form of `manualChunks`, so the
-  `react-vendor` and `gemini-vendor` chunks are now declared as
-  `build.rolldownOptions.output.codeSplitting.groups`; `__dirname` in `vite.config.ts`
-  became `import.meta.dirname`.
-- **TypeScript 7**: `strict` now defaults to `true`; `tsconfig.json` sets
-  `"strict": false` explicitly to keep the checking the project has always had
-  (typecheck output is identical before and after the upgrade).
+- **Vite 8 migration**: Rolldown removed the object form of `manualChunks`, so vendor
+  chunks are declared as `build.rolldownOptions.output.codeSplitting.groups`
+  (the `gemini-vendor` chunk was later removed along with the client-side SDK);
+  `__dirname` in `vite.config.ts` became `import.meta.dirname`.
+- **TypeScript 7** (strict was briefly pinned off; see Changed above for the move to
+  `strict: true`).
 - **Node.js 22.22.2+ (or 24.15+ / 26+)** is now required for development (jsdom 30
   and jest-dom 7);
   Vite 8 alone needs 20.19+.
 
 ### Planned
-- Backend API proxy for production security
 - Additional retro voice options (Pico, Kali, Aoede)
 - Email/password authentication for cloud sync
 - Shared conversations and collaboration features

@@ -20,54 +20,72 @@
 <<< MC-PROJECT-START >>>
 ## Project: DrSbaitso-Recreated
 
-Web recreation of the 1991 Sound Blaster "Dr. Sbaitso" AI therapist: React 19 + TypeScript + Vite 8
-(Rolldown), Gemini for chat and text-to-speech, deployed as a Vite SPA on Vercel
-(project `dr-sbaitso-recreated`, team `doublegate-projects`). Five personas (Dr. Sbaitso, ELIZA,
-HAL 9000, JOSHUA/WOPR, PARRY) plus user-created custom characters.
+Web recreation of the 1991 Sound Blaster "Dr. Sbaitso" AI therapist: React 19 + TypeScript 7
+(strict) + Vite 8 (Rolldown) + Tailwind v4, with Gemini for chat and TTS behind Vercel Functions.
+Vercel project `dr-sbaitso-recreated`, team `doublegate-projects`. Five personas (Dr. Sbaitso,
+ELIZA, HAL 9000, JOSHUA/WOPR, PARRY) plus user-created custom characters.
 
-**Status (2026-10-02):** v2.0.0 remediation in progress on `fix/v2-audit-remediation`; the plan
-lives at `~/.claude/plans/ethereal-popping-beaver.md`. Until it lands, treat the README's feature
-and metric claims as unverified. The audit found the production crash, the key exposure and many
-half-wired features.
+**Status:** v2.0.0 remediation in progress on `fix/v2-audit-remediation`.
+- Plan: `~/.claude/plans/ethereal-popping-beaver.md`.
+- Done: Phases 0-2, plus the audio/chat part of Phase 3.
+- Run `git log fab0992..HEAD` for the detail.
 
 ### Commands
 
 ```bash
-npm ci                 # Node >= 22.12 (Vercel builds on Node 24.x)
-npm run dev            # http://localhost:3000; needs GEMINI_API_KEY in .env.local
-npm run build          # vite build -> dist/
-npm run typecheck      # tsc --noEmit
+npm ci                 # Node >= 22.12 (24 recommended)
+npm run dev            # http://localhost:3000; serves api/* too; needs GEMINI_API_KEY in .env.local
+npm run build          # vite build -> dist/ (never contains the key; grep AIza dist must be empty)
+npm run typecheck      # tsc on tsconfig.json (browser), tsconfig.node.json (api/configs), tsconfig.test.json
+npm run lint           # oxlint (.oxlintrc.json); hooks rules are errors
 npm run test:run       # vitest (jsdom); `npm test` is watch mode
-npm run test:coverage  # v8 coverage with thresholds
 npm run test:e2e       # Playwright (chromium); builds + previews on :4173
+npm run analyze        # bundle report -> reports/ (gitignored)
 ```
 
 ### Layout
 
-- `App.tsx`: the whole app shell (state, chat pipeline, audio, shortcuts, lazy modal panels). It is
-  slated to be split up.
-- `constants.ts`: `CHARACTERS` (systemInstruction + voicePrompt per persona), `THEMES`, audio
-  presets, `KEYBOARD_SHORTCUTS`, onboarding steps.
-- `services/geminiService.ts`: the only module that talks to Gemini (chat + TTS).
-- `components/`: lazy-loaded panels (insights, exporter, creator, templates, sound packs, music,
-  voice input, emotion/topic visualizers, accessibility, error boundary).
-- `hooks/`, `utils/`: voice control/recognition, sessions (`sessionManager`), export, audio
-  processing, sound packs, music engine, analytics, cloud sync (Firebase, lazy).
-- `public/`: `service-worker.js` (the registered one, via an inline script in `index.html`),
-  `sw.js` (legacy, not registered), `audio-processor.worklet.js` (bit-crusher), `manifest.json`.
-- `test/` + `components/*.test.tsx`: vitest unit tests. `e2e/`: Playwright specs.
+- `api/chat.ts`, `api/tts.ts` + `api/_lib/{gemini,http}.ts`: the only code that holds the key.
+  - Personas are resolved server-side.
+  - Inputs are validated and capped.
+  - Model fallback on 503/429/timeout within a 50 s budget.
+  - TTS WAV is converted to raw PCM16.
+- `services/geminiService.ts`: browser fetch client. It keeps per-character history, because the
+  proxy is stateless.
+- `App.tsx`: the app shell.
+  - `sendMessage()` is the single turn pipeline.
+  - The greeting is one async sequence started from name submit.
+  - It is being split into hooks (Phase 7).
+- `hooks/useSpeechPlayer.ts`: plays TTS through `utils/sharedAudio.ts`, the one AudioContext for
+  the page.
+- `constants.ts`: `CHARACTERS`, `VOICE_PROFILES`, `THEMES`, `AUDIO_MODES`, `KEYBOARD_SHORTCUTS`.
+- `public/service-worker.js`: the registered worker. It skips `/api/`. `sw.js` is legacy, and
+  Phase 5 consolidates both.
+- `ref-docs/`: sourced research on the original program (history, voice, UI). Use it before
+  changing personas, voice or visuals.
 
-### Gemini integration (facts that bite)
+### Facts that bite
 
-- TTS output is PCM16 LE, 24 kHz, mono, base64. `utils/audio.ts` decodes it as raw PCM with no
-  header. Gemini 3.8 TTS models return WAV (a 44-byte RIFF header) by default, so either request
-  L16 or strip the header.
-- Pronunciation rewrites happen before TTS: SBAITSO -> SUH-BAIT-SO, HAL -> H-A-L, WOPR -> WHOPPER.
-- The key must never reach the client bundle. The current `vite.config.ts` `define` inlines it, and
-  this already leaked once (rotated 2026-10-01). The fix is a Vercel Function proxy under `api/`.
-- The original app came from Google AI Studio (Build). A newer AI Studio copy (app
-  `85ea9fa6-f303-4e80-9256-81c22e0f3fbf`) has three features that never reached git: voice
-  profiles, a `HELP` command, and a richer Sbaitso prompt. They are scheduled to be ported.
+- **Gemini quotas are per model** on this key, and `gemini-3.8-flash` often returns 429/503. Don't
+  "fix" fallbacks away. Verify ids with ListModels: the dev middleware reads `.env.local`, and
+  `node --env-file=.env.local` works for probes.
+- **TypeScript 7 has no JS API** (`createSourceFile` is undefined), so typescript-eslint cannot
+  run. That is why lint is oxlint.
+- **Use `useEffectEvent` (React 19.2)** for listeners and effects that need the latest
+  state/handlers. A new inline-callback dependency in an effect is how production broke (render
+  loop in `useVoiceControl`).
+- **Audio modes:**
+  - `decodeAudioData` applies the vintage processing.
+  - `getPlaybackSettings` adds playback rate and an optional extra crush; only Ultra crushes.
+  - Never re-add a global 64-level crush.
+- **Vercel previews sit behind SSO.** Smoke-test with the Vercel MCP `get_access_to_vercel_url`
+  plus a curl cookie jar.
+- **`test/setup.ts`** defines `SpeechRecognition` as writable but non-configurable: assign it, do
+  not `vi.stubGlobal` it.
+- **Known open debt (planned phases):**
+  - Coverage only counts imported files (no `coverage.include`).
+  - The e2e specs have vacuous `if (isVisible)` guards and hit the real API.
+  - Lint categories at "warn" are promoted as they are cleared.
 
 ### Personas (behavioural contract for the system prompts)
 
@@ -81,23 +99,12 @@ npm run test:e2e       # Playwright (chromium); builds + previews on :4173
   Thermonuclear War, tic-tac-toe.
 - **PARRY (1972):** suspicious, hostile when questioned, conspiracy thinking, bookies/mafia
   backstory.
-
-### Gotchas
-
-- `vite.config.ts` uses rollup-plugin-visualizer with `open: true`. A plain `vite build` launches a
-  browser, and `dist/stats.html` gets deployed. Build with `BROWSER=none` until this is fixed.
-- `tsconfig.json` has `strict: false` (pinned by PR #7 because TS 7 defaults to strict on), and
-  `tsc` was never clean (64 errors at fab0992).
-- Vite 8 rejects object-form `manualChunks`; use `build.rolldownOptions.output.codeSplitting`.
-- Coverage thresholds pass only because `coverage.include` is unset, so untested files aren't
-  counted.
-- E2E specs contain `if (await x.isVisible())` guards that make tests pass vacuously, and they call
-  the real API.
-- Two service workers exist; only `public/service-worker.js` registers.
+- All personas answer in ALL CAPS by design (the retro terminal look).
 
 ### Docs
 
-`README.md`, `CHANGELOG.md`, `docs/ARCHITECTURE.md`, `docs/DEPLOYMENT.md`, `docs/TESTING.md`,
-`docs/FEATURES.md`, `docs/KEYBOARD_SHORTCUTS.md`. Version reports from v1.x sit in the repo root.
+- `README.md` is a landing page only; history goes in `CHANGELOG.md` under `[Unreleased]`.
+- Update both in the same push as the change.
+- Also: `docs/ARCHITECTURE.md`, `docs/DEPLOYMENT.md`, `docs/TESTING.md`, `docs/FEATURES.md`.
 <<< MC-PROJECT-END >>>
 
