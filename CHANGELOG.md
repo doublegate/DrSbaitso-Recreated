@@ -31,6 +31,19 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   and a hard-blinking underline cursor. The previous interface remains available
   as **Enhanced mode** (Alt+Shift+X, or `?mode=enhanced`). Screen readers get a
   transcript and a labelled input. Details: `ref-docs/03-screen-and-ui.md`.
+- **The original's commands and behaviour in classic mode.** Every line goes to a
+  local engine first (`src/engine/sbaitso`, built from the original binaries'
+  strings), and only open conversation reaches Gemini:
+  - commands: `HELP` (paged with M), `R`, `SAY`, `CALC`/`WHAT IS`, `AUTHOR` and
+    `SHUT UP`;
+  - dot commands: `.WIDTH 40/80`, `.COLOR`, `.PROMPT`, `.ECHO`, `.PITCH`, `.SPEED`,
+    `.TONE`, `.VOLUME`, `.PARAM` and `.QUIT`;
+  - nagging on empty Enter, and handling of short, garbage and repeated input;
+  - profanity strikes ending in the scripted "PARITY ERR ... RECOVERED" sequence;
+  - `BYE`, then the `<C>ontinue <N>ew patient <Q>uit` menu. Q quits to a DOS prompt,
+    and Enter runs the program again.
+
+  Behaviour the sources could not confirm is marked as a guess in the code.
 - **Persona selector** (Enhanced mode). Choose Dr. Sbaitso, ELIZA, HAL 9000,
   JOSHUA/WOPR, PARRY or your own characters. Each persona keeps its own conversation
   memory, and the log marks each switch. The voice command "talk to ELIZA" now works;

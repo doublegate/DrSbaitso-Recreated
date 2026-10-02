@@ -59,8 +59,7 @@ that module; wiring it into `src/App.tsx` is still pending.
       typed, and "Doctor Sbaitso" spoken first. (Rules done: `validateName`,
       `isNameCharAllowed`, `NAME_ERROR_TEXT`; the limit of 20 is a guess. Per-letter
       speech and the spoken title are UI work.)
-- [x] Exit: `BYE` → `GOOD BYE` → `<C>ontinue <N>ew patient <Q>uit`. (Engine returns
-      `exit` with `exitMenuText()` / `resolveExitChoice()`; UI integration pending.)
+- [x] Exit: `BYE` → `GOOD BYE` → `<C>ontinue <N>ew patient <Q>uit`. (Wired into the classic screen: C/N/Q keys, Q quits to a `C:\SB>` prompt.)
 - [x] Opt-in "Keep session history" setting (off by default), shipped as "SAVE HISTORY" in Enhanced mode.
 
 ## Screen (decided: classic default + enhanced toggle)

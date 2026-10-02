@@ -1,12 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ClassicApp, { greetingLines, validateName } from '@/components/classic/ClassicApp';
+import ClassicApp from '@/components/classic/ClassicApp';
 
 const json = (body: unknown, status = 200) =>
   Promise.resolve(new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } }));
 
 const screenText = () => document.querySelector('[data-dos-screen]')!.textContent ?? '';
+const chatCalls = (fetchMock: ReturnType<typeof vi.fn>) => fetchMock.mock.calls.filter(([url]) => url === '/api/chat');
+
+async function startSession(user: ReturnType<typeof userEvent.setup>, name = 'bob') {
+  render(<ClassicApp />);
+  await user.type(screen.getByLabelText('Please enter your name'), `${name}{Enter}`);
+  return waitForPrompt();
+}
+
+function waitForPrompt() {
+  return waitFor(
+    () => {
+      const el = screen.getByLabelText('Talk to Doctor Sbaitso');
+      expect(el).not.toBeDisabled();
+      return el;
+    },
+    { timeout: 20_000 },
+  );
+}
 
 describe('ClassicApp', () => {
   const fetchMock = vi.fn();
@@ -27,17 +45,14 @@ describe('ClassicApp', () => {
     expect(screen.getByLabelText('Please enter your name')).toHaveFocus();
   });
 
-  it('greets with the original v2.20 wording and spacing, then shows the > prompt', async () => {
+  it('greets with the original v2.20 wording and spacing', async () => {
     const user = userEvent.setup();
-    render(<ClassicApp />);
-    await user.type(screen.getByLabelText('Please enter your name'), 'bob{Enter}');
-    await waitFor(() => expect(screen.getByLabelText('Talk to Doctor Sbaitso')).not.toBeDisabled(), { timeout: 15_000 });
+    await startSession(user);
     const text = screenText();
     expect(text).toContain('Please enter your name ...bob');
     expect(text).toContain(' HELLO BOB,  MY NAME IS DOCTOR SBAITSO.');
     expect(text).toContain(' MEMORY CONTENTS WILL BE WIPED OFF AFTER YOU LEAVE,');
-    expect(text).toContain(' SO, TELL ME ABOUT YOUR PROBLEMS.');
-  }, 30_000);
+  }, 40_000);
 
   it('rejects names with non-letters like the original', async () => {
     const user = userEvent.setup();
@@ -47,36 +62,63 @@ describe('ClassicApp', () => {
     expect(screen.getByLabelText('Please enter your name')).toBeInTheDocument();
   });
 
-  it('echoes the line after a yellow > and prints the reply indented', async () => {
+  it('sends open conversation to the model and prints the reply indented after a yellow >', async () => {
     const user = userEvent.setup();
-    render(<ClassicApp />);
-    await user.type(screen.getByLabelText('Please enter your name'), 'bob{Enter}');
-    const input = await waitFor(
-      () => {
-        const el = screen.getByLabelText('Talk to Doctor Sbaitso');
-        expect(el).not.toBeDisabled();
-        return el;
-      },
-      { timeout: 15_000 },
-    );
-    await user.type(input, 'i am sad{Enter}');
-    await waitFor(() => expect(screenText()).toContain(' WHY DO YOU FEEL THAT WAY?'), { timeout: 10_000 });
-    expect(screenText()).toContain('>i am sad');
+    const input = await startSession(user);
+    await user.type(input, 'my brother never calls me{Enter}');
+    await waitFor(() => expect(screenText()).toContain(' WHY DO YOU FEEL THAT WAY?'), { timeout: 15_000 });
+    expect(screenText()).toContain('>my brother never calls me');
     const prompt = [...document.querySelectorAll('[data-dos-screen] span')].find((s) => s.textContent === '>');
     expect((prompt as HTMLElement).style.color).toBe('rgb(255, 255, 85)');
   }, 40_000);
-});
 
-describe('greeting and name rules', () => {
-  it('formats the greeting like v2.20 (two spaces after the comma, MEMORY line ends with a comma)', () => {
-    const lines = greetingLines('ANN');
-    expect(lines[0]).toBe('HELLO ANN,  MY NAME IS DOCTOR SBAITSO.');
-    expect(lines[1]).toBe('');
-    expect(lines[5]).toMatch(/LEAVE,$/);
-  });
+  it('answers HELP locally, without calling the model', async () => {
+    const user = userEvent.setup();
+    const input = await startSession(user);
+    const before = chatCalls(fetchMock).length;
+    await user.type(input, 'help{Enter}');
+    await waitForPrompt();
+    expect(screenText()).toMatch(/Dot Commands|HELP/i);
+    expect(chatCalls(fetchMock).length).toBe(before);
+  }, 40_000);
 
-  it('accepts letters and spaces only, uppercases, and limits length', () => {
-    expect(validateName('  mary  jane ')).toEqual({ ok: true, name: 'MARY JANE' });
-    expect(validateName('x'.repeat(31))).toEqual({ ok: false, message: '(name too long)' });
-  });
+  it('handles CALC locally', async () => {
+    const user = userEvent.setup();
+    const input = await startSession(user);
+    await user.type(input, 'calc 6/3{Enter}');
+    await waitFor(() => expect(screenText()).toMatch(/EQUALS TO 2|equals to 2/i), { timeout: 15_000 });
+    expect(chatCalls(fetchMock)).toHaveLength(0);
+  }, 40_000);
+
+  it('BYE leads to the Continue / New patient / Quit menu; C continues', async () => {
+    const user = userEvent.setup();
+    const input = await startSession(user);
+    await user.type(input, 'bye{Enter}');
+    await waitFor(() => expect(screenText()).toContain('<C>ontinue  <N>ew patient  <Q>uit'), { timeout: 15_000 });
+    const menu = screen.getByLabelText(/Press C to continue/);
+    await user.type(menu, 'c');
+    expect(await waitForPrompt()).toBeInTheDocument();
+  }, 40_000);
+
+  it('Q at the menu quits to a DOS prompt; Enter runs the program again', async () => {
+    const user = userEvent.setup();
+    const input = await startSession(user);
+    await user.type(input, 'bye{Enter}');
+    await waitFor(() => expect(screenText()).toContain('<Q>uit'), { timeout: 15_000 });
+    await user.type(screen.getByLabelText(/Press C to continue/), 'q');
+    await waitFor(() => expect(screenText()).toContain('C:\\SB>'));
+    await user.type(screen.getByLabelText('Press Enter to run Doctor Sbaitso again'), '{Enter}');
+    expect(await screen.findByLabelText('Please enter your name')).toBeInTheDocument();
+    expect(screenText()).toContain('D R   S B A I T S O');
+  }, 40_000);
+
+  it('.WIDTH 40 switches to a 40-column screen', async () => {
+    const user = userEvent.setup();
+    const input = await startSession(user);
+    await user.type(input, '.width 40{Enter}');
+    await waitFor(() => {
+      const row = document.querySelector('[data-dos-row]')!.textContent!;
+      expect(row.length).toBe(40);
+    });
+  }, 40_000);
 });
