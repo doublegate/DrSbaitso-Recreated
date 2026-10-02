@@ -129,8 +129,8 @@ Main conversation handler:
 **TTS Configuration:**
 - Model: `gemini-2.5-flash-preview-tts`
 - Voice: 'Charon' (deep, monotone)
-- Prompt: "Say in a very deep, extremely monotone, continuous, 8-bit computer voice from 1991"
-- Phonetic override: "SBAITSO" → "SUH-BAIT-SO"
+- Prompt: a flat, even, mechanical adult male read at a steady medium-fast pace (the DSP supplies the 8-bit medium)
+- Phonetic override: "SBAITSO" → "SBAYT-SO" (two syllables), "DR." → "DOCTOR"
 - Returns: Base64-encoded PCM audio
 
 ### utils/audio.ts

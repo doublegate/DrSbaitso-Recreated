@@ -12,7 +12,7 @@ else is a factual correction to make either way.
 - [ ] Speech engine: First Byte **SmoothTalker 3.5**, which stores single pitch periods
       of a real voice. `docs/DECTALK_RESEARCH.md` calls it rule-based and sample-free.
       ([ref-docs/02](../ref-docs/02-voice-and-audio.md))
-- [ ] Pronunciation: "SBAYT-so", not "SUH-BAIT-SO" (`api/_lib/gemini.ts`). Spell out
+- [x] Pronunciation: "SBAYT-so", not "SUH-BAIT-SO" (`api/_lib/gemini.ts`). Spell out
       "DOCTOR", not "DR.".
 - [ ] `playbackRate` 1.1 raises pitch by 10%; it does not deepen the voice. Use 1.0 for
       the authentic modes (`src/utils/audio.ts`).

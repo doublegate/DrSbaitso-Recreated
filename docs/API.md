@@ -292,7 +292,8 @@ async function synthesizeSpeech(text: string, characterId: string): Promise<stri
 let phoneticText = text;
 
 if (characterId === 'sbaitso') {
-  phoneticText = phoneticText.replace(/SBAITSO/g, 'SUH-BAIT-SO');
+  // "DR." / "DR" -> "DOCTOR"; the original engine would spell DR as letters
+  phoneticText = phoneticText.replace(/SBAITSO/gi, 'SBAYT-SO'); // two syllables
 } else if (characterId === 'hal9000') {
   phoneticText = phoneticText.replace(/HAL/g, 'H-A-L');
 } else if (characterId === 'joshua') {
@@ -303,7 +304,7 @@ if (characterId === 'sbaitso') {
 **Usage Example:**
 ```typescript
 const audio = await synthesizeSpeech("HELLO, I AM DR. SBAITSO", "sbaitso");
-// TTS receives: "SUH-BAIT-SO" with deep monotone voice prompt
+// TTS receives: "HELLO, I AM DOCTOR SBAYT-SO" with a flat, even, medium-fast style
 
 const audio2 = await synthesizeSpeech("Hello, I'm HAL", "hal9000");
 // TTS receives: "H-A-L" with calm HAL 9000 voice prompt
@@ -446,8 +447,8 @@ console.log(audio.substring(0, 20)); // Should be base64 string
 
 **TTS API:**
 - ✅ Returns base64 string
-- ✅ Pronounces "SBAITSO" correctly as "SUH-BAIT-SO"
-- ✅ Deep, monotone voice
+- ✅ Pronounces "SBAITSO" as two syllables, "SBAYT-SO", and "DR." as "DOCTOR"
+- ✅ Flat, even, medium-fast male delivery
 - ✅ Consistent audio format (24kHz, mono, Int16)
 
 ## API Cost Estimation

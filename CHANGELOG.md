@@ -92,6 +92,13 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Music player panel.** Reopening the panel shows the music's real state.
   Music keeps playing after the panel closes, and the panel used to show OFF
   while it played.
+- **Dr. Sbaitso's name is spoken as two syllables, "SBAYT-so"**, as the original
+  engine says it, instead of "SUH-BAIT-SO". "DR." is read as "DOCTOR" rather than
+  spelled. His TTS style now asks for a flat, even, medium-fast male read instead
+  of "very deep ... 8-bit": the original's pitch is an ordinary low male voice, and
+  the audio processing supplies the 8-bit sound. The `deep` voice profile is
+  labelled as an enhancement, not the original voice. See
+  `ref-docs/02-voice-and-audio.md`.
 
 ### Changed
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
