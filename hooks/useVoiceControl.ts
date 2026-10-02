@@ -7,7 +7,7 @@
  * @version 1.6.0
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useVoiceRecognition } from './useVoiceRecognition';
 import {
   VoiceCommand,
@@ -58,6 +58,24 @@ export interface VoiceControlState {
   error: string | null;
 }
 
+type HandlerKey = keyof Parameters<typeof createVoiceCommands>[0];
+
+const HANDLER_KEYS: HandlerKey[] = [
+  'onClear',
+  'onExport',
+  'onSwitchCharacter',
+  'onToggleMute',
+  'onToggleSettings',
+  'onToggleStats',
+  'onStopAudio',
+  'onCycleTheme',
+  'onCycleAudioQuality',
+  'onOpenAccessibility',
+  'onOpenSearch',
+  'onOpenVisualizer',
+  'onHelp',
+];
+
 /**
  * Voice control hook with wake word detection and command execution
  */
@@ -71,8 +89,14 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     onCommandExecuted,
     onWakeWordDetected,
     onError,
-    ...handlers
   } = options;
+
+  // Callers pass inline handlers, so their identities change every render.
+  // Commands dispatch through this ref to the latest handler, and the command
+  // list is rebuilt only when the *set* of handlers changes.
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const handlerSignature = HANDLER_KEYS.filter((k) => typeof options[k] === 'function').join(',');
 
   const [state, setState] = useState<VoiceControlState>({
     isEnabled: enabled,
@@ -101,15 +125,25 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     onError: handleCommandError,
   });
 
-  const commandsRef = useRef<VoiceCommand[]>([]);
-  const confirmationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Latest recogniser objects and state for callbacks that run from timers.
+  const wakeRef = useRef(wakeWordRecognition);
+  wakeRef.current = wakeWordRecognition;
+  const commandRecRef = useRef(commandRecognition);
+  commandRecRef.current = commandRecognition;
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
-  // Initialize commands
-  useEffect(() => {
-    const commands = createVoiceCommands(handlers);
-    commandsRef.current = commands;
-    setState(prev => ({ ...prev, commands }));
-  }, [handlers]);
+  const commands = useMemo(() => {
+    const proxies: Record<string, (...args: any[]) => void> = {};
+    for (const key of handlerSignature ? (handlerSignature.split(',') as HandlerKey[]) : []) {
+      proxies[key] = (...args: any[]) => (optionsRef.current[key] as ((...a: any[]) => void) | undefined)?.(...args);
+    }
+    return createVoiceCommands(proxies);
+  }, [handlerSignature]);
+
+  const commandsRef = useRef<VoiceCommand[]>(commands);
+  commandsRef.current = commands;
+  const confirmationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Handle wake word detection result
   function handleWakeWordResult(transcript: string, isFinal: boolean) {
@@ -121,7 +155,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
       console.log('[VoiceControl] Wake word detected:', transcript);
 
       // Stop wake word listening
-      wakeWordRecognition.stopListening();
+      wakeRef.current.stopListening();
       setState(prev => ({ ...prev, isListeningForWakeWord: false }));
 
       // Notify callback
@@ -161,7 +195,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
       onError?.(error);
 
       // Restart wake word listening in hands-free mode
-      if (state.isHandsFreeMode) {
+      if (stateRef.current.isHandsFreeMode) {
         setTimeout(() => startWakeWordListening(), 1000);
       }
 
@@ -197,7 +231,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     onCommandExecuted?.(match.command, match);
 
     // Restart wake word listening in hands-free mode
-    if (state.isHandsFreeMode) {
+    if (stateRef.current.isHandsFreeMode) {
       setTimeout(() => startWakeWordListening(), 500);
     }
   }
@@ -229,7 +263,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     onError?.(error);
 
     // Restart wake word listening in hands-free mode
-    if (state.isHandsFreeMode) {
+    if (stateRef.current.isHandsFreeMode) {
       setTimeout(() => startWakeWordListening(), 1000);
     }
   }
@@ -241,18 +275,18 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     }
 
     if (state.isListeningForCommand) {
-      commandRecognition.stopListening();
+      commandRecRef.current.stopListening();
       setState(prev => ({ ...prev, isListeningForCommand: false }));
     }
 
     setState(prev => ({ ...prev, isListeningForWakeWord: true, error: null }));
-    wakeWordRecognition.startListening();
+    wakeRef.current.startListening();
     console.log('[VoiceControl] Started listening for wake word');
   }, [state.isEnabled, wakeWordEnabled, state.isListeningForCommand]);
 
   // Stop listening for wake word
   const stopWakeWordListening = useCallback(() => {
-    wakeWordRecognition.stopListening();
+    wakeRef.current.stopListening();
     setState(prev => ({ ...prev, isListeningForWakeWord: false }));
     console.log('[VoiceControl] Stopped listening for wake word');
   }, []);
@@ -264,18 +298,18 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     }
 
     if (state.isListeningForWakeWord) {
-      wakeWordRecognition.stopListening();
+      wakeRef.current.stopListening();
       setState(prev => ({ ...prev, isListeningForWakeWord: false }));
     }
 
     setState(prev => ({ ...prev, isListeningForCommand: true, error: null }));
-    commandRecognition.startListening();
+    commandRecRef.current.startListening();
     console.log('[VoiceControl] Started listening for command');
   }, [state.isEnabled, state.isListeningForWakeWord]);
 
   // Stop listening for command
   const stopListeningForCommand = useCallback(() => {
-    commandRecognition.stopListening();
+    commandRecRef.current.stopListening();
     setState(prev => ({ ...prev, isListeningForCommand: false }));
     console.log('[VoiceControl] Stopped listening for command');
   }, []);
@@ -374,8 +408,8 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      wakeWordRecognition.stopListening();
-      commandRecognition.stopListening();
+      wakeRef.current.stopListening();
+      commandRecRef.current.stopListening();
       if (confirmationTimeoutRef.current) {
         clearTimeout(confirmationTimeoutRef.current);
       }
@@ -384,6 +418,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
 
   return {
     ...state,
+    commands,
     isSupported: wakeWordRecognition.isSupported,
     startWakeWordListening,
     stopWakeWordListening,

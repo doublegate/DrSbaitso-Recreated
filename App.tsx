@@ -6,6 +6,7 @@ import { AUDIO_MODES, THEMES } from './constants';
 import { useAccessibility } from './hooks/useAccessibility';
 import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
+import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import SkipNav from './components/SkipNav';
 import { CustomTheme } from './utils/themeValidator';
@@ -100,6 +101,9 @@ export default function App() {
   const [showEmotionViz, setShowEmotionViz] = useState(false);
   const [showTopicDiagram, setShowTopicDiagram] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+
+  // PWA install banner: only offered when the browser supports installing.
+  const installPrompt = useInstallPrompt();
 
   // Voice Control (v1.6.0)
   const voiceControl = useVoiceControl({
@@ -1045,9 +1049,15 @@ export default function App() {
       )}
 
       {/* PWA Install Prompt (v1.10.0) */}
-      <Suspense fallback={null}>
-        <InstallPrompt />
-      </Suspense>
+      {installPrompt.canInstall && (
+        <Suspense fallback={null}>
+          <InstallPrompt
+            onInstall={installPrompt.install}
+            onDismiss={installPrompt.dismiss}
+            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+          />
+        </Suspense>
+      )}
 
       {/* Sound Pack Manager (v1.10.0) */}
       {showSoundPackManager && (

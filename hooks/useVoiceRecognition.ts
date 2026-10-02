@@ -109,6 +109,11 @@ export function useVoiceRecognition(options: VoiceRecognitionOptions = {}) {
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
+  // Callers usually pass inline callbacks. Read the latest ones through a ref
+  // so a re-render never tears down and rebuilds the recogniser.
+  const callbacksRef = useRef({ onResult, onError, onStart, onEnd });
+  callbacksRef.current = { onResult, onError, onStart, onEnd };
+
   // Initialize speech recognition
   useEffect(() => {
     if (!state.isSupported) {
@@ -130,12 +135,12 @@ export function useVoiceRecognition(options: VoiceRecognitionOptions = {}) {
 
     recognition.onstart = () => {
       setState((prev) => ({ ...prev, isListening: true, error: null }));
-      onStart?.();
+      callbacksRef.current.onStart?.();
     };
 
     recognition.onend = () => {
       setState((prev) => ({ ...prev, isListening: false }));
-      onEnd?.();
+      callbacksRef.current.onEnd?.();
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -159,9 +164,9 @@ export function useVoiceRecognition(options: VoiceRecognitionOptions = {}) {
       }));
 
       if (finalTranscript) {
-        onResult?.(finalTranscript.trim(), true);
+        callbacksRef.current.onResult?.(finalTranscript.trim(), true);
       } else if (interimTranscript) {
-        onResult?.(interimTranscript.trim(), false);
+        callbacksRef.current.onResult?.(interimTranscript.trim(), false);
       }
     };
 
@@ -189,7 +194,7 @@ export function useVoiceRecognition(options: VoiceRecognitionOptions = {}) {
       }
 
       setState((prev) => ({ ...prev, error: errorMessage, isListening: false }));
-      onError?.(errorMessage);
+      callbacksRef.current.onError?.(errorMessage);
     };
 
     recognitionRef.current = recognition;
@@ -200,7 +205,7 @@ export function useVoiceRecognition(options: VoiceRecognitionOptions = {}) {
         recognitionRef.current = null;
       }
     };
-  }, [lang, continuous, interimResults, maxAlternatives, onResult, onError, onStart, onEnd, state.isSupported]);
+  }, [lang, continuous, interimResults, maxAlternatives, state.isSupported]);
 
   // Start listening
   const startListening = useCallback(() => {
