@@ -1,6 +1,7 @@
 /**
  * Renders a DOS text screen (utils/dosScreen) as an 80x25 (or 40x25) grid of
- * 9x16 VGA cells, scaled by whole numbers so the bitmap font stays crisp,
+ * 9x16 VGA cells, scaled by whole numbers so the bitmap font stays crisp
+ * (fractionally, on viewports smaller than the screen),
  * with a black overscan border around it.
  *
  * The grid is presentational and hidden from assistive technology; the
@@ -14,8 +15,14 @@ export const CELL_H = 16;
 /** Rows taken by the banner box. */
 const BANNER_ROWS = 5;
 
+/**
+ * The largest whole-number scale that fits, so the bitmap font stays crisp.
+ * A viewport smaller than the screen (a phone) gets the fractional scale that
+ * fits it: slightly soft text beats a cropped screen.
+ */
 export function integerScale(viewW: number, viewH: number, screenW: number, screenH: number): number {
-  return Math.max(1, Math.floor(Math.min(viewW / screenW, viewH / screenH)));
+  const fit = Math.min(viewW / screenW, viewH / screenH);
+  return fit >= 1 ? Math.floor(fit) : fit;
 }
 
 interface DosScreenProps {

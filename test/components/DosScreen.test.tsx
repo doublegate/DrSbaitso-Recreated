@@ -53,10 +53,16 @@ describe('cursor blink (ref-docs/04: 114 ms on, 114 ms off)', () => {
 });
 
 describe('integerScale', () => {
-  it('uses the largest whole-number scale that fits, minimum 1', () => {
+  it('uses the largest whole-number scale that fits, keeping the font crisp', () => {
     expect(integerScale(1920, 1080, 720, 400)).toBe(2);
     expect(integerScale(800, 600, 720, 400)).toBe(1);
-    expect(integerScale(300, 200, 720, 400)).toBe(1);
     expect(integerScale(3840, 2160, 720, 400)).toBe(5);
+  });
+
+  it('shrinks to fit a viewport smaller than the screen instead of cropping it', () => {
+    // A phone in portrait: 720 px of text must fit in 412 px.
+    expect(integerScale(412, 915, 720, 400)).toBeCloseTo(412 / 720);
+    expect(integerScale(300, 200, 720, 400)).toBeCloseTo(300 / 720);
+    expect(integerScale(720, 300, 720, 400)).toBeCloseTo(300 / 400);
   });
 });
