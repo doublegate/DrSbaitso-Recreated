@@ -90,6 +90,9 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - `LICENSE` (MIT; the README had always claimed MIT, but there was no licence file)
   and `THIRD_PARTY_NOTICES.md` (the bundled CC BY-SA 4.0 font).
 - `ref-docs/`: sourced research on the original program.
+- `docs/adr/`: architecture decision records for the v2 design (server proxy,
+  service worker, hybrid engines, classic default, voice pipeline, history and
+  third-party content).
 - **Model fallback.** When a model is overloaded (503), out of quota (429) or slow,
   the proxy tries the next one within a 50-second budget. The defaults are
   `gemini-3.8-flash` (then 3.7, 3.5, flash-latest) for chat and `gemini-3.8-flash-tts`
