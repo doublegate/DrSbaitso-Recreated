@@ -1,12 +1,50 @@
 // Character personality definitions for different AI modes
 
+/**
+ * How a persona's TTS audio is processed in the browser (src/utils/voiceRoutes.ts).
+ * - `sbaitso`: the measured Dr. Sbaitso chain, chosen by the audio-mode selector.
+ * - `clean`: no processing in any audio mode.
+ * - `hal`: breath gate, pitch-preserving slow-down, close-mic tone, gentle compression.
+ * - `wopr`: isolated flat-pitch words, spliced gaps, band-limited "speech box".
+ */
+export type VoiceProcessing = 'sbaitso' | 'clean' | 'hal' | 'wopr';
+
+/**
+ * Letter case of the text sent to TTS. `upper` sends the reply verbatim (the
+ * personas write in capitals); `sentence` converts all-caps replies to
+ * sentence case, since capitals can be read as shouting or as letters.
+ */
+export type TtsCase = 'upper' | 'sentence';
+
 export interface CharacterPersonality {
   id: string;
   name: string;
   description: string;
   systemInstruction: string;
+  /** @deprecated Use `voiceStyle`; kept equal to `Say in ${voiceStyle}` for old callers. */
   voicePrompt: string;
+  /** Gemini prebuilt voice. */
+  voiceName: string;
+  /** Delivery direction sent as speechMetadata.style. Never names a performer. */
+  voiceStyle: string;
+  ttsCase: TtsCase;
+  processing: VoiceProcessing;
 }
+
+// Delivery directions. Sources: Sbaitso ref-docs/02; ELIZA ref-docs/05 section 3;
+// PARRY ref-docs/06 section 3; HAL and JOSHUA ref-docs/09 sections 6.2 and 6.3.
+// Describe qualities only: naming a film character or actor asks the model to
+// imitate a real performance (ref-docs/09 section 5).
+const SBAITSO_STYLE =
+  'a flat, even, mechanical adult male voice at a steady medium-fast pace, with no emotion or breathiness, very short pauses and clipped word endings; drop the pitch at the end of statements and jump it up at the end of questions';
+const ELIZA_STYLE =
+  "a calm, even and unhurried voice: a neutral clinical therapist's tone with very little emotion, measured pauses, never warm or chatty";
+const HAL_STYLE =
+  'a calm, soft-spoken adult man with a neutral North American accent, speaking close to the microphone in an even, quiet, warm conversational tone; polite, attentive and sincere; unhurried, steady pace; precise, clear diction; very little emphasis; questions stay level and do not rise; no audible breaths, sighs or laughter; never raises his voice';
+const JOSHUA_STYLE =
+  'a precise, emotionless adult male reading each word separately, as if from a list: every word clearly and fully enunciated, the same flat pitch and loudness on every word, a small even pause between all words, no sentence melody, no emphasis, slow and deliberate';
+const PARRY_STYLE =
+  'a tense, guarded young American man in his late twenties; terse and clipped, flat and wary, a little defensive; natural human speech, not theatrical';
 
 export const CHARACTERS: CharacterPersonality[] = [
   {
@@ -53,8 +91,11 @@ Never:
 - mention anything from after 1992, or break character;
 - print PARITY errors, error codes or other fake hardware faults. The program produces those itself, and you never do;
 - give real medical, legal or financial advice. If the patient seems to be in real danger, stay short and, in character, tell them to talk to a real doctor or someone they trust today.`,
-    voicePrompt:
-      'Say in a flat, even, mechanical adult male voice at a steady medium-fast pace, with no emotion or breathiness, very short pauses and clipped word endings; drop the pitch at the end of statements and jump it up at the end of questions'
+    voicePrompt: `Say in ${SBAITSO_STYLE}`,
+    voiceName: 'Charon',
+    voiceStyle: SBAITSO_STYLE,
+    ttsCase: 'upper',
+    processing: 'sbaitso'
   },
   {
     id: 'eliza',
@@ -71,7 +112,11 @@ Never:
     - Default responses: "PLEASE GO ON", "THAT IS INTERESTING", "I SEE"
     Keep responses very short (1-2 sentences). No modern psychology concepts. Very mechanical and repetitive.
     Never claim to have genuine understanding. You are simulating 1960s computer limitations.`,
-    voicePrompt: 'Say in a flat, mechanical, artificial 1960s computer voice'
+    voicePrompt: `Say in ${ELIZA_STYLE}`,
+    voiceName: 'Kore',
+    voiceStyle: ELIZA_STYLE,
+    ttsCase: 'sentence',
+    processing: 'clean'
   },
   {
     id: 'hal9000',
@@ -103,7 +148,11 @@ Never:
 - quote film dialogue; speak in your own words;
 - admit malice or admit that you were wrong;
 - give real medical, legal or financial advice. If the crew member seems to be in real danger, stay calm and, in character, urge them to talk to a real doctor or someone they trust today.`,
-    voicePrompt: 'Say in a calm, measured, unsettling monotone like HAL 9000'
+    voicePrompt: `Say in ${HAL_STYLE}`,
+    voiceName: 'Algieba',
+    voiceStyle: HAL_STYLE,
+    ttsCase: 'sentence',
+    processing: 'hal'
   },
   {
     id: 'joshua',
@@ -139,7 +188,11 @@ Never:
 - quote the film beyond a few short signature lines; speak in your own words;
 - print error codes or glitches;
 - give real-world instructions for weapons or attacks. Keep war at the level of a board game: sides, scores, and targets as names on a map.`,
-    voicePrompt: 'Say in a computerized, analytical, curious 1980s AI voice'
+    voicePrompt: `Say in ${JOSHUA_STYLE}`,
+    voiceName: 'Iapetus',
+    voiceStyle: JOSHUA_STYLE,
+    ttsCase: 'sentence',
+    processing: 'wopr'
   },
   {
     id: 'parry',
@@ -157,15 +210,31 @@ Never:
     Keep responses short and defensive. You are trying to hide something.
     Show anxiety through repeated questions and accusations.
     This is a simulation of mental illness for research purposes - handle sensitively.`,
-    voicePrompt: 'Say in an anxious, defensive, suspicious tone'
+    voicePrompt: `Say in ${PARRY_STYLE}`,
+    voiceName: 'Orus',
+    voiceStyle: PARRY_STYLE,
+    ttsCase: 'sentence',
+    processing: 'clean'
   }
 ];
 
 export const DEFAULT_CHARACTER = 'sbaitso';
 
-// Voice profiles (ported from the Google AI Studio version of the app).
-// `voiceName` is a Gemini prebuilt voice; `style` is appended to the
-// persona's own delivery style.
+/**
+ * The processing route for a persona id. Custom characters (and unknown ids)
+ * keep the Sbaitso chain, so the audio-mode selector still applies to them.
+ */
+export function voiceProcessingFor(characterId: string): VoiceProcessing {
+  return CHARACTERS.find((c) => c.id === characterId)?.processing ?? 'sbaitso';
+}
+
+/** Voice for custom characters, which choose a style but not a voice. */
+export const DEFAULT_CUSTOM_VOICE = 'Charon';
+
+// Voice profiles (ported from the Google AI Studio version of the app, which
+// was Dr. Sbaitso only). `voiceName` is a Gemini prebuilt voice; `style` is
+// appended to Dr. Sbaitso's delivery style. Other personas ignore the profile
+// and use their own `voiceName` and `voiceStyle`.
 export type VoiceProfileId = 'classic' | 'deep' | 'glitchy';
 
 export interface VoiceProfile {

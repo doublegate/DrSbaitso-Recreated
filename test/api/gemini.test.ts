@@ -5,6 +5,7 @@ import {
   pcmFromWav,
   createRateLimiter,
   applyPronunciation,
+  toSentenceCase,
   LIMITS,
   type GeminiClient,
 } from '../../api/_lib/gemini';
@@ -257,6 +258,65 @@ describe('handleTts', () => {
     expect(req.config.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName).toBe('Charon');
   });
 
+  const audioOk = () => ({
+    candidates: [{ content: { parts: [{ inlineData: { mimeType: 'audio/wav', data: b64(wav(pcm)) } }] } }],
+  });
+  const voiceOf = (req: any) => req.config.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName;
+
+  it.each([
+    ['hal9000', 'Algieba'],
+    ['joshua', 'Iapetus'],
+    ['eliza', 'Kore'],
+    ['parry', 'Orus'],
+  ])('gives %s its own voice instead of the Sbaitso profile', async (id, voice) => {
+    const client = makeClient(audioOk);
+    await handleTts({ characterId: id, text: 'HELLO THERE.' }, client, MODELS);
+    expect(voiceOf(client.calls[0])).toBe(voice);
+  });
+
+  it('ignores voice profiles for personas other than Dr. Sbaitso', async () => {
+    const client = makeClient(audioOk);
+    await handleTts({ characterId: 'hal9000', text: 'HI.', voiceProfile: 'glitchy' }, client, MODELS);
+    expect(voiceOf(client.calls[0])).toBe('Algieba');
+    expect(client.calls[0].contents[0].parts[0].speechMetadata.style).not.toMatch(/glitchy/);
+  });
+
+  it('sends HAL calm direction that never names the film character or the actor', async () => {
+    const client = makeClient(audioOk);
+    await handleTts({ characterId: 'hal9000', text: 'GOOD AFTERNOON.' }, client, MODELS);
+    const style = client.calls[0].contents[0].parts[0].speechMetadata.style;
+    expect(style).toMatch(/calm/i);
+    expect(style).toMatch(/level/i);
+    expect(style).not.toMatch(/HAL|Rain|9000|monotone/i);
+  });
+
+  it('sends JOSHUA the list-reading direction', async () => {
+    const client = makeClient(audioOk);
+    await handleTts({ characterId: 'joshua', text: 'SHALL WE PLAY A GAME?' }, client, MODELS);
+    expect(client.calls[0].contents[0].parts[0].speechMetadata.style).toMatch(/reading each word separately, as if from a list/);
+  });
+
+  it('converts all-caps replies to sentence case for sentence-case personas', async () => {
+    const client = makeClient(audioOk);
+    await handleTts({ characterId: 'hal9000', text: "I'M SORRY, DAVE. I AM HAL. IS THE AE-35 OK?" }, client, MODELS);
+    expect(client.calls[0].contents[0].parts[0].text).toBe("I'm sorry, dave. I am Hal. Is the A E thirty-five OK?");
+  });
+
+  it('keeps Dr. Sbaitso in capitals', async () => {
+    const client = makeClient(audioOk);
+    await handleTts({ characterId: 'sbaitso', text: 'WHY DO YOU FEEL THAT WAY?' }, client, MODELS);
+    expect(client.calls[0].contents[0].parts[0].text).toBe('WHY DO YOU FEEL THAT WAY?');
+  });
+
+  it('gives custom characters their own style with the default voice', async () => {
+    const client = makeClient(audioOk);
+    await handleTts({ voicePrompt: 'Say in a squeaky robot voice', text: 'BEEP BOOP', voiceProfile: 'deep' }, client, MODELS);
+    const req = client.calls[0];
+    expect(voiceOf(req)).toBe('Charon');
+    expect(req.contents[0].parts[0].speechMetadata.style).toBe('a squeaky robot voice');
+    expect(req.contents[0].parts[0].text).toBe('BEEP BOOP');
+  });
+
   it('honours an explicit voice profile', async () => {
     const client = makeClient(() => ({
       candidates: [{ content: { parts: [{ inlineData: { mimeType: 'audio/wav', data: b64(wav(pcm)) } }] } }],
@@ -334,11 +394,29 @@ describe('applyPronunciation', () => {
     ['sbaitso', 'DR SBAITSO AND DR.SMITH', 'DOCTOR SBAYT-SO AND DOCTOR SMITH'],
     ['sbaitso', 'DRY ADDRESS', 'DRY ADDRESS'],
     ['eliza', 'DR. SMITH', 'DR. SMITH'],
-    ['hal9000', 'I AM HAL', 'I AM H-A-L'],
+    ['hal9000', 'I AM HAL', 'I AM Hal'],
+    ['hal9000', 'I am the hal 9000 computer.', 'I am the Hal 9000 computer.'],
+    ['hal9000', 'The AE-35 unit', 'The A E thirty-five unit'],
+    ['joshua', 'The wopr is ready.', 'The Whopper is ready.'],
     ['joshua', 'THE WOPR', 'THE WHOPPER'],
     ['eliza', 'SBAITSO', 'SBAITSO'],
   ])('%s', (id, input, expected) => {
     expect(applyPronunciation(id, input)).toBe(expected);
+  });
+});
+
+describe('toSentenceCase', () => {
+  it.each([
+    ['HELLO THERE. HOW ARE YOU?', 'Hello there. How are you?'],
+    ["I'M AFRAID I CAN'T DO THAT, DAVE.", "I'm afraid I can't do that, dave."],
+    ['I THINK I WILL. I\'LL TRY!', "I think I will. I'll try!"],
+    ['MY C P U AND MY CPU ARE OK.', 'My C P U and my CPU are OK.'],
+    ['THE AI RUNS ON A PC AT NORAD.', 'The AI runs on a PC at norad.'],
+    ['GAME 9000... READY', 'Game 9000... Ready'],
+    ['Already mixed Case stays.', 'Already mixed Case stays.'],
+    ['', ''],
+  ])('%j', (input, expected) => {
+    expect(toSentenceCase(input)).toBe(expected);
   });
 });
 

@@ -9,13 +9,16 @@ function sine(freq: number, seconds: number, fs = FS): Float32Array {
   return out;
 }
 
-/** Gain in dB of a filter for one steady tone (RMS over the second half). */
+/** RMS of the second half (past the filter's start-up transient). */
+const tailRms = (a: Float32Array) => Math.sqrt(a.subarray(a.length >> 1).reduce((s, v) => s + v * v, 0) / (a.length >> 1));
+
+/** Gain in dB of a filter for one steady tone. */
 function gainDb(filter: (x: Float32Array) => Float32Array, freq: number): number {
   const x = sine(freq, 0.5);
-  const y = filter(x);
-  const rms = (a: Float32Array) => Math.sqrt(a.subarray(a.length >> 1).reduce((s, v) => s + v * v, 0) / (a.length >> 1));
-  return 20 * Math.log10(rms(y) / rms(x));
+  return 20 * Math.log10(tailRms(filter(x)) / tailRms(x));
 }
+
+const highPass220 = (x: Float32Array) => applyCascade(x, 'highpass', 220, FS, BUTTERWORTH_4_Q);
 
 describe('designBiquad', () => {
   it('low shelf boosts below the corner and leaves the highs', () => {
@@ -31,10 +34,9 @@ describe('designBiquad', () => {
   });
 
   it('a 4th-order Butterworth high-pass falls about 24 dB per octave', () => {
-    const hp = (x: Float32Array) => applyCascade(x, 'highpass', 220, FS, BUTTERWORTH_4_Q);
-    expect(gainDb(hp, 220)).toBeCloseTo(-3, 0);
-    expect(gainDb(hp, 110)).toBeLessThan(-22);
-    expect(Math.abs(gainDb(hp, 1000))).toBeLessThan(0.3);
+    expect(gainDb(highPass220, 220)).toBeCloseTo(-3, 0);
+    expect(gainDb(highPass220, 110)).toBeLessThan(-22);
+    expect(Math.abs(gainDb(highPass220, 1000))).toBeLessThan(0.3);
   });
 
   it('keeps the existing high shelf and low-pass designs', () => {

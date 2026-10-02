@@ -13,6 +13,7 @@ import {
   CHARACTERS,
   VOICE_PROFILES,
   DEFAULT_VOICE_PROFILE,
+  DEFAULT_CUSTOM_VOICE,
   type VoiceProfileId,
 } from '../../src/constants.js';
 
@@ -98,6 +99,40 @@ function findCharacter(id: unknown) {
   return typeof id === 'string' ? CHARACTERS.find((c) => c.id === id) : undefined;
 }
 
+/**
+ * Initialisms kept in capitals when a reply is sentence-cased, so TTS still
+ * reads them as letters. Acronyms said as words (NORAD, DEFCON) are left to
+ * become ordinary words.
+ */
+const KEEP_UPPER = new Set(['AI', 'CPU', 'RAM', 'DOS', 'PC', 'PCS', 'OK', 'TV', 'FBI', 'CIA', 'USA', 'UK', 'IBM', 'ID']);
+
+const isSingleLetter = (t: string | undefined) => t !== undefined && /^[A-Z][.,;:!?]*$/.test(t);
+
+/**
+ * Converts an all-caps reply to sentence case for TTS (ref-docs/09 section
+ * 6.1): lower case, then a capital at the start of each sentence and for the
+ * pronoun "I". Known initialisms and runs of single spelled-out letters
+ * ("C P U") stay in capitals. Text that already has lower-case letters is
+ * returned unchanged.
+ */
+export function toSentenceCase(text: string): string {
+  if (/[a-z]/.test(text)) return text;
+  const tokens = text.split(/(\s+)/);
+  const words = tokens.map((token, i) => {
+    if (i % 2 === 1) return token; // whitespace
+    const core = token.replace(/^[^A-Z0-9]+|[^A-Z0-9]+$/g, '');
+    if (KEEP_UPPER.has(core)) return token;
+    if (isSingleLetter(token) && token[0] !== 'I' && (isSingleLetter(tokens[i - 2]) || isSingleLetter(tokens[i + 2]))) {
+      return token;
+    }
+    return token.toLowerCase();
+  });
+  return words
+    .join('')
+    .replace(/\bi\b/g, 'I')
+    .replace(/(^|[.?!]\s+)([^A-Za-z]*)([a-z])/g, (_m, lead: string, gap: string, letter: string) => lead + gap + letter.toUpperCase());
+}
+
 /** Character-specific spelling hints so TTS pronounces names correctly. */
 export function applyPronunciation(characterId: string | undefined, text: string): string {
   switch (characterId) {
@@ -110,9 +145,11 @@ export function applyPronunciation(characterId: string | undefined, text: string
         .replace(/\bDR\b\.?/gi, 'DOCTOR')
         .replace(/SBAITSO/gi, 'SBAYT-SO');
     case 'hal9000':
-      return text.replace(/\bHAL\b/g, 'H-A-L');
+      // The film says the name as one word, never as letters (ref-docs/07 G8).
+      return text.replace(/\bHAL\b/gi, 'Hal').replace(/\bAE-35\b/gi, 'A E thirty-five');
     case 'joshua':
-      return text.replace(/WOPR/g, 'WHOPPER');
+      // Capitals in, capitals out; sentence case in, a capitalised name out.
+      return text.replace(/\bWOPR\b/gi, (m) => (m === 'WOPR' && !/[a-z]/.test(text) ? 'WHOPPER' : 'Whopper'));
     default:
       return text;
   }
@@ -298,24 +335,29 @@ export async function handleTts(raw: unknown, client: GeminiClient, models: Mode
   }
   const profile = VOICE_PROFILES[voiceProfile as VoiceProfileId];
 
-  let baseStyle: string;
-  let id: string | undefined;
+  let style: string;
+  let voiceName: string;
+  let spoken: string;
   if (characterId !== undefined) {
     const character = findCharacter(characterId);
     if (!character) return badRequest('Unknown character.');
-    baseStyle = styleFromVoicePrompt(character.voicePrompt);
-    id = character.id;
+    // Voice profiles came from the AI Studio Sbaitso app and apply to Dr.
+    // Sbaitso only; every other persona has its own voice (ref-docs/09 6.1).
+    const usesProfile = character.processing === 'sbaitso';
+    voiceName = usesProfile ? profile.voiceName : character.voiceName;
+    style = [character.voiceStyle, usesProfile ? profile.style : ''].filter(Boolean).join('; ');
+    const cased = character.ttsCase === 'sentence' ? toSentenceCase(text) : text;
+    spoken = applyPronunciation(character.id, cased);
   } else if (voicePrompt !== undefined) {
     if (!nonEmptyString(voicePrompt, LIMITS.voicePrompt)) {
       return badRequest(`voicePrompt must be 1-${LIMITS.voicePrompt} characters.`);
     }
-    baseStyle = styleFromVoicePrompt(voicePrompt);
+    style = styleFromVoicePrompt(voicePrompt);
+    voiceName = DEFAULT_CUSTOM_VOICE;
+    spoken = text;
   } else {
     return badRequest('Either characterId or voicePrompt is required.');
   }
-
-  const style = [baseStyle, profile.style].filter(Boolean).join('; ');
-  const spoken = applyPronunciation(id, text);
 
   // Gemini 3.x TTS reads the text verbatim and takes direction separately in
   // speechMetadata.style; 2.5 models only understood an inline prompt prefix.
@@ -332,7 +374,7 @@ export async function handleTts(raw: unknown, client: GeminiClient, models: Mode
           contents: [{ role: 'user', parts: [partFor(model)] }],
           config: {
             responseModalities: ['AUDIO'],
-            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: profile.voiceName } } },
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
             httpOptions: { timeout },
           },
         }),
