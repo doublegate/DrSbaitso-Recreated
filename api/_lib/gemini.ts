@@ -42,7 +42,8 @@ export const LIMITS = {
 export const DEFAULT_MODELS = {
   chat: 'gemini-3.8-flash',
   tts: 'gemini-3.8-flash-tts',
-  // Tried in order when the primary model is overloaded (HTTP 503).
+  // Tried in order when the primary model is overloaded (503), out of quota
+  // (429) or too slow (per-attempt timeout), within the total time budget.
   chatFallbacks: ['gemini-3.7-flash', 'gemini-3.5-flash', 'gemini-flash-latest'],
   ttsFallbacks: ['gemini-3.8-flash-lite-tts'],
 };

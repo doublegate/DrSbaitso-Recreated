@@ -6,7 +6,7 @@
  *   const { state, result } = processInput(stateRef.current, input);
  *   stateRef.current = state;
  *   switch (result.kind) {
- *     case 'model':   reply = await getAIResponse(result.message);
+ *     case 'model':   reply = await getAIResponse(result.message, 'sbaitso');
  *                     stateRef.current = recordReply(stateRef.current, reply); break;
  *     case 'reply':   print + speak result.lines / result.speak; apply result.settings; break;
  *     case 'parity':  print/speak result.lead, flood result.flood with the buzz tone,
