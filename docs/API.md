@@ -37,7 +37,7 @@ Both `process.env.API_KEY` and `process.env.GEMINI_API_KEY` are available in the
 
 ### Multi-Character Architecture (v1.1.0)
 
-**File:** `services/geminiService.ts`
+**File:** `src/services/geminiService.ts`
 
 ```typescript
 const ai = new GoogleGenAI({ apiKey: API_KEY });

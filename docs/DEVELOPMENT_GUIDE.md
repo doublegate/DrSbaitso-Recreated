@@ -488,7 +488,7 @@ describe('MyFeature', () => {
 
 ### Character Configuration
 
-Characters are defined in `constants.ts`:
+Characters are defined in `src/constants.ts`:
 
 ```typescript
 export const CHARACTERS: CharacterPersonality[] = [
@@ -545,7 +545,7 @@ npm run dev
 
 ### Theme Structure
 
-Themes are defined in `constants.ts`:
+Themes are defined in `src/constants.ts`:
 
 ```typescript
 export const THEMES: Theme[] = [

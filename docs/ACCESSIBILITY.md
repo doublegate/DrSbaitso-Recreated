@@ -873,7 +873,7 @@ lhci autorun --collect.url=http://localhost:3000 \
 
 ### Key Modules
 
-#### `utils/accessibilityManager.ts`
+#### `src/utils/accessibilityManager.ts`
 
 Core accessibility utilities:
 
@@ -908,7 +908,7 @@ prefersHighContrast(): boolean
 prefersDarkMode(): boolean
 ```
 
-#### `hooks/useAccessibility.ts`
+#### `src/hooks/useAccessibility.ts`
 
 React hook for accessibility settings:
 
@@ -921,7 +921,7 @@ const {
 } = useAccessibility();
 ```
 
-#### `hooks/useFocusTrap.ts`
+#### `src/hooks/useFocusTrap.ts`
 
 React hook for modal focus trapping:
 
@@ -935,7 +935,7 @@ return (
 );
 ```
 
-#### `hooks/useScreenReader.ts`
+#### `src/hooks/useScreenReader.ts`
 
 React hook for screen reader announcements:
 

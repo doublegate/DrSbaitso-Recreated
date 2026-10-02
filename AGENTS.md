@@ -50,18 +50,18 @@ npm run analyze        # bundle report -> reports/ (gitignored)
   - Inputs are validated and capped.
   - Model fallback on 503/429/timeout within a 50 s budget.
   - TTS WAV is converted to raw PCM16.
-- `services/geminiService.ts`: browser fetch client. It keeps per-character history, because the
+- `src/services/geminiService.ts`: browser fetch client. It keeps per-character history, because the
   proxy is stateless.
-- `App.tsx`: the app shell.
+- `src/App.tsx`: the app shell.
   - `sendMessage()` is the single turn pipeline.
   - The greeting is one async sequence started from name submit.
   - It is being split into hooks (Phase 7).
-- `hooks/useSpeechPlayer.ts`: plays TTS through `utils/sharedAudio.ts`, the one AudioContext for
+- `src/hooks/useSpeechPlayer.ts`: plays TTS through `src/utils/sharedAudio.ts`, the one AudioContext for
   the page.
-- `constants.ts`: `CHARACTERS`, `VOICE_PROFILES`, `THEMES`, `AUDIO_MODES`. Shortcuts: `utils/shortcuts.ts`.
+- `src/constants.ts`: `CHARACTERS`, `VOICE_PROFILES`, `THEMES`, `AUDIO_MODES`. Shortcuts: `src/utils/shortcuts.ts`.
 - `src/sw.ts`: the service worker (vite-plugin-pwa `injectManifest`), served as `/sw.js`.
   - It precaches the build and never caches `/api`.
-  - `components/UpdatePrompt.tsx` offers updates; the page never reloads on its own.
+  - `src/components/UpdatePrompt.tsx` offers updates; the page never reloads on its own.
   - `public/service-worker.js` is a kill switch for browsers that installed the v1.x worker.
   - See `docs/PWA.md`.
 - `ref-docs/`: sourced research on the original program (history, voice, UI). Use it before

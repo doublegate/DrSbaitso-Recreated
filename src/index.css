@@ -1,7 +1,7 @@
 @import 'tailwindcss' source(none);
 
 /* Scan only application sources (not docs/, which would add stray classes). */
-@source './index.html';
+@source '../index.html';
 @source './App.tsx';
 @source './components';
 @source './hooks';

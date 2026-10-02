@@ -385,10 +385,10 @@ if (!voiceControl.isSupported) {
 ### Architecture
 
 **Components:**
-- `utils/voiceCommands.ts` - Command definitions and matching algorithms
-- `hooks/useVoiceControl.ts` - Main voice control hook
-- `hooks/useVoiceRecognition.ts` - Web Speech API wrapper
-- `App.tsx` - UI integration and command handlers
+- `src/utils/voiceCommands.ts` - Command definitions and matching algorithms
+- `src/hooks/useVoiceControl.ts` - Main voice control hook
+- `src/hooks/useVoiceRecognition.ts` - Web Speech API wrapper
+- `src/App.tsx` - UI integration and command handlers
 
 **Key Functions:**
 - `detectWakeWord()` - Wake word detection with fuzzy matching

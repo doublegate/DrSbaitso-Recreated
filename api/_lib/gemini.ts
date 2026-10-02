@@ -14,7 +14,7 @@ import {
   VOICE_PROFILES,
   DEFAULT_VOICE_PROFILE,
   type VoiceProfileId,
-} from '../../constants.js';
+} from '../../src/constants.js';
 
 export const LIMITS = {
   /** Characters in one user message. */

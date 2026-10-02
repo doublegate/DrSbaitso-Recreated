@@ -10,21 +10,15 @@
     ]
   },
   "include": [
+    "src",
     "test",
-    "components/**/*.test.tsx",
-    "*.ts",
-    "*.tsx",
-    "components",
-    "hooks",
-    "utils",
-    "services",
     "api",
     "e2e",
     "playwright.config.ts"
   ],
   "exclude": [
+    "src/sw.ts",
     "vite.config.ts",
-    "vitest.config.ts",
-    "src/sw.ts"
+    "vitest.config.ts"
   ]
 }

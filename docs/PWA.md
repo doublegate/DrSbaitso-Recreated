@@ -10,8 +10,8 @@ loaded once. Replies and speech need the network, because they come from
 |---|---|---|
 | Service worker | `src/sw.ts` → `dist/sw.js` | Built by [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) (`injectManifest`) |
 | Precache list | generated at build time | Every hashed file in `dist/` (JS, CSS, HTML, icons, worklet, manifest) |
-| Registration and updates | `components/UpdatePrompt.tsx` | `useRegisterSW` from `virtual:pwa-register/react` |
-| Install banner | `hooks/useInstallPrompt.ts` + `components/InstallPrompt.tsx` | Shown only when the browser fires `beforeinstallprompt` |
+| Registration and updates | `src/components/UpdatePrompt.tsx` | `useRegisterSW` from `virtual:pwa-register/react` |
+| Install banner | `src/hooks/useInstallPrompt.ts` + `src/components/InstallPrompt.tsx` | Shown only when the browser fires `beforeinstallprompt` |
 | Web app manifest | `public/manifest.json` | Icons, shortcuts and the share target |
 | Retired worker | `public/service-worker.js` | A kill switch for browsers that installed the v1.x worker (see below) |
 

@@ -297,7 +297,7 @@ console.log(audioContextRef.current);
 **Solutions:**
 
 1. **Verify bit-crusher code:**
-   - Check `utils/audio.ts:42-59`
+   - Check `src/utils/audio.ts:42-59`
    - Ensure `onaudioprocess` callback exists
 
 2. **Check node connections:**

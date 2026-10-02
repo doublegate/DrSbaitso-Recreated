@@ -198,7 +198,7 @@ Switch moods to match conversation tone:
 ## Advanced Usage
 
 ### Creating Custom Moods
-While you can't currently add custom moods via UI, developers can extend the music engine by modifying `utils/musicEngine.ts`:
+While you can't currently add custom moods via UI, developers can extend the music engine by modifying `src/utils/musicEngine.ts`:
 
 ```typescript
 // Example: Add a "Jazz" mood

@@ -19,7 +19,7 @@
 
 ### `getDrSbaitsoResponse(message: string): Promise<string>`
 
-**Location**: `services/geminiService.ts`
+**Location**: `src/services/geminiService.ts`
 
 Sends a user message to Google Gemini AI and returns Dr. Sbaitso's response.
 
@@ -46,7 +46,7 @@ try {
 
 ### `synthesizeSpeech(text: string, characterId: string): Promise<string>`
 
-**Location**: `services/geminiService.ts`
+**Location**: `src/services/geminiService.ts`
 
 Converts text to speech using Gemini 2.5 Flash TTS with character-specific voice prompts.
 
@@ -81,7 +81,7 @@ const audioData = await synthesizeSpeech('HELLO USER', 'sbaitso');
 
 #### `decode(base64: string): Uint8Array`
 
-**Location**: `utils/audio.ts`
+**Location**: `src/utils/audio.ts`
 
 Decodes base64 string to Uint8Array.
 
@@ -95,7 +95,7 @@ Decodes base64 string to Uint8Array.
 
 #### `decodeAudioData(audioBytes: Uint8Array, ctx: AudioContext, sampleRate: number, channels: number, mode: AudioMode): Promise<AudioBuffer>`
 
-**Location**: `utils/audio.ts`
+**Location**: `src/utils/audio.ts`
 
 Converts raw PCM audio bytes to AudioBuffer with vintage processing.
 
@@ -118,7 +118,7 @@ const buffer = await decodeAudioData(audioBytes, audioContext, 24000, 1, 'authen
 
 #### `playAudio(buffer: AudioBuffer, ctx: AudioContext): Promise<void>`
 
-**Location**: `utils/audio.ts`
+**Location**: `src/utils/audio.ts`
 
 Plays an audio buffer through Web Audio API.
 
@@ -135,7 +135,7 @@ Plays an audio buffer through Web Audio API.
 
 #### `SessionManager.createSession(characterId: string, themeId: string, audioQualityId: string): ConversationSession`
 
-**Location**: `utils/sessionManager.ts`
+**Location**: `src/utils/sessionManager.ts`
 
 Creates a new conversation session.
 
@@ -151,7 +151,7 @@ Creates a new conversation session.
 
 #### `SessionManager.saveSession(session: ConversationSession): void`
 
-**Location**: `utils/sessionManager.ts`
+**Location**: `src/utils/sessionManager.ts`
 
 Persists session to localStorage.
 
@@ -162,7 +162,7 @@ Persists session to localStorage.
 
 #### `SessionManager.getAllSessions(): ConversationSession[]`
 
-**Location**: `utils/sessionManager.ts`
+**Location**: `src/utils/sessionManager.ts`
 
 Retrieves all saved sessions.
 
@@ -175,7 +175,7 @@ Retrieves all saved sessions.
 
 #### `analyzeSentiment(messages: Message[]): SentimentAnalysis`
 
-**Location**: `utils/sentimentAnalysis.ts`
+**Location**: `src/utils/sentimentAnalysis.ts`
 
 Analyzes sentiment of messages using keyword matching.
 
@@ -204,7 +204,7 @@ console.log(sentiment);
 
 #### `generateInsightSummary(sessions: ConversationSession[]): InsightSummary`
 
-**Location**: `utils/insightEngine.ts`
+**Location**: `src/utils/insightEngine.ts`
 
 Generates comprehensive conversation insights including health score, topic clusters, and pattern detection.
 
@@ -226,7 +226,7 @@ console.log(insights.sentimentTrend.trend);  // 'improving'
 
 #### `calculateConversationHealth(sessions: ConversationSession[]): ConversationHealth`
 
-**Location**: `utils/insightEngine.ts`
+**Location**: `src/utils/insightEngine.ts`
 
 Calculates conversation health score (0-100) with breakdown.
 
@@ -249,7 +249,7 @@ Calculates conversation health score (0-100) with breakdown.
 
 #### `clusterTopics(sessions: ConversationSession[]): TopicCluster[]`
 
-**Location**: `utils/insightEngine.ts`
+**Location**: `src/utils/insightEngine.ts`
 
 Identifies and clusters conversation topics using TF-IDF-inspired algorithm.
 
@@ -275,7 +275,7 @@ Identifies and clusters conversation topics using TF-IDF-inspired algorithm.
 
 #### `SoundEffectsManager.playSound(eventType: SoundEventType, volume?: number): Promise<void>`
 
-**Location**: `utils/soundEffects.ts`
+**Location**: `src/utils/soundEffects.ts`
 
 Plays a retro sound effect.
 
@@ -305,7 +305,7 @@ await soundManager.playSound('keypress', 0.8);
 
 #### `SoundEffectsManager.startAmbience(): Promise<void>`
 
-**Location**: `utils/soundEffects.ts`
+**Location**: `src/utils/soundEffects.ts`
 
 Starts looping background ambience (computer room atmosphere).
 
@@ -313,7 +313,7 @@ Starts looping background ambience (computer room atmosphere).
 
 #### `SoundEffectsManager.updateSettings(settings: Partial<SoundSettings>): void`
 
-**Location**: `utils/soundEffects.ts`
+**Location**: `src/utils/soundEffects.ts`
 
 Updates sound settings.
 
@@ -332,7 +332,7 @@ soundManager.updateSettings({
 
 ### `useSoundEffects()`
 
-**Location**: `hooks/useSoundEffects.ts`
+**Location**: `src/hooks/useSoundEffects.ts`
 
 React hook for managing retro sound effects.
 
@@ -365,7 +365,7 @@ function MyComponent() {
 
 ### `useAccessibility()`
 
-**Location**: `hooks/useAccessibility.ts`
+**Location**: `src/hooks/useAccessibility.ts`
 
 Manages accessibility settings.
 
@@ -382,7 +382,7 @@ Manages accessibility settings.
 
 ### `useScreenReader()`
 
-**Location**: `hooks/useScreenReader.ts`
+**Location**: `src/hooks/useScreenReader.ts`
 
 Provides screen reader announcement functionality.
 
@@ -405,7 +405,7 @@ announce('Error occurred', 'assertive');
 
 ### `useVoiceControl()`
 
-**Location**: `hooks/useVoiceControl.ts`
+**Location**: `src/hooks/useVoiceControl.ts`
 
 Manages voice command functionality.
 
@@ -441,7 +441,7 @@ Manages voice command functionality.
 
 ### SoundSettingsPanel
 
-**Location**: `components/SoundSettingsPanel.tsx`
+**Location**: `src/components/SoundSettingsPanel.tsx`
 
 Modal dialog for configuring sound effects.
 
@@ -465,7 +465,7 @@ interface SoundSettingsPanelProps {
 
 ### ConversationInsights (Enhanced v1.9.0)
 
-**Location**: `components/ConversationInsights.tsx`
+**Location**: `src/components/ConversationInsights.tsx`
 
 Analytics dashboard with advanced pattern detection.
 

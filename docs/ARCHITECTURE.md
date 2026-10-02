@@ -583,7 +583,7 @@ Analyzes and visualizes emotional content of conversations.
 **Key Methods:**
 
 #### analyzeMessage(text: string): EmotionAnalysis
-1. Calls `utils/emotionDetection.ts` for keyword analysis
+1. Calls `src/utils/emotionDetection.ts` for keyword analysis
 2. Returns { dominant, confidence, scores: { joy, sadness, anger, fear, surprise } }
 3. Updates `emotionHistory` array
 
@@ -625,7 +625,7 @@ Interactive force-directed graph showing conversation topics and transitions.
 **Key Methods:**
 
 #### extractTopics(messages: Message[]): TopicNode[]
-1. Calls `utils/topicAnalysis.ts` for NLP-style extraction
+1. Calls `src/utils/topicAnalysis.ts` for NLP-style extraction
 2. Identifies keywords and themes
 3. Calculates frequency and sentiment
 4. Returns array of TopicNode objects
@@ -683,7 +683,7 @@ Browse, search, and use conversation templates.
 **Key Methods:**
 
 #### loadTemplates()
-1. Calls `utils/templateManager.ts` for default templates
+1. Calls `src/utils/templateManager.ts` for default templates
 2. Loads custom templates from localStorage
 3. Merges and sorts by usage count
 

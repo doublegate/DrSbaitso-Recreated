@@ -15,14 +15,14 @@ else is a factual correction to make either way.
 - [ ] Pronunciation: "SBAYT-so", not "SUH-BAIT-SO" (`api/_lib/gemini.ts`). Spell out
       "DOCTOR", not "DR.".
 - [ ] `playbackRate` 1.1 raises pitch by 10%; it does not deepen the voice. Use 1.0 for
-      the authentic modes (`utils/audio.ts`).
+      the authentic modes (`src/utils/audio.ts`).
 - [ ] The Authentic preset's 5 kHz high cut has no effect; the original sits under a
-      roughly 4 kHz ceiling at 8,475 Hz (`utils/vintageAudioProcessing.ts`).
+      roughly 4 kHz ceiling at 8,475 Hz (`src/utils/vintageAudioProcessing.ts`).
 - [ ] `pitchVarianceReduction` is never read by any code: implement or remove it.
 - [ ] "PARITY CHECKING" and "IRQ CONFLICT AT ADDRESS 220H" never appear in the original.
       The real glitch is "PARITY ERR ... RECOVERED / PHEW! THAT WAS CLOSE!", triggered
-      by swearing. Fix in `constants.ts`, `App.tsx` (`GLITCH_PHRASES`) and
-      `utils/retroErrors.ts`.
+      by swearing. Fix in `src/constants.ts`, `src/App.tsx` (`GLITCH_PHRASES`) and
+      `src/utils/retroErrors.ts`.
 - [ ] Check whether Gemini honours `speechMetadata.style` in `generateContent` (A/B test
       with an extreme style). If it doesn't, the voice styles do nothing.
 

@@ -5,7 +5,7 @@ They are matched on the physical key, so the characters macOS produces for
 Option+Shift combinations do not interfere. Ctrl/Cmd combinations are left to the
 browser (select all, paste as plain text, DevTools, and so on).
 
-The source of truth is [`utils/shortcuts.ts`](../utils/shortcuts.ts). The toolbar
+The source of truth is [`src/utils/shortcuts.ts`](../src/utils/shortcuts.ts). The toolbar
 buttons show their shortcut in their tooltip and accessible label.
 
 ## Global
@@ -49,4 +49,4 @@ buttons show their shortcut in their tooltip and accessible label.
 With voice control on, say "Hey Doctor" or "Hey Sbaitso" and then a command, for example
 "clear conversation", "export", "talk to ELIZA", "stop audio", "play music", "open
 sound packs" or "help". Say "help" for the full list, which
-`utils/voiceCommands.ts` defines.
+`src/utils/voiceCommands.ts` defines.
