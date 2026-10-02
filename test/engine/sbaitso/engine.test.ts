@@ -170,15 +170,12 @@ describe('AUTHOR and SHUT UP', () => {
 });
 
 describe('BYE / QUIT / GOODBYE', () => {
-  it('cycles through the original goodbyes and ends the session', () => {
+  it('cycles through the original goodbyes and ends the session with the menu', () => {
     const { results } = run(['bye', 'goodbye', 'GOOD BYE', 'bye']);
-    expect(results[0]).toEqual({
-      kind: 'exit',
-      lines: ['GOOD BYE JOHN, AND HAVE A NICE DAY', 'GOOD BYE'],
-      showMenu: true,
-    });
-    expect(results[1]).toMatchObject({ kind: 'exit', lines: ['GOOD BYE, SO LONG!', 'GOOD BYE'] });
-    expect(results[2]).toMatchObject({ kind: 'exit', lines: ['JOHN, IT IS SO NICE TALKING TO YOU, BYE!', 'GOOD BYE'] });
+    // The reply is the only line: the C/N/Q menu follows on the very next row.
+    expect(results[0]).toEqual({ kind: 'exit', lines: ['GOOD BYE JOHN, AND HAVE A NICE DAY'] });
+    expect(results[1]).toEqual({ kind: 'exit', lines: ['GOOD BYE, SO LONG!'] });
+    expect(results[2]).toEqual({ kind: 'exit', lines: ['JOHN, IT IS SO NICE TALKING TO YOU, BYE!'] });
     // The fourth reply refuses to let the patient go.
     expect(results[3]).toMatchObject({ kind: 'reply', lines: ["I'M NOT THROUGH WITH YOU YET"] });
   });
@@ -192,13 +189,16 @@ describe('BYE / QUIT / GOODBYE', () => {
     expect(run(['my wife said bye to me']).last.kind).toBe('model');
   });
 
-  it('goes straight to the menu on a bare QUIT or EXIT', () => {
-    expect(run(['quit']).last).toEqual({ kind: 'exit', lines: ['GOOD BYE'], showMenu: true });
-    expect(run(['EXIT']).last.kind).toBe('exit');
+  it('shows the menu at once on a bare QUIT, with no goodbye line', () => {
+    expect(run(['quit']).last).toEqual({ kind: 'exit', lines: [] });
   });
 
-  it('quits without the menu on .QUIT', () => {
-    expect(run(['.QUIT']).last).toEqual({ kind: 'exit', lines: [], showMenu: false });
+  it('treats a bare EXIT as short input, not a command', () => {
+    expect(run(['EXIT']).last).toMatchObject({ kind: 'reply', lines: ["THAT'S TOO BRIEF"] });
+  });
+
+  it('says GOOD BYE <NAME> on .QUIT and then shows the menu', () => {
+    expect(run(['.QUIT']).last).toEqual({ kind: 'exit', lines: ['GOOD BYE JOHN'] });
   });
 });
 

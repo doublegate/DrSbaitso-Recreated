@@ -7,6 +7,7 @@
  * to the other commands (LIKELY). The original prints nothing on success
  * (LIKELY), so successful settings carry no lines.
  */
+import { GOOD_BYE } from './phrases';
 import type { EngineStep, SbaitsoSettings, SbaitsoState, ValueCommand } from './types';
 
 /** Defaults written by `SBAITSO2.EXE` before it starts the engine (LIKELY, ref-docs/02 section 4). */
@@ -157,8 +158,11 @@ export function dotCommand(state: SbaitsoState, raw: string): EngineStep {
   }
 
   switch (command) {
-    case 'QUIT':
-      return { state: { ...state, pending: NONE }, result: { kind: 'exit', lines: [], showMenu: false } };
+    case 'QUIT': {
+      // GOOD BYE <NAME>, spoken, then the C/N/Q menu; it does not drop to DOS (CONFIRMED (DOSBox)).
+      const lines = [`${GOOD_BYE} ${state.name}`.trim()];
+      return { state: { ...state, pending: NONE, lastReply: lines }, result: { kind: 'exit', lines } };
+    }
     case 'PARAM': {
       if (arg) return applyParam(state, arg);
       const step = setting(state, [

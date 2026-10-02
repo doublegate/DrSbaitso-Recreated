@@ -105,11 +105,12 @@ export type EngineResult =
   /** `SAY <text>`: speak `text` verbatim instead of answering. */
   | { kind: 'say'; text: string }
   /**
-   * End of session. Print and speak `lines`, then, if `showMenu`, show
-   * `exitMenuText()` and wait for C/N/Q (see `resolveExitChoice`). Without the
-   * menu (`.QUIT`) the program quits directly.
+   * End of session. Print and speak `lines` (none for a bare QUIT), then show
+   * `exitMenuText()` on the next row and wait for C/N/Q (see
+   * `resolveExitChoice`). Every route, `.QUIT` included, goes through the menu
+   * (CONFIRMED (DOSBox)).
    */
-  | { kind: 'exit'; lines: string[]; showMenu: boolean }
+  | { kind: 'exit'; lines: string[] }
   /** Nothing to do (a prompt was dismissed with Enter). */
   | { kind: 'noop' };
 

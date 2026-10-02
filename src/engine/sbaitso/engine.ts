@@ -27,7 +27,6 @@ import {
   AGE_NONSENSE,
   AGE_QUESTIONS,
   GARBLE,
-  GOOD_BYE,
   PARITY_MARKER,
   PROFANITY_GROUP,
   PROFANITY_WORDS,
@@ -132,7 +131,8 @@ function parity(state: SbaitsoState, lead: string[] = []): EngineStep {
 }
 
 function exit(state: SbaitsoState, lines: string[]): EngineStep {
-  return { state: { ...state, lastReply: lines }, result: { kind: 'exit', lines, showMenu: true } };
+  const lastReply = lines.length > 0 ? lines : state.lastReply;
+  return { state: { ...state, lastReply }, result: { kind: 'exit', lines } };
 }
 
 const noop = (state: SbaitsoState): EngineStep => ({ state, result: { kind: 'noop' } });
@@ -208,7 +208,7 @@ function goodbye(state: SbaitsoState): EngineStep {
   const index = (state.cursors.bye ?? 0) % BYE_REPLIES.length;
   const [line, next] = rotate(state, 'bye', BYE_REPLIES);
   const text = withName(line, state.name);
-  return index === BYE_REFUSAL_INDEX ? reply(next, [text]) : exit(next, [text, GOOD_BYE]);
+  return index === BYE_REFUSAL_INDEX ? reply(next, [text]) : exit(next, [text]);
 }
 
 function crazy(state: SbaitsoState): EngineStep {
@@ -279,9 +279,9 @@ function command(state: SbaitsoState, text: string, plain: string): EngineStep |
 
   if (/^(GOOD ?BYE|BYE( BYE)?)( (DOCTOR|DR)( SBAITSO)?| SBAITSO)?$/.test(plain)) return goodbye(state);
 
-  // No response group exists for a bare QUIT or EXIT; going straight to the
-  // menu follows the bertrandom port (UNVERIFIED for the original).
-  if (plain === 'QUIT' || plain === 'EXIT') return exit(state, [GOOD_BYE]);
+  // A bare QUIT shows the menu with no goodbye line; a bare EXIT is not a
+  // command and falls through to short input (CONFIRMED (DOSBox)).
+  if (plain === 'QUIT') return exit(state, []);
 
   return null;
 }

@@ -194,7 +194,6 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
         return 'chat';
       case 'exit':
         await printAndSpeak(result.lines);
-        if (!result.showMenu) return quitToDos();
         printRows([], text(exitMenuText()));
         log(exitMenuText());
         return 'menu';

@@ -115,7 +115,7 @@ export const BYE_REPLIES = [
 ] as const;
 export const BYE_REFUSAL_INDEX = 3;
 
-/** Printed at the end of a session, before the C/N/Q menu. */
+/** `.QUIT` prints and speaks this followed by the name, then shows the C/N/Q menu. */
 export const GOOD_BYE = 'GOOD BYE';
 
 /** SHUT UP command-table replies. */
