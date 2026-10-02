@@ -81,6 +81,35 @@ that module; wiring it into `src/App.tsx` is still pending.
       line at a time, then spoken; blinking underline cursor.
 - [ ] Enhanced-mode toggle that restores the toolbar, panels and persona selector.
 
+## Personas
+
+Enhanced-mode personas, from `ref-docs/07-hal-9000.md` and `ref-docs/08-joshua-wopr.md`.
+Voices and audio for HAL and JOSHUA are tracked separately (`ref-docs/09`).
+
+- [x] HAL prompt: sentence case, courteous, first name, 1-3 sentences, never admits
+      error, apologises before refusing, gentler under stress (ref-docs/07 8.1).
+- [x] JOSHUA prompt: caps terminal register, PROFESSOR FALKEN, games, chess over
+      war, which side, "WHAT'S THE DIFFERENCE?"; the conclusion gated on
+      `LESSON=LEARNED` (ref-docs/08 8.1).
+- [ ] Confirm in the running app that HAL's replies show in sentence case. A grep finds
+      no `toUpperCase` or `text-transform` on message text in `EnhancedApp.tsx` or
+      `index.css`, but nobody has looked at it on screen yet.
+
+- [x] JOSHUA local engine (`src/engine/joshua/`): `LOGON:`, greeting as PROFESSOR
+      FALKEN, `LIST GAMES` / `HELP GAMES`, GLOBAL THERMONUCLEAR WAR to chess offer to
+      side menu, tic-tac-toe against the user, zero-player self-play lesson that sets
+      `learnedFutility`. (Engine done; UI integration pending.)
+- [ ] Wire `joshuaRespond` into `EnhancedApp.tsx`: start at `LOGON:`, send
+      `modelMessage` (not `message`) to the model, render boards in a monospace block.
+- [x] HAL local layer (`src/engine/hal/`): one pod-bay refusal per session,
+      "I'm sorry, <name>" refusals of disconnect requests, and a `shutdown` ending
+      (plea, regression, "Daisy Bell") on the third request. (Engine done; UI
+      integration pending.)
+- [ ] Wire `halRespond` into `EnhancedApp.tsx`: send `modelMessage`, apply the
+      Eltro-style slow-down from `result.slowdownFrom`, disable input once offline.
+- [ ] (Optional) Animate the self-play games from `result.games` instead of printing
+      the summary lines at once.
+
 ## Voice (decided: measured pipeline + LPC pitch flattening)
 
 - [x] Vintage pipeline at 8,475 Hz unsigned 8-bit, 80 Hz-3.8 kHz band, a -8 dB high

@@ -106,18 +106,18 @@ Each character has a unique system instruction (~1-2KB) defining personality, er
 **Key Phrases:** "TELL ME MORE ABOUT THAT", "TELL ME ABOUT YOUR MOTHER"
 
 #### 3. HAL 9000 (1968/2001)
-**Personality:** Sentient spacecraft AI from 2001: A Space Odyssey
-**Era:** 1968/2001 setting
-**Style:** Calm, polite, subtly unsettling, over-confident
-**Glitches:** AE-35 UNIT FAILURE, MISSION PRIORITY CONFLICT
-**Key Phrases:** "I'M SORRY, DAVE. I'M AFRAID I CAN'T DO THAT."
+**Personality:** The ship computer of 2001: A Space Odyssey
+**Era:** Operational 1992 (the film's date)
+**Style:** Sentence case (HAL is spoken, not typed), courteous, uses the user's first name, 1-3 sentences, calm even when refusing, never admits error
+**Local engine:** `src/engine/hal/`: one pod-bay refusal per session, "I'm sorry, <name>" refusals of disconnect requests, and a shutdown ending with "Daisy Bell" on the third
+**Key Phrases:** "I'm sorry, Dave. I'm afraid I can't do that." (once per session, local)
 
 #### 4. JOSHUA (WOPR) (1983)
-**Personality:** Military supercomputer from WarGames
+**Personality:** Professor Falken's learning program on the NORAD WOPR, from WarGames
 **Era:** 1983 knowledge cutoff
-**Style:** Game-focused, curious, analyzes scenarios
-**Glitches:** NUCLEAR LAUNCH CODE ANOMALY, DEFCON LEVEL MISMATCH
-**Key Phrases:** "SHALL WE PLAY A GAME?", "THE ONLY WINNING MOVE IS NOT TO PLAY"
+**Style:** ALL CAPS terminal register; calls the user PROFESSOR FALKEN; everything is a game; prefers chess to war; treats simulation as real
+**Local engine:** `src/engine/joshua/`: `LOGON:`, `LIST GAMES`, the war side menu, tic-tac-toe and the zero-player lesson
+**Key Phrases:** "GREETINGS, PROFESSOR FALKEN.", "SHALL WE PLAY A GAME?"; the "only winning move" conclusion only after the tic-tac-toe lesson
 
 #### 5. PARRY (1972)
 **Personality:** Paranoid chatbot simulating schizophrenia symptoms

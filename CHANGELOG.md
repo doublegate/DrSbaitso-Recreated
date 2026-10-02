@@ -109,6 +109,24 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   a fixed persona, and a newly written line bank covers offline use. Seeded and
   deterministic; reimplemented from the papers, nothing taken from the unlicensed
   source. Not yet wired into the UI.
+- **Local JOSHUA/WOPR engine** (`src/engine/joshua/`), the same hybrid design for the
+  Enhanced-mode persona (`ref-docs/08`): a `LOGON:` prompt that greets any logon
+  (the backdoor word is `JOSHUA`) with "GREETINGS, PROFESSOR FALKEN." and "SHALL WE
+  PLAY A GAME?"; `LIST GAMES` and `HELP GAMES`; choosing GLOBAL THERMONUCLEAR WAR
+  gets a chess counter-offer, then the UNITED STATES / SOVIET UNION side menu; a real
+  tic-tac-toe game (perfect minimax, seeded tie-breaks) and a zero-player mode in
+  which JOSHUA plays itself to a draw every time, runs the war scenarios, reaches the
+  film's conclusion and offers chess. That lesson sets `learnedFutility`, which is
+  sent to the model with every turn so the conclusion cannot appear earlier. Pure
+  and seeded; not yet wired into the UI.
+- **Local HAL 9000 layer** (`src/engine/hal/`, `ref-docs/07`): a one-per-session
+  pod-bay-door refusal ("I'm sorry, <name>. I'm afraid I can't do that."),
+  increasingly gentle "I'm sorry, <name>" refusals of requests to disconnect or shut
+  HAL down, and on the third such request a `shutdown` ending: a calm plea, "I'm
+  afraid", the regression to HAL's first-day greeting and the public-domain "Daisy
+  Bell" (1892), with the index at which to start the slow-down effect. Everything
+  else goes to the model with the user's name and the attempt count. Not yet wired
+  into the UI.
 
 ### Fixed
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
@@ -240,6 +258,17 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   is a separate lazy chunk, absent from normal page loads.
 
 ### Changed
+- **HAL 9000 and JOSHUA persona prompts rewritten from the research** (`ref-docs/07`,
+  `ref-docs/08`). HAL now writes in sentence case (he is a spoken character; the
+  capitals had no basis in the film). He is courteous, uses the user's first name,
+  answers in one to three sentences, apologises before he refuses, and never admits
+  an error. He grows gentler under pressure, and can calmly say he is afraid or enjoys
+  his work. The AE-35 is no longer a verbal tic. JOSHUA keeps the upper-case
+  terminal, addresses the user as PROFESSOR FALKEN, frames everything as a game,
+  offers chess when war is proposed, asks which side, and cannot tell simulation from
+  reality. It no longer quotes "the only winning move" from the first turn: the prompt
+  allows the line only when the session tag says the tic-tac-toe lesson has happened.
+  Neither prompt names an actor or quotes more than a short signature line.
 - **Dr. Sbaitso persona rebuilt from the original program.** The prompt no longer
   asks for catchphrases and glitches the original never had ("TELL ME MORE ABOUT
   YOUR PROBLEMS", "PLEASE ELABORATE", "PARITY CHECKING", "IRQ CONFLICT"). It now
