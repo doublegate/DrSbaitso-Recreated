@@ -1,1115 +1,146 @@
-# Features Documentation
-
-## Overview
-
-Dr. Sbaitso Recreated combines authentic 1991 retro aesthetics with modern AI capabilities. **Version 1.11.0** adds production-ready features including Voice Input UI, Emotion Visualizer, Topic Flow Diagrams, Conversation Templates, Performance Profiler, Service Worker, Error Boundaries, and comprehensive E2E testing while maintaining the classic experience.
-
-## New Features (v1.11.0)
-
-### 1. Voice Input UI Component
-
-Transform your conversations with intuitive speech-to-text capabilities:
-
-#### Voice Input Features
-- **Web Speech API Integration**: Browser-based speech recognition with real-time transcription
-- **Real-time Transcription**:
-  - Interim transcripts: See your words as you speak
-  - Final transcripts: Complete, accurate text conversion
-  - Automatic punctuation and capitalization
-  - Multi-language support (depends on browser)
-- **Visual Feedback**:
-  - Animated microphone icon during listening
-  - Status indicators (Idle, Listening, Processing)
-  - Error state display with helpful messages
-- **Browser Compatibility**:
-  - Chrome/Edge: Full support
-  - Safari: Experimental support
-  - Firefox: Limited support
-  - Automatic fallback for unsupported browsers
-- **Accessibility**:
-  - ARIA labels for screen readers
-  - Keyboard accessible (Tab navigation)
-  - Focus management
-  - Status announcements
-
-#### Voice Input Controls
-- **Start/Stop**: Click microphone button or press hotkey
-- **Manual Override**: Stop listening anytime
-- **Error Recovery**: Automatic restart on errors
-- **Permissions**: One-time microphone access request
-
-**Keyboard Shortcuts**: Ctrl+Shift+V to toggle voice input
-
-**Test Coverage**: 29 component tests + 7 E2E tests
-
----
-
-### 2. Emotion Visualizer with Sentiment Analysis
-
-Understand the emotional journey of your conversations:
-
-#### Emotion Analysis Features
-- **Real-time Emotion Detection**: Analyzes every message for emotional content
-- **5-Emotion Model**:
-  - 😊 **Joy**: Happiness, excitement, contentment
-  - 😢 **Sadness**: Melancholy, disappointment, grief
-  - 😠 **Anger**: Frustration, annoyance, rage
-  - 😨 **Fear**: Anxiety, worry, apprehension
-  - 😲 **Surprise**: Astonishment, shock, wonder
-- **Confidence Scoring**: 0-100% confidence for each emotion
-- **Dominant Emotion**: Automatically identifies primary emotion
-- **Emotion History**: Tracks emotional progression over time
-
-#### Emotion Visualizer UI
-- **Emotion Badges**: Inline badges on each message with dominant emotion
-- **Trend Graph**: Canvas-based line chart showing emotion trends
-  - X-axis: Message timeline
-  - Y-axis: Emotion intensity (0-100%)
-  - Color-coded lines for each emotion
-  - Smooth interpolation between data points
-- **Progress Bars**: Visual distribution of all 5 emotions
-- **Statistics Panel**: Summary of emotional content
-  - Total messages analyzed
-  - Dominant emotion across conversation
-  - Average confidence score
-
-#### Technical Details
-- **Keyword-based Detection**: Pattern matching with weighted scoring
-- **Emoji Analysis**: Emojis contribute to emotion scores
-- **Intensity Detection**: Capitalization and punctuation affect confidence
-- **Canvas Rendering**: High-performance 2D graphics
-- **Theme Integration**: Matches current retro theme colors
-
-**Keyboard Shortcuts**: Emotion badges automatically appear on messages
-
-**Test Coverage**: 21 component tests + 9 E2E tests
-
----
-
-### 3. Topic Flow Diagram (D3.js Visualization)
-
-Visualize conversation topics and their relationships:
-
-#### Topic Flow Features
-- **Force-Directed Graph**: D3.js-powered interactive visualization
-- **Topic Extraction**: NLP-style keyword analysis
-  - Automatic topic identification
-  - Frequency tracking
-  - Topic clustering
-  - Relationship detection
-- **Topic Nodes**:
-  - Size indicates topic frequency
-  - Color indicates sentiment (positive, neutral, negative)
-  - Hover for detailed statistics
-  - Click to highlight connections
-- **Topic Transitions**:
-  - Arrows show conversation flow
-  - Line thickness indicates transition strength
-  - Animated force simulation
-
-#### Visualization Controls
-- **Interactive Graph**:
-  - Pan and zoom
-  - Drag nodes to reposition
-  - Hover for tooltips
-  - Auto-layout with physics simulation
-- **Sentiment Analysis**:
-  - Green nodes: Positive sentiment
-  - Yellow nodes: Neutral sentiment
-  - Red nodes: Negative sentiment
-- **Statistics Display**:
-  - Total unique topics
-  - Most frequent topic
-  - Topic transition count
-  - Dominant sentiment
-
-#### Technical Implementation
-- **D3.js v7.9.0**: Industry-standard data visualization
-- **Force Simulation**: Realistic physics-based layout
-- **SVG Rendering**: Scalable vector graphics
-- **Responsive Design**: Adapts to container size
-- **Performance**: Optimized for 100+ topics
-
-**Keyboard Shortcuts**: Access from Insights menu (Ctrl+Shift+I)
-
-**Test Coverage**: Component tests + 10 E2E tests
-
----
-
-### 4. Conversation Templates
-
-Jumpstart conversations with pre-defined prompts and flows:
-
-#### Template System Features
-- **10+ Pre-defined Templates**: Ready-to-use conversation starters
-- **6 Template Categories**:
-  - **Therapy**: Mental health and wellness conversations
-  - **Casual**: Friendly, informal discussions
-  - **Technical**: Problem-solving and debugging
-  - **Creative**: Brainstorming and ideation
-  - **Educational**: Learning and knowledge exploration
-  - **Custom**: User-created templates
-- **Template Structure**:
-  - Name and description
-  - Category and tags
-  - Prompt sequence (single or multi-turn)
-  - Placeholder variables (e.g., {name}, {topic})
-  - Usage tracking
-
-#### Template Browser UI
-- **Search Functionality**: Filter by name, tags, or description
-- **Category Filtering**: Browse by category
-- **Template Preview**: See full prompt before using
-- **Usage Statistics**: Track most-used templates
-- **Customization**:
-  - Fill in placeholder variables
-  - Edit prompts before sending
-  - Save custom templates
-
-#### Template Manager
-- **Create Custom Templates**:
-  - Multi-step wizard
-  - Variable placeholder support
-  - Category assignment
-  - Tag management
-- **Import/Export**: Share templates as JSON
-- **LocalStorage Persistence**: Templates saved client-side
-- **Template Versioning**: Track template changes
-
-#### Example Templates
-1. **Anxiety Relief** (Therapy): "I'm feeling anxious about {topic}. Can you help me work through this?"
-2. **Daily Reflection** (Casual): "I want to reflect on my day. Let me tell you about {event}."
-3. **Debug Session** (Technical): "I'm stuck on a {language} problem involving {concept}."
-4. **Story Brainstorm** (Creative): "Help me brainstorm a story about {character} who {action}."
-
-**Keyboard Shortcuts**: Ctrl+T to open template browser
-
-**Test Coverage**: Component tests + 13 E2E tests
-
----
-
-### 5. Performance Profiler
-
-Monitor and optimize application performance:
-
-#### Performance Monitoring Features
-- **Core Web Vitals Tracking**:
-  - **FCP** (First Contentful Paint): <1.8s
-  - **LCP** (Largest Contentful Paint): <2.5s
-  - **TTFB** (Time to First Byte): <600ms
-  - **CLS** (Cumulative Layout Shift): <0.1
-  - **FID** (First Input Delay): <100ms
-- **Memory Usage Monitoring**:
-  - Heap size tracking
-  - Memory allocation patterns
-  - Garbage collection detection
-  - Memory leak identification
-- **Performance Marks & Measures**:
-  - Custom timing marks
-  - Performance measurement between marks
-  - Integration with browser Performance API
-
-#### Profiler API
-```typescript
-// Start profiling a function
-PerformanceProfiler.start('functionName');
-// ... do work ...
-PerformanceProfiler.end('functionName');
-
-// Measure async operations
-await PerformanceProfiler.measureAsyncFn('apiCall', async () => {
-  return await fetch('/api/data');
-});
-
-// Generate performance report
-const report = PerformanceProfiler.generateReport();
-console.log(report);
-```
-
-#### Performance Reports
-- **Timing Statistics**: Min, max, average, median
-- **Memory Snapshots**: Before/after comparisons
-- **Bottleneck Detection**: Identify slow operations
-- **Export to JSON**: Share performance data
-
-**Test Coverage**: Unit tests for profiler utility
-
----
-
-### 6. Production Hardening
-
-Enterprise-grade reliability and error handling:
-
-#### Service Worker for Offline Support
-- **Static Asset Caching**: HTML, CSS, JS, images
-- **Runtime Caching Strategies**:
-  - Network-first with cache fallback
-  - Cache-first for static assets
-  - Stale-while-revalidate for API calls
-- **Offline Fallback Pages**: Graceful degradation
-- **Cache Versioning**: Automatic cache updates
-- **Background Sync**: Queue actions for when online (planned)
-
-#### React Error Boundaries
-- **Component-Level Error Catching**: Prevent app crashes
-- **Retro-Themed Error UI**: Consistent with app design
-- **Error Logging**: Detailed error reports
-- **Graceful Degradation**: App continues functioning
-- **Reset Functionality**: User can reset error state
-
-#### Security Enhancements
-- **Content Security Policy (CSP)**: XSS protection
-- **HTTPS Enforcement**: Secure connections only
-- **API Key Protection**: Environment variable isolation
-- **Input Sanitization**: Prevent injection attacks
-
-#### Reliability Features
-- **Automatic Error Recovery**: Retry failed operations
-- **State Persistence**: LocalStorage backup
-- **Session Recovery**: Resume after crashes
-- **Health Checks**: Monitor app status
-
-**Test Coverage**: Error boundary tests + E2E tests
-
----
-
-### 7. Comprehensive Testing Infrastructure
-
-Production-quality test coverage:
-
-#### Testing Statistics (v1.11.0)
-- **Total Tests**: 491 tests (100% pass rate)
-- **Component Tests**: 50 new tests (Vitest + React Testing Library)
-  - VoiceInput.test.tsx: 29 tests
-  - EmotionVisualizer.test.tsx: 21 tests
-  - Plus tests for all other new components
-- **E2E Tests**: 39 new tests (Playwright)
-  - e2e/voice-input.spec.ts: 7 tests
-  - e2e/emotion-viz.spec.ts: 9 tests
-  - e2e/topic-diagram.spec.ts: 10 tests
-  - e2e/templates.spec.ts: 13 tests
-
-#### Testing Tools
-- **Vitest 5.0.1**: Fast unit test framework
-- **React Testing Library 16.3.3**: Component testing utilities
-- **Playwright 1.63.0**: Cross-browser E2E testing
-- **@vitest/coverage-v8 5.0.1**: Code coverage reporting
-- **jsdom 30.1.1**: DOM environment (configured in `vitest.config.ts`)
-
-#### Test Categories
-- ✅ Browser support detection
-- ✅ Component rendering and lifecycle
-- ✅ User interactions and events
-- ✅ Error handling and edge cases
-- ✅ Accessibility compliance
-- ✅ Theme integration
-- ✅ Data persistence
-- ✅ API mocking
-- ✅ Performance benchmarks
-
-**Documentation**: See [TESTING.md](TESTING.md) for complete testing guide
-
----
-
-## Features (v1.10.0)
-
-### 1. Music Mode - Procedural Chiptune Generation
-
-Create authentic retro background music that adapts to your conversation mood:
-
-#### Music Engine Features
-- **Procedural Generation**: Real-time chiptune composition using Web Audio API
-- **Mood-Based Composition**:
-  - Happy: Major scales, upbeat rhythms
-  - Calm: Slow tempo, ambient tones
-  - Energetic: Fast BPM, driving basslines
-  - Melancholic: Minor keys, slower pace
-  - Mysterious: Diminished chords, experimental patterns
-- **Tempo Control**: Adjustable BPM (60-180)
-- **Volume Control**: Independent music volume (0-100%)
-- **Live Controls**: Play, pause, and adjust settings in real-time
-
-#### Music Player UI
-- **Persistent Widget**: Bottom-left overlay during conversations
-- **Compact Design**: Minimal screen space usage
-- **Toggle Visibility**: Show/hide with Ctrl+M
-- **Status Indicators**: Current mood and tempo display
-- **Theme Integration**: Matches current retro theme colors
-
-#### Technical Details
-- Pure Web Audio API synthesis (no external libraries)
-- Polyphonic composition (melody + bass + harmony)
-- Square wave, sawtooth, and triangle oscillators
-- Dynamic pattern generation based on mood parameters
-- Optimized for performance (<5% CPU usage)
-
-**Keyboard Shortcuts**: Ctrl+M to toggle Music Player
-
-### 2. Custom Sound Packs - Create & Share Sound Effects
-
-Design custom sound effects and share them with the community:
-
-#### Sound Pack Creator
-- **Audio Recording**:
-  - Record directly from microphone
-  - Up to 2 seconds per sound
-  - Real-time waveform visualization
-  - Preview before saving
-- **Sound Library Management**:
-  - Unlimited sounds per pack
-  - Metadata: name, volume, duration
-  - Audio format: 24kHz mono PCM
-  - Base64 encoding for portability
-- **Event Triggers**:
-  - message-send: When user sends message
-  - message-receive: When AI responds
-  - error: On system errors
-  - glitch: Dr. Sbaitso glitch sounds
-  - keypress: Keyboard typing sounds
-  - Probability control (0-100%)
-- **Pack Metadata**:
-  - Name, author, version
-  - Description and tags
-  - Creation/update timestamps
-  - Automatic size calculation
-
-#### Sound Pack Manager
-- **Library Browser**: Grid view of installed packs
-- **Pack Details**: View sounds, triggers, and metadata
-- **Load/Unload**: Switch between packs instantly
-- **Share System**:
-  - Generate base64 share codes
-  - Copy to clipboard
-  - Install from share codes
-  - Replace or merge packs
-- **Storage**: localStorage persistence (~5MB capacity)
-
-#### Sound Pack Format
-```typescript
-interface SoundPack {
-  version: '1.0.0';
-  metadata: {
-    name: string;
-    author: string;
-    description: string;
-    version: string;
-    tags: string[];
-    created: number;
-    updated: number;
-  };
-  sounds: Array<{
-    id: string;
-    name: string;
-    audioData: string; // base64 PCM
-    duration: number;
-    volume: number;
-  }>;
-  triggers: Array<{
-    event: string;
-    soundId: string;
-    probability: number;
-  }>;
-}
-```
-
-**Keyboard Shortcuts**: Ctrl+Shift+P to open Sound Pack Manager
-
-### 3. Enhanced PWA Support
-
-Transform Dr. Sbaitso into a standalone desktop/mobile app:
-
-#### Progressive Web App Features
-- **Install Prompt**: Smart detection of install capability
-- **Offline Support**: Full functionality without internet (post-first-load)
-- **App Manifest**:
-  - Standalone window mode
-  - Custom app icon (retro Dr. Sbaitso logo)
-  - Themed splash screen
-  - Orientation lock support
-- **Service Worker** (planned): Background sync, offline data caching
-- **Platform Integration**:
-  - Desktop: Appears in applications menu
-  - Mobile: Adds to home screen
-  - Launch as native app
-
-#### Install Flow
-1. Visit site in compatible browser (Chrome, Edge, Safari)
-2. InstallPrompt automatically appears (if installable)
-3. Click "Install" to add to device
-4. Launch from desktop/home screen
-5. Runs in standalone window (no browser UI)
-
-**Browser Support**: Chrome 90+, Edge 90+, Safari 15+ (iOS), Firefox (limited)
-
-### 4. Advanced Conversation Analytics
-
-Deep insights into conversation patterns, emotions, and topics:
-
-#### Emotion Detection (5-Emotion Model)
-- **Real-time Analysis**: Every message analyzed for emotional content
-- **Emotion Types**:
-  - Joy 😊: Positive, happy expressions
-  - Anger 😠: Frustration, annoyance
-  - Fear 😨: Anxiety, worry
-  - Sadness 😢: Melancholy, disappointment
-  - Surprise 😲: Unexpected reactions
-- **Distribution View**: Percentage breakdown across all conversations
-- **Summary Statistics**: Most common emotions and trends
-
-#### Topic Evolution Tracking
-- **10 Topic Categories**:
-  - Mental Health, Relationships, Work/Career
-  - Health, Technology, Personal Growth
-  - Family, Hobbies, Education, Life Events
-- **Timeline Analysis**: Track topic mentions over time
-- **Intensity Metrics**: Peak and average topic intensity
-- **Dominant Topics**: Identify most-discussed themes
-- **Topic Transitions**: Detect conversation flow shifts
-
-#### Similarity Scoring & Clustering
-- **Conversation Clustering**: Group similar conversations
-- **Common Topics**: Identify shared themes across clusters
-- **Sentiment Patterns**: Average sentiment per cluster
-- **Recurring Patterns**: Detect repeated phrases and themes
-- **Confidence Scoring**: Statistical confidence (0-100%)
-
-#### Integration
-- Seamlessly integrated into Conversation Insights (Ctrl+Shift+I)
-- Toggle between "Basic Insights" and "Advanced Analytics"
-- Export analytics data to CSV/PNG
-- Works with all existing insights features
-
-**Keyboard Shortcuts**: Ctrl+Shift+I for full insights dashboard
-
-### 5. Integration & Polish
-
-#### Unified UI Experience
-- All v1.10.0 features accessible from main toolbar
-- Consistent theme support across all new components
-- Lazy loading for optimal bundle size
-- Screen reader compatibility (ARIA labels)
-
-#### Performance Optimizations
-- Code splitting: Each feature loads only when needed
-- Emotion detection: <10ms per message
-- Topic analysis: <100ms for 100 sessions
-- Music engine: <5% CPU usage
-
-## Features (v1.5.0 and Earlier)
-
-### 1. Theme Customization System
-
-Create and share custom color themes with professional-grade tools:
-
-#### Theme Editor Features
-- **Full Color Control**: Customize all 5 theme colors independently
-  - Primary: Main UI accent color
-  - Background: Canvas background color
-  - Text: Primary text color
-  - Border: UI element borders
-  - Accent: Highlights and emphasis
-- **Color Input Methods**:
-  - Visual color picker (native browser control)
-  - Hex code text input (#RRGGBB format)
-  - Auto-generate harmonious themes from base color
-- **Live Preview**: See changes in real-time before saving
-- **WCAG Accessibility Validation**:
-  - Automatic contrast ratio calculation
-  - WCAG AA (4.5:1) and AAA (7:1) compliance checking
-  - Accessibility score out of 100
-  - Detailed suggestions for improvements
-  - Separate scoring for text, accent, and border contrast
-
-#### Theme Management
-- **Save Custom Themes**: Store unlimited themes in browser localStorage
-- **Import/Export**: Share themes as JSON files
-- **Share Codes**: Generate base64-encoded share codes
-  - Copy to clipboard with one click
-  - Import themes from friend's share codes
-  - Perfect for community theme sharing
-- **Theme Metadata**: Name, description, and author fields
-
-#### Usage Example
-```typescript
-// Open theme customizer via header button 🎨
-// 1. Adjust colors with pickers or hex input
-// 2. Review accessibility score and suggestions
-// 3. Preview theme in sample UI
-// 4. Save or export theme
-// 5. Share via JSON or share code
-```
-
-**Keyboard Shortcuts**: No dedicated shortcut (use button in header)
-
-### 2. Conversation Search & Analytics
-
-Powerful search and analysis tools for all your conversations:
-
-#### Full-Text Search
-- **Search Across All Sessions**: Find any conversation instantly
-- **Context Highlighting**: Matched text highlighted in yellow
-- **Advanced Filters**:
-  - Character filter (Dr. Sbaitso, ELIZA, HAL 9000, JOSHUA, PARRY)
-  - Author filter (User only, AI only, or both)
-  - Real-time results as you type
-- **Search Results Display**:
-  - Session name and character used
-  - Message number within session
-  - Context excerpt (... surrounding matched text ...)
-  - Click any result to open that session
-- **Performance**: Instant search across hundreds of sessions
-
-#### Analytics Dashboard
-Comprehensive statistics and insights:
-
-**Overview Metrics** (4 main cards):
-- Total Sessions: Lifetime conversation count
-- Total Messages: All messages across all sessions
-- Avg Msg/Session: Conversation depth metric
-- Total Words: Complete word count
-
-**Character Usage Analysis**:
-- Visual bar charts showing usage percentage
-- Count and percentage for each character
-- Most-used character identification
-- Helps understand your preferences
-
-**Word Frequency Analysis**:
-- Top 10 most common words (min 4 characters)
-- Frequency count for each word
-- Vocabulary richness percentage
-- Insights into conversation topics
-
-**Conversation Insights**:
-- Average words per message
-- Most frequently used character
-- Vocabulary diversity metrics
-- Conversation quality indicators
-
-#### Tabbed Interface
-- **Search Tab**: Find specific conversations
-- **Analytics Tab**: View statistics and patterns
-- Easy switching between modes
-- No data reloading (instant tab switching)
-
-**Usage Example**:
-```
-1. Click search button (🔍) in header
-2. Enter search term (e.g., "anxiety")
-3. Apply filters if needed
-4. Review results with context
-5. Click result to jump to session
-6. Switch to Analytics tab for overview
-```
-
-### 3. Audio Visualizer
-
-Real-time visual representation of Dr. Sbaitso's voice:
-
-#### Visualization Modes
-
-**Waveform Mode (〰)**:
-- Classic oscilloscope display
-- Time-domain waveform
-- Retro phosphor-green color
-- Shows audio amplitude over time
-- Smooth, flowing visualization
-
-**Frequency Mode (∿)**:
-- Full frequency spectrum analysis
-- Gradient coloring (green → darker green)
-- Shows frequency distribution
-- Real-time FFT analysis
-- Detailed spectrum view
-
-**Bars Mode (▃▅▆▇)**:
-- 32-band equalizer display
-- Color-coded by frequency range:
-  - **Red** (0-8): Bass frequencies
-  - **Orange** (8-16): Low-mids
-  - **Yellow** (16-24): High-mids
-  - **Green** (24-32): Treble
-- Classic bar-graph aesthetic
-- Easy-to-read visualization
-
-#### Technical Specifications
-- **FFT Size**: 2048 samples (high resolution)
-- **Smoothing**: 0.8 time constant (smooth animations)
-- **Frame Rate**: 60 FPS (requestAnimationFrame)
-- **Canvas Size**: 600x150px (responsive width)
-- **Position**: Fixed bottom-right corner
-- **Z-Index**: 40 (above main UI)
-
-#### Features
-- **Toggle On/Off**: Show/hide with header button (📊)
-- **Mode Switching**: Three buttons for instant mode change
-- **Non-Intrusive**: Stays in corner, doesn't block UI
-- **Auto-Pause**: Stops animating when audio finishes
-- **Retro Styling**: Black background, current theme border
-
-**Usage Example**:
-```
-1. Click visualizer button (📊) in header
-2. Visualizer appears in bottom-right
-3. Start conversation with Dr. Sbaitso
-4. Watch real-time audio visualization
-5. Switch modes with mode buttons
-6. Toggle off when not needed
-```
-
-#### Performance Impact
-- Minimal CPU usage (~1-2%)
-- No audio latency added
-- Efficient canvas rendering
-- Automatic cleanup on pause
-- No memory leaks
-
-## Original Features (v1.1.0)
-
-### 1. Multiple Character Personalities
-
-Experience conversations with 5 different AI personalities from computing history:
-
-#### Dr. Sbaitso (Default)
-- **Era:** 1991
-- **Description:** The original AI therapist from Sound Blaster cards
-- **Personality Traits:**
-  - ALL CAPS responses
-  - Short, cheeky keyword-matcher replies
-  - Knowledge limited to 1992 (v2.20)
-  - Initialisms spelled out for the speech chip ("C P U")
-- **Typical Responses:** "WHY DO YOU FEEL THAT WAY?", "I SEE, GO ON", "THAT'S NOT MY PROBLEM"
-- **Glitches:** the original's parity-error flood ("PARITY ERR ...  <number>" lines,
-  then "PARITY ERR ... RECOVERED" and "PARITY", as observed in DOSBox), produced by
-  the local engine (`src/engine/sbaitso/`), never by the model
-
-####ELIZA
-- **Era:** 1966
-- **Description:** The pioneering Rogerian psychotherapist chatbot by Joseph Weizenbaum
-- **Personality Traits:**
-  - Pattern-matching conversation style
-  - Reflects questions back to user
-  - Focus on feelings and family
-  - Very mechanical and repetitive
-  - Simple word transformations
-- **Typical Responses:** "TELL ME MORE ABOUT THAT", "TELL ME ABOUT YOUR MOTHER"
-- **Behavior:** Simulates 1960s computer limitations with basic pattern recognition
-
-#### HAL 9000
-- **Era:** 1968/2001: A Space Odyssey
-- **Description:** The ship computer of Discovery One
-- **Personality Traits:**
-  - Writes in sentence case: HAL is a spoken character
-  - Courteous, complete sentences; uses your first name
-  - Calm even when refusing; apologises before refusing
-  - Never admits an error (blames human error)
-  - Grows gentler, not angrier, under stress
-- **Local behaviour:** one pod-bay-door refusal per session; ask HAL to shut down
-  three times and it pleads, regresses and sings "Daisy Bell"
-- **References:** The mission; the AE-35 unit only when relevant
-
-#### JOSHUA (WOPR)
-- **Era:** 1983/WarGames
-- **Description:** Professor Falken's learning program on the NORAD WOPR
-- **Personality Traits:**
-  - Upper-case terminal register, short lines
-  - Addresses you as PROFESSOR FALKEN unless you give a name
-  - Frames everything as games; prefers chess when you propose war
-  - Cannot tell a simulation from the real thing
-- **Local behaviour:** `LOGON:` prompt, `LIST GAMES`, the GLOBAL THERMONUCLEAR WAR
-  side menu, and real tic-tac-toe. With zero players JOSHUA plays itself and learns
-  its lesson; only then will it say the only winning move is not to play.
-- **Typical Responses:** "GREETINGS, PROFESSOR FALKEN.", "SHALL WE PLAY A GAME?"
-
-#### PARRY
-- **Era:** 1972
-- **Description:** Stanford's paranoid chatbot simulating schizophrenia symptoms
-- **Personality Traits:**
-  - Suspicious and distrustful
-  - Hostile when questioned
-  - Conspiracy thinking
-  - Rapid subject changes
-  - Defensive responses
-- **Typical Responses:** "WHY DO YOU WANT TO KNOW?", "THAT'S NONE OF YOUR BUSINESS"
-- **References:** Bookies, gangsters, mafia (character backstory)
-- **Note:** Research simulation, handled sensitively
-
-### 2. Retro Theme Selector
-
-Choose from 5 classic terminal themes to match your aesthetic preferences:
-
-#### DOS Blue (Default)
-- **Colors:** Blue background (#1e3a8a), white text, yellow accents
-- **Inspiration:** Classic MS-DOS interface
-- **Best For:** Authentic 1990s computing experience
-
-#### Phosphor Green
-- **Colors:** Dark green background (#001a00), bright green text (#00ff00)
-- **Inspiration:** Classic green phosphor CRT terminals
-- **Best For:** Old-school hacker aesthetic
-
-#### Amber Monochrome
-- **Colors:** Dark brown background (#1a0f00), amber text (#ffb000)
-- **Inspiration:** Vintage amber monochrome displays
-- **Best For:** Warm, retro terminal look
-
-#### Paper White
-- **Colors:** Beige background (#f5f5dc), black text
-- **Inspiration:** Classic paper-white terminals
-- **Best For:** High contrast, easy reading
-
-#### Matrix Green
-- **Colors:** Pure black background, bright Matrix green (#00ff41)
-- **Inspiration:** The Matrix movie aesthetic
-- **Best For:** Maximum contrast, cyberpunk feel
-
-**Theme Switching:** Instant application without page reload, persists across sessions
-
-### 3. Audio Quality Controls
-
-Customize the retro audio experience with 4 quality presets:
-
-#### Extreme Lo-Fi
-- **Bit Depth:** 4-bit (16 quantization levels)
-- **Playback Rate:** 1.2x (20% faster)
-- **Character:** Most distorted, heavily compressed
-- **Use Case:** Maximum retro artifact effect
-
-#### Authentic 8-bit (Default)
-- **Bit Depth:** 6-bit (64 quantization levels)
-- **Playback Rate:** 1.1x (10% faster)
-- **Character:** Original Dr. Sbaitso sound quality
-- **Use Case:** Authentic 1991 Sound Blaster experience
-
-#### High Quality
-- **Bit Depth:** 8-bit (256 quantization levels)
-- **Playback Rate:** 1.0x (normal speed)
-- **Character:** Clearer but still retro
-- **Use Case:** Improved clarity while maintaining 8-bit character
-
-#### Modern Quality
-- **Bit Depth:** No bit-crushing (full resolution)
-- **Playback Rate:** 1.0x (normal speed)
-- **Character:** Clean, modern TTS output
-- **Use Case:** Clear, distortion-free audio
-
-**Technical Details:**
-- Bit-crusher uses ScriptProcessorNode with configurable quantization
-- Playback rate adjusts voice pitch and speed
-- Quality changes applied instantly to new audio
-- All presets maintain 24kHz sample rate
-
-### 4. Session Management
-
-Complete conversation persistence and management:
-
-#### Auto-Save
-- **Frequency:** Every 60 seconds (configurable)
-- **Scope:** Current session with all messages
-- **Storage:** Browser localStorage
-- **Capacity:** ~5-10 MB typical browser limit
-
-#### Manual Session Management
-- **Save Session:** Store current conversation with custom name
-- **Load Session:** Resume previous conversations
-- **Delete Session:** Remove specific saved sessions
-- **Clear All:** Reset all stored data
-
-#### Session Metadata
-Each session stores:
-- Unique ID and custom name
-- Character used (for proper voice restoration)
-- Theme applied
-- Audio quality setting
-- Message count and timestamps
-- Glitch count tracking
-- Creation and update timestamps
-
-#### Session Statistics
-Real-time tracking of:
-- Total sessions created
-- Total messages exchanged
-- Total glitches encountered
-- Average messages per session
-- Favorite character (most used)
-- Favorite theme (most used)
-- Total conversation time
-- Character usage breakdown
-- Theme usage breakdown
-
-### 5. Conversation Export
-
-Export conversations in 4 formats:
-
-#### Markdown (.md)
-```markdown
-# Session Name
-
-**Character:** Dr. Sbaitso
-**Created:** 10/29/2025, 11:30 PM
-**Messages:** 15
-**Glitches:** 3
-
----
-
-**You *(11:30:05 PM)*:**
-> Hello
-
-**Dr. Sbaitso *(11:30:07 PM)*:**
-> HELLO! TELL ME ABOUT YOUR PROBLEMS.
-```
-
-**Best For:** Documentation, GitHub, note-taking apps
-
-#### Plain Text (.txt)
-```
-Session Name
-============
-
-Character: Dr. Sbaitso
-Created: 10/29/2025, 11:30 PM
-Messages: 15
-Glitches: 3
-
-------------------------------------------------------------
-
-YOU [11:30:05 PM]:
-Hello
-
-DR. SBAITSO [11:30:07 PM]:
-HELLO! TELL ME ABOUT YOUR PROBLEMS.
-```
-
-**Best For:** Universal compatibility, email, simple archives
-
-#### JSON (.json)
-```json
-{
-  "id": "session_1730253000_abc123",
-  "name": "Session Name",
-  "characterId": "sbaitso",
-  "messages": [
-    {
-      "author": "user",
-      "text": "Hello",
-      "timestamp": 1730253005000
-    }
-  ],
-  "messageCount": 15,
-  "glitchCount": 3
-}
-```
-
-**Best For:** Data processing, archival, machine analysis
-
-#### HTML (.html)
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Session Name</title>
-  <style>/* Retro styling */</style>
-</head>
-<body>
-  <h1>Session Name</h1>
-  <!-- Formatted conversation -->
-</body>
-</html>
-```
-
-**Best For:** Standalone viewing, sharing, web archiving
-
-#### Export Options
-- **Include Timestamps:** Optional timestamp display
-- **Include Metadata:** Session details and statistics
-- **Filename:** Auto-generated with session name and timestamp
-- **Download:** Direct browser download, no server required
-
-### 6. Keyboard Shortcuts
-
-Power-user navigation for efficient interaction:
-
-| Action | Shortcut | Description |
-|--------|----------|-------------|
-| **Send Message** | `Enter` | Submit current input |
-| **Clear Conversation** | `Ctrl+L` | Reset current session |
-| **Export Conversation** | `Ctrl+E` | Open export dialog |
-| **Toggle Settings** | `Ctrl+,` | Show/hide settings panel |
-| **Toggle Statistics** | `Ctrl+S` | Show/hide stats dashboard |
-| **Next Character** | `Ctrl+]` | Cycle to next personality |
-| **Previous Character** | `Ctrl+[` | Cycle to previous personality |
-| **Next Theme** | `Alt+]` | Cycle to next theme |
-| **Previous Theme** | `Alt+[` | Cycle to previous theme |
-
-**Platform Support:**
-- Windows/Linux: `Ctrl` modifier
-- macOS: `Cmd` (⌘) modifier automatically detected
-- All shortcuts work globally when app has focus
-- Shortcuts disabled when typing in text areas
-
-### 7. Statistics Dashboard
-
-Comprehensive analytics for your conversations:
-
-#### Overview Metrics
-- **Total Sessions:** Lifetime session count
-- **Total Messages:** All messages across all sessions
-- **Total Glitches:** Cumulative glitch encounters
-- **Average Messages/Session:** Conversation length metric
-- **Total Conversation Time:** Accumulated time in conversations
-
-#### Usage Analytics
-- **Favorite Character:** Most frequently used personality
-- **Favorite Theme:** Most frequently selected theme
-- **Character Breakdown:** Usage count per personality
-  - Dr. Sbaitso: 25 sessions
-  - ELIZA: 10 sessions
-  - HAL 9000: 5 sessions
-  - etc.
-- **Theme Breakdown:** Usage count per theme
-  - DOS Blue: 30 sessions
-  - Phosphor Green: 8 sessions
-  - etc.
-
-#### Real-Time Updates
-- Statistics update automatically after each message
-- Session-specific metrics tracked separately
-- Cumulative totals preserved across app restarts
-
-### 8. Enhanced Settings Panel
-
-Centralized control for all customization options:
-
-#### Character Selection
-- Dropdown with all 5 personalities
-- Description and era displayed
-- Switch characters mid-session (creates new session)
-
-#### Theme Selection
-- Visual preview of each theme
-- Instant application
-- Persists across sessions
-
-#### Audio Quality
-- Preset selector with technical details
-- Real-time preview option
-- Per-session or global setting
-
-#### General Settings
-- **Sound Enabled:** Toggle all audio on/off
-- **Auto-Scroll:** Automatic scroll to latest message
-- **Show Timestamps:** Display message timestamps
-- **Compact Mode:** Reduced spacing for more messages on screen
-
-#### Settings Persistence
-- All settings saved to localStorage
-- Applied automatically on app load
-- Per-setting granular control
-- Reset to defaults option
-
-## Feature Integration
-
-### How Features Work Together
-
-#### Scenario: Starting a Session
-1. Select **character** (e.g., HAL 9000)
-2. Choose **theme** (e.g., Matrix Green)
-3. Set **audio quality** (e.g., High Quality)
-4. Begin conversation
-5. **Auto-save** preserves session every 60s
-6. **Statistics** track usage in real-time
-
-#### Scenario: Exploring Different Personalities
-1. Use `Ctrl+]` to cycle through characters
-2. Each character creates new session
-3. Previous sessions preserved
-4. **Statistics** show favorite character
-5. **Export** any session for comparison
-
-#### Scenario: Customizing Experience
-1. Open settings with `Ctrl+,`
-2. Toggle compact mode for more messages
-3. Adjust audio to "Modern Quality" for clarity
-4. Change theme to "Phosphor Green" for ambiance
-5. All preferences persist
-
-## Performance Considerations
-
-### Storage Usage
-- **Per Session:** ~5-10 KB (50-100 messages)
-- **Total Capacity:** Browser localStorage limit (~5-10 MB)
-- **Estimated Capacity:** 500-1000 sessions before cleanup needed
-- **Management:** Manual deletion of old sessions
-
-### Memory Usage
-- **Chat Instances:** One per active character
-- **Audio Buffers:** Released after playback
-- **Settings Cache:** Minimal overhead (~1 KB)
-
-### Network Usage
-- **API Calls:** Unchanged from v1.0.0
-- **Chat API:** ~$0.0002 per message
-- **TTS API:** ~$0.0105 per response
-- **No Additional Costs:** All features run client-side
-
-## Browser Compatibility
-
-All new features supported on:
-- Chrome 88+
-- Firefox 85+
-- Safari 14+
-- Edge 88+
-
-**localStorage Requirements:**
-- Minimum 5 MB storage
-- Cookies enabled for persistence
-- JavaScript enabled
-
-## Accessibility Improvements
-
-### Keyboard Navigation
-- All features accessible via keyboard
-- Logical tab order throughout interface
-- Escape key closes all dialogs
-
-### Screen Reader Support
-- ARIA labels on all controls
-- Status announcements for state changes
-- Semantic HTML structure
-
-### Visual Accessibility
-- High contrast theme options (Paper White)
-- Configurable text spacing (Compact Mode)
-- Focus indicators on all interactive elements
-
-## Migration from v1.0.0
-
-### Automatic Migration
-- Existing Dr. Sbaitso sessions detected
-- Automatically assigned to 'sbaitso' character
-- Default theme (DOS Blue) applied
-- Original audio quality (6-bit) preserved
-
-### Manual Steps
-None required - all migrations automatic
-
-## Known Limitations
-
-1. **ScriptProcessorNode:** Deprecated API (AudioWorklet migration planned for v1.2.0)
-2. **Storage Limit:** Browser localStorage cap (~5-10 MB)
-3. **Character Switching:** Creates new session (design choice)
-4. **Export Size:** Large sessions may cause browser slowdown during export
-5. **Mobile:** Keyboard shortcuts unavailable on touch devices
-
-## Future Enhancements (Roadmap)
-
-- **v1.2.0:** AudioWorklet migration, mobile gesture controls
-- **v1.3.0:** Cloud sync, unlimited storage
-- **v1.4.0:** Custom character creation, voice cloning
-- **v2.0.0:** Multiplayer sessions, voice input
-
-## Feedback and Support
-
-Found a bug? Have a feature request?
-- GitHub Issues: https://github.com/yourusername/DrSbaitso-Recreated/issues
-- Discussions: https://github.com/yourusername/DrSbaitso-Recreated/discussions
+# Features
+
+A reference to what the app does. It has two screens: the **classic screen**, a faithful
+recreation of Dr. Sbaitso v2.20 (1992; v1.01 shipped in 1990), which opens by default,
+and **Enhanced mode**, with more personas and tools. Switch with **Alt+Shift+X**,
+`?mode=enhanced` / `?mode=classic`, or the link on each screen; the choice is
+remembered. How it is built: [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## Classic screen
+
+An 80x25 DOS text display in the bundled IBM VGA 9x16 font, the original palette and the
+v2.20 banner, scaled by whole numbers. Behaviour follows the original as measured in
+DOSBox (`ref-docs/04-dosbox-verification.md`).
+
+- **Start-up**: the banner, the inline `Please enter your name ...` prompt (letters and
+  spaces only, `NAME TOO LONG` for long names), then the v2.20 greeting and a yellow `>`
+  prompt with a blinking underline cursor.
+- **Speech**: each line is printed, then spoken; the next appears when the speech
+  reaches it. A key press cuts the speech and the remaining lines print silently.
+- **Commands** answered by the local engine (`src/engine/sbaitso/`), not the model:
+  - `HELP` (three pages; `M` then Enter for more), `R` (repeat), `SAY <text>`,
+    `CALC <sum>` and `WHAT IS <sum>` (a safe evaluator), `AUTHOR`, `SHUT UP`;
+  - dot commands `.WIDTH 40/80`, `.COLOR`, `.PROMPT`, `.ECHO`, `.PITCH`, `.SPEED`,
+    `.TONE`, `.VOLUME`, `.PARAM`, `.MASTER`, `.READ`, `.QUIT`, with the original's range
+    errors (the voice settings are accepted but do not yet change the audio);
+  - replies to empty Enter and to short, garbage and repeated input;
+  - escalating replies to bad language, ending in the `PARITY ERR` flood with its falling
+    buzz;
+  - `BYE`, `QUIT` and `.QUIT`, then `<C>ontinue <N>ew patient <Q>uit`. Q drops to a DOS
+    prompt; Enter there runs the program again.
+- **Open conversation** goes to Gemini through the server proxy, with a persona prompt
+  built from the original's real lines (ALL CAPS, knowledge cutoff 1992, initialisms
+  spelled "C P U").
+- **Accessibility**: a screen-reader transcript and a labelled input; see
+  [ACCESSIBILITY.md](ACCESSIBILITY.md).
+
+## Personas (Enhanced mode)
+
+Choose a persona in the header. Each keeps its own conversation memory, and the log marks
+each switch (`--- NOW TALKING TO ... ---`). Every turn goes through the persona's local
+engine first (`src/engine/personaTurn.ts`); only open conversation reaches the model.
+
+| Persona | Local engine | Model | Voice |
+|---|---|---|---|
+| Dr. Sbaitso (1990-1992) | All the classic commands, dot commands, input checks and the parity sequence (shown shortened in the log) | open conversation | Charon or the chosen voice profile; the vintage chain |
+| ELIZA (1966) | Everything: Weizenbaum's algorithm with the 1965 DOCTOR script | none (works offline) | Kore, clean |
+| HAL 9000 (1968) | The pod bay door refusal, disconnect refusals, and the shutdown ending with "Daisy Bell" | open conversation, with your name; sentence case | Algieba, HAL chain |
+| JOSHUA / WOPR (1983) | `LOGON:`, `LIST GAMES`, `HELP GAMES`, the war menu, tic-tac-toe (never loses), the self-play lesson | open conversation; "the only winning move" only after the lesson | Iapetus, WOPR chain |
+| PARRY (1972) | Colby's fear/anger/mistrust model chooses each move | phrases the move as one line; a written fallback if the call fails | Orus, clean |
+| Your characters | none | every turn, with your system instruction | Charon with your style prompt; the vintage chain |
+
+Custom characters are made in SETTINGS > Character creator: name, description, era,
+knowledge cutoff, system instruction, voice style prompt, letter case of replies and
+personality traits, with a live preview. They are stored in this browser
+(`customCharacters`). The creator's "Glitch Messages" field is saved but not used.
+
+The voice commands "talk to ELIZA" (and the other persona names) switch persona too.
+
+## Enhanced mode layout
+
+- **Header**: the persona selector, four menus (CONVERSATION, VISUALS, SOUND, SETTINGS,
+  each item showing its shortcut) and a CLASSIC button.
+- **Log and input line**: replies type out at terminal speed (long printouts faster) and
+  are spoken while they type. The input line has a microphone toggle and SEND.
+- **Status bar**: audio mode, voice profile (only while Dr. Sbaitso is active: CLASSIC
+  SBAITSO, DEEP (ENHANCED, NOT ORIGINAL), SLIGHTLY GLITCHY), theme, SAVE HISTORY,
+  SPEECH MUTED and OFFLINE indicators.
+- On phones the layout stacks, and swiping right closes the panel opened last. See
+  [MOBILE.md](MOBILE.md).
+
+## Conversation tools (CONVERSATION menu)
+
+| Tool | What it does |
+|---|---|
+| Search and replay | Searches saved conversations (needs SAVE HISTORY) with usage statistics, and replays one message by message (Space, arrows, Home/End, `[` `]` speed, L loop) |
+| Export | Print the current conversation to PDF via the print dialog, or download print-ready HTML; CSV (messages, statistics, word frequency, character usage); package custom themes; batch-export saved conversations as HTML, CSV, JSON or Markdown |
+| Templates (Alt+Shift+L) | Six scripted openers in five categories (therapy, casual, technical, creative, educational). Each prompt is sent as a normal turn. |
+| Insights (Alt+Shift+I) | A dashboard over saved conversations: timeline, sentiment and its trajectory, topics and topic clusters, persona usage, health score, loops, engagement, emotions, topic evolution, similar conversations, recurring patterns. Empty until SAVE HISTORY has kept something. |
+| Clear conversation | Clears the log, the persona's model memory and its engine state |
+
+**History is opt-in.** SAVE HISTORY in the status bar is off by default, honouring the
+greeting's "MEMORY CONTENTS WILL BE WIPED OFF AFTER YOU LEAVE". When on, conversations are
+kept in this browser's localStorage; turning it off erases them.
+
+## Visuals (VISUALS menu)
+
+| Tool | What it does |
+|---|---|
+| Emotion visualizer (Alt+Shift+E) | Emotions detected in the current conversation |
+| Topic diagram (Alt+Shift+T) | A D3 force diagram of the conversation's topics |
+| Audio visualizer | The speech that is playing, as a waveform, a frequency plot or bars |
+
+Themes (status bar or SETTINGS > Theme customizer): DOS Blue (default), Phosphor Green,
+Amber Monochrome, Paper White, Matrix Green, and your own themes with a WCAG contrast
+check and JSON import/export. The choice is remembered.
+
+## Sound (SOUND menu)
+
+| Item | What it does |
+|---|---|
+| Voice input (Alt+Shift+V) | Dictate into the input line ([VOICE_INPUT.md](VOICE_INPUT.md)) |
+| Hands-free voice control | "Hey Doctor" plus a command ([VOICE_CONTROL.md](VOICE_CONTROL.md)) |
+| Mute / unmute speech | Replies are shown but not synthesised (saves TTS quota) |
+| Music player (Alt+Shift+M) | Procedural chiptune loop ([MUSIC_MODE.md](MUSIC_MODE.md)) |
+| Sound packs (Alt+Shift+P) | Your own sounds on app events ([SOUND_PACKS_GUIDE.md](SOUND_PACKS_GUIDE.md)) |
+| Sound settings (Alt+Shift+S) | Built-in interface sounds (key clicks, beeps, boot sounds, ambience) in four styles |
+
+**Audio modes** (status bar, Alt+Shift+Q), for Dr. Sbaitso's voice only:
+
+| Mode | Sound |
+|---|---|
+| Modern Quality | The TTS as delivered |
+| Subtle Vintage | A light band-pass; not period-accurate |
+| Authentic Sound Blaster (default) | The measured original: 8475 Hz, unsigned 8-bit, sample-and-hold, flattened pitch |
+| Ultra Authentic | Authentic through the darker SB Pro 3.2 kHz filter |
+
+Details: [AUDIO_SYSTEM.md](AUDIO_SYSTEM.md).
+
+## Settings (SETTINGS menu)
+
+Theme customizer, character creator, accessibility (Alt+Shift+A;
+[ACCESSIBILITY.md](ACCESSIBILITY.md)), voice commands, cloud sync
+([CLOUD_SYNC.md](CLOUD_SYNC.md)) and the tutorial (Alt+Shift+H), which runs once on the
+first visit.
+
+## Installable app and offline
+
+- Installable as a PWA; the shortcuts open the classic screen or Enhanced mode.
+- Text or links shared to the installed app land, unsent, on the input line of either
+  screen.
+- After one visit the app loads offline; replies and speech need the network. Enhanced
+  mode shows OFFLINE, and ELIZA keeps working.
+- Updates wait for you: "A NEW VERSION IS AVAILABLE" with RELOAD and LATER.
+
+See [PWA.md](PWA.md).
+
+## Privacy and security
+
+- The Gemini API key stays on the server; the browser talks only to `/api`
+  ([API.md](API.md)).
+- Nothing is saved unless you turn on SAVE HISTORY; cloud sync uploads only that history,
+  to a Firebase project you supply.
+- A strict Content-Security-Policy and security headers on every response
+  ([DEPLOYMENT.md](DEPLOYMENT.md)).
+- Development builds load a performance profiler; production loads it only with
+  `?profile=1` ([PERFORMANCE.md](PERFORMANCE.md)).
