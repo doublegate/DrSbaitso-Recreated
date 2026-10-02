@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useEffectEvent, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { getSharedAudioContext } from './utils/sharedAudio';
 import { useSpeechPlayer } from './hooks/useSpeechPlayer';
 import { AUDIO_MODES } from './constants';
@@ -13,10 +13,11 @@ import { saveSoundPack } from './utils/soundPackStore';
 import { useSessionHistory } from './hooks/useSessionHistory';
 import { useThemeChoice } from './hooks/useThemeChoice';
 import { usePersona } from './hooks/usePersona';
-import { matchShortcut, shortcutLabel, type ShortcutId } from './utils/shortcuts';
+import { shortcutLabel } from './utils/shortcuts';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import { usePanels } from './hooks/usePanels';
 import { useChatPipeline } from './hooks/useChatPipeline';
+import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import SkipNav from './components/SkipNav';
 
 // Lazy-loaded components (only load when needed)
@@ -201,32 +202,20 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   };
 
   // Global keyboard shortcuts: Alt+Shift+<key>, defined in utils/shortcuts.ts.
-  const onShortcut = useEffectEvent((e: KeyboardEvent) => {
-    const id = matchShortcut(e);
-    if (!id) return;
-    e.preventDefault();
-    const actions: Record<ShortcutId, () => void> = {
-      accessibility: () => setPanel('accessibility', true),
-      cycleAudioMode,
-      insights: () => setPanel('insights', prev => !prev),
-      tutorial: () => setPanel('onboarding', true),
-      soundSettings: () => setPanel('soundSettings', true),
-      musicPlayer: () => setPanel('musicPlayer', prev => !prev),
-      soundPacks: () => setPanel('soundPackManager', true),
-      voiceInput: () => setPanel('voiceInput', prev => !prev),
-      emotionViz: () => setPanel('emotionViz', prev => !prev),
-      topicDiagram: () => setPanel('topicDiagram', prev => !prev),
-      templates: () => setPanel('templates', true),
-      switchMode: () => {}, // handled by App
-    };
-    actions[id]();
+  useGlobalShortcuts({
+    accessibility: () => setPanel('accessibility', true),
+    cycleAudioMode,
+    insights: () => setPanel('insights', prev => !prev),
+    tutorial: () => setPanel('onboarding', true),
+    soundSettings: () => setPanel('soundSettings', true),
+    musicPlayer: () => setPanel('musicPlayer', prev => !prev),
+    soundPacks: () => setPanel('soundPackManager', true),
+    voiceInput: () => setPanel('voiceInput', prev => !prev),
+    emotionViz: () => setPanel('emotionViz', prev => !prev),
+    topicDiagram: () => setPanel('topicDiagram', prev => !prev),
+    templates: () => setPanel('templates', true),
+    switchMode: () => {}, // handled by App
   });
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => onShortcut(e);
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
 
   if (!userName) {
     return (
