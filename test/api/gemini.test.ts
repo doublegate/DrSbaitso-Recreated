@@ -3,6 +3,7 @@ import {
   handleChat,
   handleTts,
   pcmFromWav,
+  resamplePcm16,
   createRateLimiter,
   applyPronunciation,
   toSentenceCase,
@@ -236,6 +237,18 @@ describe('handleTts', () => {
     expect(res.body).toEqual({ audio: b64(pcm), sampleRate: 24000, mimeType: 'audio/L16;rate=24000' });
   });
 
+  it('resamples audio at another rate to 24 kHz, the rate the client decodes', async () => {
+    // 4 samples at 12 kHz -> 8 samples at 24 kHz.
+    const samples12k = new Uint8Array(new Int16Array([0, 1000, 2000, 3000]).buffer);
+    const client = makeClient(() => ({
+      candidates: [{ content: { parts: [{ inlineData: { mimeType: 'audio/wav', data: b64(wav(samples12k, 12000)) } }] } }],
+    }));
+    const res = await handleTts({ characterId: 'sbaitso', text: 'HELLO' }, client, MODELS);
+    expect(res.body).toMatchObject({ sampleRate: 24000, mimeType: 'audio/L16;rate=24000' });
+    const bytes = Buffer.from((res.body as { audio: string }).audio, 'base64');
+    expect(bytes.byteLength / 2).toBe(8);
+  });
+
   it('passes raw L16 audio through unchanged', async () => {
     const client = makeClient(() => ({
       candidates: [{ content: { parts: [{ inlineData: { mimeType: 'audio/L16;codec=pcm;rate=24000', data: b64(pcm) } }] } }],
@@ -367,6 +380,24 @@ describe('handleTts', () => {
     const client = makeClient(() => ({ candidates: [] }));
     const res = await handleTts({ characterId: 'sbaitso', text: 'HI' }, client, MODELS);
     expect(res).toEqual({ status: 502, body: { code: 'EMPTY_RESPONSE', error: expect.any(String) } });
+  });
+});
+
+describe('resamplePcm16', () => {
+  const pcm16 = (...v: number[]) => new Uint8Array(new Int16Array(v).buffer);
+  const read = (bytes: Uint8Array) => Array.from(new Int16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2));
+
+  it('returns the input unchanged at the same rate', () => {
+    const input = pcm16(1, 2, 3);
+    expect(resamplePcm16(input, 24000, 24000)).toBe(input);
+  });
+
+  it('interpolates linearly when upsampling', () => {
+    expect(read(resamplePcm16(pcm16(0, 1000), 12000, 24000))).toEqual([0, 500, 1000, 1000]);
+  });
+
+  it('keeps the duration when downsampling', () => {
+    expect(read(resamplePcm16(pcm16(0, 100, 200, 300, 400, 500), 48000, 24000))).toEqual([0, 200, 400]);
   });
 });
 

@@ -297,6 +297,33 @@ export async function handleChat(raw: unknown, client: GeminiClient, models: Mod
 
 // ---------------------------------------------------------------- tts
 
+/** The only rate the browser decodes; any other rate from a model is converted. */
+export const TTS_SAMPLE_RATE = 24000;
+
+/**
+ * Converts mono little-endian PCM16 between sample rates with linear
+ * interpolation. Speech is band-limited well below either Nyquist rate here,
+ * so this is adequate; the input is returned unchanged at the same rate.
+ */
+export function resamplePcm16(bytes: Uint8Array, fromRate: number, toRate: number): Uint8Array {
+  if (fromRate === toRate || fromRate <= 0 || toRate <= 0) return bytes;
+  const input = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const count = Math.floor(bytes.byteLength / 2);
+  if (count === 0) return bytes;
+  const outCount = Math.round((count * toRate) / fromRate);
+  const out = new Uint8Array(outCount * 2);
+  const output = new DataView(out.buffer);
+  const sample = (k: number) => input.getInt16(Math.min(k, count - 1) * 2, true);
+  for (let i = 0; i < outCount; i++) {
+    const position = (i * fromRate) / toRate;
+    const k = Math.floor(position);
+    const a = sample(k);
+    const value = a + (sample(k + 1) - a) * (position - k);
+    output.setInt16(i * 2, Math.max(-32768, Math.min(32767, Math.round(value))), true);
+  }
+  return out;
+}
+
 /**
  * Extracts PCM samples from a RIFF/WAVE container by walking its chunks.
  * Returns null when the bytes are not a PCM WAV file.
@@ -390,6 +417,11 @@ export async function handleTts(raw: unknown, client: GeminiClient, models: Mode
       if (!parsed) return fail(502, 'UPSTREAM_ERROR', 'The model returned unreadable audio.');
       audio = Buffer.from(parsed.pcm).toString('base64');
       sampleRate = parsed.sampleRate;
+    }
+    // The client always decodes 24 kHz (docs/API.md); convert anything else.
+    if (sampleRate !== TTS_SAMPLE_RATE) {
+      audio = Buffer.from(resamplePcm16(Buffer.from(audio, 'base64'), sampleRate, TTS_SAMPLE_RATE)).toString('base64');
+      sampleRate = TTS_SAMPLE_RATE;
     }
     return { status: 200, body: { audio, sampleRate, mimeType: `audio/L16;rate=${sampleRate}` } };
   } catch (error) {

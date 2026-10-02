@@ -240,6 +240,9 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   (page 1 without the banner), `.WIDTH` and `.COLOR` clear the rows below the
   banner, and an Enter pressed while the doctor speaks is taken as the next input
   instead of being lost.
+- **Speech at another sample rate would have played at the wrong pitch.** The
+  server reported the rate but the browser always decoded 24 kHz; the server now
+  converts any other rate to 24 kHz, so the client contract always holds.
 - **Request size limit measured in bytes.** The 64 KiB body cap counted
   characters, so multibyte text could exceed it; the body is now read as a
   stream and rejected as soon as it passes the limit.
