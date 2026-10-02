@@ -11,6 +11,8 @@ import { DOS_PALETTE, type Row } from '../../utils/dosScreen';
 
 export const CELL_W = 9;
 export const CELL_H = 16;
+/** Rows taken by the banner box. */
+const BANNER_ROWS = 5;
 
 export function integerScale(viewW: number, viewH: number, screenW: number, screenH: number): number {
   return Math.max(1, Math.floor(Math.min(viewW / screenW, viewH / screenH)));
@@ -21,6 +23,12 @@ interface DosScreenProps {
   cols: number;
   /** Background colour number (".COLOR"), default 1 (blue). */
   background?: number;
+  /**
+   * Background for the rows below the five-row banner, when it differs from
+   * `background`: after Q the original leaves its blue banner on screen above
+   * a black DOS area (CONFIRMED (DOSBox)).
+   */
+  regionBackground?: number;
   cursor?: { row: number; col: number } | null;
 }
 
@@ -37,7 +45,7 @@ function useViewportScale(width: number, height: number) {
   return scale;
 }
 
-export default function DosScreen({ rows, cols, background = 1, cursor }: DosScreenProps) {
+export default function DosScreen({ rows, cols, background = 1, regionBackground, cursor }: DosScreenProps) {
   const width = cols * CELL_W;
   const height = rows.length * CELL_H;
   const scale = useViewportScale(width, height);
@@ -56,7 +64,16 @@ export default function DosScreen({ rows, cols, background = 1, cursor }: DosScr
         }}
       >
         {rows.map((row, r) => (
-          <div data-dos-row key={r} className="dos-row">
+          <div
+            data-dos-row
+            key={r}
+            className="dos-row"
+            style={
+              regionBackground !== undefined && r >= BANNER_ROWS
+                ? { backgroundColor: DOS_PALETTE[regionBackground] ?? DOS_PALETTE[0] }
+                : undefined
+            }
+          >
             {row.map((seg, i) => (
               <span key={i} style={{ color: DOS_PALETTE[seg.fg] ?? DOS_PALETTE[15] }}>
                 {seg.text}

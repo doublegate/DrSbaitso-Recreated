@@ -260,7 +260,8 @@ button, input[type="button"], .touch-target {
   height: 16px;
 }
 
-/* DOS underline cursor: hard on/off blink (~229 ms on, ~229 ms off). */
+/* DOS underline cursor: hard on/off blink, 114 ms on and 114 ms off (8 + 8
+   frames at 70 Hz, measured in DOSBox-X; ref-docs/04 section 7). */
 .dos-cursor {
   position: absolute;
   left: calc(var(--col) * 9px);
@@ -268,7 +269,7 @@ button, input[type="button"], .touch-target {
   width: 9px;
   height: 2px;
   background: #ffffff;
-  animation: dos-blink 458ms steps(1, end) infinite;
+  animation: dos-blink 228ms steps(1, end) infinite;
 }
 
 @keyframes dos-blink {

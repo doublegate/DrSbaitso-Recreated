@@ -15,6 +15,13 @@ export const DOS_PALETTE = [
 export const SCREEN_ROWS = 25;
 export const SCREEN_COLS = 80;
 
+/**
+ * Printed lines kept below the banner. Only the last 19 are visible; the rest
+ * is a small margin so a parity flood (about 250 lines) cannot grow the buffer
+ * without bound.
+ */
+export const SCROLLBACK_LINES = 64;
+
 export const DOS = {
   blue: 1,
   lightGreen: 10,
@@ -145,17 +152,21 @@ function wrap(row: Row, cols: number): Row[] {
 /** Prints one or more rows below what is already on screen. */
 export function print(screen: Screen, ...rows: Row[]): Screen {
   const added = rows.flatMap((r) => wrap(r, screen.cols));
-  // A blank spacer row separates the banner from the first output (row 5).
-  return { ...screen, lines: [...screen.lines, ...added] };
+  // createScreen's single empty line is the blank row 5 between the banner and the first output.
+  const lines = [...screen.lines, ...added];
+  return { ...screen, lines: lines.length > SCROLLBACK_LINES ? lines.slice(-SCROLLBACK_LINES) : lines };
 }
 
 /**
- * The 25 rows currently visible. The screen scrolls as a whole, as DOS text
- * output does, so once enough is printed the banner scrolls away.
+ * The 25 rows currently visible. As in the original (CONFIRMED (DOSBox),
+ * ref-docs/04 section 3) the banner is pinned: only the rows between it and
+ * the last row scroll (rows 5-23 under the five-row banner), and the last row
+ * (24) is never written.
  */
 export function visibleRows(screen: Screen): Row[] {
-  const all = [...screen.banner, ...screen.lines];
-  const view = all.slice(Math.max(0, all.length - screen.rows));
+  const region = Math.max(0, screen.rows - screen.banner.length - 1);
+  const shown = screen.lines.slice(Math.max(0, screen.lines.length - region));
+  const view = [...screen.banner, ...shown];
   while (view.length < screen.rows) view.push([]);
   return view.map((r) => fitRow(r, screen.cols));
 }
