@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Message, ConversationSession, CustomCharacter } from './types';
-import { getDrSbaitsoResponse, synthesizeSpeech } from './services/geminiService';
-import { decode, decodeAudioData, playAudio, playGlitchSound, playErrorBeep } from './utils/audio';
-import { AUDIO_MODES, THEMES } from './constants';
+import { getAIResponse, resetChat, synthesizeSpeech } from './services/geminiService';
+import { playGlitchSound, playErrorBeep } from './utils/audio';
+import { getSharedAudioContext, ensureAudioReady } from './utils/sharedAudio';
+import { retroErrorMessage } from './utils/retroErrors';
+import { useSpeechPlayer } from './hooks/useSpeechPlayer';
+import { AUDIO_MODES, THEMES, DEFAULT_CHARACTER } from './constants';
 import { useAccessibility } from './hooks/useAccessibility';
 import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
@@ -11,8 +14,6 @@ import { applyThemeVariables } from './utils/themeVariables';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import SkipNav from './components/SkipNav';
 import { CustomTheme } from './utils/themeValidator';
-import { musicEngine } from './utils/musicEngine';
-import { soundPackPlayer } from './utils/soundPackPlayer';
 
 // Lazy-loaded components (only load when needed)
 const AccessibilityPanel = lazy(() => import('./components/AccessibilityPanel'));
@@ -39,6 +40,11 @@ const EmotionVisualizer = lazy(() => import('./components/EmotionVisualizer'));
 const TopicFlowDiagram = lazy(() => import('./components/TopicFlowDiagram'));
 const ConversationTemplates = lazy(() => import('./components/ConversationTemplates'));
 
+const TYPING_DELAY_MS = 40;
+const GREETING_LINE_DELAY_MS = 800;
+const GLITCH_PHRASES = ['PARITY CHECKING', 'IRQ CONFLICT'];
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 export default function App() {
   // Core state
   const [userName, setUserName] = useState<string | null>(null);
@@ -47,14 +53,14 @@ export default function App() {
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isGreeting, setIsGreeting] = useState(false);
-  const [greetingIndex, setGreetingIndex] = useState(0);
-  const [greetingLines, setGreetingLines] = useState<string[]>([]);
   const [isPreparingGreeting, setIsPreparingGreeting] = useState(false);
-  const [greetingAudio, setGreetingAudio] = useState<string[]>([]);
-  const [nameError, setNameError] = useState<string | null>(null);
+  // The active persona; the selector for the other personas arrives with the
+  // character work (plan Phase 4).
+  const characterId = DEFAULT_CHARACTER;
 
   // Audio mode state (v1.3.0)
   const [audioMode, setAudioMode] = useState<'modern' | 'subtle' | 'authentic' | 'ultra'>('authentic');
+  const speech = useSpeechPlayer(audioMode);
 
   // Accessibility state (v1.4.0)
   const { settings: accessibilitySettings, updateSetting, resetSettings } = useAccessibility();
@@ -67,8 +73,6 @@ export default function App() {
   const [showAudioVisualizer, setShowAudioVisualizer] = useState(false);
   const [customThemes, setCustomThemes] = useState<CustomTheme[]>([]);
   const [savedSessions, setSavedSessions] = useState<ConversationSession[]>([]);
-  const [currentAudioSource, setCurrentAudioSource] = useState<AudioBufferSourceNode | null>(null);
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   // v1.6.0 Feature states
   const [showAdvancedExport, setShowAdvancedExport] = useState(false);
@@ -120,6 +124,7 @@ export default function App() {
     onClear: () => {
       setMessages([]);
       setUserInput('');
+      resetChat(characterId); // the model forgets too, as the greeting promises
     },
     onExport: () => setShowAdvancedExport(true),
     onSwitchCharacter: (characterId) => {
@@ -136,13 +141,7 @@ export default function App() {
       console.log('Toggle settings');
     },
     onToggleStats: () => setShowConversationSearch(true),
-    onStopAudio: () => {
-      if (currentAudioSource) {
-        currentAudioSource.stop();
-        setCurrentAudioSource(null);
-        setIsAudioPlaying(false);
-      }
-    },
+    onStopAudio: () => speech.stop(),
     onCycleTheme: () => {
       // Cycle theme logic
       console.log('Cycle theme');
@@ -182,31 +181,20 @@ export default function App() {
   const soundEffects = useSoundEffects();
 
   // Refs
-  const audioContextRef = useRef<AudioContext | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const playingGreetingIndexRef = useRef<number>(-1);
-
-  const ensureAudioContext = async () => {
-    if (!audioContextRef.current) {
-      try {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-
-        // Initialize AudioWorklet module on first AudioContext creation
-        if (audioContextRef.current && 'audioWorklet' in audioContextRef.current) {
-          try {
-            await audioContextRef.current.audioWorklet.addModule('/audio-processor.worklet.js');
-            console.log('AudioWorklet initialized successfully');
-          } catch (error) {
-            console.warn('AudioWorklet initialization failed, will use ScriptProcessorNode fallback:', error);
-          }
-        }
-      } catch (e) {
-        console.error("Could not create AudioContext:", e);
-      }
-    }
-  };
+  // Guards one conversational turn at a time across async callers (typed input,
+  // templates, voice) without depending on render-time state.
+  const busyRef = useRef(false);
+  // Lets in-flight async sequences (greeting, typewriter) stop after unmount.
+  const unmountedRef = useRef(false);
+  useEffect(() => {
+    unmountedRef.current = false;
+    return () => {
+      unmountedRef.current = true;
+    };
+  }, []);
 
   // Keep the newest line in view (messages changes on every typed character).
   useEffect(() => {
@@ -239,190 +227,128 @@ export default function App() {
     }
   }, [userName, isLoading, isGreeting, isPreparingGreeting]);
   
-  const playAndProgress = useCallback(async (base64Audio: string, onFinished: () => void) => {
-    if (audioContextRef.current && base64Audio) {
-      try {
-        const audioBytes = decode(base64Audio);
-        const audioBuffer = await decodeAudioData(audioBytes, audioContextRef.current, 24000, 1, audioMode);
-        await playAudio(audioBuffer, audioContextRef.current);
-      } catch (error) {
-        console.error("Audio playback failed:", error);
-      } finally {
-        onFinished();
-      }
-    } else {
-      setTimeout(onFinished, 100);
-    }
-  }, [audioMode]);
-
   const handleNameSubmit = async () => {
-    ensureAudioContext();
-    if (nameInput.trim() && !isPreparingGreeting) {
-      setIsPreparingGreeting(true);
-      setNameError(null); // Clear previous errors
-      const name = nameInput.trim().toUpperCase();
+    const name = nameInput.trim().toUpperCase();
+    if (!name || isPreparingGreeting) return;
 
-      const lines = [
-        `HELLO ${name}, MY NAME IS DOCTOR SBAITSO.`,
-        "I AM HERE TO HELP YOU.",
-        "SAY WHATEVER IS IN YOUR MIND FREELY,",
-        "OUR CONVERSATION WILL BE KEPT IN STRICT CONFIDENCE.",
-        "MEMORY CONTENTS WILL BE WIPED OFF AFTER YOU LEAVE.",
-        "",
-        "SO, TELL ME ABOUT YOUR PROBLEMS.",
-      ];
+    // The submit is a user gesture, so this is when audio may be unlocked.
+    void ensureAudioReady();
+    setIsPreparingGreeting(true);
 
-      try {
-        // Combine all greeting text into one TTS call to avoid rate limits
-        const combinedGreeting = lines.filter(line => line.trim()).join('. ');
-        const audioData = await synthesizeSpeech(combinedGreeting, 'sbaitso');
+    const lines = [
+      `HELLO ${name}, MY NAME IS DOCTOR SBAITSO.`,
+      "I AM HERE TO HELP YOU.",
+      "SAY WHATEVER IS IN YOUR MIND FREELY,",
+      "OUR CONVERSATION WILL BE KEPT IN STRICT CONFIDENCE.",
+      "MEMORY CONTENTS WILL BE WIPED OFF AFTER YOU LEAVE.",
+      "",
+      "SO, TELL ME ABOUT YOUR PROBLEMS.",
+    ];
 
-        // Still display lines separately for visual effect
-        setGreetingAudio([audioData]); // Single audio file
-        setGreetingLines(lines);
-        setUserName(name);
-        setIsGreeting(true);
-      } catch (error: any) {
-        console.error("Failed to prepare greeting audio:", error);
+    // One TTS request for the whole greeting stays well inside rate limits.
+    // Any failure degrades to a text-only session rather than blocking it.
+    const audio = await synthesizeSpeech(lines.filter((line) => line.trim()).join('. '), characterId).catch(
+      (error) => {
+        console.warn('Greeting speech unavailable; continuing text-only:', error);
+        return '';
+      },
+    );
+    if (unmountedRef.current) return;
 
-        // Check if it's a rate limit error (429)
-        const isRateLimit = error?.message?.includes('429') ||
-                           error?.message?.includes('quota') ||
-                           error?.message?.includes('RESOURCE_EXHAUSTED');
+    setIsPreparingGreeting(false);
+    setUserName(name);
+    setIsGreeting(true);
 
-        if (isRateLimit) {
-          // Continue without audio - graceful degradation
-          console.warn("Rate limit hit - continuing in text-only mode");
-          setGreetingAudio([]); // No audio
-          setGreetingLines(lines);
-          setUserName(name);
-          setIsGreeting(true);
-        } else {
-          // For other errors, show error message
-          setNameError("SYSTEM ERROR: FAILED TO INITIALIZE. PLEASE REFRESH.");
-        }
-      } finally {
-        setIsPreparingGreeting(false);
-      }
+    // Speak while the lines appear; input unlocks once both have finished.
+    const spoken = speech.speak(audio).catch((error) => console.warn('Greeting audio failed:', error));
+    for (const line of lines) {
+      if (unmountedRef.current) return;
+      setMessages((prev) => [...prev, { author: 'dr', text: line, timestamp: Date.now(), characterId }]);
+      await sleep(GREETING_LINE_DELAY_MS);
     }
+    await spoken;
+    if (unmountedRef.current) return;
+    setIsGreeting(false);
+    setIsLoading(false);
   };
-  
-  useEffect(() => {
-    if (isGreeting && greetingIndex < greetingLines.length && playingGreetingIndexRef.current !== greetingIndex) {
-      playingGreetingIndexRef.current = greetingIndex; // Prevents double-playback in StrictMode
-      const line = greetingLines[greetingIndex];
 
-      setMessages(prev => [...prev, { author: 'dr', text: line }]);
-
-      // Play audio only on first line (combined greeting audio)
-      if (greetingIndex === 0 && greetingAudio.length > 0) {
-        playAndProgress(greetingAudio[0], () => {
-          // Audio finished, but continue displaying lines
-          setGreetingIndex(prev => prev + 1);
-        });
-      } else {
-        // For subsequent lines, just display with typewriter delay
-        setTimeout(() => {
-          setGreetingIndex(prev => prev + 1);
-        }, 800); // Delay between lines for visual effect
-      }
-    } else if (isGreeting && greetingIndex >= greetingLines.length) {
-      setIsGreeting(false);
-      setIsLoading(false);
-    }
-  }, [isGreeting, greetingIndex, greetingLines, greetingAudio, playAndProgress]);
-
-  const handleUserInput = async () => {
-    ensureAudioContext();
-    const trimmedInput = userInput.trim();
-
-    if (!trimmedInput || isLoading) {
-      return;
-    }
-
-    // Play message send sound (v1.9.0)
-    soundEffects.playSound('message-send');
-
-    const userMessage: Message = { author: 'user', text: trimmedInput };
-    setMessages(prev => [...prev, userMessage]);
-    setUserInput('');
+  /**
+   * One conversational turn: get the reply, type it out, then speak it.
+   * Returns false if no reply was produced. A speech or playback failure never
+   * removes a reply the user has already read.
+   */
+  const sendMessage = async (text: string): Promise<boolean> => {
+    const trimmed = text.trim();
+    if (!trimmed || busyRef.current) return false;
+    busyRef.current = true;
     setIsLoading(true);
+    void ensureAudioReady();
+
+    soundEffects.playSound('message-send');
+    setMessages((prev) => [...prev, { author: 'user', text: trimmed, timestamp: Date.now(), characterId }]);
 
     try {
-      const drResponseText = await getDrSbaitsoResponse(trimmedInput);
-      
-      // Check for glitch phrases and play sound effect
-      const glitchPhrases = ['PARITY CHECKING', 'IRQ CONFLICT'];
-      if (glitchPhrases.some(phrase => drResponseText.includes(phrase))) {
-        if (audioContextRef.current) {
-            playGlitchSound(audioContextRef.current);
-        }
+      let reply: string;
+      try {
+        reply = await getAIResponse(trimmed, characterId);
+      } catch (error) {
+        console.error('Reply failed:', error);
+        soundEffects.playSound('error');
+        const ctx = getSharedAudioContext();
+        if (ctx) playErrorBeep(ctx);
+        setMessages((prev) => [
+          ...prev,
+          { author: 'dr', text: retroErrorMessage(error), timestamp: Date.now(), characterId },
+        ]);
+        return false;
       }
 
-      const audioPromise = synthesizeSpeech(drResponseText, 'sbaitso').catch(err => {
-        // Gracefully handle TTS errors - continue without audio
-        console.warn("TTS failed, continuing text-only:", err);
-        return ""; // Return empty string if TTS fails
+      if (GLITCH_PHRASES.some((phrase) => reply.includes(phrase))) {
+        const ctx = getSharedAudioContext();
+        if (ctx) playGlitchSound(ctx);
+      }
+
+      // Synthesis runs while the reply is typed out.
+      const audioPromise = synthesizeSpeech(reply, characterId).catch((error) => {
+        console.warn('Reply speech unavailable; continuing text-only:', error);
+        return '';
       });
-      setMessages(prev => [...prev, { author: 'dr', text: '' }]);
 
-      const typingSpeed = 40;
-      for (let i = 0; i < drResponseText.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, typingSpeed));
-          // Set the visible prefix rather than appending: the updater must be
-          // pure, because React StrictMode invokes it twice.
-          const visible = drResponseText.slice(0, i + 1);
-          setMessages(prev => {
-              const last = prev[prev.length - 1];
-              return [...prev.slice(0, -1), { ...last, text: visible }];
-          });
+      setMessages((prev) => [...prev, { author: 'dr', text: '', timestamp: Date.now(), characterId }]);
+      for (let i = 0; i < reply.length; i++) {
+        await sleep(TYPING_DELAY_MS);
+        if (unmountedRef.current) return true;
+        // Set the visible prefix rather than appending: the updater must be
+        // pure, because React StrictMode invokes it twice.
+        const visible = reply.slice(0, i + 1);
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          return [...prev.slice(0, -1), { ...last, text: visible }];
+        });
       }
 
-      const base64Audio = await audioPromise;
-      if (audioContextRef.current && base64Audio) {
-          const audioBytes = decode(base64Audio);
-          const audioBuffer = await decodeAudioData(audioBytes, audioContextRef.current, 24000, 1, audioMode);
-          await playAudio(audioBuffer, audioContextRef.current);
+      try {
+        await speech.speak(await audioPromise);
+      } catch (error) {
+        console.warn('Reply audio could not be played; the text is kept:', error);
       }
 
-      // Play message receive sound (v1.9.0)
       soundEffects.playSound('message-receive');
-
-      // Announce to screen readers if enabled (v1.4.0)
       if (accessibilitySettings.screenReaderOptimized && accessibilitySettings.announceMessages) {
-        announce(`Dr. Sbaitso says: ${drResponseText}`);
+        announce(`Dr. Sbaitso says: ${reply}`);
       }
-    } catch (error) {
-      console.error("An error occurred during response generation:", error);
-
-      // Play error sound (v1.9.0)
-      soundEffects.playSound('error');
-
-      if (audioContextRef.current) {
-        playErrorBeep(audioContextRef.current);
-      }
-
-      const errorMessages = [
-          'UNEXPECTED DATA STREAM CORRUPTION. PLEASE REBOOT.',
-          'INTERNAL PROCESSOR FAULT. PLEASE TRY AGAIN.',
-          'MEMORY ADDRESS CONFLICT. PLEASE RESTATE YOUR PROBLEM.',
-          'IRQ CONFLICT AT ADDRESS 220H. SESSION TERMINATED.'
-      ];
-      const randomError = errorMessages[Math.floor(Math.random() * errorMessages.length)];
-      
-      setMessages(prev => {
-          const lastMessage = prev[prev.length - 1];
-          // If the last message was the empty one for the typewriter, remove it.
-          if (lastMessage && lastMessage.author === 'dr') {
-               return prev.slice(0, -1);
-          }
-          return prev;
-      });
-      setMessages(prev => [...prev, { author: 'dr', text: randomError }]);
-
+      return true;
     } finally {
-        setIsLoading(false);
+      busyRef.current = false;
+      if (!unmountedRef.current) setIsLoading(false);
     }
+  };
+
+  const handleUserInput = () => {
+    if (!userInput.trim() || busyRef.current) return;
+    const text = userInput;
+    setUserInput('');
+    void sendMessage(text);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -442,44 +368,20 @@ export default function App() {
     }
   }, [announce]);
 
-  // Handle template selection (v1.11.0)
-  const handleSelectTemplate = useCallback(async (prompts: string[]) => {
+  // Handle template selection (v1.11.0): each prompt is a normal turn, with
+  // typing, speech and the busy guard, instead of a parallel side channel.
+  const handleSelectTemplate = async (prompts: string[]) => {
     if (prompts.length === 0 || !userName) return;
-
     announce('Applying conversation template');
-
-    // Send prompts sequentially with AI responses
     for (const prompt of prompts) {
-      // Add user message
-      const userMessage: Message = {
-        author: 'user',
-        text: prompt
-      };
-
-      setMessages(prev => [...prev, userMessage]);
-
-      try {
-        // Get AI response
-        const response = await getDrSbaitsoResponse(prompt);
-        const aiMessage: Message = {
-          author: 'dr',
-          text: response
-        };
-
-        setMessages(prev => [...prev, aiMessage]);
-
-        // Announce for accessibility
-        announce(response);
-
-        // Small delay between prompts
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.error('[Template] Failed to process prompt:', error);
-        announce('Error processing template prompt');
+      const ok = await sendMessage(prompt);
+      if (!ok || unmountedRef.current) {
+        announce('Template stopped');
         break;
       }
+      await sleep(1000);
     }
-  }, [userName, announce]);
+  };
 
   // Global keyboard shortcuts (v1.3.0 + v1.4.0 + v1.8.0)
   useEffect(() => {
@@ -577,15 +479,6 @@ export default function App() {
           aria-label="Dr. Sbaitso name entry screen"
         >
           <div className="w-full max-w-md text-center">
-            {nameError && (
-              <p
-                className="text-red-500 text-lg mb-4"
-                role="alert"
-                aria-live="assertive"
-              >
-                {nameError}
-              </p>
-            )}
             {isPreparingGreeting ? (
               <p
                 className="text-xl mb-4 animate-pulse"
@@ -955,9 +848,9 @@ export default function App() {
         <Suspense fallback={<div className="fixed bottom-4 right-4 z-40 text-white">Loading...</div>}>
           <div className="fixed bottom-4 right-4 z-40">
             <AudioVisualizer
-              audioContext={audioContextRef.current}
-              audioSource={currentAudioSource}
-              isPlaying={isAudioPlaying}
+              audioContext={getSharedAudioContext()}
+              audioSource={speech.currentSource}
+              isPlaying={speech.isPlaying}
             />
           </div>
         </Suspense>
@@ -1047,7 +940,7 @@ export default function App() {
           <div className="fixed bottom-4 left-4 z-40">
             <MusicPlayer
               theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
-              audioContext={audioContextRef.current}
+              audioContext={getSharedAudioContext()}
             />
           </div>
         </Suspense>
@@ -1069,7 +962,7 @@ export default function App() {
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack manager...</div></div>}>
           <SoundPackManager
             theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
-            audioContext={audioContextRef.current}
+            audioContext={getSharedAudioContext()}
             onClose={() => setShowSoundPackManager(false)}
             onCreateNew={() => {
               setShowSoundPackManager(false);

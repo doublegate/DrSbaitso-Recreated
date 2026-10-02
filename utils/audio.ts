@@ -70,6 +70,24 @@ export async function decodeAudioData(
   return buffer;
 }
 
+export type AudioModeId = 'modern' | 'subtle' | 'authentic' | 'ultra';
+
+/**
+ * Playback settings applied after vintage processing. Vintage processing
+ * (decodeAudioData) already band-limits and quantises the authentic modes,
+ * so only Ultra adds a further bit-crush; Modern plays the TTS untouched.
+ */
+const PLAYBACK_BY_MODE: Record<AudioModeId, { bitDepth: number; playbackRate: number }> = {
+  modern: { bitDepth: 0, playbackRate: 1 },
+  subtle: { bitDepth: 0, playbackRate: 1 },
+  authentic: { bitDepth: 0, playbackRate: 1.1 },
+  ultra: { bitDepth: 64, playbackRate: 1.1 },
+};
+
+export function getPlaybackSettings(mode: AudioModeId): { bitDepth: number; playbackRate: number } {
+  return { ...PLAYBACK_BY_MODE[mode] };
+}
+
 /**
  * Map audio mode string to AuthenticityLevel enum
  */
@@ -97,7 +115,8 @@ function mapAudioModeToAuthenticityLevel(mode: 'modern' | 'subtle' | 'authentic'
  * @param bitDepth - Number of quantization levels (0 = disabled, 16 = 4-bit, 64 = 6-bit, 256 = 8-bit)
  * @param playbackRate - Playback speed multiplier (e.g., 1.1 for faster/deeper voice)
  * @param useWorklet - Whether to attempt AudioWorklet (true) or force ScriptProcessorNode fallback (false)
- * @returns Promise<void> - Resolves when playback completes
+ * @param onStart - Receives the source node once playback starts (to stop or visualise it)
+ * @returns Promise<void> - Resolves when playback completes or the source is stopped
  *
  * @version 1.2.0 - Added AudioWorklet support with ScriptProcessorNode fallback
  */
@@ -106,7 +125,8 @@ export function playAudio(
   ctx: AudioContext,
   bitDepth: number = 64,
   playbackRate: number = 1.1,
-  useWorklet: boolean = true
+  useWorklet: boolean = true,
+  onStart?: (source: AudioBufferSourceNode) => void
 ): Promise<void> {
   return new Promise((resolve) => {
     if (ctx.state === 'suspended') {
@@ -124,6 +144,7 @@ export function playAudio(
         resolve();
       };
       source.start();
+      onStart?.(source);
       return;
     }
 
@@ -145,6 +166,7 @@ export function playAudio(
         };
 
         source.start();
+        onStart?.(source);
         return;
       } catch (error) {
         console.warn('AudioWorklet failed, falling back to ScriptProcessorNode:', error);
@@ -177,6 +199,7 @@ export function playAudio(
     };
 
     source.start();
+    onStart?.(source);
   });
 }
 

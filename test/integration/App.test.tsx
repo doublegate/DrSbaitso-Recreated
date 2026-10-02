@@ -89,6 +89,54 @@ describe('App', () => {
     expect(screen.queryByText(/TTEELLLL/)).toBeNull();
   }, 30_000);
 
+  async function reachChat(user: ReturnType<typeof userEvent.setup>) {
+    renderApp();
+    await user.type(await screen.findByPlaceholderText('TYPE NAME AND PRESS ENTER'), 'ALICE{Enter}');
+    return waitFor(
+      () => {
+        const el = document.getElementById('chat-input') as HTMLInputElement | null;
+        expect(el && !el.disabled).toBe(true);
+        return el!;
+      },
+      { timeout: 15_000 },
+    );
+  }
+
+  it('starts the session in text-only mode when speech synthesis fails for any reason', async () => {
+    fetchMock.mockImplementation((url: string) =>
+      url === '/api/tts'
+        ? json({ code: 'UPSTREAM_ERROR', error: 'down' }, 502)
+        : json({ text: 'TELL ME MORE ABOUT YOUR PROBLEMS.' }),
+    );
+    const user = userEvent.setup();
+    await reachChat(user);
+    expect(screen.queryByText(/FAILED TO INITIALIZE/)).toBeNull();
+    expect(screen.getByText(/MY NAME IS DOCTOR SBAITSO/)).toBeInTheDocument();
+  }, 30_000);
+
+  it('keeps the typed reply when its audio cannot be played', async () => {
+    const user = userEvent.setup();
+    const input = await reachChat(user);
+    // From here on, chat works but the audio is unreadable (decode throws).
+    fetchMock.mockImplementation((url: string) =>
+      url === '/api/tts' ? json({ audio: '!!!not-base64!!!' }) : json({ text: 'WHY DO YOU FEEL SAD?' }),
+    );
+    await user.type(input, 'I feel sad{Enter}');
+    await screen.findByText('WHY DO YOU FEEL SAD?', undefined, { timeout: 10_000 });
+    await act(() => new Promise((r) => setTimeout(r, 300)));
+    expect(screen.getByText('WHY DO YOU FEEL SAD?')).toBeInTheDocument();
+  }, 30_000);
+
+  it('tells the user to wait when the model is rate limited', async () => {
+    const user = userEvent.setup();
+    const input = await reachChat(user);
+    fetchMock.mockImplementation((url: string) =>
+      url === '/api/chat' ? json({ code: 'RATE_LIMITED', error: 'slow' }, 429) : json({ audio: SILENT_AUDIO }),
+    );
+    await user.type(input, 'hello{Enter}');
+    await screen.findByText(/PLEASE WAIT A MOMENT/, undefined, { timeout: 10_000 });
+  }, 30_000);
+
   it('does not re-render in a loop while idle', async () => {
     renderApp();
     await screen.findByPlaceholderText('TYPE NAME AND PRESS ENTER');

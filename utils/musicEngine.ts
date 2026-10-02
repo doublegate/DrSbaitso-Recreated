@@ -12,6 +12,8 @@
  * - Multiple instrument layers (lead, bass, arpeggio)
  */
 
+import { getSharedAudioContext } from './sharedAudio';
+
 export type MusicMood = 'auto' | 'happy' | 'sad' | 'neutral' | 'tense';
 export type MusicTempo = 'slow' | 'normal' | 'fast';
 
@@ -55,7 +57,7 @@ export class MusicEngine {
     if (this.audioContext) return;
 
     // Prefer the app's shared context; browsers cap how many may exist.
-    this.audioContext = context ?? new (window.AudioContext || (window as any).webkitAudioContext)();
+    this.audioContext = context ?? getSharedAudioContext() ?? new (window.AudioContext || (window as any).webkitAudioContext)();
 
     // Master gain
     this.masterGain = this.audioContext.createGain();

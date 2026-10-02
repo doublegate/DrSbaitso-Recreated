@@ -32,15 +32,22 @@ class BitCrusherProcessor extends AudioWorkletProcessor {
    * Process audio samples
    * @param {Float32Array[][]} inputs - Input audio data
    * @param {Float32Array[][]} outputs - Output audio data
-   * @returns {boolean} - True to keep processor alive
+   * @returns {boolean} - True while an input is connected
    */
   process(inputs, outputs) {
     const input = inputs[0];
     const output = outputs[0];
 
-    // If no input or bit-crushing disabled, pass through
-    if (!input || !input.length || this.bitDepth === 0) {
-      if (input && output) {
+    // No connected input: the source has ended and been disconnected.
+    // Returning false lets the browser release this node instead of keeping
+    // one processor alive per utterance for the life of the page.
+    if (!input || !input.length) {
+      return false;
+    }
+
+    // Bit-crushing disabled: pass through
+    if (this.bitDepth === 0) {
+      if (output) {
         for (let channel = 0; channel < input.length; ++channel) {
           output[channel].set(input[channel]);
         }

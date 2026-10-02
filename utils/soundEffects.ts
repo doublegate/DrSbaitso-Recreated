@@ -14,6 +14,8 @@
  * - Easter egg sounds triggered by keywords
  */
 
+import { getSharedAudioContext } from './sharedAudio';
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -73,7 +75,8 @@ class SoundGenerator {
 
   private getAudioContext(): AudioContext {
     if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Share the page's single context instead of creating another.
+      this.audioContext = getSharedAudioContext() ?? new (window.AudioContext || (window as any).webkitAudioContext)();
     }
     return this.audioContext;
   }
@@ -246,7 +249,8 @@ export class SoundEffectsManager {
 
   private getAudioContext(): AudioContext {
     if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Share the page's single context instead of creating another.
+      this.audioContext = getSharedAudioContext() ?? new (window.AudioContext || (window as any).webkitAudioContext)();
     }
     return this.audioContext;
   }
