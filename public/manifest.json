@@ -76,39 +76,27 @@
   ],
   "shortcuts": [
     {
-      "name": "New Conversation",
-      "short_name": "New Chat",
-      "description": "Start a new therapy session",
-      "url": "/?action=new",
-      "icons": [
-        {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "name": "Classic Screen",
+      "short_name": "Classic",
+      "description": "The original 80x25 Dr. Sbaitso screen",
+      "url": "/?mode=classic",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Settings",
-      "short_name": "Settings",
-      "description": "Configure audio, themes, and accessibility",
-      "url": "/?action=settings",
-      "icons": [
-        {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "name": "Enhanced Mode",
+      "short_name": "Enhanced",
+      "description": "All personas, themes and panels",
+      "url": "/?mode=enhanced",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
   "share_target": {
     "action": "/share",
-    "method": "POST",
-    "enctype": "multipart/form-data",
+    "method": "GET",
     "params": {
       "title": "title",
-      "text": "text"
+      "text": "text",
+      "url": "url"
     }
   },
   "related_applications": [],
