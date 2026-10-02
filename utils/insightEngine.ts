@@ -509,7 +509,7 @@ export function analyzeEngagementMetrics(sessions: ConversationSession[]): Engag
     sessionsWithDuration.length || 0;
 
   // Message frequency by hour
-  const hourCounts = new Array(24).fill(0);
+  const hourCounts: number[] = Array.from({ length: 24 }, () => 0);
   sessions.forEach((s) => {
     const hour = new Date(s.createdAt).getHours();
     hourCounts[hour] += s.messageCount;

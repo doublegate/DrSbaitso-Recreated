@@ -1,0 +1,83 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "react",
+    "jsx-a11y",
+    "typescript",
+    "unicorn",
+    "oxc",
+    "import",
+    "vitest"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "settings": {
+    "react": {
+      "version": "19.3"
+    }
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/react-in-jsx-scope": "off",
+    "vitest/require-mock-type-parameters": "off",
+    "no-unused-vars": [
+      "warn",
+      {
+        "caughtErrors": "none",
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "jsx-a11y/label-has-associated-control": "warn",
+    "jsx-a11y/click-events-have-key-events": "warn",
+    "jsx-a11y/no-static-element-interactions": "warn",
+    "jsx-a11y/no-noninteractive-element-interactions": "warn",
+    "jsx-a11y/prefer-tag-over-role": "warn",
+    "react/refs": "warn",
+    "react/preserve-manual-memoization": "warn",
+    "react/set-state-in-effect": "warn",
+    "react/immutability": "warn",
+    "react/purity": "warn",
+    "vitest/no-conditional-expect": "warn",
+    "vitest/require-to-throw-message": "warn"
+  },
+  "ignorePatterns": [
+    "dist",
+    "coverage",
+    "reports",
+    "node_modules",
+    "public/**/*.js",
+    "docs"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "api/**",
+        "vite.config.ts",
+        "vitest.config.ts",
+        "playwright.config.ts"
+      ],
+      "env": {
+        "node": true
+      }
+    },
+    {
+      "files": [
+        "test/**",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "e2e/**"
+      ],
+      "env": {
+        "node": true
+      }
+    }
+  ]
+}

@@ -278,7 +278,7 @@ export function pcmFromWav(bytes: Uint8Array): { pcm: Uint8Array; sampleRate: nu
   return null;
 }
 
-const isLegacyTtsModel = (model: string) => /^gemini-2\./.test(model);
+const isLegacyTtsModel = (model: string) => model.startsWith('gemini-2.');
 
 export async function handleTts(raw: unknown, client: GeminiClient, models: Models): Promise<ApiResult> {
   if (!isObject(raw)) return badRequest('Request body must be a JSON object.');

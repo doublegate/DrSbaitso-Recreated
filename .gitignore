@@ -30,3 +30,6 @@ coverage/
 
 # Bundle analysis output (npm run analyze)
 reports/
+
+# Vitest 5 output directory
+.vitest/

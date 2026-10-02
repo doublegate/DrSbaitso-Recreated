@@ -1,4 +1,5 @@
 import path from 'path';
+import type { IncomingMessage, ServerResponse } from 'http';
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -64,33 +65,39 @@ function devApiPlugin(env: Record<string, string>): Plugin {
     name: 'dev-api',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
-      for (const key of ['GEMINI_API_KEY', 'GEMINI_CHAT_MODEL', 'GEMINI_TTS_MODEL']) {
-        if (env[key] && !process.env[key]) process.env[key] = env[key];
+      for (const key of [
+        'GEMINI_API_KEY',
+        'GEMINI_CHAT_MODEL',
+        'GEMINI_TTS_MODEL',
+        'GEMINI_CHAT_FALLBACK_MODELS',
+        'GEMINI_TTS_FALLBACK_MODELS',
+      ]) {
+        if (env[key] !== undefined && process.env[key] === undefined) process.env[key] = env[key];
       }
-      server.middlewares.use(async (req, res, next) => {
+
+      const handle = async (req: IncomingMessage, res: ServerResponse, name: string) => {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) chunks.push(chunk as Buffer);
+        const headers = new Headers();
+        for (const [k, v] of Object.entries(req.headers)) {
+          if (typeof v === 'string') headers.set(k, v);
+        }
+        const request = new Request(`http://localhost${req.url}`, {
+          method: req.method,
+          headers,
+          body: req.method === 'GET' || req.method === 'HEAD' || !chunks.length ? undefined : Buffer.concat(chunks),
+        });
+        const mod = await server.ssrLoadModule(`/api/${name}.ts`);
+        const response: Response = await mod.POST(request);
+        res.statusCode = response.status;
+        response.headers.forEach((value, key) => res.setHeader(key, value));
+        res.end(Buffer.from(await response.arrayBuffer()));
+      };
+
+      server.middlewares.use((req, res, next) => {
         const match = /^\/api\/(chat|tts)(?:\?.*)?$/.exec(req.url ?? '');
         if (!match) return next();
-        try {
-          const chunks: Buffer[] = [];
-          for await (const chunk of req) chunks.push(chunk as Buffer);
-          const body = chunks.length ? Buffer.concat(chunks) : undefined;
-          const headers = new Headers();
-          for (const [k, v] of Object.entries(req.headers)) {
-            if (typeof v === 'string') headers.set(k, v);
-          }
-          const request = new Request(`http://localhost${req.url}`, {
-            method: req.method,
-            headers,
-            body: req.method === 'GET' || req.method === 'HEAD' ? undefined : body,
-          });
-          const mod = await server.ssrLoadModule(`/api/${match[1]}.ts`);
-          const response: Response = await mod.POST(request);
-          res.statusCode = response.status;
-          response.headers.forEach((value, key) => res.setHeader(key, value));
-          res.end(Buffer.from(await response.arrayBuffer()));
-        } catch (error) {
-          next(error);
-        }
+        handle(req, res, match[1]).catch(next);
       });
     },
   };
