@@ -272,7 +272,14 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
                   </div>
                 )}
 
-                {searchQuery && searchResults.length === 0 && (
+                {sessions.length === 0 && (
+                  <p className="text-gray-400 text-center py-8">
+                    Search covers saved conversations. Tick SAVE HISTORY (under the input
+                    line) to keep them in this browser; history is off by default.
+                  </p>
+                )}
+
+                {sessions.length > 0 && searchQuery && searchResults.length === 0 && (
                   <p className="text-gray-400 text-center py-8">
                     No results found for "{searchQuery}"
                   </p>

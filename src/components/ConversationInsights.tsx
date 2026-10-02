@@ -379,7 +379,8 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           <div className="text-6xl mb-4">📭</div>
           <h2 className="text-2xl font-bold mb-4">No Data Available</h2>
           <p className="mb-6">
-            Start some conversations to see insights and analytics!
+            Insights are built from saved conversations. Tick SAVE HISTORY (under the
+            input line) to keep them in this browser; history is off by default.
           </p>
           <button
             onClick={onClose}

@@ -225,6 +225,9 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
   hidden screen-reader announcer sat in the page flow below the app; it is now fixed
   in place.
+- **Search and Insights explained nothing when empty.** With history off (the
+  default) they now say that SAVE HISTORY keeps conversations, instead of an
+  empty list or "start some conversations".
 - **Floating panels covered the menus.** With the topic diagram open, the header
   menus could not be clicked; the header now stays on top.
 - **Conversation templates could not be chosen from the keyboard.** The cards are
