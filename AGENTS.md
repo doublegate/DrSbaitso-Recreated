@@ -85,6 +85,9 @@ npm run analyze        # bundle report -> reports/ (gitignored)
   - `getPlaybackSettings` is 1.0x with no extra crush in every mode: a rate above 1 raises the
     pitch, and the original is full 8-bit.
   - Never re-add a global 64-level crush.
+  - The vintage chain and the audio mode apply to the `sbaitso` processing route only. Each
+    persona has a `processing` route (`CHARACTERS`): HAL and JOSHUA have their own chains in
+    `src/utils/personaVoices.ts`, ELIZA and PARRY play clean. See `docs/AUDIO_SYSTEM.md`.
 - **Vercel previews sit behind SSO.** Smoke-test with the Vercel MCP `get_access_to_vercel_url`
   plus a curl cookie jar.
 - **`test/setup.ts`** defines `SpeechRecognition` as writable but non-configurable: assign it, do

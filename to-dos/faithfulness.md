@@ -120,3 +120,31 @@ Voices and audio for HAL and JOSHUA are tracked separately (`ref-docs/09`).
 - [ ] (Later, not this release) Optional "bring your own `SBTALKER.EXE`" emulation
       mode. The original engine remains First Byte copyright, so it could never be
       bundled.
+
+## Personas
+
+Voices from [ref-docs/05](../ref-docs/05-eliza.md), [06](../ref-docs/06-parry.md),
+[07](../ref-docs/07-hal-9000.md), [08](../ref-docs/08-joshua-wopr.md) and
+[09](../ref-docs/09-hal-and-wopr-voices.md). Details: `docs/AUDIO_SYSTEM.md`.
+
+- [x] Per-persona Gemini voice and delivery style instead of the global voice profile
+      (Charon) for everyone: HAL Algieba, JOSHUA Iapetus, ELIZA Kore, PARRY Orus.
+      Voice profiles now apply to Dr. Sbaitso only. Styles never name a performer.
+- [x] Sentence case to TTS for HAL, JOSHUA, ELIZA and PARRY (display unchanged).
+- [x] HAL pronounced as a word ("Hal"), not "H-A-L"; AE-35 spelled for speech.
+- [x] HAL chain: breath gate, pitch-preserving slow-down to 4.3-4.7 syl/s, 50 Hz
+      high-pass, +2 dB at 150 Hz, gentle compression; no crush, resample or LPC.
+- [x] WOPR chain: per-word flat LPC pitch (90/79/68 Hz, final 128/79/105 Hz),
+      spliced 80/110/250 ms gaps, even word loudness, 220 Hz-3.8 kHz band.
+- [x] ELIZA and PARRY play clean in every audio mode.
+- [x] HAL "shutdown" effect (independent pitch and tempo ramps) as a pure function.
+- [ ] Wire the routes into `src/EnhancedApp.tsx`: pass `usePersona().voiceProcessing`
+      to both `speech.speak` calls (greeting and reply). Classic mode stays `sbaitso`.
+- [ ] Listen to every persona and A/B the voices the docs list (HAL: Iapetus, Charon,
+      Schedar; JOSHUA: Schedar, Orus, Charon; PARRY: Algenib). Nothing here has been
+      heard yet; the choices and chains are tested only on synthetic signals.
+- [ ] Measure rendered output against ref-docs/09 section 7 (HAL median F0 90-110 Hz,
+      SD 1.5-2.8 st, level questions; WOPR band and gaps on real TTS).
+- [ ] Optional: ELIZA `?` in the TTS text for interrogative replies; PARRY style by
+      affect (Fear/Anger) once the PARRY engine exists; HAL shutdown easter egg;
+      JOSHUA terminal colours and print blips.
