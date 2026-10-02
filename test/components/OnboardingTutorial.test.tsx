@@ -1,14 +1,24 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
 import { ONBOARDING_STEPS } from '@/constants';
 import { APP_SHORTCUTS, shortcutLabel } from '@/utils/shortcuts';
 
-const enhancedSource = readFileSync(path.resolve(import.meta.dirname, '../../src/EnhancedApp.tsx'), 'utf8');
+// The enhanced UI is EnhancedApp plus the components it composes from src/components/enhanced/.
+const srcDir = path.resolve(import.meta.dirname, '../../src');
+const enhancedDir = path.join(srcDir, 'components/enhanced');
+const enhancedSource = [
+  path.join(srcDir, 'EnhancedApp.tsx'),
+  ...readdirSync(enhancedDir)
+    .filter((file) => file.endsWith('.tsx'))
+    .map((file) => path.join(enhancedDir, file)),
+]
+  .map((file) => readFileSync(file, 'utf8'))
+  .join('\n');
 
-/** True when at least one comma-separated part of the selector names something EnhancedApp renders. */
+/** True when at least one comma-separated part of the selector names something the enhanced UI renders. */
 function selectorExistsInEnhancedApp(selector: string): boolean {
   return selector.split(',').some((part) => {
     const tour = /\[data-tour-id="([^"]+)"\]/.exec(part);

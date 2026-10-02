@@ -54,10 +54,16 @@ npm run analyze        # bundle report -> reports/ (gitignored)
   - TTS WAV is converted to raw PCM16.
 - `src/services/geminiService.ts`: browser fetch client. It keeps per-character history, because the
   proxy is stateless.
-- `src/App.tsx`: the app shell.
-  - `sendMessage()` is the single turn pipeline.
-  - The greeting is one async sequence started from name submit.
-  - It is being split into hooks (Phase 7).
+- `src/App.tsx`: the app shell (classic or enhanced mode). `src/EnhancedApp.tsx` composes the
+  enhanced UI from hooks and `src/components/enhanced/`.
+  - `src/hooks/useChatPipeline.ts`: `sendMessage()` is the single turn pipeline (engines,
+    typewriter, speech while typing, errors); the greeting is one async sequence started from
+    name submit. Dependencies come in as arguments.
+  - `src/hooks/usePanels.ts`: open/closed state of every panel. `src/hooks/useGlobalShortcuts.ts`:
+    the Alt+Shift listener.
+  - `src/components/enhanced/`: `NameEntry`, `EnhancedHeader` (persona, menus), `ChatLog`,
+    `InputBar`, `StatusBar`, `VoiceControlIndicator`, and `EnhancedPanels` (the lazy panels and
+    `VoiceHelpDialog`). Tour targets (`data-tour-id`) live here; the onboarding test reads them.
 - `src/hooks/useSpeechPlayer.ts`: plays TTS through `src/utils/sharedAudio.ts`, the one AudioContext for
   the page.
 - `src/constants.ts`: `CHARACTERS`, `VOICE_PROFILES`, `THEMES`, `AUDIO_MODES`. Shortcuts: `src/utils/shortcuts.ts`.

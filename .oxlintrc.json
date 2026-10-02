@@ -47,7 +47,13 @@
     "react/immutability": "warn",
     "react/purity": "warn",
     "vitest/no-conditional-expect": "warn",
-    "vitest/require-to-throw-message": "warn"
+    "vitest/require-to-throw-message": "warn",
+    "vitest/no-standalone-expect": [
+      "error",
+      {
+        "additionalTestBlockFunctions": ["perfIt"]
+      }
+    ]
   },
   "ignorePatterns": [
     "dist",
