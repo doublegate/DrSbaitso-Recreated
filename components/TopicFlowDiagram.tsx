@@ -27,6 +27,8 @@ interface TopicFlowDiagramProps {
   };
 }
 
+const ANALYSIS_DEBOUNCE_MS = 400;
+
 export function TopicFlowDiagram({
   messages,
   theme
@@ -35,10 +37,12 @@ export function TopicFlowDiagram({
   const [analysis, setAnalysis] = useState<ConversationAnalysis | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
 
-  // Analyze topics when messages change
+  // Analyze topics once the conversation settles. Messages change on every
+  // typewriter tick (~25 times a second), and each analysis rebuilds the
+  // force simulation, so wait until typing pauses.
   useEffect(() => {
-    const result = analyzeTopics(messages);
-    setAnalysis(result);
+    const timer = setTimeout(() => setAnalysis(analyzeTopics(messages)), ANALYSIS_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   // Draw D3 visualization
