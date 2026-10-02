@@ -1,19 +1,196 @@
 /**
- * Advanced Export System (v1.6.0)
+ * Export system: the single implementation behind every export in the app.
  *
- * Provides multiple export formats:
- * - PDF-style formatted HTML for printing
+ * - Conversation formats (Markdown, plain text, JSON, standalone HTML) via
+ *   {@link formatSession}; `exportConversation.ts` is a thin adapter over it.
+ * - Print-ready HTML ({@link PDFExporter}). There is no PDF encoder: "PDF"
+ *   means opening the browser's print dialog ({@link printHtml}), where the
+ *   user picks "Save as PDF". The same document can be downloaded as HTML.
  * - CSV for analytics and spreadsheet import
  * - Theme packages for sharing collections
  * - Batch export for multiple sessions
+ *
+ * Every user- or model-controlled string interpolated into HTML goes through
+ * {@link escapeHtml}.
  */
 
-import type { ConversationSession, Message } from '../types';
+import type { ConversationSession, ExportFormat, Message } from '../types';
 import type { CustomTheme } from './themeValidator';
+import { CHARACTERS } from '../constants';
 
 /** Sessions created by SessionManager carry createdAt but not startedAt. */
 function sessionStart(session: ConversationSession): number {
   return session.startedAt ?? session.createdAt;
+}
+
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+/**
+ * Escapes text for HTML element content and quoted attributes. Pure string
+ * replacement: unlike the textContent/innerHTML trick it also escapes quotes
+ * and needs no DOM.
+ */
+export function escapeHtml(text: unknown): string {
+  return String(text ?? '').replace(/[&<>"']/g, (ch) => HTML_ESCAPES[ch]);
+}
+
+/** Display name for a persona id; unknown (custom) ids are returned as-is. */
+export function characterName(characterId: string): string {
+  return CHARACTERS.find((c) => c.id === characterId)?.name ?? characterId;
+}
+
+function speaker(message: Message, characterId: string, userLabel: string): string {
+  return message.author === 'user' ? userLabel : characterName(characterId);
+}
+
+// ---------------------------------------------------------------------------
+// Conversation formats (shared with exportConversation.ts)
+// ---------------------------------------------------------------------------
+
+function toMarkdown(session: ConversationSession, options: ExportFormat): string {
+  let output = '';
+
+  if (options.includeMetadata) {
+    output += `# ${session.name}\n\n`;
+    output += `**Character:** ${characterName(session.characterId)}\n\n`;
+    output += `**Created:** ${new Date(sessionStart(session)).toLocaleString()}\n\n`;
+    output += `**Messages:** ${session.messageCount}\n\n`;
+    output += `**Glitches:** ${session.glitchCount}\n\n`;
+    output += `---\n\n`;
+  }
+
+  session.messages.forEach(msg => {
+    const author = speaker(msg, session.characterId, 'You');
+    const timestamp = options.includeTimestamps && msg.timestamp
+      ? ` *(${new Date(msg.timestamp).toLocaleTimeString()})*`
+      : '';
+    // Quote every line, so a multi-line reply stays inside its blockquote.
+    output += `**${author}${timestamp}:**\n\n`;
+    output += `${msg.text.split('\n').map(line => `> ${line}`).join('\n')}\n\n`;
+  });
+
+  return output;
+}
+
+function toText(session: ConversationSession, options: ExportFormat): string {
+  let output = '';
+
+  if (options.includeMetadata) {
+    output += `${session.name}\n`;
+    output += `${'='.repeat(Math.max(3, session.name.length))}\n\n`;
+    output += `Character: ${characterName(session.characterId)}\n`;
+    output += `Created: ${new Date(sessionStart(session)).toLocaleString()}\n`;
+    output += `Messages: ${session.messageCount}\n`;
+    output += `Glitches: ${session.glitchCount}\n\n`;
+    output += `${'-'.repeat(60)}\n\n`;
+  }
+
+  session.messages.forEach(msg => {
+    const author = speaker(msg, session.characterId, 'You').toUpperCase();
+    const timestamp = options.includeTimestamps && msg.timestamp
+      ? ` [${new Date(msg.timestamp).toLocaleTimeString()}]`
+      : '';
+    output += `${author}${timestamp}:\n${msg.text}\n\n`;
+  });
+
+  return output;
+}
+
+function toJSON(session: ConversationSession, options: ExportFormat): string {
+  return JSON.stringify(options.includeMetadata ? session : session.messages, null, 2);
+}
+
+function toStandaloneHTML(session: ConversationSession, options: ExportFormat): string {
+  const title = escapeHtml(session.name);
+  let html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>
+    body { font-family: 'Courier New', monospace; background: #1e3a8a; color: #ffffff; max-width: 800px; margin: 0 auto; padding: 20px; }
+    h1 { border-bottom: 2px solid #60a5fa; padding-bottom: 10px; }
+    .metadata { background: rgba(0,0,0,0.3); padding: 15px; margin: 20px 0; border-left: 4px solid #fbbf24; }
+    .message { margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 4px; }
+    .user { border-left: 4px solid #fbbf24; }
+    .ai { border-left: 4px solid #60a5fa; }
+    .author { font-weight: bold; color: #fbbf24; margin-bottom: 5px; }
+    .timestamp { font-size: 0.8em; color: #9ca3af; }
+    .text { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>${title}</h1>
+`;
+
+  if (options.includeMetadata) {
+    html += `
+  <div class="metadata">
+    <strong>Character:</strong> ${escapeHtml(characterName(session.characterId))}<br>
+    <strong>Created:</strong> ${escapeHtml(new Date(sessionStart(session)).toLocaleString())}<br>
+    <strong>Messages:</strong> ${escapeHtml(session.messageCount)}<br>
+    <strong>Glitches:</strong> ${escapeHtml(session.glitchCount)}
+  </div>
+`;
+  }
+
+  session.messages.forEach(msg => {
+    const timestamp = options.includeTimestamps && msg.timestamp
+      ? `<span class="timestamp">${escapeHtml(new Date(msg.timestamp).toLocaleTimeString())}</span>`
+      : '';
+    const cssClass = msg.author === 'user' ? 'user' : 'ai';
+    html += `
+  <div class="message ${cssClass}">
+    <div class="author">${escapeHtml(speaker(msg, session.characterId, 'You'))} ${timestamp}</div>
+    <div class="text">${escapeHtml(msg.text)}</div>
+  </div>
+`;
+  });
+
+  html += `
+</body>
+</html>`;
+  return html;
+}
+
+/** Renders one conversation in a single-file format. */
+export function formatSession(session: ConversationSession, options: ExportFormat): string {
+  switch (options.format) {
+    case 'markdown':
+      return toMarkdown(session, options);
+    case 'json':
+      return toJSON(session, options);
+    case 'html':
+      return toStandaloneHTML(session, options);
+    case 'text':
+    default:
+      return toText(session, options);
+  }
+}
+
+export const FORMAT_MIME_TYPES: Record<ExportFormat['format'], string> = {
+  markdown: 'text/markdown',
+  text: 'text/plain',
+  json: 'application/json',
+  html: 'text/html',
+};
+
+const FORMAT_EXTENSIONS: Record<ExportFormat['format'], string> = {
+  markdown: 'md',
+  text: 'txt',
+  json: 'json',
+  html: 'html',
+};
+
+function safeFileStem(name: string): string {
+  return name.replace(/[^a-z0-9]/gi, '_') || 'conversation';
 }
 
 export interface PDFExportOptions {
@@ -38,29 +215,30 @@ export interface ExportResult {
 }
 
 /**
- * PDF Exporter (generates print-ready HTML)
+ * Print-ready HTML exporter. The browser turns the document into a PDF via
+ * its print dialog ({@link printHtml}); this class never produces PDF bytes,
+ * and its download result is an `.html` file.
  */
 export class PDFExporter {
   /**
-   * Export session to PDF-ready HTML
+   * Print-ready HTML as a downloadable `.html` file (kept under its old name
+   * for compatibility; it never produced a PDF).
    */
   static async exportToPDF(
     session: ConversationSession,
     options: PDFExportOptions
   ): Promise<ExportResult> {
-    const html = this.generatePDFHTML(session, options);
-
     return {
-      filename: `${session.name.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.html`,
-      content: html,
+      filename: `${safeFileStem(session.name)}_${Date.now()}.html`,
+      content: this.buildDocument(session, options),
       mimeType: 'text/html'
     };
   }
 
   /**
-   * Generate complete PDF-ready HTML document
+   * The complete print-ready HTML document, for {@link printHtml} or download.
    */
-  private static generatePDFHTML(
+  static buildDocument(
     session: ConversationSession,
     options: PDFExportOptions
   ): string {
@@ -75,7 +253,7 @@ export class PDFExporter {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${this.escapeHTML(session.name)} - Dr. Sbaitso Conversation</title>
+  <title>${escapeHtml(session.name)} - Dr. Sbaitso Conversation</title>
   <style>${styles}</style>
 </head>
 <body>
@@ -84,9 +262,8 @@ export class PDFExporter {
   ${statistics}
   ${messages}
   <div class="footer">
-    Generated with Dr. Sbaitso Recreated v1.6.0<br>
-    Export Date: ${new Date().toLocaleString()}<br>
-    Page: <span class="page-number"></span>
+    Generated with Dr. Sbaitso Recreated<br>
+    Export Date: ${escapeHtml(new Date().toLocaleString())}
   </div>
 </body>
 </html>`;
@@ -96,9 +273,9 @@ export class PDFExporter {
    * Generate PDF print styles
    */
   private static getPDFStyles(options: PDFExportOptions): string {
-    const fontSize = options.fontSize;
-    const pageSize = options.pageSize;
-    const pageWidth = pageSize === 'A4' ? '210mm' : '8.5in';
+    // Both values land in CSS, so only known values are accepted.
+    const fontSize = [12, 14, 16].includes(options.fontSize) ? options.fontSize : 12;
+    const pageSize = options.pageSize === 'Letter' ? 'Letter' : 'A4';
     const pageHeight = pageSize === 'A4' ? '297mm' : '11in';
 
     return `
@@ -236,11 +413,11 @@ export class PDFExporter {
   private static generateCoverPage(session: ConversationSession): string {
     return `
       <div class="cover-page">
-        <h1>${this.escapeHTML(session.name)}</h1>
-        <p>A conversation with ${this.escapeHTML(session.characterId)}</p>
-        <p>Session Date: ${new Date(sessionStart(session)).toLocaleDateString()}</p>
-        <p>${session.messageCount} messages</p>
-        ${session.glitchCount > 0 ? `<p>${session.glitchCount} glitches encountered</p>` : ''}
+        <h1>${escapeHtml(session.name)}</h1>
+        <p>A conversation with ${escapeHtml(characterName(session.characterId))}</p>
+        <p>Session Date: ${escapeHtml(new Date(sessionStart(session)).toLocaleDateString())}</p>
+        <p>${escapeHtml(session.messageCount)} messages</p>
+        ${session.glitchCount > 0 ? `<p>${escapeHtml(session.glitchCount)} glitches encountered</p>` : ''}
       </div>
     `;
   }
@@ -249,19 +426,11 @@ export class PDFExporter {
    * Generate character information section
    */
   private static generateCharacterInfo(session: ConversationSession): string {
-    const characterNames: Record<string, string> = {
-      sbaitso: 'Dr. Sbaitso (1991)',
-      eliza: 'ELIZA (1966)',
-      hal9000: 'HAL 9000 (2001)',
-      joshua: 'JOSHUA (1983)',
-      parry: 'PARRY (1972)'
-    };
-
     return `
       <div class="section">
         <h2>Character Information</h2>
-        <p><strong>Character:</strong> ${this.escapeHTML(characterNames[session.characterId] || session.characterId)}</p>
-        <p><strong>Theme:</strong> ${this.escapeHTML(session.themeId)}</p>
+        <p><strong>Character:</strong> ${escapeHtml(characterName(session.characterId))}</p>
+        <p><strong>Theme:</strong> ${escapeHtml(session.themeId)}</p>
       </div>
     `;
   }
@@ -280,19 +449,19 @@ export class PDFExporter {
         <div class="statistics-grid">
           <div class="stat-box">
             <div class="stat-label">Total Messages</div>
-            <div class="stat-value">${session.messageCount}</div>
+            <div class="stat-value">${escapeHtml(session.messageCount)}</div>
           </div>
           <div class="stat-box">
             <div class="stat-label">Duration</div>
-            <div class="stat-value">${duration} min</div>
+            <div class="stat-value">${escapeHtml(duration)} min</div>
           </div>
           <div class="stat-box">
             <div class="stat-label">Glitches</div>
-            <div class="stat-value">${session.glitchCount}</div>
+            <div class="stat-value">${escapeHtml(session.glitchCount)}</div>
           </div>
           <div class="stat-box">
             <div class="stat-label">Session ID</div>
-            <div class="stat-value" style="font-size: 10pt;">${session.id.substring(0, 8)}...</div>
+            <div class="stat-value" style="font-size: 10pt;">${escapeHtml(String(session.id).substring(0, 8))}...</div>
           </div>
         </div>
       </div>
@@ -300,7 +469,7 @@ export class PDFExporter {
   }
 
   /**
-   * Format messages for PDF
+   * Format messages for print
    */
   private static formatMessages(messages: Message[], characterId: string): string {
     const messagesHTML = messages
@@ -308,16 +477,15 @@ export class PDFExporter {
         const timestamp = msg.timestamp
           ? new Date(msg.timestamp).toLocaleTimeString()
           : '';
-        const author = msg.author === 'user' ? 'User' : characterId.toUpperCase();
         const className = msg.author === 'user' ? 'user' : 'ai';
 
         return `
           <div class="message ${className}">
             <div class="message-header">
-              ${this.escapeHTML(author)}
-              ${timestamp ? ` · ${timestamp}` : ` · Message ${index + 1}`}
+              ${escapeHtml(speaker(msg, characterId, 'You'))}
+              ${timestamp ? ` · ${escapeHtml(timestamp)}` : ` · Message ${index + 1}`}
             </div>
-            <div class="message-text">${this.escapeHTML(msg.text)}</div>
+            <div class="message-text">${escapeHtml(msg.text)}</div>
           </div>
         `;
       })
@@ -329,15 +497,6 @@ export class PDFExporter {
         ${messagesHTML}
       </div>
     `;
-  }
-
-  /**
-   * Escape HTML special characters
-   */
-  private static escapeHTML(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
   }
 }
 
@@ -590,6 +749,9 @@ export class ThemePackager {
   }
 }
 
+/** Batch formats. 'pdf' is accepted for compatibility and means print-ready HTML. */
+export type BatchFormat = 'html' | 'pdf' | 'csv' | 'json' | 'markdown';
+
 /**
  * Batch Exporter
  */
@@ -599,40 +761,27 @@ export class BatchExporter {
    */
   static async batchExport(
     sessions: ConversationSession[],
-    format: 'pdf' | 'csv' | 'json' | 'markdown',
+    format: BatchFormat,
     combined: boolean = false
   ): Promise<ExportResult[]> {
     const results: ExportResult[] = [];
 
-    if (combined) {
-      // Combine all sessions into one file
-      switch (format) {
-        case 'csv':
-          results.push(CSVExporter.exportMessages(sessions, {
-            delimiter: ',',
-            includeHeaders: true,
-            dateFormat: 'iso'
-          }));
-          break;
-        case 'json':
-          results.push({
-            filename: `combined_export_${Date.now()}.json`,
-            content: JSON.stringify(sessions, null, 2),
-            mimeType: 'application/json'
-          });
-          break;
-        default:
-          // PDF and Markdown don't support combined well, export separately
-          for (const session of sessions) {
-            const result = await this.exportSingle(session, format);
-            results.push(result);
-          }
-      }
+    if (combined && format === 'csv') {
+      results.push(CSVExporter.exportMessages(sessions, {
+        delimiter: ',',
+        includeHeaders: true,
+        dateFormat: 'iso'
+      }));
+    } else if (combined && format === 'json') {
+      results.push({
+        filename: `combined_export_${Date.now()}.json`,
+        content: JSON.stringify(sessions, null, 2),
+        mimeType: 'application/json'
+      });
     } else {
-      // Export each session separately
+      // HTML and Markdown are one file per session.
       for (const session of sessions) {
-        const result = await this.exportSingle(session, format);
-        results.push(result);
+        results.push(await this.exportSingle(session, format));
       }
     }
 
@@ -644,9 +793,10 @@ export class BatchExporter {
    */
   private static async exportSingle(
     session: ConversationSession,
-    format: 'pdf' | 'csv' | 'json' | 'markdown'
+    format: BatchFormat
   ): Promise<ExportResult> {
     switch (format) {
+      case 'html':
       case 'pdf':
         return PDFExporter.exportToPDF(session, {
           includeCoverPage: true,
@@ -663,59 +813,91 @@ export class BatchExporter {
           dateFormat: 'iso'
         });
       case 'json':
+      case 'markdown': {
+        const content = formatSession(session, { format, includeMetadata: true, includeTimestamps: true });
         return {
-          filename: `${session.name.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.json`,
-          content: JSON.stringify(session, null, 2),
-          mimeType: 'application/json'
+          filename: `${safeFileStem(session.name)}_${Date.now()}.${FORMAT_EXTENSIONS[format]}`,
+          content,
+          mimeType: FORMAT_MIME_TYPES[format]
         };
-      case 'markdown':
-        return {
-          filename: `${session.name.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.md`,
-          content: this.toMarkdown(session),
-          mimeType: 'text/markdown'
-        };
+      }
       default:
-        throw new Error(`Unsupported format: ${format}`);
+        throw new Error(`Unsupported format: ${String(format)}`);
     }
   }
+}
 
-  /**
-   * Convert session to Markdown
-   */
-  private static toMarkdown(session: ConversationSession): string {
-    let md = `# ${session.name}\n\n`;
-    md += `**Character:** ${session.characterId}\n`;
-    md += `**Theme:** ${session.themeId}\n`;
-    md += `**Started:** ${new Date(sessionStart(session)).toLocaleString()}\n`;
-    if (session.endedAt) {
-      md += `**Ended:** ${new Date(session.endedAt).toLocaleString()}\n`;
-    }
-    md += `**Messages:** ${session.messageCount}\n`;
-    md += `**Glitches:** ${session.glitchCount}\n\n`;
-    md += `---\n\n`;
+/**
+ * How long a download's object URL stays valid. Revoking it synchronously
+ * after click() cancels the download in Firefox and Safari.
+ */
+export const REVOKE_DELAY_MS = 60_000;
 
-    session.messages.forEach((msg, index) => {
-      const author = msg.author === 'user' ? 'User' : session.characterId.toUpperCase();
-      md += `### ${author} (Message ${index + 1})\n\n`;
-      md += `${msg.text}\n\n`;
-    });
-
-    return md;
-  }
+/** Downloads a string or Blob as a file. */
+export function downloadBlob(content: string | Blob, filename: string, mimeType: string): void {
+  const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
 }
 
 /**
  * Utility function to download export results
  */
 export function downloadExportResult(result: ExportResult): void {
-  const blob = result.content instanceof Blob
-    ? result.content
-    : new Blob([result.content], { type: result.mimeType });
+  downloadBlob(result.content, result.filename, result.mimeType);
+}
 
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = result.filename;
-  a.click();
-  URL.revokeObjectURL(url);
+/** Longest a print iframe is kept if the browser never reports `afterprint`. */
+const PRINT_FRAME_TTL_MS = 60_000;
+
+/**
+ * Opens the browser print dialog for an HTML document, from which the user
+ * can choose "Save as PDF". A hidden same-origin iframe is used rather than
+ * window.open, which popup blockers stop. The iframe is removed after
+ * printing, or after a timeout.
+ */
+export function printHtml(html: string): HTMLIFrameElement {
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.setAttribute('tabindex', '-1');
+  iframe.title = 'Print preview';
+  Object.assign(iframe.style, {
+    position: 'fixed',
+    right: '0',
+    bottom: '0',
+    width: '0',
+    height: '0',
+    border: '0',
+    visibility: 'hidden',
+  });
+
+  let removed = false;
+  const remove = () => {
+    if (removed) return;
+    removed = true;
+    iframe.remove();
+  };
+
+  iframe.addEventListener('load', () => {
+    const win = iframe.contentWindow;
+    if (!win) {
+      remove();
+      return;
+    }
+    win.addEventListener?.('afterprint', () => setTimeout(remove, 0));
+    win.focus?.();
+    win.print();
+  }, { once: true });
+
+  iframe.setAttribute('srcdoc', html);
+  document.body.appendChild(iframe);
+  setTimeout(remove, PRINT_FRAME_TTL_MS);
+  return iframe;
 }

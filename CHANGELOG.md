@@ -123,6 +123,15 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   `data-tour-id` hooks, sit next to the highlighted control, and fall back to a
   centred card when a control is absent. The false "a sample conversation has been
   loaded" claim is gone, and shortcut text is generated from `utils/shortcuts.ts`.
+- **"PDF" export.** It downloaded an `.html` file. It is now **PDF (via print
+  dialog)**: the print-ready document opens the browser's print dialog, where
+  "Save as PDF" produces the PDF. The HTML download remains a separate option, and
+  the batch "PDF" format is now labelled "HTML (print-ready)". Downloads no longer
+  revoke their object URL immediately, which cancelled them in Firefox and Safari.
+  Every interpolated field (session title, names, theme, ids) is HTML-escaped; the
+  standalone HTML export left the title unescaped. The two export modules are
+  consolidated: `exportConversation.ts` is now a thin adapter over
+  `advancedExport.ts`.
 
 ### Changed
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
