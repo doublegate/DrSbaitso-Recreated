@@ -58,6 +58,12 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   conversations are saved in this browser, which feeds search, replay and insights;
   turning it off erases them. Before this, nothing was ever saved, so those panels
   were always empty. Export now always works on the current conversation.
+- **Enhanced mode layout.** The row of about twenty unlabelled emoji buttons is
+  replaced by four labelled menus (CONVERSATION, VISUALS, SOUND, SETTINGS), each item
+  showing its keyboard shortcut, plus a CLASSIC button. The menus support Escape,
+  arrow keys and click-away, and return focus to their button. The input line gains
+  a microphone and a SEND button, and audio mode, theme and the history switch move
+  into a status bar under it. The layout stacks on phones.
 - `LICENSE` (MIT; the README had always claimed MIT, but there was no licence file)
   and `THIRD_PARTY_NOTICES.md` (the bundled CC BY-SA 4.0 font).
 - `ref-docs/`: sourced research on the original program.
@@ -85,6 +91,11 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   `NAME TOO LONG`). Pure functions with 98% test coverage; not yet wired into the UI.
 
 ### Fixed
+- **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
+  hidden screen-reader announcer sat in the page flow below the app; it is now fixed
+  in place.
+- **An empty yellow box appeared under any focused button** while keyboard hints were
+  on. Hints now render only on elements that define one.
 - **Crash right after name entry.** `<InstallPrompt />` was rendered without its
   props, threw, and the error screen replaced the app. It now appears only when the
   browser actually offers installation.

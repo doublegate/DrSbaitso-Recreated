@@ -11,6 +11,7 @@ import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useFocusTrap } from './hooks/useFocusTrap';
+import MenuGroup from './components/enhanced/MenuGroup';
 import { useSessionHistory } from './hooks/useSessionHistory';
 import { useThemeChoice } from './hooks/useThemeChoice';
 import { usePersona } from './hooks/usePersona';
@@ -160,20 +161,10 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     wakeWordEnabled: true,
     handsFreeModeEnabled: false,
     confirmDestructiveCommands: true,
-    onClear: () => {
-      setMessages([]);
-      setUserInput('');
-      resetChat(characterId); // the model forgets too, as the greeting promises
-    },
+    onClear: () => clearConversation(),
     onExport: () => setShowAdvancedExport(true),
     onSwitchCharacter: (id) => switchPersona(id),
-    onToggleMute: () => {
-      const next = !mutedRef.current;
-      mutedRef.current = next;
-      setMuted(next);
-      if (next) speech.stop();
-      announce(next ? 'Speech muted' : 'Speech unmuted');
-    },
+    onToggleMute: () => toggleMute(),
     onToggleSettings: () => setShowSoundSettings(prev => !prev),
     onToggleStats: () => setShowConversationSearch(true),
     onStopAudio: () => speech.stop(),
@@ -351,6 +342,20 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     }
   };
 
+  const toggleMute = () => {
+    const next = !mutedRef.current;
+    mutedRef.current = next;
+    setMuted(next);
+    if (next) speech.stop();
+    announce(next ? 'Speech muted' : 'Speech unmuted');
+  };
+
+  const clearConversation = () => {
+    setMessages([]);
+    setUserInput('');
+    resetChat(characterId); // the model forgets too, as the greeting promises
+  };
+
   /**
    * Switches persona mid-conversation. Each persona keeps its own model
    * history (services/geminiService.ts); the log shows where the switch
@@ -507,28 +512,10 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
         role="main"
       >
         <div className="w-full max-w-4xl mx-auto flex flex-col grow border-2 border-(--color-border) p-4 min-h-0">
-          {/* Header with settings (v1.3.0 + v1.4.0) */}
-          <div className="shrink-0 flex flex-wrap justify-between items-center gap-2 mb-4 pb-2 border-b-2 border-(--color-border)">
-            {/* Audio Mode Selector */}
-            <div className="flex items-center gap-2" data-tour-id="audio-settings">
-              <label htmlFor="audio-mode-select" className="text-sm font-bold">
-                AUDIO MODE:
-              </label>
-              <select
-                id="audio-mode-select"
-                value={audioMode}
-                onChange={(e) => setAudioMode(e.target.value as typeof audioMode)}
-                className="bg-blue-900 border-2 border-gray-400 text-white px-2 py-1 text-sm focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
-                aria-label="Select audio quality mode"
-                title={AUDIO_MODES.find(m => m.id === audioMode)?.description || ''}
-              >
-                {AUDIO_MODES.map((mode) => (
-                  <option key={mode.id} value={mode.id}>
-                    {mode.name}
-                  </option>
-                ))}
-              </select>
-              <label htmlFor="persona-select" className="text-sm font-bold ml-2">
+          {/* Header: persona and tool menus */}
+          <header className="shrink-0 flex flex-wrap items-center gap-x-4 gap-y-2 mb-3 pb-2 border-b-2 border-(--color-border)">
+            <div className="flex items-center gap-2 min-w-0" data-tour-id="character-selection">
+              <label htmlFor="persona-select" className="text-sm font-bold">
                 PERSONA:
               </label>
               <select
@@ -536,7 +523,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
                 value={persona.id}
                 onChange={(e) => switchPersona(e.target.value)}
                 disabled={isLoading && !!userName}
-                className="bg-blue-900 border-2 border-(--color-border) text-white px-2 py-1 text-sm focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
+                className="enh-select font-bold"
                 title={persona.description}
               >
                 <optgroup label="Classic programs">
@@ -552,173 +539,67 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
                   </optgroup>
                 )}
               </select>
-              <label htmlFor="theme-select" className="text-sm font-bold ml-2">
-                THEME:
-              </label>
-              <select
-                id="theme-select"
-                value={currentTheme}
-                onChange={(e) => themeChoice.selectTheme(e.target.value)}
-                className="bg-blue-900 border-2 border-(--color-border) text-white px-2 py-1 text-sm focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
-              >
-                {themeChoice.themes.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-              <label
-                className="flex items-center gap-1 text-sm ml-2"
-                title="Off by default: memory contents are wiped when you leave. Turn on to keep sessions in this browser for search, replay and insights."
-              >
-                <input
-                  type="checkbox"
-                  checked={keepHistory}
-                  onChange={(e) => setKeepHistory(e.target.checked)}
-                  className="accent-yellow-300"
-                />
-                SAVE HISTORY
-              </label>
+              <span className="hidden md:inline text-xs opacity-75 truncate max-w-xs" title={persona.description}>
+                {persona.description}
+              </span>
             </div>
 
-            {/* v1.5.0 & v1.6.0 Feature Buttons */}
-            <div className="flex flex-wrap gap-2" data-tour-id="settings-panel">
+            <nav aria-label="Tools" className="flex flex-wrap items-center gap-2 ml-auto" data-tour-id="settings-panel">
+              <span data-tour-id="session-panel">
+                <MenuGroup
+                  label="CONVERSATION"
+                  items={[
+                    { id: 'search', icon: '🔍', label: 'Search and replay', onSelect: () => setShowConversationSearch(true) },
+                    { id: 'export', icon: '📦', label: 'Export', onSelect: () => setShowAdvancedExport(true) },
+                    { id: 'templates', icon: '📝', label: 'Templates', shortcut: shortcutLabel('templates'), onSelect: () => setShowTemplates(true) },
+                    { id: 'insights', icon: '📈', label: 'Insights', shortcut: shortcutLabel('insights'), onSelect: () => setShowInsights(true) },
+                    { id: 'clear', icon: '🧹', label: 'Clear conversation', onSelect: clearConversation },
+                  ]}
+                />
+              </span>
+              <MenuGroup
+                label="VISUALS"
+                items={[
+                  { id: 'emotions', icon: '😊', label: 'Emotion visualizer', shortcut: shortcutLabel('emotionViz'), active: showEmotionViz, onSelect: () => setShowEmotionViz(v => !v) },
+                  { id: 'topics', icon: '🔀', label: 'Topic diagram', shortcut: shortcutLabel('topicDiagram'), active: showTopicDiagram, onSelect: () => setShowTopicDiagram(v => !v) },
+                  { id: 'audioviz', icon: '📊', label: 'Audio visualizer', active: showAudioVisualizer, onSelect: () => setShowAudioVisualizer(v => !v) },
+                ]}
+              />
+              <MenuGroup
+                label="SOUND"
+                items={[
+                  { id: 'voice-input', icon: '🗣️', label: 'Voice input', shortcut: shortcutLabel('voiceInput'), active: showVoiceInput, onSelect: () => setShowVoiceInput(v => !v) },
+                  { id: 'hands-free', icon: '🎤', label: 'Hands-free voice control', active: voiceControl.isHandsFreeMode, disabled: !voiceControl.isSupported, onSelect: () => voiceControl.toggleHandsFreeMode() },
+                  { id: 'mute', icon: muted ? '🔇' : '🔈', label: muted ? 'Unmute speech' : 'Mute speech', active: muted, onSelect: toggleMute },
+                  { id: 'music', icon: '🎵', label: 'Music player', shortcut: shortcutLabel('musicPlayer'), active: showMusicPlayer, onSelect: () => setShowMusicPlayer(v => !v) },
+                  { id: 'packs', icon: '🎼', label: 'Sound packs', shortcut: shortcutLabel('soundPacks'), onSelect: () => setShowSoundPackManager(true) },
+                  { id: 'sound-settings', icon: '🔊', label: 'Sound settings', shortcut: shortcutLabel('soundSettings'), onSelect: () => setShowSoundSettings(true) },
+                ]}
+              />
+              <span data-tour-id="theme-button">
+                <MenuGroup
+                  label="SETTINGS"
+                  items={[
+                    { id: 'theme', icon: '🎨', label: 'Theme customizer', onSelect: () => setShowThemeCustomizer(true) },
+                    { id: 'characters', icon: '🎭', label: 'Character creator', onSelect: () => setShowCharacterCreator(true) },
+                    { id: 'a11y', icon: '♿', label: 'Accessibility', shortcut: shortcutLabel('accessibility'), onSelect: () => setShowAccessibilityPanel(true) },
+                    { id: 'voice-help', icon: '❔', label: 'Voice commands', onSelect: () => setShowVoiceControlHelp(true) },
+                    { id: 'tutorial', icon: '🎓', label: 'Tutorial', shortcut: shortcutLabel('tutorial'), onSelect: () => setShowOnboarding(true) },
+                  ]}
+                />
+              </span>
               {onSwitchMode && (
                 <button
+                  type="button"
                   onClick={onSwitchMode}
-                  className="px-3 py-1 border-2 border-(--color-border) hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                  aria-label={`Switch to the classic screen (${shortcutLabel('switchMode')})`}
-                  title={`Classic screen (${shortcutLabel('switchMode')})`}
+                  className="enh-menu-trigger"
+                  title={`Switch to the classic screen (${shortcutLabel('switchMode')})`}
                 >
                   CLASSIC
                 </button>
               )}
-              <button
-                onClick={() => setShowThemeCustomizer(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label="Open theme customizer"
-                title="Theme Customizer"
-                data-tour-id="theme-button"
-              >
-                🎨
-              </button>
-              <button
-                onClick={() => setShowConversationSearch(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label="Search conversations"
-                title="Search & Analytics"
-                data-tour-id="session-panel"
-              >
-                🔍
-              </button>
-              <button
-                onClick={() => setShowAudioVisualizer(!showAudioVisualizer)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label="Toggle audio visualizer"
-                title="Audio Visualizer"
-              >
-                📊
-              </button>
-              <button
-                onClick={() => setShowAdvancedExport(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label="Advanced export options"
-                title="Advanced Export"
-                data-tour-id="export-button"
-              >
-                📦
-              </button>
-              <button
-                onClick={() => setShowCharacterCreator(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label="Character creator"
-                title="Character Creator"
-                data-tour-id="character-selection"
-              >
-                🎭
-              </button>
-              <button
-                onClick={() => setShowAccessibilityPanel(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label={`Open accessibility settings (${shortcutLabel('accessibility')})`}
-                title={`Accessibility Settings (${shortcutLabel('accessibility')})`}
-                data-tour-id="shortcuts-help"
-              >
-                <span aria-hidden="true">♿</span>
-                <span className="ml-1">A11Y</span>
-              </button>
-              <button
-                onClick={() => voiceControl.toggleHandsFreeMode()}
-                className={`px-3 py-1 border-2 ${
-                  voiceControl.isHandsFreeMode ? 'border-green-400 bg-green-900' : 'border-gray-400'
-                } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
-                aria-label={`Voice control: ${voiceControl.isHandsFreeMode ? 'ON' : 'OFF'}`}
-                title={`Voice Control (Hands-Free Mode)\n${voiceControl.isHandsFreeMode ? 'Click to disable' : 'Click to enable'}\nSay "Hey Doctor" followed by a command`}
-                disabled={!voiceControl.isSupported}
-              >
-                <span aria-hidden="true">🎤</span>
-                {voiceControl.isHandsFreeMode && <span className="ml-1 text-green-300">ON</span>}
-              </button>
-              <button
-                onClick={() => setShowMusicPlayer(prev => !prev)}
-                className={`px-3 py-1 border-2 ${
-                  showMusicPlayer ? 'border-green-400 bg-green-900' : 'border-gray-400'
-                } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
-                aria-label={`Toggle music player (${shortcutLabel('musicPlayer')})`}
-                title={`Music Player (${shortcutLabel('musicPlayer')})`}
-              >
-                <span aria-hidden="true">🎵</span>
-                {showMusicPlayer && <span className="ml-1 text-green-300">ON</span>}
-              </button>
-              <button
-                onClick={() => setShowSoundPackManager(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label={`Sound pack manager (${shortcutLabel('soundPacks')})`}
-                title={`Sound Pack Manager (${shortcutLabel('soundPacks')})`}
-              >
-                <span aria-hidden="true">🎼</span>
-              </button>
-              <button
-                onClick={() => setShowVoiceInput(prev => !prev)}
-                className={`px-3 py-1 border-2 ${
-                  showVoiceInput ? 'border-green-400 bg-green-900' : 'border-gray-400'
-                } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
-                aria-label={`Toggle voice input (${shortcutLabel('voiceInput')})`}
-                title={`Voice Input (${shortcutLabel('voiceInput')})`}
-              >
-                <span aria-hidden="true">🗣️</span>
-                {showVoiceInput && <span className="ml-1 text-green-300">ON</span>}
-              </button>
-              <button
-                onClick={() => setShowEmotionViz(prev => !prev)}
-                className={`px-3 py-1 border-2 ${
-                  showEmotionViz ? 'border-green-400 bg-green-900' : 'border-gray-400'
-                } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
-                aria-label={`Toggle emotion visualizer (${shortcutLabel('emotionViz')})`}
-                title={`Emotion Visualizer (${shortcutLabel('emotionViz')})`}
-              >
-                <span aria-hidden="true">😊</span>
-                {showEmotionViz && <span className="ml-1 text-green-300">ON</span>}
-              </button>
-              <button
-                onClick={() => setShowTopicDiagram(prev => !prev)}
-                className={`px-3 py-1 border-2 ${
-                  showTopicDiagram ? 'border-green-400 bg-green-900' : 'border-gray-400'
-                } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
-                aria-label={`Toggle topic diagram (${shortcutLabel('topicDiagram')})`}
-                title={`Topic Diagram (${shortcutLabel('topicDiagram')})`}
-              >
-                <span aria-hidden="true">🔀</span>
-                {showTopicDiagram && <span className="ml-1 text-green-300">ON</span>}
-              </button>
-              <button
-                onClick={() => setShowTemplates(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label={`Conversation templates (${shortcutLabel('templates')})`}
-                title={`Templates (${shortcutLabel('templates')})`}
-              >
-                <span aria-hidden="true">📝</span>
-              </button>
-            </div>
-          </div>
+            </nav>
+          </header>
 
           {/* Voice Control Indicator (v1.6.0) */}
           {voiceControl.isHandsFreeMode && (
@@ -802,8 +683,8 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
           </div>
 
           {/* Chat input */}
-          <div className="shrink-0 flex items-center mt-4" data-tour-id="chat-input">
-            <span className="text-yellow-300 mr-2" aria-hidden="true">{'>'}</span>
+          <div className="shrink-0 flex items-center gap-2 mt-3 border-t-2 border-(--color-border) pt-3" data-tour-id="chat-input">
+            <span className="text-(--color-accent)" aria-hidden="true">{'>'}</span>
             <input
               id="chat-input"
               ref={inputRef}
@@ -812,22 +693,82 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
-              className="bg-transparent border-none text-yellow-300 w-full focus:outline-hidden placeholder-gray-500"
+              className="bg-transparent border-none text-(--color-accent) w-full focus:outline-hidden placeholder-gray-500"
               placeholder={isLoading ? '' : 'TYPE HERE AND PRESS ENTER...'}
               aria-label="Enter your message"
               aria-describedby="chat-input-help"
             />
             <span id="chat-input-help" className="sr-only">
-              Type your message and press Enter to send to Dr. Sbaitso
+              Type your message and press Enter to send it to {persona.name}
             </span>
+            <button
+              type="button"
+              onClick={() => setShowVoiceInput(v => !v)}
+              className="enh-icon-button"
+              aria-label="Speak instead of typing"
+              aria-pressed={showVoiceInput}
+              title={`Voice input (${shortcutLabel('voiceInput')})`}
+            >
+              <span aria-hidden="true">🎤</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleUserInput}
+              disabled={isLoading || !userInput.trim()}
+              className="enh-send-button"
+            >
+              SEND
+            </button>
           </div>
 
-          {/* Audio mode indicator */}
-          <div className="shrink-0 mt-2 text-xs opacity-50 text-center">
-            <span aria-live="polite" aria-atomic="true">
-              {AUDIO_MODES.find(m => m.id === audioMode)?.name}{muted ? ' (MUTED)' : ''} | {shortcutLabel('cycleAudioMode')} to cycle | {shortcutLabel('accessibility')} for accessibility
+          {/* Status bar: persistent display and privacy settings */}
+          <footer className="shrink-0 mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" data-tour-id="audio-settings">
+            <label className="flex items-center gap-1">
+              AUDIO
+              <select
+                id="audio-mode-select"
+                value={audioMode}
+                onChange={(e) => setAudioMode(e.target.value as typeof audioMode)}
+                className="enh-select"
+                aria-label="Audio quality mode"
+                title={AUDIO_MODES.find(m => m.id === audioMode)?.description || ''}
+              >
+                {AUDIO_MODES.map((mode) => (
+                  <option key={mode.id} value={mode.id}>{mode.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-center gap-1">
+              THEME
+              <select
+                id="theme-select"
+                value={currentTheme}
+                onChange={(e) => themeChoice.selectTheme(e.target.value)}
+                className="enh-select"
+                aria-label="Colour theme"
+              >
+                {themeChoice.themes.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </label>
+            <label
+              className="flex items-center gap-1"
+              title="Off by default: memory contents are wiped when you leave. Turn on to keep sessions in this browser for search, replay and insights."
+            >
+              <input
+                type="checkbox"
+                checked={keepHistory}
+                onChange={(e) => setKeepHistory(e.target.checked)}
+                className="accent-(--color-accent)"
+              />
+              SAVE HISTORY
+            </label>
+            {muted && <span aria-live="polite">SPEECH MUTED</span>}
+            <span className="ml-auto opacity-60 hidden sm:inline">
+              {shortcutLabel('switchMode')} classic screen
             </span>
-          </div>
+          </footer>
         </div>
       </main>
 
