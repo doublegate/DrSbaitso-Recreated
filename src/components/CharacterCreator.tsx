@@ -13,7 +13,7 @@
 
 import { useState, useEffect } from 'react';
 import type { CustomCharacter } from '../types';
-import { synthesizeSpeech, getAIResponse } from '../services/geminiService';
+import { getAIResponse, resetChat } from '../services/geminiService';
 
 interface CharacterCreatorProps {
   isOpen: boolean;
@@ -191,13 +191,12 @@ export function CharacterCreator({
     setPreviewResponse('');
 
     try {
-      // Create temporary character for preview
-      const tempCharacter = {
-        id: 'preview',
-        systemInstruction: systemInstruction.trim()
-      };
-
-      const response = await getAIResponse(previewPrompt, 'preview');
+      // One-off preview: a throwaway history key, cleared afterwards.
+      const previewKey = `preview_${Date.now()}`;
+      const response = await getAIResponse(previewPrompt, previewKey, {
+        customCharacter: { name: characterName.trim() || 'PREVIEW', systemInstruction: systemInstruction.trim() },
+      });
+      resetChat(previewKey);
 
       // Apply response style
       let formattedResponse = response;

@@ -169,3 +169,42 @@ describe('App', () => {
     expect(loopWarnings).toEqual([]);
   });
 });
+
+describe('Enhanced mode personas', () => {
+  const fetchMock = vi.fn();
+  beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem('sbaitso_onboarding_completed', 'true');
+    fetchMock.mockReset();
+    fetchMock.mockImplementation((url: string) =>
+      url === '/api/tts' ? json({ audio: SILENT_AUDIO }) : json({ text: 'I AM AFRAID I CANNOT DO THAT.' }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('sends replies to the persona chosen in the selector', async () => {
+    const user = userEvent.setup();
+    render(
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>,
+    );
+    await user.type(await screen.findByPlaceholderText('TYPE NAME AND PRESS ENTER'), 'DAVE{Enter}');
+    const input = await waitFor(
+      () => {
+        const el = document.getElementById('chat-input') as HTMLInputElement | null;
+        expect(el && !el.disabled).toBe(true);
+        return el!;
+      },
+      { timeout: 15_000 },
+    );
+    await user.selectOptions(screen.getByLabelText('PERSONA:'), 'hal9000');
+    expect(screen.getByText('--- NOW TALKING TO HAL 9000 ---')).toBeInTheDocument();
+    await user.type(input, 'open the doors{Enter}');
+    await screen.findByText('I AM AFRAID I CANNOT DO THAT.', { selector: 'p' }, { timeout: 10_000 });
+    const chatCall = fetchMock.mock.calls.find(([url, init]) => url === '/api/chat' && init.body.includes('open the doors'));
+    expect(JSON.parse(chatCall![1].body).characterId).toBe('hal9000');
+  }, 40_000);
+});

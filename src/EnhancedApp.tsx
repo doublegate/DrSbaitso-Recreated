@@ -1,22 +1,22 @@
 import React, { useState, useEffect, useEffectEvent, useRef, useCallback, lazy, Suspense } from 'react';
-import { Message, ConversationSession, CustomCharacter } from './types';
+import { Message, ConversationSession } from './types';
 import { getAIResponse, resetChat, synthesizeSpeech } from './services/geminiService';
 import { playGlitchSound, playErrorBeep } from './utils/audio';
 import { getSharedAudioContext, ensureAudioReady } from './utils/sharedAudio';
 import { retroErrorMessage } from './utils/retroErrors';
 import { useSpeechPlayer } from './hooks/useSpeechPlayer';
-import { AUDIO_MODES, THEMES, DEFAULT_CHARACTER } from './constants';
+import { AUDIO_MODES } from './constants';
 import { useAccessibility } from './hooks/useAccessibility';
 import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useFocusTrap } from './hooks/useFocusTrap';
 import { useSessionHistory } from './hooks/useSessionHistory';
-import { applyThemeVariables } from './utils/themeVariables';
+import { useThemeChoice } from './hooks/useThemeChoice';
+import { usePersona } from './hooks/usePersona';
 import { matchShortcut, shortcutLabel, type ShortcutId } from './utils/shortcuts';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import SkipNav from './components/SkipNav';
-import { CustomTheme } from './utils/themeValidator';
 
 // Lazy-loaded components (only load when needed)
 const AccessibilityPanel = lazy(() => import('./components/AccessibilityPanel'));
@@ -48,6 +48,31 @@ const GREETING_LINE_DELAY_MS = 800;
 const GLITCH_PHRASES = ['PARITY CHECKING', 'IRQ CONFLICT'];
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Opening lines per persona. Dr. Sbaitso uses the original v2.20 greeting;
+ * ELIZA uses the opener from Weizenbaum's published 1966 transcript. The
+ * others are refined from ref-docs/07-08 research.
+ */
+function personaGreeting(personaId: string, personaName: string, userName: string): string[] {
+  switch (personaId) {
+    case 'sbaitso':
+      return [
+        `HELLO ${userName},  MY NAME IS DOCTOR SBAITSO.`,
+        '',
+        'I AM HERE TO HELP YOU.',
+        'SAY WHATEVER IS IN YOUR MIND FREELY,',
+        'OUR CONVERSATION WILL BE KEPT IN STRICT CONFIDENCE.',
+        'MEMORY CONTENTS WILL BE WIPED OFF AFTER YOU LEAVE,',
+        '',
+        'SO, TELL ME ABOUT YOUR PROBLEMS.',
+      ];
+    case 'eliza':
+      return ['HOW DO YOU DO.  PLEASE TELL ME YOUR PROBLEM.'];
+    default:
+      return [`HELLO ${userName}.`, `YOU ARE NOW CONNECTED TO ${personaName.toUpperCase()}.`];
+  }
+}
+
 /** The modern UI: toolbar, panels, personas and extras ("Enhanced" mode). */
 export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => void } = {}) {
   // Core state
@@ -58,9 +83,10 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   const [isLoading, setIsLoading] = useState(true);
   const [isGreeting, setIsGreeting] = useState(false);
   const [isPreparingGreeting, setIsPreparingGreeting] = useState(false);
-  // The active persona; the selector for the other personas arrives with the
-  // character work (plan Phase 4).
-  const characterId = DEFAULT_CHARACTER;
+  // The active persona (built-in or custom), chosen in the toolbar.
+  const personaState = usePersona();
+  const { persona, chatOptions, speechOptions, formatReply } = personaState;
+  const characterId = persona.id;
 
   // Audio mode state (v1.3.0)
   const [audioMode, setAudioMode] = useState<'modern' | 'subtle' | 'authentic' | 'ultra'>('authentic');
@@ -75,13 +101,11 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
   const [showConversationSearch, setShowConversationSearch] = useState(false);
   const [showAudioVisualizer, setShowAudioVisualizer] = useState(false);
-  const [customThemes, setCustomThemes] = useState<CustomTheme[]>([]);
 
   // v1.6.0 Feature states
   const [showAdvancedExport, setShowAdvancedExport] = useState(false);
   const [showCharacterCreator, setShowCharacterCreator] = useState(false);
   const [showConversationReplay, setShowConversationReplay] = useState(false);
-  const [customCharacters, setCustomCharacters] = useState<CustomCharacter[]>([]);
   const [replaySession, setReplaySession] = useState<ConversationSession | null>(null);
   const [showVoiceControlHelp, setShowVoiceControlHelp] = useState(false);
 
@@ -94,7 +118,10 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     }
   });
   const [showInsights, setShowInsights] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState('dos-blue');
+  // Selected colour theme (built-in or custom), persisted and applied.
+  const themeChoice = useThemeChoice();
+  const currentTheme = themeChoice.theme.id;
+  const activeTheme = themeChoice.theme;
 
   // Conversation history is opt-in (the greeting promises memory is wiped).
   const { keepHistory, setKeepHistory, currentSession, savedSessions } = useSessionHistory(messages, {
@@ -103,10 +130,6 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     audioQualityId: audioMode,
   });
 
-  // Keep the --color-* CSS variables in step with the active theme.
-  useEffect(() => {
-    applyThemeVariables((THEMES.find(t => t.id === currentTheme) || THEMES[0]).colors);
-  }, [currentTheme]);
 
   // v1.9.0 Feature states
   const [showSoundSettings, setShowSoundSettings] = useState(false);
@@ -140,11 +163,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       resetChat(characterId); // the model forgets too, as the greeting promises
     },
     onExport: () => setShowAdvancedExport(true),
-    onSwitchCharacter: (characterId) => {
-      // Character switching logic would go here
-      console.log('Switch to character:', characterId);
-      announce(`Switching to ${characterId}`);
-    },
+    onSwitchCharacter: (id) => switchPersona(id),
     onToggleMute: () => {
       // Toggle mute logic
       console.log('Toggle mute');
@@ -155,10 +174,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     },
     onToggleStats: () => setShowConversationSearch(true),
     onStopAudio: () => speech.stop(),
-    onCycleTheme: () => {
-      // Cycle theme logic
-      console.log('Cycle theme');
-    },
+    onCycleTheme: () => themeChoice.cycleTheme(),
     onCycleAudioQuality: () => cycleAudioMode(),
     onOpenAccessibility: () => setShowAccessibilityPanel(true),
     onOpenSearch: () => setShowConversationSearch(true),
@@ -208,19 +224,6 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Load custom characters from localStorage on mount (v1.6.0)
-  useEffect(() => {
-    const stored = localStorage.getItem('customCharacters');
-    if (stored) {
-      try {
-        const chars = JSON.parse(stored) as CustomCharacter[];
-        setCustomCharacters(chars);
-      } catch (error) {
-        console.error('Failed to load custom characters:', error);
-      }
-    }
-  }, []);
-
   useEffect(() => {
     // When the name screen is visible and not loading, focus the name input.
     if (!userName && !isPreparingGreeting) {
@@ -242,19 +245,11 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     void ensureAudioReady();
     setIsPreparingGreeting(true);
 
-    const lines = [
-      `HELLO ${name}, MY NAME IS DOCTOR SBAITSO.`,
-      "I AM HERE TO HELP YOU.",
-      "SAY WHATEVER IS IN YOUR MIND FREELY,",
-      "OUR CONVERSATION WILL BE KEPT IN STRICT CONFIDENCE.",
-      "MEMORY CONTENTS WILL BE WIPED OFF AFTER YOU LEAVE.",
-      "",
-      "SO, TELL ME ABOUT YOUR PROBLEMS.",
-    ];
+    const lines = personaGreeting(persona.id, persona.name, name);
 
     // One TTS request for the whole greeting stays well inside rate limits.
     // Any failure degrades to a text-only session rather than blocking it.
-    const audio = await synthesizeSpeech(lines.filter((line) => line.trim()).join('. '), characterId).catch(
+    const audio = await synthesizeSpeech(lines.filter((line) => line.trim()).join('. '), characterId, speechOptions).catch(
       (error) => {
         console.warn('Greeting speech unavailable; continuing text-only:', error);
         return '';
@@ -297,7 +292,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     try {
       let reply: string;
       try {
-        reply = await getAIResponse(trimmed, characterId);
+        reply = formatReply(await getAIResponse(trimmed, characterId, chatOptions));
       } catch (error) {
         console.error('Reply failed:', error);
         soundEffects.playSound('error');
@@ -316,7 +311,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       }
 
       // Synthesis runs while the reply is typed out.
-      const audioPromise = synthesizeSpeech(reply, characterId).catch((error) => {
+      const audioPromise = synthesizeSpeech(reply, characterId, speechOptions).catch((error) => {
         console.warn('Reply speech unavailable; continuing text-only:', error);
         return '';
       });
@@ -344,13 +339,31 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       // The log itself is not a live region (it would re-announce every typed
       // character), so the finished reply is announced once here.
       if (accessibilitySettings.announceMessages) {
-        announce(`Dr. Sbaitso says: ${reply}`);
+        announce(`${persona.name} says: ${reply}`);
       }
       return true;
     } finally {
       busyRef.current = false;
       if (!unmountedRef.current) setIsLoading(false);
     }
+  };
+
+  /**
+   * Switches persona mid-conversation. Each persona keeps its own model
+   * history (services/geminiService.ts); the log shows where the switch
+   * happened.
+   */
+  const switchPersona = (id: string) => {
+    const next = personaState.personas.find((p) => p.id === id);
+    if (!next || next.id === persona.id) return;
+    personaState.selectPersona(id);
+    if (userName) {
+      setMessages((prev) => [
+        ...prev,
+        { author: 'dr', text: `--- NOW TALKING TO ${next.name.toUpperCase()} ---`, timestamp: Date.now(), characterId: id },
+      ]);
+    }
+    announce(`Now talking to ${next.name}`);
   };
 
   const handleUserInput = () => {
@@ -510,6 +523,43 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
                   <option key={mode.id} value={mode.id}>
                     {mode.name}
                   </option>
+                ))}
+              </select>
+              <label htmlFor="persona-select" className="text-sm font-bold ml-2">
+                PERSONA:
+              </label>
+              <select
+                id="persona-select"
+                value={persona.id}
+                onChange={(e) => switchPersona(e.target.value)}
+                disabled={isLoading && !!userName}
+                className="bg-blue-900 border-2 border-(--color-border) text-white px-2 py-1 text-sm focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
+                title={persona.description}
+              >
+                <optgroup label="Classic programs">
+                  {personaState.personas.filter((p) => !p.isCustom).map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </optgroup>
+                {personaState.customCharacters.length > 0 && (
+                  <optgroup label="Your characters">
+                    {personaState.personas.filter((p) => p.isCustom).map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+              <label htmlFor="theme-select" className="text-sm font-bold ml-2">
+                THEME:
+              </label>
+              <select
+                id="theme-select"
+                value={currentTheme}
+                onChange={(e) => themeChoice.selectTheme(e.target.value)}
+                className="bg-blue-900 border-2 border-(--color-border) text-white px-2 py-1 text-sm focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
+              >
+                {themeChoice.themes.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
               <label
@@ -733,7 +783,11 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
                 key={index}
                 className={`whitespace-pre-wrap ${msg.author === 'dr' ? 'text-(--color-text)' : 'text-(--color-accent)'}`}
               >
-                <span className="sr-only">{msg.author === 'dr' ? 'Dr. Sbaitso: ' : 'You: '}</span>
+                <span className="sr-only">
+                  {msg.author === 'dr'
+                    ? `${personaState.personas.find((p) => p.id === msg.characterId)?.name ?? persona.name}: `
+                    : 'You: '}
+                </span>
                 {msg.author === 'user' && <span aria-hidden="true">{'> '}</span>}
                 {msg.text}
                 {isLoading && !isGreeting && msg.author === 'dr' && index === messages.length - 1 && (
@@ -794,8 +848,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
             isOpen={showThemeCustomizer}
             onClose={() => setShowThemeCustomizer(false)}
             onSave={(theme) => {
-              setCustomThemes([...customThemes, theme]);
-              console.log('Custom theme saved:', theme);
+              themeChoice.addCustomTheme(theme);
               setShowThemeCustomizer(false);
             }}
           />
@@ -843,7 +896,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
             isOpen={showAdvancedExport}
             onClose={() => setShowAdvancedExport(false)}
             sessions={savedSessions}
-            themes={customThemes}
+            themes={themeChoice.customThemes}
             currentSession={currentSession ?? undefined}
           />
         </Suspense>
@@ -855,17 +908,9 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
           <CharacterCreator
             isOpen={showCharacterCreator}
             onClose={() => setShowCharacterCreator(false)}
-            onSave={(character) => {
-              const updatedCharacters = [...customCharacters, character];
-              setCustomCharacters(updatedCharacters);
-              localStorage.setItem('customCharacters', JSON.stringify(updatedCharacters));
-            }}
-            onDelete={(characterId) => {
-              const updatedCharacters = customCharacters.filter(c => c.id !== characterId);
-              setCustomCharacters(updatedCharacters);
-              localStorage.setItem('customCharacters', JSON.stringify(updatedCharacters));
-            }}
-            existingCharacters={customCharacters}
+            onSave={(character) => personaState.saveCustomCharacter(character)}
+            onDelete={(id) => personaState.deleteCustomCharacter(id)}
+            existingCharacters={personaState.customCharacters}
           />
         </Suspense>
       )}
@@ -919,7 +964,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
         <Suspense fallback={<div className="fixed bottom-4 left-4 z-40 text-white text-sm">Loading music player...</div>}>
           <div className="fixed bottom-4 left-4 z-40">
             <MusicPlayer
-              theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+              theme={activeTheme}
               audioContext={getSharedAudioContext()}
             />
           </div>
@@ -932,7 +977,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
           <InstallPrompt
             onInstall={installPrompt.install}
             onDismiss={installPrompt.dismiss}
-            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+            theme={activeTheme}
           />
         </Suspense>
       )}
@@ -941,7 +986,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       {showSoundPackManager && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack manager...</div></div>}>
           <SoundPackManager
-            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+            theme={activeTheme}
             audioContext={getSharedAudioContext()}
             onClose={() => setShowSoundPackManager(false)}
             onCreateNew={() => {
@@ -956,7 +1001,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       {showSoundPackCreator && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack creator...</div></div>}>
           <SoundPackCreator
-            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+            theme={activeTheme}
             onClose={() => setShowSoundPackCreator(false)}
             onSave={(pack) => {
               // Save to localStorage and close
@@ -1091,7 +1136,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
           <div className="fixed bottom-20 right-4 z-40 max-w-sm">
             <EmotionVisualizer
               messages={messages}
-              theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+              theme={activeTheme}
               maxHistory={10}
             />
           </div>
@@ -1104,7 +1149,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
           <div className="fixed top-20 left-4 z-40 max-w-2xl">
             <TopicFlowDiagram
               messages={messages}
-              theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+              theme={activeTheme}
             />
           </div>
         </Suspense>
@@ -1117,7 +1162,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
             isOpen={showTemplates}
             onClose={() => setShowTemplates(false)}
             onSelectTemplate={handleSelectTemplate}
-            theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
+            theme={activeTheme}
           />
         </Suspense>
       )}

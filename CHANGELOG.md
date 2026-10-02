@@ -31,6 +31,15 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   and a hard-blinking underline cursor. The previous interface remains available
   as **Enhanced mode** (Alt+Shift+X, or `?mode=enhanced`). Screen readers get a
   transcript and a labelled input. Details: `ref-docs/03-screen-and-ui.md`.
+- **Persona selector** (Enhanced mode). Choose Dr. Sbaitso, ELIZA, HAL 9000,
+  JOSHUA/WOPR, PARRY or your own characters. Each persona keeps its own conversation
+  memory, and the log marks each switch. The voice command "talk to ELIZA" now works;
+  before, it only printed to the console. Custom characters made in the Character
+  Creator can now be used in chat, and their preview works; it previously always
+  failed.
+- **Themes persist and apply** (Enhanced mode: THEME selector). Saving a custom theme
+  now applies and remembers it, and the "cycle theme" voice command works. Before, the
+  theme was fixed to DOS Blue and custom themes were discarded.
 - **Opt-in session history** (Enhanced mode: "SAVE HISTORY"). It is off by default,
   honouring the greeting's "MEMORY CONTENTS WILL BE WIPED OFF". When on,
   conversations are saved in this browser, which feeds search, replay and insights;
