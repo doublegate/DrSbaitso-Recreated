@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "resolveJsonModule": true,
     "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom", "vite-plugin-pwa/react"]
   },
   "include": ["src", "test", "api", "e2e", "playwright.config.ts"],

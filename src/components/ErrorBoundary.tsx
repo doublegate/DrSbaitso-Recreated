@@ -5,6 +5,7 @@
  * Provides retro-styled error UI with recovery options.
  */
 
+import { APP_VERSION } from '../version';
 import React, { Component, ReactNode, ErrorInfo } from 'react';
 
 interface ErrorBoundaryProps {
@@ -257,7 +258,7 @@ function DefaultErrorUI({ error, errorInfo, errorCount, onReset }: DefaultErrorU
 
         {/* Footer */}
         <div className="text-center text-sm text-gray-400">
-          <p>Dr. Sbaitso Recreated v1.11.0</p>
+          <p>Dr. Sbaitso Recreated v{APP_VERSION}</p>
           <p className="text-xs mt-1">
             If this error persists, please report it on{' '}
             <a
