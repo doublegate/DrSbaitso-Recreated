@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { CHARACTERS } from '@/constants';
 import { retroErrorMessage } from '@/utils/retroErrors';
 import { SessionManager } from '@/utils/sessionManager';
-import { paritySequence } from '@/engine/sbaitso';
+import { parityFlood } from '@/engine/sbaitso';
 import type { ConversationSession } from '@/types';
 
 const sbaitso = CHARACTERS.find((c) => c.id === 'sbaitso')!;
@@ -47,8 +47,8 @@ describe('retroErrorMessage generic faults', () => {
 describe('SessionManager.incrementGlitchCount', () => {
   const session = { glitchCount: 2 } as ConversationSession;
 
-  it('counts the real parity sequence', () => {
-    expect(SessionManager.incrementGlitchCount(session, paritySequence('JOHN').join('\n'))).toBe(3);
+  it('counts the real parity flood', () => {
+    expect(SessionManager.incrementGlitchCount(session, parityFlood(1).join('\n'))).toBe(3);
   });
 
   it('does not count invented glitch strings or ordinary replies', () => {

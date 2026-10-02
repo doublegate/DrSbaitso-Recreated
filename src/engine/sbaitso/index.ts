@@ -9,7 +9,8 @@
  *     case 'model':   reply = await getAIResponse(result.message);
  *                     stateRef.current = recordReply(stateRef.current, reply); break;
  *     case 'reply':   print + speak result.lines / result.speak; apply result.settings; break;
- *     case 'parity':  play the glitch sound, print result.lines line by line; break;
+ *     case 'parity':  print/speak result.lead, flood result.flood with the buzz tone,
+ *                     then print and speak result.lines ("PARITY"); break;
  *     ...
  *   }
  */
@@ -23,7 +24,8 @@ export type {
   SbaitsoState,
   ValueCommand,
 } from './types';
-export { DEFAULT_SEED, createSbaitsoState, nextRandom, processInput, recordReply, SHORT_INPUT_LENGTH } from './engine';
+export { nextRandom } from './random';
+export { DEFAULT_SEED, createSbaitsoState, processInput, recordReply, SHORT_INPUT_LENGTH } from './engine';
 export { DEFAULT_SETTINGS, DOT_MESSAGES } from './dotCommands';
 export { CALC_ERRORS, CALC_LABEL, calcReply, evaluateArithmetic, looksArithmetic } from './calc';
 export type { CalcOutcome } from './calc';
@@ -43,10 +45,11 @@ export {
 } from './screens';
 export {
   GOOD_BYE,
+  PARITY_FLOOD_LENGTH,
+  PARITY_RECOVERED,
   PARITY_TRIGGER_LINES,
   PROFANITY_WORDS,
   SEXUAL_WORDS,
   isParityText,
-  paritySequence,
-  paritySpeech,
+  parityFlood,
 } from './phrases';

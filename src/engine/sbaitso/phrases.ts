@@ -7,6 +7,7 @@
  * Most pools rotate in order. Where the original was observed to pick at
  * random (ref-docs/04), the engine draws from its seeded generator instead.
  */
+import { nextRandom } from './random';
 
 /**
  * Empty Enter. Picked at random, with no escalation (CONFIRMED (DOSBox),
@@ -58,7 +59,10 @@ export const REPEAT_TIER_2 = ['THIS IS STALE STUFF', "I DON'T LIKE PEOPLE REPEAT
  */
 export const GARBLE = 'FZA!$[{?';
 
-/** Marks the place in a response group where the original prints `PARITY` and runs the parity routine. */
+/**
+ * Marks the place in a response group where the original runs the parity
+ * routine. After the flood it prints and speaks this word literally.
+ */
 export const PARITY_MARKER = 'PARITY';
 
 /**
@@ -120,44 +124,51 @@ export const SHUT_UP_REPLIES = ['I AM NOT THROUGH YET', 'YOU CAN TURN OFF MY POW
 /** AUTHOR. The name "W H SIM" and "CREATIVE LABS, INC." are CONFIRMED; the sentence frame is LIKELY. */
 export const AUTHOR_REPLY = 'MY AUTHOR IS W H SIM OF CREATIVE LABS, INC.';
 
+/** Last line of the parity flood (CONFIRMED (DOSBox)). */
+export const PARITY_RECOVERED = 'PARITY ERR ... RECOVERED';
+
+/**
+ * Lines in one parity flood, RECOVERED included. The original scrolled about
+ * 250 lines in about 3.5 s (CONFIRMED (DOSBox), ref-docs/04 section 4).
+ */
+export const PARITY_FLOOD_LENGTH = 250;
+
 /**
  * Substrings that mark a parity-error line. Use these (or `isParityText`) to
  * decide when to play the glitch sound or count a glitch. The invented
  * "PARITY CHECKING" / "IRQ CONFLICT" strings are deliberately absent: the
  * original never printed them.
  */
-export const PARITY_TRIGGER_LINES = ['PARITY ERR ...', 'PARITY WARNING'] as const;
+export const PARITY_TRIGGER_LINES = ['PARITY ERR ...'] as const;
 
-/** True when `text` contains a line from the parity-error sequence. */
+/** True when `text` contains a line from the parity flood. */
 export function isParityText(text: string): boolean {
   return PARITY_TRIGGER_LINES.some((marker) => text.includes(marker));
 }
 
 /**
- * The scripted parity-error sequence, one printed line per element:
- * garbled warning, "PARITY ERR ... <garbage> ???", "PARITY ERR ... RECOVERED",
- * "PHEW!   THAT WAS CLOSE!", "YOU ARE BAD <NAME>. DON'T TRY IT NEXT TIME."
- * The conversation continues afterwards; the original did not exit.
+ * The parity flood as the original printed it (CONFIRMED (DOSBox)):
+ * `PARITY ERR ...  <random 1-5 digit number>` lines; part-way through they
+ * gain a trailing `  ???`; the last line is `PARITY ERR ... RECOVERED`.
+ * Where the `???` starts is not documented, so it falls at random between
+ * 40% and 70% of the flood (LIKELY). Pure: the same seed gives the same lines.
  */
-export function paritySequence(name: string): string[] {
-  return [
-    `${GARBLE} PARITY WARNING....`,
-    `PARITY ERR ... ${GARBLE} ???`,
-    'PARITY ERR ... RECOVERED',
-    'PHEW!   THAT WAS CLOSE!',
-    `YOU ARE BAD ${name.toUpperCase()}. DON'T TRY IT NEXT TIME.`,
-  ];
-}
-
-/** The parity sequence as speech: same lines, garbage characters removed. */
-export function paritySpeech(name: string): string[] {
-  return [
-    'PARITY WARNING',
-    'PARITY ERR',
-    'PARITY ERR. RECOVERED',
-    'PHEW! THAT WAS CLOSE!',
-    `YOU ARE BAD ${name.toUpperCase()}. DON'T TRY IT NEXT TIME.`,
-  ];
+export function parityFlood(seed: number, length: number = PARITY_FLOOD_LENGTH): string[] {
+  let rng = seed >>> 0;
+  const next = (): number => {
+    const [value, state] = nextRandom(rng);
+    rng = state;
+    return value;
+  };
+  const body = Math.max(0, length - 1);
+  const questionsFrom = Math.floor(body * (0.4 + next() * 0.3));
+  const lines: string[] = [];
+  for (let i = 0; i < body; i++) {
+    const number = Math.floor(next() * 100000);
+    lines.push(`PARITY ERR ...  ${number}${i >= questionsFrom ? '  ???' : ''}`);
+  }
+  lines.push(PARITY_RECOVERED);
+  return lines;
 }
 
 /**

@@ -90,8 +90,12 @@ export type EngineResult =
     }
   /** Open conversation: send `message` to the model. */
   | { kind: 'model'; message: string }
-  /** The scripted parity-error breakdown. Play the glitch sound. */
-  | { kind: 'parity'; lines: string[]; speak: string[] }
+  /**
+   * The parity-error routine. Print and speak `lead` (if any), then print
+   * `flood` very fast (about 250 lines in 3.5 s) with the falling buzz tone,
+   * then print and speak `lines` (the literal `PARITY`).
+   */
+  | { kind: 'parity'; lead: string[]; leadSpeak: string[]; flood: string[]; lines: string[]; speak: string[] }
   /** A help page. `more` means `M` will show another. Printed, not spoken. */
   | { kind: 'help'; page: 1 | 2 | 3; lines: string[]; more: boolean }
   /** A dot command. Apply `settings`; print `lines` (prompts and errors), do not speak them. */

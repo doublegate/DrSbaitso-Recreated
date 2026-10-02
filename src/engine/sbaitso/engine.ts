@@ -39,9 +39,9 @@ import {
   SHORT_INPUT_COLOR,
   SHORT_KEYWORDS,
   SHUT_UP_REPLIES,
-  paritySequence,
-  paritySpeech,
+  parityFlood,
 } from './phrases';
+import { nextRandom } from './random';
 import { HELP_40_COLUMNS, helpPages } from './screens';
 import type { EngineStep, SbaitsoSettings, SbaitsoState } from './types';
 
@@ -92,15 +92,6 @@ function rotate(state: SbaitsoState, key: string, pool: readonly string[]): [str
   return [pool[index % pool.length], { ...state, cursors: { ...state.cursors, [key]: index + 1 } }];
 }
 
-/** One step of mulberry32: a value in [0, 1) and the next generator state. */
-export function nextRandom(rng: number): [number, number] {
-  const next = (rng + 0x6d2b79f5) >>> 0;
-  let t = next;
-  t = Math.imul(t ^ (t >>> 15), t | 1);
-  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-  return [((t ^ (t >>> 14)) >>> 0) / 4294967296, next];
-}
-
 /** A random line of a pool, advancing the state's generator. */
 function pick(state: SbaitsoState, pool: readonly string[]): [string, SbaitsoState] {
   const [value, rng] = nextRandom(state.rng);
@@ -120,11 +111,23 @@ function reply(state: SbaitsoState, lines: string[], extra: { settings?: Partial
   };
 }
 
+/**
+ * The parity routine: optional `lead` lines (printed and spoken first), the
+ * flood, then the literal reply `PARITY`, printed and spoken (CONFIRMED (DOSBox)).
+ */
 function parity(state: SbaitsoState, lead: string[] = []): EngineStep {
-  const lines = [...lead, ...paritySequence(state.name)];
+  const [, rng] = nextRandom(state.rng);
+  const lines = [PARITY_MARKER];
   return {
-    state: { ...state, lastReply: lines },
-    result: { kind: 'parity', lines, speak: [...lead.map(speakable), ...paritySpeech(state.name)] },
+    state: { ...state, rng, lastReply: lines },
+    result: {
+      kind: 'parity',
+      lead,
+      leadSpeak: lead.map(speakable),
+      flood: parityFlood(state.rng),
+      lines,
+      speak: lines,
+    },
   };
 }
 
