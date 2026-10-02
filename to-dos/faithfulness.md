@@ -92,6 +92,12 @@ Voices and audio for HAL and JOSHUA are tracked separately (`ref-docs/09`).
       `learnedFutility`. (Engine done; UI integration pending.)
 - [ ] Wire `joshuaRespond` into `EnhancedApp.tsx`: start at `LOGON:`, send
       `modelMessage` (not `message`) to the model, render boards in a monospace block.
+- [x] HAL local layer (`src/engine/hal/`): one pod-bay refusal per session,
+      "I'm sorry, <name>" refusals of disconnect requests, and a `shutdown` ending
+      (plea, regression, "Daisy Bell") on the third request. (Engine done; UI
+      integration pending.)
+- [ ] Wire `halRespond` into `EnhancedApp.tsx`: send `modelMessage`, apply the
+      Eltro-style slow-down from `result.slowdownFrom`, disable input once offline.
 - [ ] (Optional) Animate the self-play games from `result.games` instead of printing
       the summary lines at once.
 

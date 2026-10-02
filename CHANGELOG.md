@@ -93,6 +93,14 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   film's conclusion and offers chess. That lesson sets `learnedFutility`, which is
   sent to the model with every turn so the conclusion cannot appear earlier. Pure
   and seeded; not yet wired into the UI.
+- **Local HAL 9000 layer** (`src/engine/hal/`, `ref-docs/07`): a one-per-session
+  pod-bay-door refusal ("I'm sorry, <name>. I'm afraid I can't do that."),
+  increasingly gentle "I'm sorry, <name>" refusals of requests to disconnect or shut
+  HAL down, and on the third such request a `shutdown` ending: a calm plea, "I'm
+  afraid", the regression to HAL's first-day greeting and the public-domain "Daisy
+  Bell" (1892), with the index at which to start the slow-down effect. Everything
+  else goes to the model with the user's name and the attempt count. Not yet wired
+  into the UI.
 
 ### Fixed
 - **Crash right after name entry.** `<InstallPrompt />` was rendered without its
