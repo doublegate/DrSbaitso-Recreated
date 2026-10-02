@@ -81,6 +81,20 @@ that module; wiring it into `src/App.tsx` is still pending.
       line at a time, then spoken; blinking underline cursor.
 - [ ] Enhanced-mode toggle that restores the toolbar, panels and persona selector.
 
+## Personas
+
+Enhanced-mode personas, from `ref-docs/07-hal-9000.md` and `ref-docs/08-joshua-wopr.md`.
+Voices and audio for HAL and JOSHUA are tracked separately (`ref-docs/09`).
+
+- [x] JOSHUA local engine (`src/engine/joshua/`): `LOGON:`, greeting as PROFESSOR
+      FALKEN, `LIST GAMES` / `HELP GAMES`, GLOBAL THERMONUCLEAR WAR to chess offer to
+      side menu, tic-tac-toe against the user, zero-player self-play lesson that sets
+      `learnedFutility`. (Engine done; UI integration pending.)
+- [ ] Wire `joshuaRespond` into `EnhancedApp.tsx`: start at `LOGON:`, send
+      `modelMessage` (not `message`) to the model, render boards in a monospace block.
+- [ ] (Optional) Animate the self-play games from `result.games` instead of printing
+      the summary lines at once.
+
 ## Voice (decided: measured pipeline + LPC pitch flattening)
 
 - [x] Vintage pipeline at 8,475 Hz unsigned 8-bit, 80 Hz-3.8 kHz band, a -8 dB high

@@ -83,6 +83,16 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   `PARITY ERR ... RECOVERED / PHEW!   THAT WAS CLOSE!` sequence, and the age prompt.
   Also the exact v2.20 greeting layout and the name rules (letters and spaces only,
   `NAME TOO LONG`). Pure functions with 98% test coverage; not yet wired into the UI.
+- **Local JOSHUA/WOPR engine** (`src/engine/joshua/`), the same hybrid design for the
+  Enhanced-mode persona (`ref-docs/08`): a `LOGON:` prompt that greets any logon
+  (the backdoor word is `JOSHUA`) with "GREETINGS, PROFESSOR FALKEN." and "SHALL WE
+  PLAY A GAME?"; `LIST GAMES` and `HELP GAMES`; choosing GLOBAL THERMONUCLEAR WAR
+  gets a chess counter-offer, then the UNITED STATES / SOVIET UNION side menu; a real
+  tic-tac-toe game (perfect minimax, seeded tie-breaks) and a zero-player mode in
+  which JOSHUA plays itself to a draw every time, runs the war scenarios, reaches the
+  film's conclusion and offers chess. That lesson sets `learnedFutility`, which is
+  sent to the model with every turn so the conclusion cannot appear earlier. Pure
+  and seeded; not yet wired into the UI.
 
 ### Fixed
 - **Crash right after name entry.** `<InstallPrompt />` was rendered without its
