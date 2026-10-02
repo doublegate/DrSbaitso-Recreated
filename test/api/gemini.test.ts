@@ -251,8 +251,9 @@ describe('handleTts', () => {
     const req = client.calls[0];
     expect(req.model).toBe('gemini-3.8-flash-tts');
     const part = req.contents[0].parts[0];
-    expect(part.text).toBe('I AM SUH-BAIT-SO');
-    expect(part.speechMetadata.style).toMatch(/monotone/i);
+    expect(part.text).toBe('I AM SBAYT-SO');
+    expect(part.speechMetadata.style).toMatch(/flat, even/i);
+    expect(part.speechMetadata.style).not.toMatch(/very deep|8-bit/i);
     expect(req.config.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName).toBe('Charon');
   });
 
@@ -328,7 +329,11 @@ describe('pcmFromWav', () => {
 
 describe('applyPronunciation', () => {
   it.each([
-    ['sbaitso', 'I AM SBAITSO', 'I AM SUH-BAIT-SO'],
+    ['sbaitso', 'I AM SBAITSO', 'I AM SBAYT-SO'],
+    ['sbaitso', 'I AM DR. SBAITSO.', 'I AM DOCTOR SBAYT-SO.'],
+    ['sbaitso', 'DR SBAITSO AND DR.SMITH', 'DOCTOR SBAYT-SO AND DOCTOR SMITH'],
+    ['sbaitso', 'DRY ADDRESS', 'DRY ADDRESS'],
+    ['eliza', 'DR. SMITH', 'DR. SMITH'],
     ['hal9000', 'I AM HAL', 'I AM H-A-L'],
     ['joshua', 'THE WOPR', 'THE WHOPPER'],
     ['eliza', 'SBAITSO', 'SBAITSO'],

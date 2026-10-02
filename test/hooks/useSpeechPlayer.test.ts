@@ -27,6 +27,15 @@ describe('useSpeechPlayer', () => {
     expect(decodeAudioData.mock.calls[0][4]).toBe('modern');
   });
 
+  it('passes the spoken text\'s end punctuation to the decoder', async () => {
+    playAudio.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSpeechPlayer('authentic'));
+    await act(() => result.current.speak('AAAA', 'WHY DO YOU SAY THAT?'));
+    await act(() => result.current.speak('AAAA'));
+    expect(decodeAudioData.mock.calls[0][5]).toBe('?');
+    expect(decodeAudioData.mock.calls[1][5]).toBeNull();
+  });
+
   it('does nothing for empty audio', async () => {
     const { result } = renderHook(() => useSpeechPlayer('authentic'));
     await act(() => result.current.speak(''));

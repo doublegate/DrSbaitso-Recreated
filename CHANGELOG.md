@@ -142,6 +142,26 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Music player panel.** Reopening the panel shows the music's real state.
   Music keeps playing after the panel closes, and the panel used to show OFF
   while it played.
+- **Dr. Sbaitso's name is spoken as two syllables, "SBAYT-so"**, as the original
+  engine says it, instead of "SUH-BAIT-SO". "DR." is read as "DOCTOR" rather than
+  spelled. His TTS style now asks for a flat, even, medium-fast male read instead
+  of "very deep ... 8-bit": the original's pitch is an ordinary low male voice, and
+  the audio processing supplies the 8-bit sound. The `deep` voice profile is
+  labelled as an enhancement, not the original voice. See
+  `ref-docs/02-voice-and-audio.md`.
+- **The Authentic and Ultra voices are no longer pitched up 10%.** They played at
+  1.1x, and `playbackRate` raises pitch as well as speed. Every mode now plays at
+  1.0x. Ultra no longer adds a 6-bit crush on top: the original was full 8-bit.
+- **The vintage audio chain models the measured original instead of guesses.**
+  Authentic and Ultra resample to 8475 Hz (not 11.025 kHz), normalise to the
+  original's level, quantise as unsigned 8-bit, and play back through
+  sample-and-hold, as the Sound Blaster DAC did, rather than smooth
+  interpolation. The band is now 80 Hz to 3.8 kHz (Ultra: the SB Pro's 3.2 kHz),
+  with a -8 dB high shelf from 1.2 kHz for the original's dark "Bass" tone. The
+  old 300 Hz high-pass cut the low end the original had, and its 5 kHz low-pass
+  sat above the Nyquist limit and did nothing. The random-noise "aliasing" and
+  one-sample "pre-echo" effects are gone: neither is something the hardware did.
+  The chain no longer needs `OfflineAudioContext` and is deterministic.
 
 ### Changed
 - **Dr. Sbaitso persona rebuilt from the original program.** The prompt no longer
@@ -152,6 +172,19 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   model never to produce parity errors, which the local engine owns. The generic
   error messages and the glitch counter dropped the invented IRQ / parity-checking
   strings too; the counter now counts the real `PARITY ERR` sequence.
+- **Authentic and Ultra flatten the pitch like the original engine.** A new LPC
+  resynthesis stage (`src/utils/lpcMonotone.ts`) replaces Gemini's intonation
+  with the original's: about 92 Hz held per syllable with small steps between
+  syllables, a fall to about 75 Hz at a period, and a rise to about 150 Hz at a
+  question mark or 125 Hz at an exclamation mark. `useSpeechPlayer().speak(audio,
+  text)` takes the spoken text to choose the ending. It replaces the
+  `pitchVarianceReduction` setting, which no code ever read; presets toggle it
+  with `pitchFlattening`. Subtle stays a light, non-authentic filter, and Modern
+  is unchanged.
+- `docs/AUDIO_SYSTEM.md` describes the new chain, and `docs/DECTALK_RESEARCH.md`
+  is corrected: the engine is First Byte SmoothTalker 3.5, built from stored
+  pitch periods of a real voice (not rule-only, sample-free synthesis);
+  `BLASTER.DRV` is only Creative's output driver; the rate is 8475 Hz.
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
   workers (`service-worker.js`, the registered one, and the unused `sw.js`). The
   new worker precaches the real hashed build output, so every deploy refreshes

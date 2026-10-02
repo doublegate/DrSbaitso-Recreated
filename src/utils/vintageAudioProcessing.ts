@@ -1,519 +1,424 @@
 /**
- * Vintage Audio Processing for Dr. Sbaitso Recreated
+ * Vintage audio processing for Dr. Sbaitso Recreated.
  *
- * Implements authentic 1991 Sound Blaster 8-bit audio quality processing
- * to recreate the original Dr. Sbaitso voice characteristics.
+ * Models the signal path of the original voice, measured from First Byte's
+ * SmoothTalker 3.5 engine (ref-docs/02-voice-and-audio.md):
  *
- * Technology Stack (Original 1991):
- * - Speech Engine: First Byte Monologue (NOT DECtalk)
- * - Driver: SBTalker (BLASTER.DRV)
- * - Hardware: Sound Blaster 8-bit ISA cards
- * - Sample Rate: 11.025 kHz (typical)
- * - Bit Depth: 8-bit mono
+ * - The engine renders 8-bit unsigned mono PCM at 8475 Hz (DSP time constant
+ *   138), using about 150-180 of the 256 codes (peak about -2 dBFS, RMS about
+ *   -17.5 dBFS). Nothing exists above the 4237 Hz Nyquist limit.
+ * - Its default "Bass" tone is dark: content well below 300 Hz, and a steep
+ *   roll-off above 1 kHz.
+ * - Its pitch is held flat per syllable and follows fixed end-of-sentence rules
+ *   (see lpcMonotone.ts).
+ * - The Sound Blaster DAC holds each sample until the next (zero-order hold),
+ *   followed by an analog low-pass: about 4 kHz on the SB 1.x, about 3.2 kHz on
+ *   the SB Pro. The images that filter lets through are the "metallic" edge.
+ *
+ * Authentic and Ultra apply, in order: a gentle level compressor, an
+ * anti-alias low-pass and resample to 8475 Hz, LPC pitch flattening, a -8 dB
+ * high shelf from 1.2 kHz, normalisation, unsigned 8-bit quantisation,
+ * sample-and-hold back to the playback rate, and the analog band (80 Hz
+ * high-pass, 3.8 or 3.2 kHz 2nd-order low-pass). The pitch stage runs at the
+ * engine rate rather than before resampling; the result is the same and it is
+ * about three times cheaper. Subtle is a light, non-authentic filter; Modern
+ * is untouched.
+ *
+ * Every stage is a pure function on Float32Array data, so the chain is
+ * deterministic and testable without an AudioContext.
  *
  * @module vintageAudioProcessing
- * @version 1.0.0
- * @author Dr. Sbaitso Recreated Project
- * @see docs/DECTALK_RESEARCH.md for comprehensive technical research
+ * @see ref-docs/02-voice-and-audio.md section 7
  */
+
+import { lpcMonotone, type EndPunctuation } from './lpcMonotone';
+
+export type { EndPunctuation } from './lpcMonotone';
 
 /**
- * Audio processing authenticity levels
- * Controls the intensity of vintage effects applied to the audio
+ * Audio processing authenticity levels.
  */
 export enum AuthenticityLevel {
-  /** Modern quality (24 kHz, 16-bit, natural prosody) - Current Gemini TTS */
+  /** The TTS output as delivered (24 kHz, 16-bit, natural prosody). */
   Modern = 'modern',
 
-  /** Subtle vintage (22.05 kHz, light processing) - Enhanced retro feel */
+  /** Light filtering and compression; a retro feel, not period-accurate. */
   SubtleVintage = 'subtle',
 
-  /** Authentic (11.025 kHz, 8-bit, moderate processing) - Recommended default */
+  /** The measured original chain: 8475 Hz, unsigned 8-bit, flattened pitch (default). */
   Authentic = 'authentic',
 
-  /** Ultra authentic (maximum vintage processing with artifacts) - Purist mode */
+  /** As Authentic, through the darker SB Pro 3.2 kHz output filter. */
   UltraAuthentic = 'ultra'
 }
 
 /**
- * Configuration for vintage audio processing pipeline
+ * Configuration for the vintage processing pipeline.
  */
 export interface VintageProcessingConfig {
-  /** Authenticity level (controls all processing intensity) */
   level: AuthenticityLevel;
 
-  /** Target sample rate (Hz) - 11025 for authentic, 22050 for subtle */
+  /** Engine sample rate (Hz). 8475 for the original; content is resampled to it and held back up. */
   targetSampleRate: number;
 
-  /** Quantization levels (256 = 8-bit, 65536 = 16-bit) */
+  /** Quantisation levels at the engine rate (256 = unsigned 8-bit; 65536 = none). */
   quantizationLevels: number;
 
-  /** Bandpass filter low cutoff (Hz) */
+  /** Analog-stage high-pass cutoff (Hz); 0 disables it. */
   lowCutoff: number;
 
-  /** Bandpass filter high cutoff (Hz) */
+  /** Analog-stage 2nd-order low-pass cutoff (Hz). */
   highCutoff: number;
 
-  /** Prosody reduction factor (0.0 = none, 1.0 = complete flattening) */
-  prosodyReduction: number;
+  /** High-shelf gain (dB) that tilts the spectrum towards the original's dark timbre; 0 disables it. */
+  highShelfGainDb: number;
 
-  /** Pitch variance reduction factor (0.0 = none, 1.0 = monotone) */
-  pitchVarianceReduction: number;
+  /** High-shelf corner frequency (Hz). */
+  highShelfFrequency: number;
 
-  /** Volume variance reduction factor (0.0 = none, 1.0 = flat) */
+  /** Target peak (full scale = 1) before quantising; 0 disables normalisation. */
+  normalizePeak: number;
+
+  /** Target RMS (full scale = 1) before quantising; 0 disables normalisation. */
+  normalizeRms: number;
+
+  /** Reconstruct with sample-and-hold, like the DAC, instead of linear interpolation. */
+  sampleAndHold: boolean;
+
+  /** Level compression (0 = none, 1 = flat). The original is fairly level. */
   volumeVarianceReduction: number;
 
-  /** Enable artifact injection (aliasing, quantization emphasis) */
-  injectArtifacts: boolean;
-
-  /** Aliasing amount (0.0 = none, 0.2 = subtle, 0.5 = heavy) */
-  aliasingAmount: number;
-
-  /** Pre-echo amount for primitive DAC simulation (0.0 = none, 0.1 = typical) */
-  preEchoAmount: number;
-
-  /** Playback speed multiplier (1.1 = current Dr. Sbaitso setting) */
-  playbackRate: number;
+  /** Replace the TTS intonation with the original's stepped contour (LPC resynthesis). */
+  pitchFlattening: boolean;
 }
 
+/** About -17 dBFS. */
+const ORIGINAL_RMS = 0.141;
+/** About -2.5 dBFS. */
+const ORIGINAL_PEAK = 0.75;
+
 /**
- * Preset configurations for each authenticity level
+ * Preset configurations for each authenticity level.
  */
 export const AUTHENTICITY_PRESETS: Record<AuthenticityLevel, VintageProcessingConfig> = {
   [AuthenticityLevel.Modern]: {
     level: AuthenticityLevel.Modern,
     targetSampleRate: 24000,
-    quantizationLevels: 65536, // 16-bit
+    quantizationLevels: 65536,
     lowCutoff: 0,
     highCutoff: 20000,
-    prosodyReduction: 0.0,
-    pitchVarianceReduction: 0.0,
-    volumeVarianceReduction: 0.0,
-    injectArtifacts: false,
-    aliasingAmount: 0.0,
-    preEchoAmount: 0.0,
-    playbackRate: 1.1
+    highShelfGainDb: 0,
+    highShelfFrequency: 1200,
+    normalizePeak: 0,
+    normalizeRms: 0,
+    sampleAndHold: false,
+    volumeVarianceReduction: 0,
+    pitchFlattening: false
   },
 
   [AuthenticityLevel.SubtleVintage]: {
     level: AuthenticityLevel.SubtleVintage,
     targetSampleRate: 22050,
-    quantizationLevels: 65536, // 16-bit (no quantization)
+    quantizationLevels: 65536,
     lowCutoff: 200,
     highCutoff: 8000,
-    prosodyReduction: 0.2,
-    pitchVarianceReduction: 0.15,
+    highShelfGainDb: 0,
+    highShelfFrequency: 1200,
+    normalizePeak: 0,
+    normalizeRms: 0,
+    sampleAndHold: false,
     volumeVarianceReduction: 0.1,
-    injectArtifacts: false,
-    aliasingAmount: 0.0,
-    preEchoAmount: 0.0,
-    playbackRate: 1.1
+    pitchFlattening: false
   },
 
   [AuthenticityLevel.Authentic]: {
     level: AuthenticityLevel.Authentic,
-    targetSampleRate: 11025,
-    quantizationLevels: 256, // 8-bit
-    lowCutoff: 300,
-    highCutoff: 5000,
-    prosodyReduction: 0.5,
-    pitchVarianceReduction: 0.4,
+    targetSampleRate: 8475,
+    quantizationLevels: 256,
+    lowCutoff: 80,
+    highCutoff: 3800,
+    highShelfGainDb: -8,
+    highShelfFrequency: 1200,
+    normalizePeak: ORIGINAL_PEAK,
+    normalizeRms: ORIGINAL_RMS,
+    sampleAndHold: true,
     volumeVarianceReduction: 0.3,
-    injectArtifacts: false, // Optional, user can enable
-    aliasingAmount: 0.05,
-    preEchoAmount: 0.03,
-    playbackRate: 1.1
+    pitchFlattening: true
   },
 
   [AuthenticityLevel.UltraAuthentic]: {
     level: AuthenticityLevel.UltraAuthentic,
-    targetSampleRate: 11025,
-    quantizationLevels: 256, // 8-bit
-    lowCutoff: 300,
-    highCutoff: 5000,
-    prosodyReduction: 0.75,
-    pitchVarianceReduction: 0.65,
+    targetSampleRate: 8475,
+    quantizationLevels: 256,
+    lowCutoff: 80,
+    highCutoff: 3200,
+    highShelfGainDb: -8,
+    highShelfFrequency: 1200,
+    normalizePeak: ORIGINAL_PEAK,
+    normalizeRms: ORIGINAL_RMS,
+    sampleAndHold: true,
     volumeVarianceReduction: 0.5,
-    injectArtifacts: true,
-    aliasingAmount: 0.12,
-    preEchoAmount: 0.08,
-    playbackRate: 1.1
+    pitchFlattening: true
   }
 };
 
+// ---------------------------------------------------------------------------
+// Filters (RBJ audio-EQ-cookbook biquads, transposed direct form II)
+// ---------------------------------------------------------------------------
+
+interface Biquad {
+  b0: number;
+  b1: number;
+  b2: number;
+  a1: number;
+  a2: number;
+}
+
+type BiquadType = 'lowpass' | 'highpass' | 'highshelf';
+
+function designBiquad(type: BiquadType, frequency: number, sampleRate: number, q = Math.SQRT1_2, gainDb = 0): Biquad {
+  const w0 = (2 * Math.PI * frequency) / sampleRate;
+  const cos = Math.cos(w0);
+  const sin = Math.sin(w0);
+  let b0: number, b1: number, b2: number, a0: number, a1: number, a2: number;
+  if (type === 'highshelf') {
+    const A = 10 ** (gainDb / 40);
+    const alpha = (sin / 2) * Math.SQRT2; // shelf slope S = 1
+    const root = 2 * Math.sqrt(A) * alpha;
+    b0 = A * (A + 1 + (A - 1) * cos + root);
+    b1 = -2 * A * (A - 1 + (A + 1) * cos);
+    b2 = A * (A + 1 + (A - 1) * cos - root);
+    a0 = A + 1 - (A - 1) * cos + root;
+    a1 = 2 * (A - 1 - (A + 1) * cos);
+    a2 = A + 1 - (A - 1) * cos - root;
+  } else {
+    const alpha = sin / (2 * q);
+    b1 = type === 'lowpass' ? 1 - cos : -(1 + cos);
+    b0 = type === 'lowpass' ? (1 - cos) / 2 : (1 + cos) / 2;
+    b2 = b0;
+    a0 = 1 + alpha;
+    a1 = -2 * cos;
+    a2 = 1 - alpha;
+  }
+  return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: a1 / a0, a2: a2 / a0 };
+}
+
+function applyBiquad(x: Float32Array, f: Biquad): Float32Array {
+  const y = new Float32Array(x.length);
+  let z1 = 0;
+  let z2 = 0;
+  for (let i = 0; i < x.length; i++) {
+    const input = x[i];
+    const output = f.b0 * input + z1;
+    z1 = f.b1 * input - f.a1 * output + z2;
+    z2 = f.b2 * input - f.a2 * output;
+    y[i] = output;
+  }
+  return y;
+}
+
+/** Section Qs of an 8th-order Butterworth low-pass. */
+const BUTTERWORTH_8_Q = [0.5098, 0.6013, 0.9, 2.5629];
+
+/** 8th-order Butterworth low-pass (four cascaded biquads): the resampler's anti-alias filter. */
+function antiAliasLowPass(x: Float32Array, frequency: number, sampleRate: number): Float32Array {
+  let y = x;
+  for (const q of BUTTERWORTH_8_Q) y = applyBiquad(y, designBiquad('lowpass', frequency, sampleRate, q));
+  return y;
+}
+
+// ---------------------------------------------------------------------------
+// Stages
+// ---------------------------------------------------------------------------
+
 /**
- * Main vintage audio processing pipeline
- * Transforms modern TTS audio into authentic 1991 Dr. Sbaitso sound
+ * Gentle level compressor: each sample's gain pulls its 50 ms local RMS
+ * towards the overall speech RMS by `amount` (in the log domain). Near-silent
+ * passages are left alone rather than boosted.
+ */
+function compressLevel(x: Float32Array, sampleRate: number, amount: number): Float32Array {
+  const n = x.length;
+  const half = Math.max(1, Math.round(sampleRate * 0.025));
+  const squares = new Float64Array(n + 1);
+  for (let i = 0; i < n; i++) squares[i + 1] = squares[i] + x[i] * x[i];
+  const overall = Math.sqrt(squares[n] / n);
+  const out = new Float32Array(n);
+  if (!(overall > 0)) return out;
+  const floor = overall * 0.05;
+  for (let i = 0; i < n; i++) {
+    const lo = Math.max(0, i - half);
+    const hi = Math.min(n, i + half);
+    const local = Math.sqrt((squares[hi] - squares[lo]) / (hi - lo));
+    const gain = local > floor ? (overall / local) ** amount : 1;
+    out[i] = x[i] * gain;
+  }
+  return out;
+}
+
+/** Linear-interpolation resampler to `length` samples. */
+function resampleLinear(x: Float32Array, fromRate: number, toRate: number, length: number): Float32Array {
+  const out = new Float32Array(length);
+  const ratio = fromRate / toRate;
+  const last = x.length - 1;
+  for (let j = 0; j < length; j++) {
+    const position = j * ratio;
+    const i = Math.floor(position);
+    if (i >= last) {
+      out[j] = x[last] ?? 0;
+    } else {
+      const frac = position - i;
+      out[j] = x[i] + (x[i + 1] - x[i]) * frac;
+    }
+  }
+  return out;
+}
+
+/**
+ * Zero-order hold: repeats each engine sample for as long as the DAC would,
+ * producing `length` samples at `toRate`. No interpolation, so the spectral
+ * images of the 8475 Hz signal remain, as on the real card.
+ */
+export function sampleAndHold(engine: Float32Array, engineRate: number, toRate: number, length: number): Float32Array {
+  const out = new Float32Array(length);
+  if (engine.length === 0) return out;
+  const last = engine.length - 1;
+  for (let i = 0; i < length; i++) {
+    out[i] = engine[Math.min(last, Math.floor((i * engineRate) / toRate + 1e-9))];
+  }
+  return out;
+}
+
+/**
+ * Quantises a sample like unsigned PCM centred on the middle code. For 256
+ * levels this is 8-bit unsigned: code = clamp(round(x * 128) + 128, 0, 255).
+ */
+export function quantizeSample(x: number, levels: number): number {
+  const half = levels / 2;
+  return Math.max(-half, Math.min(half - 1, Math.round(x * half))) / half;
+}
+
+function normalise(x: Float32Array, targetPeak: number, targetRms: number): void {
+  let peak = 0;
+  let sum = 0;
+  for (const v of x) {
+    peak = Math.max(peak, Math.abs(v));
+    sum += v * v;
+  }
+  const rms = Math.sqrt(sum / Math.max(1, x.length));
+  if (!(peak > 0) || !(rms > 0)) return;
+  let gain = Infinity;
+  if (targetRms > 0) gain = Math.min(gain, targetRms / rms);
+  if (targetPeak > 0) gain = Math.min(gain, targetPeak / peak);
+  if (!Number.isFinite(gain)) return;
+  for (let i = 0; i < x.length; i++) x[i] *= gain;
+}
+
+/**
+ * Runs the vintage chain over one channel of samples. Returns a new array of
+ * the same length at the same sample rate; Modern returns an unchanged copy.
+ */
+export function processVintageSamples(
+  input: Float32Array,
+  sampleRate: number,
+  config: VintageProcessingConfig,
+  endPunctuation: EndPunctuation = null
+): Float32Array {
+  const length = input.length;
+  if (config.level === AuthenticityLevel.Modern || length === 0) return Float32Array.from(input);
+
+  let signal = config.volumeVarianceReduction > 0
+    ? compressLevel(input, sampleRate, config.volumeVarianceReduction)
+    : Float32Array.from(input);
+
+  // Into the engine's sample rate.
+  const engineRate = Math.min(config.targetSampleRate, sampleRate);
+  let engine = signal;
+  if (engineRate < sampleRate) {
+    const antiAlias = antiAliasLowPass(signal, 0.45 * engineRate, sampleRate);
+    engine = resampleLinear(antiAlias, sampleRate, engineRate, Math.max(1, Math.round((length * engineRate) / sampleRate)));
+  }
+
+  if (config.pitchFlattening) {
+    engine = lpcMonotone(engine, { sampleRate: engineRate, endPunctuation });
+  }
+
+  if (config.highShelfGainDb !== 0) {
+    engine = applyBiquad(engine, designBiquad('highshelf', config.highShelfFrequency, engineRate, Math.SQRT1_2, config.highShelfGainDb));
+  }
+
+  if (config.normalizePeak > 0 || config.normalizeRms > 0) normalise(engine, config.normalizePeak, config.normalizeRms);
+
+  if (config.quantizationLevels < 65536) {
+    for (let i = 0; i < engine.length; i++) engine[i] = quantizeSample(engine[i], config.quantizationLevels);
+  }
+
+  // Back to the playback rate, through the DAC and the card's analog stage.
+  if (engineRate < sampleRate) {
+    signal = config.sampleAndHold
+      ? sampleAndHold(engine, engineRate, sampleRate, length)
+      : resampleLinear(engine, engineRate, sampleRate, length);
+  } else {
+    signal = engine;
+  }
+  if (config.lowCutoff > 0) {
+    signal = applyBiquad(signal, designBiquad('highpass', config.lowCutoff, sampleRate));
+  }
+  if (config.highCutoff < sampleRate / 2) {
+    signal = applyBiquad(signal, designBiquad('lowpass', config.highCutoff, sampleRate));
+  }
+  return signal;
+}
+
+/**
+ * Applies the vintage chain to every channel of an AudioBuffer.
  *
- * Processing steps:
- * 1. Prosody reduction (flatten intonation and volume)
- * 2. Downsampling with anti-aliasing
- * 3. 8-bit quantization
- * 4. Bandpass filtering (300 Hz - 5 kHz)
- * 5. Artifact injection (optional)
- *
- * @param buffer - Input AudioBuffer from Gemini TTS (24 kHz)
- * @param ctx - AudioContext instance
- * @param config - Processing configuration (use AUTHENTICITY_PRESETS)
- * @returns Processed AudioBuffer with vintage characteristics
+ * @param buffer - Decoded TTS audio
+ * @param ctx - Context used to allocate the output buffer
+ * @param config - Processing configuration (see AUTHENTICITY_PRESETS)
+ * @param endPunctuation - How the utterance ends; drives the final pitch movement
+ * @returns A new buffer at the input's rate and length (the input itself for Modern)
  */
 export async function applyVintageProcessing(
   buffer: AudioBuffer,
   ctx: AudioContext,
-  config: VintageProcessingConfig
+  config: VintageProcessingConfig,
+  endPunctuation: EndPunctuation = null
 ): Promise<AudioBuffer> {
-  // Skip processing for modern mode
-  if (config.level === AuthenticityLevel.Modern) {
-    return buffer;
-  }
+  if (config.level === AuthenticityLevel.Modern) return buffer;
 
-  let processedBuffer = buffer;
-
-  // Step 1: Prosody reduction (flatten intonation and volume)
-  if (config.prosodyReduction > 0) {
-    processedBuffer = await reduceProsody(processedBuffer, ctx, config);
-  }
-
-  // Step 2: Downsample with anti-aliasing
-  if (config.targetSampleRate < buffer.sampleRate) {
-    // Apply low-pass filter before downsampling (anti-aliasing)
-    const nyquistFreq = config.targetSampleRate / 2;
-    const antiAliasingCutoff = Math.min(nyquistFreq * 0.9, config.highCutoff);
-
-    processedBuffer = await applyLowPassFilter(
-      processedBuffer,
-      ctx,
-      antiAliasingCutoff
-    );
-
-    // Downsample
-    processedBuffer = await resampleBuffer(
-      processedBuffer,
-      ctx,
-      config.targetSampleRate
-    );
-  }
-
-  // Step 3: Quantize to 8-bit (or 16-bit for subtle mode)
-  if (config.quantizationLevels < 65536) {
-    processedBuffer = quantizeAudioBuffer(
-      processedBuffer,
-      ctx,
-      config.quantizationLevels
-    );
-  }
-
-  // Step 4: Bandpass filter (simulates Sound Blaster frequency response)
-  if (config.lowCutoff > 0 || config.highCutoff < 20000) {
-    processedBuffer = await applyBandpassFilter(
-      processedBuffer,
-      ctx,
-      config.lowCutoff,
-      config.highCutoff
-    );
-  }
-
-  // Step 5: Inject artifacts (aliasing, pre-echo) if enabled
-  if (config.injectArtifacts) {
-    processedBuffer = injectVintageArtifacts(
-      processedBuffer,
-      ctx,
-      config.aliasingAmount,
-      config.preEchoAmount
-    );
-  }
-
-  return processedBuffer;
-}
-
-/**
- * Reduce prosody (flatten intonation and volume variation)
- * Makes speech more robotic and monotone like 1991 rule-based TTS
- *
- * @param buffer - Input AudioBuffer
- * @param ctx - AudioContext
- * @param config - Processing configuration
- * @returns AudioBuffer with reduced prosody
- */
-async function reduceProsody(
-  buffer: AudioBuffer,
-  ctx: AudioContext,
-  config: VintageProcessingConfig
-): Promise<AudioBuffer> {
-  const outputBuffer = ctx.createBuffer(
-    buffer.numberOfChannels,
-    buffer.length,
-    buffer.sampleRate
-  );
-
+  const output = ctx.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
   for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-    const inputData = buffer.getChannelData(channel);
-    const outputData = outputBuffer.getChannelData(channel);
-
-    // Calculate RMS (root mean square) amplitude for normalization
-    let rms = 0;
-    for (let i = 0; i < inputData.length; i++) {
-      rms += inputData[i] * inputData[i];
-    }
-    rms = Math.sqrt(rms / inputData.length);
-
-    // Target RMS for flattened volume (reduce dynamic range)
-    const targetRMS = rms * (1 - config.volumeVarianceReduction * 0.5);
-
-    // Apply volume compression (reduce dynamic range)
-    const windowSize = Math.floor(buffer.sampleRate * 0.05); // 50ms window
-    for (let i = 0; i < inputData.length; i++) {
-      // Calculate local RMS
-      let localRMS = 0;
-      let count = 0;
-      for (let j = Math.max(0, i - windowSize); j < Math.min(inputData.length, i + windowSize); j++) {
-        localRMS += inputData[j] * inputData[j];
-        count++;
-      }
-      localRMS = Math.sqrt(localRMS / count);
-
-      // Compress dynamic range
-      const compressionFactor = 1 - config.volumeVarianceReduction;
-      const gain = localRMS > 0 ? (targetRMS / localRMS) * compressionFactor + (1 - compressionFactor) : 1;
-
-      outputData[i] = inputData[i] * gain;
-    }
+    const processed = processVintageSamples(buffer.getChannelData(channel), buffer.sampleRate, config, endPunctuation);
+    output.getChannelData(channel).set(processed);
   }
-
-  return outputBuffer;
+  return output;
 }
 
 /**
- * Apply low-pass filter for anti-aliasing before downsampling
- *
- * @param buffer - Input AudioBuffer
- * @param ctx - AudioContext
- * @param cutoffFrequency - Low-pass cutoff frequency (Hz)
- * @returns Filtered AudioBuffer
- */
-async function applyLowPassFilter(
-  buffer: AudioBuffer,
-  ctx: AudioContext,
-  cutoffFrequency: number
-): Promise<AudioBuffer> {
-  const offlineCtx = new OfflineAudioContext(
-    buffer.numberOfChannels,
-    buffer.length,
-    buffer.sampleRate
-  );
-
-  const source = offlineCtx.createBufferSource();
-  source.buffer = buffer;
-
-  // Create low-pass filter
-  const filter = offlineCtx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = cutoffFrequency;
-  filter.Q.value = 0.7071; // Butterworth response (flat passband)
-
-  // Connect: source -> filter -> destination
-  source.connect(filter);
-  filter.connect(offlineCtx.destination);
-
-  source.start();
-  return await offlineCtx.startRendering();
-}
-
-/**
- * Apply bandpass filter to limit frequency response (300 Hz - 5 kHz typical)
- * Simulates Sound Blaster 8-bit frequency response limitations
- *
- * @param buffer - Input AudioBuffer
- * @param ctx - AudioContext
- * @param lowCutoff - High-pass cutoff frequency (Hz)
- * @param highCutoff - Low-pass cutoff frequency (Hz)
- * @returns Filtered AudioBuffer
- */
-async function applyBandpassFilter(
-  buffer: AudioBuffer,
-  ctx: AudioContext,
-  lowCutoff: number,
-  highCutoff: number
-): Promise<AudioBuffer> {
-  const offlineCtx = new OfflineAudioContext(
-    buffer.numberOfChannels,
-    buffer.length,
-    buffer.sampleRate
-  );
-
-  const source = offlineCtx.createBufferSource();
-  source.buffer = buffer;
-
-  // High-pass filter (removes low frequencies)
-  const highPassFilter = offlineCtx.createBiquadFilter();
-  highPassFilter.type = 'highpass';
-  highPassFilter.frequency.value = lowCutoff;
-  highPassFilter.Q.value = 0.7071;
-
-  // Low-pass filter (removes high frequencies)
-  const lowPassFilter = offlineCtx.createBiquadFilter();
-  lowPassFilter.type = 'lowpass';
-  lowPassFilter.frequency.value = highCutoff;
-  lowPassFilter.Q.value = 0.7071;
-
-  // Connect: source -> high-pass -> low-pass -> destination
-  source.connect(highPassFilter);
-  highPassFilter.connect(lowPassFilter);
-  lowPassFilter.connect(offlineCtx.destination);
-
-  source.start();
-  return await offlineCtx.startRendering();
-}
-
-/**
- * Resample audio buffer to target sample rate
- * Uses linear interpolation for authentic vintage quality (no sophisticated resampling)
- *
- * @param buffer - Input AudioBuffer
- * @param ctx - AudioContext
- * @param targetSampleRate - Target sample rate (11025 Hz typical)
- * @returns Resampled AudioBuffer
- */
-async function resampleBuffer(
-  buffer: AudioBuffer,
-  ctx: AudioContext,
-  targetSampleRate: number
-): Promise<AudioBuffer> {
-  const offlineCtx = new OfflineAudioContext(
-    buffer.numberOfChannels,
-    Math.ceil(buffer.length * targetSampleRate / buffer.sampleRate),
-    targetSampleRate
-  );
-
-  const source = offlineCtx.createBufferSource();
-  source.buffer = buffer;
-  source.connect(offlineCtx.destination);
-  source.start();
-
-  return await offlineCtx.startRendering();
-}
-
-/**
- * Quantize audio to specified bit depth (e.g., 8-bit = 256 levels)
- * Adds characteristic quantization noise and "grit" of vintage audio
- *
- * @param buffer - Input AudioBuffer
- * @param ctx - AudioContext
- * @param levels - Number of quantization levels (256 = 8-bit, 65536 = 16-bit)
- * @returns Quantized AudioBuffer
- */
-function quantizeAudioBuffer(
-  buffer: AudioBuffer,
-  ctx: AudioContext,
-  levels: number
-): AudioBuffer {
-  const outputBuffer = ctx.createBuffer(
-    buffer.numberOfChannels,
-    buffer.length,
-    buffer.sampleRate
-  );
-
-  const step = 2.0 / (levels - 1); // Quantization step size
-
-  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-    const inputData = buffer.getChannelData(channel);
-    const outputData = outputBuffer.getChannelData(channel);
-
-    for (let i = 0; i < inputData.length; i++) {
-      // Quantize to discrete levels
-      const quantized = Math.round(inputData[i] / step) * step;
-
-      // Clamp to [-1.0, 1.0] range
-      outputData[i] = Math.max(-1.0, Math.min(1.0, quantized));
-    }
-  }
-
-  return outputBuffer;
-}
-
-/**
- * Inject vintage audio artifacts (aliasing, pre-echo, quantization emphasis)
- * Simulates Sound Blaster 8-bit ISA card limitations and DAC characteristics
- *
- * @param buffer - Input AudioBuffer
- * @param ctx - AudioContext
- * @param aliasingAmount - Aliasing intensity (0.0 - 0.2 typical)
- * @param preEchoAmount - Pre-echo intensity (0.0 - 0.1 typical)
- * @returns AudioBuffer with injected artifacts
- */
-function injectVintageArtifacts(
-  buffer: AudioBuffer,
-  ctx: AudioContext,
-  aliasingAmount: number,
-  preEchoAmount: number
-): AudioBuffer {
-  const outputBuffer = ctx.createBuffer(
-    buffer.numberOfChannels,
-    buffer.length,
-    buffer.sampleRate
-  );
-
-  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-    const inputData = buffer.getChannelData(channel);
-    const outputData = outputBuffer.getChannelData(channel);
-
-    for (let i = 0; i < inputData.length; i++) {
-      let sample = inputData[i];
-
-      // Add pre-echo (primitive DAC reconstruction smearing)
-      if (i > 0 && preEchoAmount > 0) {
-        sample += inputData[i - 1] * preEchoAmount * 0.5;
-      }
-
-      // Add subtle high-frequency "metal junk" noise (aliasing simulation)
-      if (aliasingAmount > 0) {
-        // High-frequency noise correlated with signal amplitude
-        const noise = (Math.random() - 0.5) * Math.abs(sample) * aliasingAmount;
-        sample += noise;
-      }
-
-      // Clamp to [-1.0, 1.0]
-      outputData[i] = Math.max(-1.0, Math.min(1.0, sample));
-    }
-  }
-
-  return outputBuffer;
-}
-
-/**
- * Get preset configuration by authenticity level
- *
- * @param level - Authenticity level
- * @returns Processing configuration preset
+ * Get preset configuration by authenticity level.
  */
 export function getPresetConfig(level: AuthenticityLevel): VintageProcessingConfig {
   return { ...AUTHENTICITY_PRESETS[level] };
 }
 
 /**
- * Get user-friendly description of authenticity level
- *
- * @param level - Authenticity level
- * @returns Description string for UI display
+ * User-facing description of an authenticity level.
  */
 export function getAuthenticityDescription(level: AuthenticityLevel): string {
   switch (level) {
     case AuthenticityLevel.Modern:
       return 'Modern Quality (24 kHz, 16-bit, natural prosody)';
     case AuthenticityLevel.SubtleVintage:
-      return 'Subtle Vintage (22 kHz, light retro processing)';
+      return 'Subtle Vintage (light retro filtering, not period-accurate)';
     case AuthenticityLevel.Authentic:
-      return 'Authentic 1991 (11 kHz, 8-bit, recommended)';
+      return 'Authentic (8.5 kHz, 8-bit, flattened pitch, recommended)';
     case AuthenticityLevel.UltraAuthentic:
-      return 'Ultra Authentic (maximum vintage processing)';
+      return 'Ultra Authentic (8.5 kHz, 8-bit, darker SB Pro filter)';
   }
 }
 
 /**
- * Get technical specifications string for authenticity level
- *
- * @param level - Authenticity level
- * @returns Technical specs for UI display
+ * Technical specification string for an authenticity level.
  */
 export function getAuthenticitySpecs(level: AuthenticityLevel): string {
   const config = AUTHENTICITY_PRESETS[level];

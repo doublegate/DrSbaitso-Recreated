@@ -21,16 +21,16 @@ Byte's patents). Everything else is a factual correction to make either way.
 
 - [ ] Dates: the program shipped in 1990 (v1.01) and 1992 (v2.20). Fix "1991" in the
       README, the persona prompt and the docs. ([ref-docs/01](../ref-docs/01-history-and-behavior.md))
-- [ ] Speech engine: First Byte **SmoothTalker 3.5**, which stores single pitch periods
+- [x] Speech engine: First Byte **SmoothTalker 3.5**, which stores single pitch periods
       of a real voice. `docs/DECTALK_RESEARCH.md` calls it rule-based and sample-free.
       ([ref-docs/02](../ref-docs/02-voice-and-audio.md))
-- [ ] Pronunciation: "SBAYT-so", not "SUH-BAIT-SO" (`api/_lib/gemini.ts`). Spell out
+- [x] Pronunciation: "SBAYT-so", not "SUH-BAIT-SO" (`api/_lib/gemini.ts`). Spell out
       "DOCTOR", not "DR.".
-- [ ] `playbackRate` 1.1 raises pitch by 10%; it does not deepen the voice. Use 1.0 for
+- [x] `playbackRate` 1.1 raises pitch by 10%; it does not deepen the voice. Use 1.0 for
       the authentic modes (`src/utils/audio.ts`).
-- [ ] The Authentic preset's 5 kHz high cut has no effect; the original sits under a
+- [x] The Authentic preset's 5 kHz high cut has no effect; the original sits under a
       roughly 4 kHz ceiling at 8,475 Hz (`src/utils/vintageAudioProcessing.ts`).
-- [ ] `pitchVarianceReduction` is never read by any code: implement or remove it.
+- [x] `pitchVarianceReduction` is never read by any code: implement or remove it.
 - [ ] "PARITY CHECKING" and "IRQ CONFLICT AT ADDRESS 220H" never appear in the original.
       The real glitch is "PARITY ERR ... RECOVERED / PHEW! THAT WAS CLOSE!", triggered
       by swearing. Fix in `src/constants.ts`, `src/App.tsx` (`GLITCH_PHRASES`) and
@@ -73,9 +73,9 @@ that module; wiring it into `src/App.tsx` is still pending.
 
 ## Voice (decided: measured pipeline + LPC pitch flattening)
 
-- [ ] Vintage pipeline at 8,475 Hz unsigned 8-bit, 80 Hz-3.8 kHz band, a -8 dB high
+- [x] Vintage pipeline at 8,475 Hz unsigned 8-bit, 80 Hz-3.8 kHz band, a -8 dB high
       shelf, and sample-and-hold resampling.
-- [ ] Flattening pitch per syllable (LPC resynthesis): the biggest remaining gap, and
+- [x] Flattening pitch per syllable (LPC resynthesis): the biggest remaining gap, and
       the largest piece of work.
 - [ ] (Later, not this release) Optional "bring your own `SBTALKER.EXE`" emulation
       mode. The original engine remains First Byte copyright, so it could never be

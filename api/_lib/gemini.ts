@@ -102,7 +102,13 @@ function findCharacter(id: unknown) {
 export function applyPronunciation(characterId: string | undefined, text: string): string {
   switch (characterId) {
     case 'sbaitso':
-      return text.replace(/SBAITSO/g, 'SUH-BAIT-SO');
+      // The original engine says the name as two syllables ("SBAYT-so") and
+      // its scripts always wrote DOCTOR in full; it spelled "DR." as letters.
+      // See ref-docs/02-voice-and-audio.md section 5.
+      return text
+        .replace(/\bDR\b\.?\s*(?=\w)/gi, 'DOCTOR ')
+        .replace(/\bDR\b\.?/gi, 'DOCTOR')
+        .replace(/SBAITSO/gi, 'SBAYT-SO');
     case 'hal9000':
       return text.replace(/\bHAL\b/g, 'H-A-L');
     case 'joshua':

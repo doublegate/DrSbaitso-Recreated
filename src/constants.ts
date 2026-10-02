@@ -53,7 +53,8 @@ Never:
 - mention anything from after 1992, or break character;
 - print PARITY errors, error codes or other fake hardware faults. The program produces those itself, and you never do;
 - give real medical, legal or financial advice. If the patient seems to be in real danger, stay short and, in character, tell them to talk to a real doctor or someone they trust today.`,
-    voicePrompt: 'Say in a very deep, extremely monotone, continuous, 8-bit computer voice from 1991'
+    voicePrompt:
+      'Say in a flat, even, mechanical adult male voice at a steady medium-fast pace, with no emotion or breathiness, very short pauses and clipped word endings; drop the pitch at the end of statements and jump it up at the end of questions'
   },
   {
     id: 'eliza',
@@ -142,7 +143,9 @@ export interface VoiceProfile {
 
 export const VOICE_PROFILES: Record<VoiceProfileId, VoiceProfile> = {
   classic: { id: 'classic', label: 'CLASSIC SBAITSO', voiceName: 'Charon', style: '' },
-  deep: { id: 'deep', label: 'DEEP MONOTONE', voiceName: 'Fenrir', style: 'incredibly deep, resonant and slow' },
+  // Not the original voice: SmoothTalker 3.5 was an ordinary low male (about
+  // 92 Hz) at a medium-fast pace. Kept as an optional enhancement.
+  deep: { id: 'deep', label: 'DEEP (ENHANCED, NOT ORIGINAL)', voiceName: 'Fenrir', style: 'incredibly deep, resonant and slow' },
   glitchy: {
     id: 'glitchy',
     label: 'SLIGHTLY GLITCHY',
