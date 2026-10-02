@@ -10,6 +10,7 @@ import { useAccessibility } from './hooks/useAccessibility';
 import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
+import { useFocusTrap } from './hooks/useFocusTrap';
 import { applyThemeVariables } from './utils/themeVariables';
 import { matchShortcut, shortcutLabel, type ShortcutId } from './utils/shortcuts';
 import { useSoundEffects } from './hooks/useSoundEffects';
@@ -112,6 +113,9 @@ export default function App() {
   const [showEmotionViz, setShowEmotionViz] = useState(false);
   const [showTopicDiagram, setShowTopicDiagram] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+
+  // Keeps keyboard focus inside the voice-help dialog while it is open.
+  const voiceHelpRef = useFocusTrap(showVoiceControlHelp);
 
   // PWA install banner: only offered when the browser supports installing.
   const installPrompt = useInstallPrompt();
@@ -329,7 +333,9 @@ export default function App() {
       }
 
       soundEffects.playSound('message-receive');
-      if (accessibilitySettings.screenReaderOptimized && accessibilitySettings.announceMessages) {
+      // The log itself is not a live region (it would re-announce every typed
+      // character), so the finished reply is announced once here.
+      if (accessibilitySettings.announceMessages) {
         announce(`Dr. Sbaitso says: ${reply}`);
       }
       return true;
@@ -418,7 +424,7 @@ export default function App() {
         <SkipNav />
         <main
           id="main-content"
-          className="bg-blue-800 text-white font-mono w-screen h-screen flex flex-col items-center justify-center p-4"
+          className="bg-(--color-background) text-(--color-text) font-mono w-full h-dvh flex flex-col items-center justify-center p-4"
           role="main"
           aria-label="Dr. Sbaitso name entry screen"
         >
@@ -472,12 +478,12 @@ export default function App() {
       <SkipNav />
 
       <main
-        className="bg-blue-800 text-white font-mono w-screen h-screen flex flex-col p-2 sm:p-4 overflow-hidden"
+        className="bg-(--color-background) text-(--color-text) font-mono w-full h-dvh flex flex-col p-2 sm:p-4 overflow-hidden"
         role="main"
       >
-        <div className="w-full max-w-4xl mx-auto flex flex-col grow border-2 border-gray-400 p-4 min-h-0">
+        <div className="w-full max-w-4xl mx-auto flex flex-col grow border-2 border-(--color-border) p-4 min-h-0">
           {/* Header with settings (v1.3.0 + v1.4.0) */}
-          <div className="shrink-0 flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-400">
+          <div className="shrink-0 flex flex-wrap justify-between items-center gap-2 mb-4 pb-2 border-b-2 border-(--color-border)">
             {/* Audio Mode Selector */}
             <div className="flex items-center gap-2" data-tour-id="audio-settings">
               <label htmlFor="audio-mode-select" className="text-sm font-bold">
@@ -500,7 +506,7 @@ export default function App() {
             </div>
 
             {/* v1.5.0 & v1.6.0 Feature Buttons */}
-            <div className="flex gap-2" data-tour-id="settings-panel">
+            <div className="flex flex-wrap gap-2" data-tour-id="settings-panel">
               <button
                 onClick={() => setShowThemeCustomizer(true)}
                 className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
@@ -688,16 +694,15 @@ export default function App() {
             id="main-content"
             className="grow overflow-y-auto pr-2 min-h-0"
             role="log"
-            aria-live="polite"
+            aria-live="off"
             aria-label="Conversation messages"
           >
             {messages.map((msg, index) => (
               <p
                 key={index}
-                className={msg.author === 'dr' ? 'text-white' : 'text-yellow-300'}
-                role="article"
-                aria-label={`Message from ${msg.author === 'dr' ? 'Dr. Sbaitso' : 'you'}`}
+                className={`whitespace-pre-wrap ${msg.author === 'dr' ? 'text-(--color-text)' : 'text-(--color-accent)'}`}
               >
+                <span className="sr-only">{msg.author === 'dr' ? 'Dr. Sbaitso: ' : 'You: '}</span>
                 {msg.author === 'user' && <span aria-hidden="true">{'> '}</span>}
                 {msg.text}
                 {isLoading && !isGreeting && msg.author === 'dr' && index === messages.length - 1 && (
@@ -943,9 +948,16 @@ export default function App() {
       {/* Voice Control Help Modal (v1.6.0) */}
       {showVoiceControlHelp && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-blue-900 border-4 border-gray-400 p-6 max-w-3xl max-h-[80vh] overflow-y-auto">
+          <div
+            ref={voiceHelpRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="voice-help-title"
+            onKeyDown={(e) => e.key === 'Escape' && setShowVoiceControlHelp(false)}
+            className="bg-blue-900 border-4 border-gray-400 p-6 max-w-3xl max-h-[80vh] overflow-y-auto"
+          >
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-white">VOICE CONTROL COMMANDS</h2>
+              <h2 id="voice-help-title" className="text-2xl font-bold text-white">VOICE CONTROL COMMANDS</h2>
               <button
                 onClick={() => setShowVoiceControlHelp(false)}
                 className="text-white hover:text-yellow-300 text-2xl"

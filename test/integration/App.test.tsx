@@ -134,8 +134,29 @@ describe('App', () => {
       url === '/api/chat' ? json({ code: 'RATE_LIMITED', error: 'slow' }, 429) : json({ audio: SILENT_AUDIO }),
     );
     await user.type(input, 'hello{Enter}');
-    await screen.findByText(/PLEASE WAIT A MOMENT/, undefined, { timeout: 10_000 });
+    expect(await screen.findByText(/PLEASE WAIT A MOMENT/, undefined, { timeout: 10_000 })).toBeInTheDocument();
   }, 30_000);
+
+  it('announces each completed reply once, without live-announcing the typing', async () => {
+    const user = userEvent.setup();
+    const input = await reachChat(user);
+    const log = screen.getByRole('log');
+    expect(log.getAttribute('aria-live')).toBe('off');
+
+    await user.type(input, 'I feel sad{Enter}');
+    await screen.findByText(/TELL ME MORE ABOUT YOUR PROBLEMS\./, { selector: 'p' }, { timeout: 10_000 });
+    await waitFor(() =>
+      expect(document.getElementById('a11y-announcer')?.textContent).toContain('TELL ME MORE ABOUT YOUR PROBLEMS.'),
+    );
+  }, 30_000);
+
+  it('marks the keyboard user once Tab is pressed (focus outlines)', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await screen.findByPlaceholderText('TYPE NAME AND PRESS ENTER');
+    await user.keyboard('{Tab}');
+    expect(document.body.classList.contains('user-is-tabbing')).toBe(true);
+  });
 
   it('does not re-render in a loop while idle', async () => {
     renderApp();

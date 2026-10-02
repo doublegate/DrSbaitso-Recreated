@@ -123,8 +123,14 @@ button, input[type="button"], .touch-target {
   font-size: 24px;
 }
 
-/* High Contrast Mode */
+/* High Contrast Mode: overrides the active theme's colours (the theme writes
+   them inline on <html>, so these need !important to win). */
 .high-contrast {
+  --color-background: #000000 !important;
+  --color-text: #ffffff !important;
+  --color-accent: #ffff00 !important;
+  --color-border: #ffffff !important;
+  --color-primary: #ffffff !important;
   --text-primary: #ffffff;
   --text-secondary: #ffff00;
   --bg-primary: #000000;

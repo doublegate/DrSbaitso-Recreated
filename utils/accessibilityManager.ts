@@ -381,7 +381,7 @@ export class KeyboardNav {
    * Initialize keyboard navigation detection
    * Adds 'user-is-tabbing' class to body when Tab key is used
    */
-  static initialize(): void {
+  static initialize(): () => void {
     let hadKeyboardEvent = false;
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -403,7 +403,10 @@ export class KeyboardNav {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('mousedown', handleMouseDown);
 
-    // Cleanup not provided as this should persist for app lifetime
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousedown', handleMouseDown);
+    };
   }
 
   /**

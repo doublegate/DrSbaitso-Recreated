@@ -13,7 +13,8 @@ import {
   AccessibilitySettings,
   DEFAULT_ACCESSIBILITY_SETTINGS,
   prefersReducedMotion,
-  prefersHighContrast
+  prefersHighContrast,
+  KeyboardNav,
 } from '../utils/accessibilityManager';
 
 const STORAGE_KEY = 'dr-sbaitso-accessibility-settings';
@@ -79,6 +80,10 @@ export function useAccessibility() {
     setSettings(DEFAULT_ACCESSIBILITY_SETTINGS);
     saveSettings(DEFAULT_ACCESSIBILITY_SETTINGS);
   }, [saveSettings]);
+
+  // Show focus outlines once the user navigates with Tab (see index.css
+  // `.user-is-tabbing`). This detector previously was never started.
+  useEffect(() => KeyboardNav.initialize(), []);
 
   /**
    * Apply accessibility settings to the document

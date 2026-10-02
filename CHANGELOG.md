@@ -79,6 +79,13 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Zoom and copy.** The page blocked zooming (WCAG 1.4.4) and prevented selecting
   or copying conversation text.
 - **Profiler.** `performanceProfiler` shadowed the global `performance` API.
+- **Accessibility.** The conversation log was a live region that re-announced every
+  typed character (every 40 ms). It is now quiet, and each finished reply is
+  announced once whenever "announce messages" is on, which is the default. The
+  keyboard-navigation detector that enables focus outlines was never started. High
+  contrast mode now overrides the theme colours. The voice-help dialog has dialog
+  semantics, a focus trap and Escape to close. The toolbar wraps on narrow screens
+  instead of overflowing.
 - **Hands-free voice control.** It now resumes listening after the browser ends
   recognition because of silence. Before, it went deaf while still showing
   "listening".
