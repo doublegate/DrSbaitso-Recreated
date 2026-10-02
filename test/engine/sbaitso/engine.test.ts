@@ -3,7 +3,9 @@ import {
   createSbaitsoState,
   processInput,
   recordReply,
-  paritySequence,
+  parityFlood,
+  PARITY_FLOOD_LENGTH,
+  PARITY_RECOVERED,
   isParityText,
   PARITY_TRIGGER_LINES,
   DEFAULT_SETTINGS,
@@ -126,10 +128,10 @@ describe('SAY', () => {
     expect(run(['SAY testing', 'R']).last).toEqual({ kind: 'repeat', lines: ['testing'] });
   });
 
-  it('SAY PARITY triggers the parity sequence', () => {
+  it('SAY PARITY triggers the parity flood', () => {
     const { last } = run(['say parity.']);
     expect(last.kind).toBe('parity');
-    expect(linesOf(last)).toEqual(paritySequence('JOHN'));
+    expect(linesOf(last)).toEqual(['PARITY']);
   });
 
   it('treats a bare SAY as ordinary (too short) input', () => {
@@ -138,16 +140,18 @@ describe('SAY', () => {
 });
 
 describe('CALC and WHAT IS arithmetic', () => {
-  it('evaluates CALC locally', () => {
+  it('evaluates CALC locally, printing " =  <value>" with no label', () => {
     expect(run(['calc 6/3']).last).toEqual({
       kind: 'reply',
-      lines: ['Computer: 6 divided by 3 equals to 2'],
+      lines: [' =  2'],
       speak: ['6 divided by 3 equals to 2'],
     });
+    expect(linesOf(run(['CALC 2+3']).last)).toEqual([' =  5']);
   });
 
-  it('evaluates WHAT IS with arithmetic', () => {
-    expect(linesOf(run(['What is 2 plus 2?']).last)).toEqual(['Computer: 2 plus 2 equals to 4']);
+  it('evaluates WHAT IS with arithmetic, echoing the expression', () => {
+    expect(linesOf(run(['WHAT IS 12*4']).last)).toEqual(['12*4 =  48']);
+    expect(linesOf(run(['What is 2 plus 2?']).last)).toEqual(['2 plus 2 =  4']);
   });
 
   it('reports a bug for CALC without an expression', () => {
@@ -168,15 +172,12 @@ describe('AUTHOR and SHUT UP', () => {
 });
 
 describe('BYE / QUIT / GOODBYE', () => {
-  it('cycles through the original goodbyes and ends the session', () => {
+  it('cycles through the original goodbyes and ends the session with the menu', () => {
     const { results } = run(['bye', 'goodbye', 'GOOD BYE', 'bye']);
-    expect(results[0]).toEqual({
-      kind: 'exit',
-      lines: ['GOOD BYE JOHN, AND HAVE A NICE DAY', 'GOOD BYE'],
-      showMenu: true,
-    });
-    expect(results[1]).toMatchObject({ kind: 'exit', lines: ['GOOD BYE, SO LONG!', 'GOOD BYE'] });
-    expect(results[2]).toMatchObject({ kind: 'exit', lines: ['JOHN, IT IS SO NICE TALKING TO YOU, BYE!', 'GOOD BYE'] });
+    // The reply is the only line: the C/N/Q menu follows on the very next row.
+    expect(results[0]).toEqual({ kind: 'exit', lines: ['GOOD BYE JOHN, AND HAVE A NICE DAY'] });
+    expect(results[1]).toEqual({ kind: 'exit', lines: ['GOOD BYE, SO LONG!'] });
+    expect(results[2]).toEqual({ kind: 'exit', lines: ['JOHN, IT IS SO NICE TALKING TO YOU, BYE!'] });
     // The fourth reply refuses to let the patient go.
     expect(results[3]).toMatchObject({ kind: 'reply', lines: ["I'M NOT THROUGH WITH YOU YET"] });
   });
@@ -190,13 +191,16 @@ describe('BYE / QUIT / GOODBYE', () => {
     expect(run(['my wife said bye to me']).last.kind).toBe('model');
   });
 
-  it('goes straight to the menu on a bare QUIT or EXIT', () => {
-    expect(run(['quit']).last).toEqual({ kind: 'exit', lines: ['GOOD BYE'], showMenu: true });
-    expect(run(['EXIT']).last.kind).toBe('exit');
+  it('shows the menu at once on a bare QUIT, with no goodbye line', () => {
+    expect(run(['quit']).last).toEqual({ kind: 'exit', lines: [] });
   });
 
-  it('quits without the menu on .QUIT', () => {
-    expect(run(['.QUIT']).last).toEqual({ kind: 'exit', lines: [], showMenu: false });
+  it('treats a bare EXIT as short input, not a command', () => {
+    expect(run(['EXIT']).last).toMatchObject({ kind: 'reply', lines: ["THAT'S TOO BRIEF"] });
+  });
+
+  it('says GOOD BYE <NAME> on .QUIT and then shows the menu', () => {
+    expect(run(['.QUIT']).last).toEqual({ kind: 'exit', lines: ['GOOD BYE JOHN'] });
   });
 });
 
@@ -307,38 +311,48 @@ describe('dot commands', () => {
 });
 
 describe('empty Enter', () => {
-  it('nags with escalating lines, then offers to quit', () => {
-    const { results, state } = run(['', '', '', '', '', '']);
-    expect(results.map((r) => linesOf(r)[0])).toEqual([
-      "DON'T BE SHY, TALK TO ME",
-      "DON'T JUST PRESS ENTER, TALK TO ME",
-      'PLEASE TYPE SOMETHING',
-      'HAY, TYPE SOMETHING SENSIBLE, WILL YOU?',
-      "ARE YOU SURE, YOU DON'T WANT TO TALK TO ME?",
-      'DO YOU WANT ME TO SHUT UP AND QUIT?',
-    ]);
-    expect(state.pending.kind).toBe('quit-confirm');
-  });
+  const EMPTY_GROUP = [
+    "DON'T BE SHY, TALK TO ME",
+    "DON'T JUST PRESS ENTER, TALK TO ME",
+    'PLEASE TYPE SOMETHING',
+    'HAY, TYPE SOMETHING SENSIBLE, WILL YOU?',
+    'ENTER',
+  ];
 
-  it('ends the session when the patient says yes', () => {
-    const { last } = run(['', '', '', '', '', '', 'yes']);
-    expect(last).toEqual({ kind: 'exit', lines: ['GOOD BYE'], showMenu: true });
-  });
-
-  it('carries on after any other answer', () => {
-    const { last, state } = run(['', '', '', '', '', '', 'no']);
-    expect(linesOf(last)).toEqual(['PLEASE BE SURE OF WHAT YOU WANT. GO ON.']);
-    expect(state.emptyCount).toBe(0);
+  it('answers from the empty-input group, including the literal ENTER, without escalating', () => {
+    const { results, state } = run(Array.from({ length: 60 }, () => ''));
+    const lines = results.map((r) => linesOf(r)[0]);
+    for (const line of lines) expect(EMPTY_GROUP).toContain(line);
+    // Random, not a fixed escalation: every reply turns up, and none of them ends the session.
+    expect(new Set(lines)).toEqual(new Set(EMPTY_GROUP));
+    expect(results.every((r) => r.kind === 'reply')).toBe(true);
     expect(state.pending.kind).toBe('none');
   });
 
-  it('resets the count once the patient types something', () => {
-    const { results } = run(['', 'I am back', '']);
-    expect(linesOf(results[2])[0]).toBe("DON'T BE SHY, TALK TO ME");
+  it('is deterministic for a given seed and differs between seeds', () => {
+    const presses = Array.from({ length: 12 }, () => '');
+    const a = run(presses, createSbaitsoState('john', 7)).results.map((r) => linesOf(r)[0]);
+    const b = run(presses, createSbaitsoState('john', 7)).results.map((r) => linesOf(r)[0]);
+    const c = run(presses, createSbaitsoState('john', 8)).results.map((r) => linesOf(r)[0]);
+    expect(a).toEqual(b);
+    expect(a).not.toEqual(c);
+  });
+
+  it('speaks ENTER as the word it prints', () => {
+    let state = createSbaitsoState('john', 1);
+    for (let i = 0; i < 50; i++) {
+      const step = processInput(state, '');
+      state = step.state;
+      if (step.result.kind === 'reply' && step.result.lines[0] === 'ENTER') {
+        expect(step.result.speak).toEqual(['ENTER']);
+        return;
+      }
+    }
+    throw new Error('ENTER never came up in 50 presses');
   });
 
   it('treats whitespace as empty', () => {
-    expect(linesOf(run(['   ']).last)[0]).toBe("DON'T BE SHY, TALK TO ME");
+    expect(EMPTY_GROUP).toContain(linesOf(run(['   ']).last)[0]);
   });
 });
 
@@ -391,15 +405,34 @@ describe('repeated input', () => {
 });
 
 describe('profanity', () => {
-  it('escalates strike by strike and ends in the parity sequence', () => {
-    const { results, state } = run(['damn', 'this is crap', 'DAMN IT', 'damn you', 'damn']);
-    expect(linesOf(results[0])).toEqual(["PLEASE DON'T USE SUCH LANGUAGE"]);
-    expect(linesOf(results[1])).toEqual(['INPUT REJECTED - BAD LANGUAGE ERROR']);
-    expect(linesOf(results[2])).toEqual(['I REFUSE TO COMPUTE THIS FILTH']);
-    expect(linesOf(results[3])[0]).toMatch(/^I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS .+ WAY\.$/);
-    expect(results[4].kind).toBe('parity');
-    expect(linesOf(results[4])).toEqual(paritySequence('JOHN'));
-    expect(state.profanityStrikes).toBe(0);
+  it('follows the order observed in DOSBox, ending in the garbled warning and then the parity flood', () => {
+    const swears = Array.from({ length: 9 }, () => 'damn');
+    const { results } = run(swears);
+    expect(linesOf(results[0])).toEqual(['YOU MUST NOT TALK IN THIS WAY, HOW OLD ARE YOU?']);
+    // Swearing again instead of giving an age gets an age reply, not the next warning.
+    expect(linesOf(results[1])).toEqual(['SO YOU THINK YOU ARE BIG ENOUGH, PROOF IT']);
+    expect(linesOf(results[2])).toEqual(["DON'T GET FRESH"]);
+    expect(linesOf(results[3])).toEqual(['SHAME ON YOU']);
+    expect(linesOf(results[4])).toEqual(['I REFUSE TO COMPUTE THIS FILTH']);
+    expect(linesOf(results[5])).toEqual(['I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS FZA!$[{? WAY.']);
+    expect(results[6]).toMatchObject({ kind: 'parity', lines: ['PARITY'] });
+    // Afterwards the group carries on.
+    expect(linesOf(results[7])).toEqual(['GIVE ME YOUR AGE?']);
+    expect(linesOf(results[8])).toEqual(['NO NONSENSE, DEAR']);
+  });
+
+  it('prints the garbage characters of the warning but does not speak them', () => {
+    const { results } = run(['damn', 'damn', 'damn', 'damn', 'damn', 'damn']);
+    const warning = results[5];
+    expect(warning.kind).toBe('reply');
+    expect((warning as Extract<EngineResult, { kind: 'reply' }>).speak).toEqual([
+      'I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS WAY.',
+    ]);
+  });
+
+  it('still takes a real age after the profanity age question', () => {
+    const { results } = run(['damn', '12']);
+    expect(linesOf(results[1])).toEqual(['WAIT A FEW MORE YEARS, KID']);
   });
 
   it('does not flag innocent words that contain a bad one', () => {
@@ -435,8 +468,10 @@ describe('CRAZY', () => {
     expect(results[0].kind).toBe('reply');
     expect(results[1].kind).toBe('reply');
     expect(results[2].kind).toBe('parity');
-    expect(linesOf(results[2])[0]).toBe('1 + 1 = 3 JOHN, PARITY .. CHECKSUM ERR? ..');
-    expect(linesOf(results[2]).slice(1)).toEqual(paritySequence('JOHN'));
+    const joke = results[2] as Extract<EngineResult, { kind: 'parity' }>;
+    expect(joke.lead).toEqual(['1 + 1 = 3 JOHN, PARITY .. CHECKSUM ERR? ..']);
+    expect(joke.flood.at(-1)).toBe(PARITY_RECOVERED);
+    expect(joke.lines).toEqual(['PARITY']);
   });
 
   it('leaves CRAZY about something else to the model', () => {
@@ -444,33 +479,58 @@ describe('CRAZY', () => {
   });
 });
 
-describe('parity helpers', () => {
-  it('builds the documented sequence', () => {
-    const seq = paritySequence('john');
-    expect(seq).toHaveLength(5);
-    expect(seq[0]).toMatch(/PARITY WARNING\.\.\.\.$/);
-    expect(seq[1]).toMatch(/^PARITY ERR \.\.\. .+ \?\?\?$/);
-    expect(seq.slice(2)).toEqual([
-      'PARITY ERR ... RECOVERED',
-      'PHEW!   THAT WAS CLOSE!',
-      "YOU ARE BAD JOHN. DON'T TRY IT NEXT TIME.",
-    ]);
+describe('parity flood', () => {
+  const parityOf = (result: EngineResult) => {
+    expect(result.kind).toBe('parity');
+    return result as Extract<EngineResult, { kind: 'parity' }>;
+  };
+
+  it('floods PARITY ERR lines with random numbers, then ??? lines, then RECOVERED', () => {
+    const { flood } = parityOf(run(['say parity']).last);
+    expect(flood).toHaveLength(PARITY_FLOOD_LENGTH);
+    expect(PARITY_FLOOD_LENGTH).toBeGreaterThanOrEqual(200);
+    expect(flood.at(-1)).toBe('PARITY ERR ... RECOVERED');
+    const body = flood.slice(0, -1);
+    for (const line of body) expect(line).toMatch(/^PARITY ERR \.\.\.  \d{1,5}(  \?\?\?)?$/);
+    // The ??? lines are one unbroken run that starts part-way through.
+    const firstQ = body.findIndex((line) => line.endsWith('???'));
+    expect(firstQ).toBeGreaterThan(body.length * 0.2);
+    expect(firstQ).toBeLessThan(body.length * 0.9);
+    expect(body.slice(firstQ).every((line) => line.endsWith('  ???'))).toBe(true);
+    expect(new Set(body.map((line) => line.split(/\s+/)[3])).size).toBeGreaterThan(100);
+  });
+
+  it('ends with the literal PARITY reply, spoken, and never the PHEW or YOU ARE BAD lines', () => {
+    const result = parityOf(run(['say parity']).last);
+    expect(result.lead).toEqual([]);
+    expect(result.lines).toEqual(['PARITY']);
+    expect(result.speak).toEqual(['PARITY']);
+    const all = [...result.flood, ...result.lines].join('\n');
+    expect(all).not.toMatch(/PHEW|YOU ARE BAD/);
+  });
+
+  it('is deterministic for a seed, and differs between seeds and between floods', () => {
+    const a = parityOf(processInput(createSbaitsoState('john', 3), 'say parity').result).flood;
+    const b = parityOf(processInput(createSbaitsoState('john', 3), 'say parity').result).flood;
+    const c = parityOf(processInput(createSbaitsoState('john', 4), 'say parity').result).flood;
+    expect(a).toEqual(b);
+    expect(a).not.toEqual(c);
+    const twice = run(['say parity', 'say parity']).results.map((r) => parityOf(r).flood);
+    expect(twice[0]).not.toEqual(twice[1]);
+    expect(parityFlood(3)).toEqual(parityFlood(3));
+  });
+
+  it('makes R repeat PARITY', () => {
+    expect(run(['say parity', 'R']).last).toEqual({ kind: 'repeat', lines: ['PARITY'] });
   });
 
   it('recognises parity text and nothing invented', () => {
-    for (const line of paritySequence('JOHN').slice(0, 3)) expect(isParityText(line)).toBe(true);
+    for (const line of parityFlood(1).slice(0, 5)) expect(isParityText(line)).toBe(true);
+    expect(isParityText(PARITY_RECOVERED)).toBe(true);
     expect(isParityText('PARITY CHECKING...')).toBe(false);
     expect(isParityText('IRQ CONFLICT AT ADDRESS 220H')).toBe(false);
     expect(isParityText('I WILL GET PARITY ERROR IF YOU KEEP TALKING')).toBe(false);
     expect(PARITY_TRIGGER_LINES.length).toBeGreaterThan(0);
-  });
-
-  it('speaks the sequence without the garbage characters', () => {
-    const result = run(['say parity']).last;
-    expect(result.kind).toBe('parity');
-    const speak = (result as Extract<EngineResult, { kind: 'parity' }>).speak;
-    expect(speak).toHaveLength(5);
-    for (const line of speak) expect(line).toMatch(/^[A-Z0-9 .,!?']+$/);
   });
 });
 

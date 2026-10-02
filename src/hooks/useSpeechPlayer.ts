@@ -11,6 +11,11 @@ import { ensureAudioReady } from '../utils/sharedAudio';
 
 const TTS_SAMPLE_RATE = 24000;
 
+export interface SpeakOptions {
+  processing?: VoiceProcessing;
+  onStart?: (seconds: number) => void;
+}
+
 export function useSpeechPlayer(mode: AudioModeId) {
   const [currentSource, setCurrentSource] = useState<AudioBufferSourceNode | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -24,8 +29,9 @@ export function useSpeechPlayer(mode: AudioModeId) {
    * pitch contour in the Authentic and Ultra modes (fall, or rise for "?"/"!"),
    * and the HAL and WOPR chains use its words. `processing` is the persona's
    * route (default 'sbaitso', the only route the audio mode applies to).
+   * `onStart` receives the clip's playing time in seconds when it starts.
    */
-  const speak = useCallback(async (base64Audio: string, text?: string, options: { processing?: VoiceProcessing } = {}) => {
+  const speak = useCallback(async (base64Audio: string, text?: string, options: SpeakOptions = {}) => {
     if (!base64Audio) return;
     const ctx = await ensureAudioReady();
     if (!ctx) return;
@@ -46,6 +52,8 @@ export function useSpeechPlayer(mode: AudioModeId) {
         sourceRef.current = source;
         setCurrentSource(source);
         setIsPlaying(true);
+        const rate = source.playbackRate?.value || playbackRate || 1;
+        options.onStart?.(buffer.duration / rate);
       });
     } finally {
       sourceRef.current = null;

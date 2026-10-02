@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { render } from '@testing-library/react';
 import DosScreen, { integerScale } from '@/components/classic/DosScreen';
 import { createScreen, print, visibleRows } from '@/utils/dosScreen';
@@ -28,6 +30,25 @@ describe('DosScreen', () => {
     const cursor = container.querySelector('[data-dos-cursor]') as HTMLElement;
     expect(cursor.style.getPropertyValue('--row')).toBe('6');
     expect(cursor.style.getPropertyValue('--col')).toBe('27');
+  });
+});
+
+describe('DosScreen region background', () => {
+  it('paints the rows below the banner in another colour (the DOS screen after Q)', () => {
+    const rows = visibleRows(createScreen());
+    const { container } = render(<DosScreen rows={rows} cols={80} regionBackground={0} />);
+    const rowEls = container.querySelectorAll('[data-dos-row]');
+    expect((rowEls[4] as HTMLElement).style.backgroundColor).toBe('');
+    expect((rowEls[5] as HTMLElement).style.backgroundColor).toBe('rgb(0, 0, 0)');
+    expect((rowEls[24] as HTMLElement).style.backgroundColor).toBe('rgb(0, 0, 0)');
+  });
+});
+
+describe('cursor blink (ref-docs/04: 114 ms on, 114 ms off)', () => {
+  it('runs a 228 ms on/off cycle in the stylesheet', () => {
+    const css = readFileSync(resolve(__dirname, '../../src/index.css'), 'utf8');
+    const rule = /\.dos-cursor\s*\{[^}]*\}/.exec(css)?.[0] ?? '';
+    expect(rule).toMatch(/animation:\s*dos-blink\s+228ms\s+steps\(1,\s*end\)\s+infinite/);
   });
 });
 

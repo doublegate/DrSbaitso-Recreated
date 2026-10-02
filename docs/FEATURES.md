@@ -679,8 +679,9 @@ Experience conversations with 5 different AI personalities from computing histor
   - Knowledge limited to 1992 (v2.20)
   - Initialisms spelled out for the speech chip ("C P U")
 - **Typical Responses:** "WHY DO YOU FEEL THAT WAY?", "I SEE, GO ON", "THAT'S NOT MY PROBLEM"
-- **Glitches:** the original's scripted "PARITY ERR ... RECOVERED" / "PHEW!   THAT WAS CLOSE!"
-  sequence, produced by the local engine (`src/engine/sbaitso/`), never by the model
+- **Glitches:** the original's parity-error flood ("PARITY ERR ...  <number>" lines,
+  then "PARITY ERR ... RECOVERED" and "PARITY", as observed in DOSBox), produced by
+  the local engine (`src/engine/sbaitso/`), never by the model
 
 ####ELIZA
 - **Era:** 1966

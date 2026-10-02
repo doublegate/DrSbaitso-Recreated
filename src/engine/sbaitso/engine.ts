@@ -22,14 +22,14 @@ import {
   BYE_REPLIES,
   CRAZY_PARITY_JOKE,
   CRAZY_REPLIES,
-  EMPTY_NAGS,
+  EMPTY_INPUT,
   GARBAGE_INPUT,
-  GARBLE_A,
-  GARBLE_B,
-  GOOD_BYE,
-  PROFANITY_STRIKES,
+  AGE_NONSENSE,
+  AGE_QUESTIONS,
+  GARBLE,
+  PARITY_MARKER,
+  PROFANITY_GROUP,
   PROFANITY_WORDS,
-  QUIT_DECLINED,
   REPEAT_TIER_1,
   REPEAT_TIER_2,
   SEXUAL_WORDS,
@@ -38,9 +38,9 @@ import {
   SHORT_INPUT_COLOR,
   SHORT_KEYWORDS,
   SHUT_UP_REPLIES,
-  paritySequence,
-  paritySpeech,
+  parityFlood,
 } from './phrases';
+import { nextRandom } from './random';
 import { HELP_40_COLUMNS, helpPages } from './screens';
 import type { EngineStep, SbaitsoSettings, SbaitsoState } from './types';
 
@@ -52,8 +52,11 @@ const NONE = { kind: 'none' } as const;
  */
 export const SHORT_INPUT_LENGTH = 7;
 
-/** Fresh state for a new patient. */
-export function createSbaitsoState(name: string): SbaitsoState {
+/** Seed used when the caller does not pass one. */
+export const DEFAULT_SEED = 0x5ba1750;
+
+/** Fresh state for a new patient. `seed` drives the random replies. */
+export function createSbaitsoState(name: string, seed: number = DEFAULT_SEED): SbaitsoState {
   return {
     name: name.trim().toUpperCase(),
     settings: { ...DEFAULT_SETTINGS },
@@ -64,6 +67,7 @@ export function createSbaitsoState(name: string): SbaitsoState {
     profanityStrikes: 0,
     cursors: {},
     pending: NONE,
+    rng: seed >>> 0,
   };
 }
 
@@ -87,11 +91,16 @@ function rotate(state: SbaitsoState, key: string, pool: readonly string[]): [str
   return [pool[index % pool.length], { ...state, cursors: { ...state.cursors, [key]: index + 1 } }];
 }
 
+/** A random line of a pool, advancing the state's generator. */
+function pick(state: SbaitsoState, pool: readonly string[]): [string, SbaitsoState] {
+  const [value, rng] = nextRandom(state.rng);
+  return [pool[Math.floor(value * pool.length)], { ...state, rng }];
+}
+
 const withName = (line: string, name: string): string => line.replaceAll('~', name);
 
 /** Remove the deliberate garbage characters before a line is spoken. */
-const speakable = (line: string): string =>
-  line.replace(GARBLE_A, '').replace(GARBLE_B, '').replace(/\s+/g, ' ').trim();
+const speakable = (line: string): string => line.replace(GARBLE, '').replace(/\s+/g, ' ').trim();
 
 function reply(state: SbaitsoState, lines: string[], extra: { settings?: Partial<SbaitsoSettings>; stopSpeech?: boolean } = {}): EngineStep {
   const settings = extra.settings ? { ...state.settings, ...extra.settings } : state.settings;
@@ -101,16 +110,29 @@ function reply(state: SbaitsoState, lines: string[], extra: { settings?: Partial
   };
 }
 
+/**
+ * The parity routine: optional `lead` lines (printed and spoken first), the
+ * flood, then the literal reply `PARITY`, printed and spoken (CONFIRMED (DOSBox)).
+ */
 function parity(state: SbaitsoState, lead: string[] = []): EngineStep {
-  const lines = [...lead, ...paritySequence(state.name)];
+  const [, rng] = nextRandom(state.rng);
+  const lines = [PARITY_MARKER];
   return {
-    state: { ...state, profanityStrikes: 0, lastReply: lines },
-    result: { kind: 'parity', lines, speak: [...lead.map(speakable), ...paritySpeech(state.name)] },
+    state: { ...state, rng, lastReply: lines },
+    result: {
+      kind: 'parity',
+      lead,
+      leadSpeak: lead.map(speakable),
+      flood: parityFlood(state.rng),
+      lines,
+      speak: lines,
+    },
   };
 }
 
 function exit(state: SbaitsoState, lines: string[]): EngineStep {
-  return { state: { ...state, lastReply: lines }, result: { kind: 'exit', lines, showMenu: true } };
+  const lastReply = lines.length > 0 ? lines : state.lastReply;
+  return { state: { ...state, lastReply }, result: { kind: 'exit', lines } };
 }
 
 const noop = (state: SbaitsoState): EngineStep => ({ state, result: { kind: 'noop' } });
@@ -160,12 +182,10 @@ function showHelp(state: SbaitsoState, page: 1 | 2 | 3): EngineStep {
   };
 }
 
+/** Empty Enter: a random line of the group, never escalating (CONFIRMED (DOSBox)). */
 function emptyEnter(state: SbaitsoState): EngineStep {
-  const emptyCount = state.emptyCount + 1;
-  const line = EMPTY_NAGS[Math.min(emptyCount, EMPTY_NAGS.length) - 1];
-  // After the last nag the doctor offers to quit and waits for the answer (LIKELY).
-  const pending = emptyCount >= EMPTY_NAGS.length ? ({ kind: 'quit-confirm' } as const) : NONE;
-  return reply({ ...state, emptyCount, pending }, [line]);
+  const [line, next] = pick({ ...state, emptyCount: state.emptyCount + 1 }, EMPTY_INPUT);
+  return reply(next, [line]);
 }
 
 function ageReply(state: SbaitsoState, age: number): EngineStep {
@@ -174,18 +194,21 @@ function ageReply(state: SbaitsoState, age: number): EngineStep {
   return reply(next, [line]);
 }
 
+/** The next line of the profanity group (CONFIRMED (DOSBox) order). */
 function profanity(state: SbaitsoState): EngineStep {
-  const strikes = state.profanityStrikes + 1;
-  // The strike after the last warning is the parity error; the count then starts again.
-  if (strikes > PROFANITY_STRIKES.length) return parity(state);
-  return reply({ ...state, profanityStrikes: strikes }, [PROFANITY_STRIKES[strikes - 1]]);
+  const index = state.profanityStrikes % PROFANITY_GROUP.length;
+  const next = { ...state, profanityStrikes: (index + 1) % PROFANITY_GROUP.length };
+  const line = PROFANITY_GROUP[index];
+  if (line === PARITY_MARKER) return parity(next);
+  const asksAge = AGE_QUESTIONS.some((question) => line.endsWith(question));
+  return reply(asksAge ? { ...next, pending: { kind: 'age' } } : next, [line]);
 }
 
 function goodbye(state: SbaitsoState): EngineStep {
   const index = (state.cursors.bye ?? 0) % BYE_REPLIES.length;
   const [line, next] = rotate(state, 'bye', BYE_REPLIES);
   const text = withName(line, state.name);
-  return index === BYE_REFUSAL_INDEX ? reply(next, [text]) : exit(next, [text, GOOD_BYE]);
+  return index === BYE_REFUSAL_INDEX ? reply(next, [text]) : exit(next, [text]);
 }
 
 function crazy(state: SbaitsoState): EngineStep {
@@ -219,11 +242,14 @@ function answerPending(state: SbaitsoState, raw: string, text: string): EngineSt
       return text ? applyParam(cleared, text) : noop(cleared);
     case 'age': {
       const age = /\d+/.exec(text);
-      return age ? ageReply(cleared, Number(age[0])) : processInput(cleared, raw);
+      if (age) return ageReply(cleared, Number(age[0]));
+      // More bad language instead of an age: an age reply, not the next warning (CONFIRMED (DOSBox)).
+      if (matchesWordList(normalise(text).split(' '), PROFANITY_WORDS)) {
+        const [line, next] = rotate(cleared, 'ageNonsense', AGE_NONSENSE);
+        return reply(next, [line]);
+      }
+      return processInput(cleared, raw);
     }
-    case 'quit-confirm':
-      if (/^(Y|YES|YEAH|YEP|SURE|OK|OKAY)\b/i.test(text)) return exit({ ...cleared, emptyCount: 0 }, [GOOD_BYE]);
-      return reply({ ...cleared, emptyCount: 0 }, [QUIT_DECLINED]);
     default:
       return null;
   }
@@ -253,16 +279,16 @@ function command(state: SbaitsoState, text: string, plain: string): EngineStep |
 
   if (/^(GOOD ?BYE|BYE( BYE)?)( (DOCTOR|DR)( SBAITSO)?| SBAITSO)?$/.test(plain)) return goodbye(state);
 
-  // No response group exists for a bare QUIT or EXIT; going straight to the
-  // menu follows the bertrandom port (UNVERIFIED for the original).
-  if (plain === 'QUIT' || plain === 'EXIT') return exit(state, [GOOD_BYE]);
+  // A bare QUIT shows the menu with no goodbye line; a bare EXIT is not a
+  // command and falls through to short input (CONFIRMED (DOSBox)).
+  if (plain === 'QUIT') return exit(state, []);
 
   return null;
 }
 
-/** CALC output keeps its mixed case and `Computer:` label, so it is built here rather than by `reply`. */
-function calcStep(state: SbaitsoState, expr: string): EngineStep {
-  const { lines, speak } = calcReply(expr);
+/** CALC output keeps its mixed case, so it is built here rather than by `reply`. */
+function calcStep(state: SbaitsoState, expr: string, echo = false): EngineStep {
+  const { lines, speak } = calcReply(expr, { echo });
   return { state: { ...state, lastReply: speak }, result: { kind: 'reply', lines, speak } };
 }
 
@@ -306,7 +332,7 @@ export function processInput(state: SbaitsoState, rawInput: string): EngineStep 
 
   // WHAT IS <arithmetic> is evaluated like CALC; WHAT IS <anything else> is conversation.
   const whatIs = /^WHAT\s+IS\s+(.+)$/is.exec(text);
-  if (whatIs && looksArithmetic(whatIs[1])) return calcStep(current, whatIs[1]);
+  if (whatIs && looksArithmetic(whatIs[1])) return calcStep(current, whatIs[1], true);
 
   // Repeated input, compared after normalising case and punctuation.
   if (plain === current.lastInput) {

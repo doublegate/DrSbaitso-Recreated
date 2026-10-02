@@ -38,10 +38,10 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
     `SHUT UP`;
   - dot commands: `.WIDTH 40/80`, `.COLOR`, `.PROMPT`, `.ECHO`, `.PITCH`, `.SPEED`,
     `.TONE`, `.VOLUME`, `.PARAM` and `.QUIT`;
-  - nagging on empty Enter, and handling of short, garbage and repeated input;
-  - profanity strikes ending in the scripted "PARITY ERR ... RECOVERED" sequence;
-  - `BYE`, then the `<C>ontinue <N>ew patient <Q>uit` menu. Q quits to a DOS prompt,
-    and Enter runs the program again.
+  - replies to empty Enter, and handling of short, garbage and repeated input;
+  - escalating replies to bad language, ending in the parity-error flood;
+  - `BYE`, `QUIT` and `.QUIT`, then the `<C>ontinue <N>ew patient <Q>uit` menu. Q
+    quits to a DOS prompt, and Enter runs the program again.
 
   Behaviour the sources could not confirm is marked as a guess in the code.
 - **Persona selector** (Enhanced mode). Choose Dr. Sbaitso, ELIZA, HAL 9000,
@@ -174,6 +174,35 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
     the classic screen stays on the Sbaitso chain.
 
 ### Fixed
+- **Classic mode now behaves like the original program as it runs in DOSBox.**
+  The 1992 program was run in an emulator and its screen and sound measured
+  (`ref-docs/04-dosbox-verification.md`); classic mode was corrected to match:
+  - The doctor's lines appear whole, one at a time: each is printed, then spoken,
+    and the next appears when the speech ends. Pressing a key cuts the speech
+    short; the remaining lines appear silently and the key is kept for your answer.
+  - Replies start at the left edge (only the greeting is indented). Each turn is
+    your line in yellow, the reply, a blank row and a new `>`. After `R` and after
+    dot commands nothing extra is printed.
+  - The title box stays at the top while the conversation scrolls beneath it, and
+    the bottom row stays empty.
+  - The cursor blinks faster (about four times a second) and shows only while the
+    doctor is waiting for you.
+  - Bad language gets the original's replies in the original order. The parity
+    error is now a fast flood of `PARITY ERR` lines with a falling buzz, ending in
+    `PARITY ERR ... RECOVERED` and the word `PARITY`; the invented "PHEW! THAT WAS
+    CLOSE!" ending is gone.
+  - Pressing Enter on an empty line gets a random reply, sometimes just `ENTER`,
+    and no longer escalates to an offer to quit.
+  - `.QUIT` says goodbye with your name and shows the Continue / New patient / Quit
+    menu; `QUIT` shows the menu at once; `EXIT` is not a command. The menu appears
+    right under the goodbye. New patient keeps the title box and asks for a name
+    without the introduction; Quit leaves the title box above the DOS prompt.
+  - `CALC 2+3` prints ` =  5` and `WHAT IS 12*4` prints `12*4 =  48`, with no
+    `Computer:` label unless `.PROMPT ON` is set. `SAY` prints what it says.
+  - When sound is already enabled (for example when you run the program again
+    after quitting), it starts by saying "Doctor Sbaitso, by Creative Labs" and
+    then asks your name aloud. Browsers keep sound off until you first type, so
+    the very first start is silent.
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
   hidden screen-reader announcer sat in the page flow below the app; it is now fixed
   in place.

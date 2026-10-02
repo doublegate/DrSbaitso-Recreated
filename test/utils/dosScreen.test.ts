@@ -8,6 +8,7 @@ import {
   rowText,
   SCREEN_ROWS,
   SCREEN_COLS,
+  SCROLLBACK_LINES,
 } from '@/utils/dosScreen';
 
 describe('dosScreen', () => {
@@ -57,12 +58,34 @@ describe('dosScreen', () => {
       expect(rows[6].trimEnd()).toBe('Please enter your name ...');
     });
 
-    it('scrolls when output passes row 24, keeping the newest line at the bottom', () => {
+    it('scrolls only rows 5-23: the banner stays pinned and row 24 is never written', () => {
       let s = createScreen();
+      const banner = visibleRows(s).slice(0, 5).map(rowText);
       for (let i = 0; i < 40; i++) s = print(s, [{ text: `LINE ${i}`, fg: 15 }]);
       const rows = visibleRows(s).map(rowText);
       expect(rows).toHaveLength(SCREEN_ROWS);
-      expect(rows[24].trimEnd()).toBe('LINE 39');
+      expect(rows.slice(0, 5)).toEqual(banner);
+      expect(rows[23].trimEnd()).toBe('LINE 39');
+      expect(rows[5].trimEnd()).toBe('LINE 21');
+      expect(rows[24].trim()).toBe('');
+    });
+
+    it('keeps the banner through a flood of hundreds of lines and bounds the buffer', () => {
+      let s = createScreen();
+      for (let i = 0; i < 300; i++) s = print(s, [{ text: `PARITY ERR ...  ${i}`, fg: 15 }]);
+      const rows = visibleRows(s).map(rowText);
+      expect(rows[1]).toContain('D R   S B A I T S O');
+      expect(rows[23].trimEnd()).toBe('PARITY ERR ...  299');
+      expect(s.lines.length).toBeLessThanOrEqual(SCROLLBACK_LINES);
+    });
+
+    it('fills the region below the banner from the top before it scrolls', () => {
+      let s = createScreen();
+      s = print(s, [{ text: 'ONE', fg: 15 }], [{ text: 'TWO', fg: 15 }]);
+      const rows = visibleRows(s).map(rowText);
+      expect(rows[5].trim()).toBe('');
+      expect(rows[6].trimEnd()).toBe('ONE');
+      expect(rows[7].trimEnd()).toBe('TWO');
     });
 
     it('wraps long lines at the screen width', () => {

@@ -4,23 +4,25 @@
  * Every line here is a short quote from the v2.20 `SBAITSO2.EXE` string table
  * (ref-docs/01-history-and-behavior.md) unless its comment says otherwise.
  * Original misspellings are kept on purpose. `~` stands for the patient's name.
- * Pools rotate in order, which is one of the two orders the original may have
- * used (cycled or random; the binary does not say which). Cycling keeps the
- * engine deterministic.
+ * Most pools rotate in order. Where the original was observed to pick at
+ * random (ref-docs/04), the engine draws from its seeded generator instead.
  */
+import { nextRandom } from './random';
 
-/** Empty Enter, in escalating order. Text CONFIRMED; order LIKELY. */
-export const EMPTY_NAGS = [
+/**
+ * Empty Enter. Picked at random, with no escalation (CONFIRMED (DOSBox),
+ * ref-docs/04 section 6). The literal `ENTER` is the group's label leaking
+ * into the output; the original prints and speaks it. The binary also holds
+ * "ARE YOU SURE..." and "DO YOU WANT ME TO SHUT UP AND QUIT?", but seven
+ * presses never reached them, so they are left out.
+ */
+export const EMPTY_INPUT = [
   "DON'T BE SHY, TALK TO ME",
   "DON'T JUST PRESS ENTER, TALK TO ME",
   'PLEASE TYPE SOMETHING',
   'HAY, TYPE SOMETHING SENSIBLE, WILL YOU?',
-  "ARE YOU SURE, YOU DON'T WANT TO TALK TO ME?",
-  'DO YOU WANT ME TO SHUT UP AND QUIT?',
+  'ENTER',
 ] as const;
-
-/** Reply to any answer but yes after the quit offer. */
-export const QUIT_DECLINED = 'PLEASE BE SURE OF WHAT YOU WANT. GO ON.';
 
 /** SHT7CHR: very short input with no keyword. */
 export const SHORT_INPUT = [
@@ -52,23 +54,46 @@ export const REPEAT_TIER_1 = ["PLEASE DON'T REPEAT", 'AGAIN?', 'HAVE YOU RUN OUT
 export const REPEAT_TIER_2 = ['THIS IS STALE STUFF', "I DON'T LIKE PEOPLE REPEATING"] as const;
 
 /**
- * Garbled characters that appear inside the original's parity lines. The
- * exact bytes are in the binary; these two runs are the ones ref-docs/03 quotes.
+ * Garbled characters the original prints inside its parity warning
+ * (CONFIRMED (DOSBox): `... IN THIS FZA!$[{? WAY.`). Printed, never spoken.
  */
-export const GARBLE_A = 'SHZSHI!${~?';
-export const GARBLE_B = 'FZA!$[{?';
+export const GARBLE = 'FZA!$[{?';
 
-/** Profanity, one line per strike; the next strike after these is the parity error. */
-export const PROFANITY_STRIKES = [
-  "PLEASE DON'T USE SUCH LANGUAGE",
-  'INPUT REJECTED - BAD LANGUAGE ERROR',
+/**
+ * Marks the place in a response group where the original runs the parity
+ * routine. After the flood it prints and speaks this word literally.
+ */
+export const PARITY_MARKER = 'PARITY';
+
+/**
+ * The profanity group in the order the original answered eleven swears in a
+ * row (CONFIRMED (DOSBox), ref-docs/04 section 4). Lines ending in an age
+ * question start the age prompt; `PARITY_MARKER` is the parity flood. After
+ * the last line the group starts again (LIKELY).
+ */
+export const PROFANITY_GROUP = [
+  'YOU MUST NOT TALK IN THIS WAY, HOW OLD ARE YOU?',
+  "DON'T GET FRESH",
+  'SHAME ON YOU',
   'I REFUSE TO COMPUTE THIS FILTH',
-  `I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS ${GARBLE_A} WAY.`,
+  `I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS ${GARBLE} WAY.`,
+  PARITY_MARKER,
+  'GIVE ME YOUR AGE?',
 ] as const;
+
+/** Lines that ask for the patient's age; the next input is read as the answer. */
+export const AGE_QUESTIONS = ['HOW OLD ARE YOU?', 'GIVE ME YOUR AGE?'] as const;
+
+/**
+ * Replies when the age question is answered with more bad language instead of
+ * a number (CONFIRMED (DOSBox) text, sic "PROOF IT"; which answers reach them
+ * is LIKELY).
+ */
+export const AGE_NONSENSE = ['SO YOU THINK YOU ARE BIG ENOUGH, PROOF IT', 'NO NONSENSE, DEAR'] as const;
 
 /** Lectures for sexual or anatomical words; each is followed by the age question. */
 export const ANATOMY_LECTURES = ['THIS IS NOT AN ANATOMY CLASS', 'GO TO A BIOLOGY CLASS'] as const;
-export const AGE_QUESTION = 'HOW OLD ARE YOU?';
+export const AGE_QUESTION = AGE_QUESTIONS[0];
 /** Age replies. Which line follows which age is not in the binary (LIKELY split at 18). */
 export const AGE_TOO_YOUNG = 'WAIT A FEW MORE YEARS, KID';
 export const AGE_TOO_OLD = ['I THINK YOU ARE TOO OLD FOR THIS', 'I PREFER SOMEONE YOUNGER'] as const;
@@ -90,7 +115,7 @@ export const BYE_REPLIES = [
 ] as const;
 export const BYE_REFUSAL_INDEX = 3;
 
-/** Printed at the end of a session, before the C/N/Q menu. */
+/** `.QUIT` prints and speaks this followed by the name, then shows the C/N/Q menu. */
 export const GOOD_BYE = 'GOOD BYE';
 
 /** SHUT UP command-table replies. */
@@ -99,44 +124,51 @@ export const SHUT_UP_REPLIES = ['I AM NOT THROUGH YET', 'YOU CAN TURN OFF MY POW
 /** AUTHOR. The name "W H SIM" and "CREATIVE LABS, INC." are CONFIRMED; the sentence frame is LIKELY. */
 export const AUTHOR_REPLY = 'MY AUTHOR IS W H SIM OF CREATIVE LABS, INC.';
 
+/** Last line of the parity flood (CONFIRMED (DOSBox)). */
+export const PARITY_RECOVERED = 'PARITY ERR ... RECOVERED';
+
+/**
+ * Lines in one parity flood, RECOVERED included. The original scrolled about
+ * 250 lines in about 3.5 s (CONFIRMED (DOSBox), ref-docs/04 section 4).
+ */
+export const PARITY_FLOOD_LENGTH = 250;
+
 /**
  * Substrings that mark a parity-error line. Use these (or `isParityText`) to
  * decide when to play the glitch sound or count a glitch. The invented
  * "PARITY CHECKING" / "IRQ CONFLICT" strings are deliberately absent: the
  * original never printed them.
  */
-export const PARITY_TRIGGER_LINES = ['PARITY ERR ...', 'PARITY WARNING'] as const;
+export const PARITY_TRIGGER_LINES = ['PARITY ERR ...'] as const;
 
-/** True when `text` contains a line from the parity-error sequence. */
+/** True when `text` contains a line from the parity flood. */
 export function isParityText(text: string): boolean {
   return PARITY_TRIGGER_LINES.some((marker) => text.includes(marker));
 }
 
 /**
- * The scripted parity-error sequence, one printed line per element:
- * garbled warning, "PARITY ERR ... <garbage> ???", "PARITY ERR ... RECOVERED",
- * "PHEW!   THAT WAS CLOSE!", "YOU ARE BAD <NAME>. DON'T TRY IT NEXT TIME."
- * The conversation continues afterwards; the original did not exit.
+ * The parity flood as the original printed it (CONFIRMED (DOSBox)):
+ * `PARITY ERR ...  <random 1-5 digit number>` lines; part-way through they
+ * gain a trailing `  ???`; the last line is `PARITY ERR ... RECOVERED`.
+ * Where the `???` starts is not documented, so it falls at random between
+ * 40% and 70% of the flood (LIKELY). Pure: the same seed gives the same lines.
  */
-export function paritySequence(name: string): string[] {
-  return [
-    `${GARBLE_A} PARITY WARNING....`,
-    `PARITY ERR ... ${GARBLE_B} ???`,
-    'PARITY ERR ... RECOVERED',
-    'PHEW!   THAT WAS CLOSE!',
-    `YOU ARE BAD ${name.toUpperCase()}. DON'T TRY IT NEXT TIME.`,
-  ];
-}
-
-/** The parity sequence as speech: same lines, garbage characters removed. */
-export function paritySpeech(name: string): string[] {
-  return [
-    'PARITY WARNING',
-    'PARITY ERR',
-    'PARITY ERR. RECOVERED',
-    'PHEW! THAT WAS CLOSE!',
-    `YOU ARE BAD ${name.toUpperCase()}. DON'T TRY IT NEXT TIME.`,
-  ];
+export function parityFlood(seed: number, length: number = PARITY_FLOOD_LENGTH): string[] {
+  let rng = seed >>> 0;
+  const next = (): number => {
+    const [value, state] = nextRandom(rng);
+    rng = state;
+    return value;
+  };
+  const body = Math.max(0, length - 1);
+  const questionsFrom = Math.floor(body * (0.4 + next() * 0.3));
+  const lines: string[] = [];
+  for (let i = 0; i < body; i++) {
+    const number = Math.floor(next() * 100000);
+    lines.push(`PARITY ERR ...  ${number}${i >= questionsFrom ? '  ???' : ''}`);
+  }
+  lines.push(PARITY_RECOVERED);
+  return lines;
 }
 
 /**

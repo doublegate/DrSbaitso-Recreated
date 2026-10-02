@@ -1,10 +1,11 @@
 /**
  * Types for the local Dr. Sbaitso conversation engine.
  *
- * The engine is pure: no React, no DOM, no network, no clock and no random
- * source. Every function takes a state and returns a new one, so the caller
- * owns the state (for example in a React ref) and the engine can be tested
- * exhaustively.
+ * The engine is pure: no React, no DOM, no network, no clock and no global
+ * random source. Randomness comes from a seeded generator carried in the
+ * state (`rng`). Every function takes a state and returns a new one, so the
+ * caller owns the state (for example in a React ref) and the engine can be
+ * tested exhaustively.
  */
 
 /** The settings the original's dot commands change. */
@@ -44,9 +45,7 @@ export type Pending =
   /** `.PARAM` was typed without its four digits. */
   | { kind: 'param' }
   /** "HOW OLD ARE YOU?" was asked. */
-  | { kind: 'age' }
-  /** "DO YOU WANT ME TO SHUT UP AND QUIT?" was asked. */
-  | { kind: 'quit-confirm' };
+  | { kind: 'age' };
 
 export interface SbaitsoState {
   /** Patient name, upper case, as typed at the name prompt. */
@@ -60,11 +59,16 @@ export interface SbaitsoState {
   readonly repeatCount: number;
   /** Consecutive empty Enters. */
   readonly emptyCount: number;
-  /** Profanity offences since the last parity error. */
+  /** Position in the profanity response group (the next line to use). */
   readonly profanityStrikes: number;
   /** Rotation position of each response pool. */
   readonly cursors: Readonly<Record<string, number>>;
   readonly pending: Pending;
+  /**
+   * Seeded random state (32-bit). The original picks some replies at random
+   * (empty Enter, the parity flood's numbers); a seed keeps that reproducible.
+   */
+  readonly rng: number;
 }
 
 /**
@@ -86,8 +90,12 @@ export type EngineResult =
     }
   /** Open conversation: send `message` to the model. */
   | { kind: 'model'; message: string }
-  /** The scripted parity-error breakdown. Play the glitch sound. */
-  | { kind: 'parity'; lines: string[]; speak: string[] }
+  /**
+   * The parity-error routine. Print and speak `lead` (if any), then print
+   * `flood` very fast (about 250 lines in 3.5 s) with the falling buzz tone,
+   * then print and speak `lines` (the literal `PARITY`).
+   */
+  | { kind: 'parity'; lead: string[]; leadSpeak: string[]; flood: string[]; lines: string[]; speak: string[] }
   /** A help page. `more` means `M` will show another. Printed, not spoken. */
   | { kind: 'help'; page: 1 | 2 | 3; lines: string[]; more: boolean }
   /** A dot command. Apply `settings`; print `lines` (prompts and errors), do not speak them. */
@@ -97,11 +105,12 @@ export type EngineResult =
   /** `SAY <text>`: speak `text` verbatim instead of answering. */
   | { kind: 'say'; text: string }
   /**
-   * End of session. Print and speak `lines`, then, if `showMenu`, show
-   * `exitMenuText()` and wait for C/N/Q (see `resolveExitChoice`). Without the
-   * menu (`.QUIT`) the program quits directly.
+   * End of session. Print and speak `lines` (none for a bare QUIT), then show
+   * `exitMenuText()` on the next row and wait for C/N/Q (see
+   * `resolveExitChoice`). Every route, `.QUIT` included, goes through the menu
+   * (CONFIRMED (DOSBox)).
    */
-  | { kind: 'exit'; lines: string[]; showMenu: boolean }
+  | { kind: 'exit'; lines: string[] }
   /** Nothing to do (a prompt was dismissed with Enter). */
   | { kind: 'noop' };
 

@@ -51,6 +51,18 @@ describe('useSpeechPlayer', () => {
     expect(decodeAudioData.mock.calls[0][6]).toEqual({ processing: 'wopr', text: 'SHALL WE PLAY A GAME?' });
   });
 
+  it('reports the playing duration (scaled by the playback rate) when playback starts', async () => {
+    playAudio.mockImplementation((buffer, _c, _d, _r, _w, onStart) => {
+      onStart({ stop: vi.fn(), buffer, playbackRate: { value: 2 } });
+      return Promise.resolve();
+    });
+    decodeAudioData.mockResolvedValueOnce({ duration: 3 } as unknown as AudioBuffer);
+    const onStart = vi.fn();
+    const { result } = renderHook(() => useSpeechPlayer('modern'));
+    await act(() => result.current.speak('AAAA', 'HELLO.', { onStart }));
+    expect(onStart).toHaveBeenCalledWith(1.5);
+  });
+
   it('does nothing for empty audio', async () => {
     const { result } = renderHook(() => useSpeechPlayer('authentic'));
     await act(() => result.current.speak(''));

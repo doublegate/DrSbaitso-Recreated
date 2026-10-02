@@ -4,23 +4,33 @@
  * Every line the user types goes to the local engine first
  * (src/engine/sbaitso): the original's commands (HELP, R, SAY, CALC, dot
  * commands), the deterministic cases (empty, short, repeated, garbage input,
- * profanity and the parity sequence) and the exit menu are answered locally;
+ * profanity and the parity flood) and the exit menu are answered locally;
  * only open conversation is sent to Gemini (the "hybrid" design).
  *
- * Layout and wording follow ref-docs/01 and 03: banner, "Please enter your
- * name ..." typed inline, the v2.20 greeting, a yellow ">" prompt, doctor
- * lines with a one-space indent, printed a line at a time and then spoken.
+ * Screen behaviour follows the DOSBox-X run of the original
+ * (ref-docs/04-dosbox-verification.md):
+ * - Doctor lines appear whole, one at a time. Each is printed, then spoken,
+ *   and the next one prints when that speech ends. A reply is synthesised in
+ *   one request and each line is shown at its estimated place in the clip
+ *   (utils/speechCues). A keypress cuts the speech; the rest prints unspoken.
+ * - Replies start at column 0 (only the greeting is indented). A turn is the
+ *   yellow input line, the reply, one blank row and the next `>`.
+ * - The banner is pinned; rows 5-23 scroll and row 24 stays blank.
+ * - The cursor shows only while waiting at `>`.
+ * - BYE / QUIT / .QUIT lead to the C/N/Q menu on the next row.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import DosScreen from './DosScreen';
 import { createScreen, print, visibleRows, DOS, type Row, type Screen } from '../../utils/dosScreen';
 import { getAIResponse, resetChat, synthesizeSpeech } from '../../services/geminiService';
 import { useSpeechPlayer } from '../../hooks/useSpeechPlayer';
 import { useScreenReader } from '../../hooks/useScreenReader';
-import { ensureAudioReady, getSharedAudioContext } from '../../utils/sharedAudio';
-import { playGlitchSound } from '../../utils/audio';
+import { ensureAudioReady, getSharedAudioContext, peekSharedAudioContext } from '../../utils/sharedAudio';
+import { playParityTone } from '../../utils/audio';
+import { cueOffsets } from '../../utils/speechCues';
 import { retroErrorMessage } from '../../utils/retroErrors';
 import {
+  CALC_LABEL,
   DEFAULT_SETTINGS,
   MAX_NAME_LENGTH,
   NAME_ERROR_TEXT,
@@ -28,7 +38,6 @@ import {
   createSbaitsoState,
   exitMenuText,
   greetingLines,
-  greetingSpeech,
   processInput,
   recordReply,
   resolveExitChoice,
@@ -37,24 +46,52 @@ import {
   type SbaitsoState,
 } from '../../engine/sbaitso';
 
-const LINE_DELAY_MS = 600;
+/** Gap between lines printed without speech (after a keypress, or when TTS is unavailable). */
+const LINE_GAP_MS = 70;
+/** The parity flood: about 250 lines in about 3.5 s (ref-docs/04 section 4). */
+const FLOOD_MS = 3500;
+/** Flood lines are printed in batches this often. */
+const FLOOD_TICK_MS = 40;
 const DOS_PROMPT = 'C:\\SB>';
+/** DOS's default light grey on black, used below the banner after Q. */
+const DOS_GREY = 7;
+const DOS_BLACK = 0;
+/** What the original says before the name prompt (CONFIRMED (DOSBox)). */
+const INTRO_SPEECH = ['DOCTOR SBAITSO.', 'BY CREATIVE LABS.'];
+const NAME_PROMPT_SPEECH = 'PLEASE ENTER YOUR NAME.';
 
-type Phase = 'name' | 'busy' | 'chat' | 'menu' | 'dos';
+type Phase = 'intro' | 'name' | 'busy' | 'chat' | 'menu' | 'dos';
+
+/** One printed line (or event) and what is said for it. */
+interface Cue {
+  row?: Row;
+  show?: () => void;
+  spoken: string;
+}
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-/** Doctor lines carry a one-space indent, as in the original. */
-const indent = (line: string) => (line === '' || line.startsWith(' ') ? line : ` ${line}`);
+const randomSeed = () => Math.floor(Math.random() * 0x100000000);
 
-export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void }) {
+interface ClassicAppProps {
+  onSwitchMode?: () => void;
+  /** Seed for the engine's random replies; random per session when omitted. */
+  seed?: number;
+  /** Duration of the parity flood, in ms (tests shorten it). */
+  floodMs?: number;
+}
+
+export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS }: ClassicAppProps) {
   const [screen, setScreen] = useState<Screen>(() => createScreen());
-  const [phase, setPhase] = useState<Phase>('name');
+  const [phase, setPhase] = useState<Phase>('intro');
   const [input, setInput] = useState('');
   const [settings, setSettings] = useState<SbaitsoSettings>(DEFAULT_SETTINGS);
   const [transcript, setTranscript] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const engine = useRef<SbaitsoState>(createSbaitsoState(''));
+  const engine = useRef<SbaitsoState>(createSbaitsoState('', seed ?? randomSeed()));
   const unmounted = useRef(false);
+  const started = useRef(false);
+  /** Cuts the speech of the cues being played; set while they play. */
+  const cutSpeech = useRef<(() => void) | null>(null);
   const speech = useSpeechPlayer('authentic');
   const { announce } = useScreenReader();
 
@@ -73,6 +110,8 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
   const text = (t: string): Row => [{ text: t, fg }];
   const printRows = (...rows: Row[]) => setScreen((s) => print(s, ...rows));
   const log = (line: string) => setTranscript((t) => [...t.slice(-200), line]);
+  /** A reply line: column 0, labelled `Computer: ` under .PROMPT ON. */
+  const replyRow = (line: string): Row => text(settings.prompt && line !== '' ? CALC_LABEL + line : line);
 
   const applySettings = (changes: Partial<SbaitsoSettings>) => {
     if (Object.keys(changes).length === 0) return;
@@ -86,41 +125,101 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
     });
   };
 
-  /** Speaks text (the doctor's voice); resolves when playback ends. */
-  const speak = async (spoken: string) => {
-    if (!spoken.trim()) return;
-    try {
-      await speech.speak(await synthesizeSpeech(spoken, 'sbaitso'), spoken);
-    } catch (error) {
-      console.warn('Speech unavailable; text kept:', error);
+  /**
+   * Shows the cues in order and speaks them with one TTS request. The first
+   * cue appears at once; each later one when the speech reaches it. If the
+   * speech is cut (a keypress) or unavailable, the rest appear unspoken.
+   */
+  const playCues = async (cues: Cue[]) => {
+    if (cues.length === 0 || unmounted.current) return;
+    const spokenParts = cues.map((c) => c.spoken.trim());
+    const spoken = spokenParts.filter(Boolean).join(' ');
+    let shown = 0;
+    const showUpTo = (index: number) => {
+      while (shown <= index && shown < cues.length && !unmounted.current) {
+        const cue = cues[shown++];
+        if (cue.row) printRows(cue.row);
+        cue.show?.();
+      }
+    };
+
+    let cut = false;
+    const cutPromise = new Promise<''>((resolve) => {
+      cutSpeech.current = () => {
+        cut = true;
+        speech.stop();
+        resolve('');
+      };
+    });
+
+    showUpTo(0);
+    if (spoken) {
+      announce(spoken);
+      const audio = await Promise.race([synthesizeSpeech(spoken, 'sbaitso').catch(() => ''), cutPromise]);
+      if (audio && !cut && !unmounted.current) {
+        const offsets = cueOffsets(spokenParts);
+        const timers: ReturnType<typeof setTimeout>[] = [];
+        try {
+          await speech.speak(audio, spoken, { onStart: (seconds) => {
+            for (let i = shown; i < cues.length; i++) {
+              timers.push(setTimeout(() => showUpTo(i), offsets[i] * seconds * 1000));
+            }
+          } });
+        } catch (error) {
+          console.warn('Speech unavailable; text kept:', error);
+        }
+        timers.forEach(clearTimeout);
+      }
+    }
+    cutSpeech.current = null;
+    // Whatever the speech did not reach prints unspoken, a line at a time.
+    while (shown < cues.length && !unmounted.current) {
+      await sleep(LINE_GAP_MS);
+      showUpTo(shown);
     }
   };
 
-  /** Prints lines one at a time (speech is fetched meanwhile), then speaks them. */
-  const printAndSpeak = async (lines: string[], spokenLines: string[] = lines) => {
-    const spoken = spokenLines.map((l) => l.trim()).filter(Boolean).join(' ');
-    const audio = spoken ? synthesizeSpeech(spoken, 'sbaitso').catch(() => '') : Promise.resolve('');
-    const label = settings.prompt ? 'Computer: ' : '';
-    for (const line of lines) {
-      if (unmounted.current) return;
-      // With .PROMPT ON doctor lines are labelled "Computer: " instead of indented.
-      printRows(text(line === '' ? '' : label ? label + line.trim() : indent(line)));
-      if (line.trim()) log(`Doctor Sbaitso: ${line.trim()}`);
-      await sleep(LINE_DELAY_MS);
-    }
-    if (spoken) announce(spoken);
-    try {
-      await speech.speak(await audio, spoken);
-    } catch (error) {
-      console.warn('Speech unavailable; text kept:', error);
-    }
+  /** Prints reply lines at column 0 and speaks them. */
+  const printAndSpeak = (lines: string[], spokenLines: string[] = lines) => {
+    lines.forEach((l) => l.trim() && log(`Doctor Sbaitso: ${l.trim()}`));
+    return playCues(lines.map((line, i) => ({ row: replyRow(line), spoken: spokenLines[i] ?? '' })));
   };
 
-  const startSession = () => {
-    engine.current = createSbaitsoState('');
+  /** Speaks without printing (R, .ECHO). */
+  const speakOnly = (spoken: string) => playCues([{ spoken }]);
+
+  /** The name prompt, printed and spoken; with `intro`, preceded by the spoken title. */
+  const askName = async (intro: boolean) => {
+    const prompt: Cue = { show: () => setPhase('name'), spoken: NAME_PROMPT_SPEECH };
+    const ctx = peekSharedAudioContext();
+    // Browsers keep audio locked until a user gesture, so a first visit starts silently.
+    if (!ctx || ctx.state !== 'running') {
+      setPhase('name');
+      return;
+    }
+    setPhase(intro ? 'intro' : 'name');
+    await playCues(intro ? [...INTRO_SPEECH.map((spoken) => ({ spoken })), prompt] : [prompt]);
+  };
+
+  /** Runs the program from the start: banner, intro, name prompt. */
+  const startProgram = () => {
+    engine.current = createSbaitsoState('', seed ?? randomSeed());
     setSettings(DEFAULT_SETTINGS);
     setScreen(createScreen());
-    setPhase('name');
+    void askName(true);
+  };
+
+  const onMount = useEffectEvent(() => {
+    if (started.current) return;
+    started.current = true;
+    void askName(true);
+  });
+  useEffect(() => onMount(), []);
+
+  /** N at the menu: clear below the banner and ask for a new name, without the intro. */
+  const newPatient = () => {
+    setScreen((s) => ({ ...s, lines: [[]] }));
+    void askName(false);
   };
 
   const submitName = async () => {
@@ -136,21 +235,39 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
       return;
     }
     void ensureAudioReady();
-    engine.current = createSbaitsoState(result.name);
+    // A new patient keeps the screen settings (colour, width); the engine starts afresh.
+    engine.current = { ...createSbaitsoState(result.name, seed ?? randomSeed()), settings };
     resetChat('sbaitso');
     setPhase('busy');
-    await printAndSpeak(greetingLines(result.name), greetingSpeech(result.name));
+    const greeting = greetingLines(result.name);
+    greeting.forEach((l) => l.trim() && log(`Doctor Sbaitso: ${l.trim()}`));
+    await playCues(greeting.map((line) => ({ row: text(line), spoken: line.trim() })));
     if (!unmounted.current) {
       printRows([]);
       setPhase('chat');
     }
   };
 
-  /** Handles one line through the engine; returns the next phase. */
-  const handleLine = async (line: string): Promise<Phase> => {
+  /** The parity routine: lead lines, the flood with its tone, then PARITY. */
+  const parityFlood = async (flood: string[]) => {
+    const ctx = getSharedAudioContext();
+    if (ctx) playParityTone(ctx, floodMs / 1000 + 0.5);
+    log(`Doctor Sbaitso: ${flood[0] ?? ''} ... ${flood[flood.length - 1] ?? ''}`);
+    const ticks = Math.max(1, Math.round(floodMs / FLOOD_TICK_MS));
+    const perTick = Math.max(1, Math.ceil(flood.length / ticks));
+    for (let i = 0; i < flood.length; i += perTick) {
+      if (unmounted.current) return;
+      printRows(...flood.slice(i, i + perTick).map((l) => text(l)));
+      await sleep(floodMs / ticks);
+    }
+  };
+
+  /** Handles one line through the engine; returns the next phase and whether a blank row precedes the prompt. */
+  const handleLine = async (line: string): Promise<{ next: Phase; blank: boolean }> => {
     const step = processInput(engine.current, line);
     engine.current = step.state;
     const result = step.result;
+    const chat = { next: 'chat' as const, blank: true };
 
     switch (result.kind) {
       case 'model': {
@@ -164,49 +281,55 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
         } catch (error) {
           await printAndSpeak([retroErrorMessage(error)]);
         }
-        return 'chat';
+        return chat;
       }
       case 'reply':
         if (result.stopSpeech) speech.stop();
         if (result.settings) applySettings(result.settings);
         await printAndSpeak(result.lines, result.speak);
-        return 'chat';
-      case 'parity': {
-        const ctx = getSharedAudioContext();
-        if (ctx) playGlitchSound(ctx);
+        // After an age question the next prompt follows with no blank row (CONFIRMED (DOSBox)).
+        return { next: 'chat', blank: engine.current.pending.kind !== 'age' };
+      case 'parity':
+        await printAndSpeak(result.lead, result.leadSpeak);
+        await parityFlood(result.flood);
         await printAndSpeak(result.lines, result.speak);
-        return 'chat';
-      }
+        return chat;
       case 'help':
         for (const helpLine of result.lines) printRows(text(helpLine));
         result.lines.forEach((l) => log(l));
-        return 'chat';
-      case 'setting':
+        return chat;
+      case 'setting': {
+        const promptOff = result.settings.prompt === false && settings.prompt;
         applySettings(result.settings);
         for (const msg of result.lines) printRows(text(msg));
         result.lines.forEach((l) => log(l));
-        return 'chat';
+        // .PROMPT OFF prints an empty "Computer:" line and the prompt follows directly.
+        if (promptOff) printRows(text(CALC_LABEL.trimEnd()));
+        return { next: 'chat', blank: !promptOff };
+      }
       case 'repeat':
-        await speak(result.lines.join(' '));
-        return 'chat';
+        // R re-speaks the last reply; nothing is printed and the prompt follows on the next row.
+        await speakOnly(result.lines.join(' '));
+        return { next: 'chat', blank: false };
       case 'say':
-        await speak(result.text);
-        return 'chat';
+        await printAndSpeak([result.text.toUpperCase()], [result.text]);
+        return chat;
       case 'exit':
         await printAndSpeak(result.lines);
-        if (!result.showMenu) return quitToDos();
-        printRows([], text(exitMenuText()));
+        // The menu follows on the very next row; it is not spoken.
+        printRows(text(exitMenuText()));
         log(exitMenuText());
-        return 'menu';
+        return { next: 'menu', blank: false };
       case 'noop':
       default:
-        return 'chat';
+        return chat;
     }
   };
 
   const quitToDos = (): Phase => {
     speech.stop();
-    setScreen((s) => print({ ...createScreen({ cols: s.cols }), banner: [], lines: [[]] }, text(DOS_PROMPT)));
+    // The banner stays; the rows below become a DOS screen (CONFIRMED (DOSBox)).
+    setScreen((s) => ({ ...s, lines: [] }));
     log('Program ended. Press Enter to run Doctor Sbaitso again.');
     return 'dos';
   };
@@ -215,41 +338,44 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
     const line = input;
     setInput('');
     const promptLabel = settings.prompt ? 'User> ' : '>';
+    // The whole input line is yellow (CONFIRMED (DOSBox)).
     printRows([
       { text: promptLabel, fg: DOS.yellow },
-      { text: line, fg },
+      { text: line, fg: DOS.yellow },
     ]);
     log(`You: ${line}`);
     setPhase('busy');
-    if (settings.echo && line.trim()) await speak(line);
-    const next = await handleLine(line);
+    if (settings.echo && line.trim()) await speakOnly(line);
+    const { next, blank } = await handleLine(line);
     if (unmounted.current) return;
-    if (next === 'chat') printRows([]);
+    if (next === 'chat' && blank) printRows([]);
     setPhase(next);
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Any key cuts the doctor's speech; queued lines then print unspoken.
+    if (cutSpeech.current && !['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) cutSpeech.current();
     if (phase === 'menu') {
-      // The exit menu reacts to a single key, like the original.
+      // The exit menu reacts to a single key, like the original, and does not echo it.
       const choice = resolveExitChoice(e.key);
       if (!choice) return;
       e.preventDefault();
-      printRows(text(e.key.toUpperCase()));
       if (choice === 'continue') {
         printRows([]);
         setPhase('chat');
       } else if (choice === 'new') {
-        startSession();
+        newPatient();
       } else {
         setPhase(quitToDos());
       }
       return;
     }
-    if (e.key !== 'Enter' || phase === 'busy') return;
+    if (e.key !== 'Enter') return;
     e.preventDefault();
+    if (phase === 'busy' || phase === 'intro') return;
     if (phase === 'dos') {
-      startSession();
       setInput('');
+      startProgram();
     } else if (phase === 'name') {
       void submitName();
     } else {
@@ -264,18 +390,19 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
       : phase === 'chat'
         ? [
             { text: settings.prompt ? 'User> ' : '>', fg: DOS.yellow },
-            { text: input, fg },
+            { text: input, fg: DOS.yellow },
           ]
         : phase === 'dos'
-          ? text(DOS_PROMPT + input)
+          ? [{ text: DOS_PROMPT + input, fg: DOS_GREY }]
           : [];
   const view = promptRow.length ? print(screen, promptRow) : screen;
   const rows = visibleRows(view);
   const lastText = promptRow.map((s) => s.text).join('');
+  // The cursor shows only while waiting at a prompt: hidden for the name, while speaking and at the menu.
   const cursor =
-    phase === 'busy' || phase === 'menu'
-      ? null
-      : { row: rows.length - 1 - trailingBlank(rows), col: Math.min(lastText.length % screen.cols, screen.cols - 1) };
+    phase === 'chat' || phase === 'dos'
+      ? { row: rows.length - 1 - trailingBlank(rows), col: Math.min(lastText.length % screen.cols, screen.cols - 1) }
+      : null;
 
   const label =
     phase === 'name'
@@ -284,11 +411,19 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
         ? 'Press C to continue, N for a new patient, or Q to quit'
         : phase === 'dos'
           ? 'Press Enter to run Doctor Sbaitso again'
-          : 'Talk to Doctor Sbaitso';
+          : phase === 'intro'
+            ? 'Doctor Sbaitso is starting'
+            : 'Talk to Doctor Sbaitso';
 
   return (
-    <main onClick={() => inputRef.current?.focus()} aria-label="Doctor Sbaitso">
-      <DosScreen rows={rows} cols={screen.cols} cursor={cursor} background={settings.background} />
+    <main onClick={() => inputRef.current?.focus()} aria-label="Doctor Sbaitso" data-phase={phase}>
+      <DosScreen
+        rows={rows}
+        cols={screen.cols}
+        cursor={cursor}
+        background={settings.background}
+        regionBackground={phase === 'dos' ? DOS_BLACK : undefined}
+      />
       <div className="sr-only" role="log" aria-live="off" aria-label="Conversation">
         {transcript.map((line, i) => (
           <p key={i}>{line}</p>
@@ -306,8 +441,8 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
         autoComplete="off"
         autoCapitalize="characters"
         spellCheck={false}
-        disabled={phase === 'busy'}
-        onChange={(e) => phase !== 'menu' && setInput(e.target.value)}
+        aria-busy={phase === 'busy' || phase === 'intro'}
+        onChange={(e) => phase !== 'menu' && phase !== 'intro' && setInput(e.target.value)}
         onKeyDown={onKeyDown}
       />
       {onSwitchMode && (

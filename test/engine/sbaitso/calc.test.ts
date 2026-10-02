@@ -43,24 +43,32 @@ describe('evaluateArithmetic', () => {
 });
 
 describe('calcReply', () => {
-  it('phrases division the way the original did', () => {
-    expect(calcReply('6 / 3')).toEqual({
-      lines: ['Computer: 6 divided by 3 equals to 2'],
-      speak: ['6 divided by 3 equals to 2'],
-    });
+  it('prints CALC results as " =  <value>" without echoing the expression or a label', () => {
+    expect(calcReply('2+3').lines).toEqual([' =  5']);
+    expect(calcReply('10/4').lines).toEqual([' =  2.5']);
   });
 
-  it('spells every operator as a word', () => {
-    expect(calcReply('(2+3)*4-1').lines[0]).toBe('Computer: ( 2 plus 3 ) times 4 minus 1 equals to 19');
+  it('echoes the expression for WHAT IS', () => {
+    expect(calcReply('12*4', { echo: true }).lines).toEqual(['12*4 =  48']);
+    expect(calcReply('12*4?', { echo: true }).lines).toEqual(['12*4 =  48']);
+  });
+
+  it('prints a negative result with its sign in place of the leading space', () => {
+    expect(calcReply('2-7').lines).toEqual([' = -5']);
+  });
+
+  it('speaks the result in words, phrasing division the way the original did', () => {
+    expect(calcReply('6 / 3').speak).toEqual(['6 divided by 3 equals to 2']);
+    expect(calcReply('(2+3)*4-1').speak[0]).toBe('( 2 plus 3 ) times 4 minus 1 equals to 19');
   });
 
   it('rounds long fractions', () => {
-    expect(calcReply('1/3').lines[0]).toBe('Computer: 1 divided by 3 equals to 0.333333');
+    expect(calcReply('1/3').lines[0]).toBe(' =  0.333333');
   });
 
   it('uses the original error text', () => {
-    expect(calcReply('((1))').lines[0]).toBe(`Computer: ${CALC_ERRORS.brackets}`);
-    expect(calcReply('1/0').lines[0]).toBe(`Computer: ${CALC_ERRORS.bug}`);
+    expect(calcReply('((1))').lines[0]).toBe(CALC_ERRORS.brackets);
+    expect(calcReply('1/0').lines[0]).toBe(CALC_ERRORS.bug);
     expect(CALC_ERRORS.brackets).toBe('Cannot compute, brackets are too complex for me.');
     expect(CALC_ERRORS.bug).toBe("Doesn't compute, I think there is a bug in your equation.");
   });
