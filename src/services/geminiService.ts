@@ -48,6 +48,21 @@ export interface CustomCharacterInput {
 
 const histories = new Map<string, ChatTurn[]>();
 
+/** History entries the server forwards (api/_lib/gemini.ts LIMITS.historyTurns); older ones are useless. */
+const MAX_HISTORY_TURNS = 40;
+/** Characters per entry the server accepts (LIMITS.historyText). */
+const MAX_TURN_CHARS = 4000;
+/** Bytes of history per request, leaving room under the server's 64 KiB body cap. */
+const MAX_HISTORY_BYTES = 48 * 1024;
+
+/** Keeps the most recent history that the server will accept and use. */
+function trimHistory(turns: ChatTurn[]): ChatTurn[] {
+  let kept = turns.slice(-MAX_HISTORY_TURNS).map((t) => ({ ...t, text: t.text.slice(0, MAX_TURN_CHARS) }));
+  const size = (list: ChatTurn[]) => new TextEncoder().encode(JSON.stringify(list)).byteLength;
+  while (kept.length > 0 && size(kept) > MAX_HISTORY_BYTES) kept = kept.slice(2);
+  return kept;
+}
+
 async function post<T>(path: string, body: unknown): Promise<T> {
   let response: Response;
   try {
@@ -100,7 +115,7 @@ export async function getAIResponse(
 
   const { text } = await post<{ text: string }>('/api/chat', { ...target, history, message });
 
-  histories.set(characterId, [...history, { role: 'user', text: message }, { role: 'model', text }]);
+  histories.set(characterId, trimHistory([...history, { role: 'user', text: message }, { role: 'model', text }]));
   return text;
 }
 

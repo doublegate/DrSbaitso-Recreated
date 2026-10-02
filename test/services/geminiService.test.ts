@@ -103,6 +103,23 @@ describe('geminiService (proxy client)', () => {
     });
   });
 
+  describe('long conversations', () => {
+    it('sends at most the 40 most recent history entries the server uses', async () => {
+      fetchMock.mockImplementation(() => reply(200, { text: 'GO ON.' }));
+      for (let i = 0; i < 30; i++) await getAIResponse(`line ${i}`, 'sbaitso');
+      const history = lastBody().history;
+      expect(history).toHaveLength(40);
+      expect(history.at(-2)).toEqual({ role: 'user', text: 'line 28' });
+    });
+
+    it('stays under the request size cap however long the turns are', async () => {
+      fetchMock.mockImplementation(() => reply(200, { text: 'X'.repeat(1900) }));
+      for (let i = 0; i < 40; i++) await getAIResponse('Y'.repeat(1900), 'sbaitso');
+      const size = new TextEncoder().encode(fetchMock.mock.calls.at(-1)![1].body).byteLength;
+      expect(size).toBeLessThan(64 * 1024);
+    });
+  });
+
   describe('resetChat / resetAllChats', () => {
     it('clears one character only', async () => {
       fetchMock.mockImplementation(() => reply(200, { text: 'OK' }));
