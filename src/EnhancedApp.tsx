@@ -1,9 +1,5 @@
-import React, { useState, useEffect, useEffectEvent, useRef, useCallback, lazy, Suspense } from 'react';
-import { Message } from './types';
-import { getAIResponse, resetChat, synthesizeSpeech } from './services/geminiService';
-import { playGlitchSound, playErrorBeep } from './utils/audio';
-import { getSharedAudioContext, ensureAudioReady } from './utils/sharedAudio';
-import { retroErrorMessage } from './utils/retroErrors';
+import React, { useState, useEffect, useEffectEvent, useRef, lazy, Suspense } from 'react';
+import { getSharedAudioContext } from './utils/sharedAudio';
 import { useSpeechPlayer } from './hooks/useSpeechPlayer';
 import { AUDIO_MODES } from './constants';
 import { useAccessibility } from './hooks/useAccessibility';
@@ -14,13 +10,13 @@ import { useFocusTrap } from './hooks/useFocusTrap';
 import MenuGroup from './components/enhanced/MenuGroup';
 import { playSoundPackEvent } from './utils/soundPackPlayer';
 import { saveSoundPack } from './utils/soundPackStore';
-import { hasStarted, personaOpening, personaTurn, resetPersona, type PersonaEngines } from './engine/personaTurn';
 import { useSessionHistory } from './hooks/useSessionHistory';
 import { useThemeChoice } from './hooks/useThemeChoice';
 import { usePersona } from './hooks/usePersona';
 import { matchShortcut, shortcutLabel, type ShortcutId } from './utils/shortcuts';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import { usePanels } from './hooks/usePanels';
+import { useChatPipeline } from './hooks/useChatPipeline';
 import SkipNav from './components/SkipNav';
 
 // Lazy-loaded components (only load when needed)
@@ -49,52 +45,11 @@ const EmotionVisualizer = lazy(() => import('./components/EmotionVisualizer'));
 const TopicFlowDiagram = lazy(() => import('./components/TopicFlowDiagram'));
 const ConversationTemplates = lazy(() => import('./components/ConversationTemplates'));
 
-const TYPING_DELAY_MS = 40;
-/** Replies longer than this are printouts and type at FAST_TYPING_DELAY_MS. */
-const LONG_PRINTOUT_CHARS = 400;
-const FAST_TYPING_DELAY_MS = 4;
-const GREETING_LINE_DELAY_MS = 800;
-const GLITCH_PHRASES = ['PARITY CHECKING', 'IRQ CONFLICT'];
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-/**
- * Opening lines per persona. Dr. Sbaitso uses the original v2.20 greeting;
- * personas with a local engine use its opener (ELIZA's 1965 script greeting,
- * JOSHUA's LOGON prompt); the rest get a generic connection line.
- */
-function personaGreeting(personaId: string, personaName: string, userName: string): string[] {
-  const opening = personaOpening(personaId);
-  if (opening) return opening;
-  switch (personaId) {
-    case 'sbaitso':
-      return [
-        `HELLO ${userName},  MY NAME IS DOCTOR SBAITSO.`,
-        '',
-        'I AM HERE TO HELP YOU.',
-        'SAY WHATEVER IS IN YOUR MIND FREELY,',
-        'OUR CONVERSATION WILL BE KEPT IN STRICT CONFIDENCE.',
-        'MEMORY CONTENTS WILL BE WIPED OFF AFTER YOU LEAVE,',
-        '',
-        'SO, TELL ME ABOUT YOUR PROBLEMS.',
-      ];
-    default:
-      return [`HELLO ${userName}.`, `YOU ARE NOW CONNECTED TO ${personaName.toUpperCase()}.`];
-  }
-}
-
 /** The modern UI: toolbar, panels, personas and extras ("Enhanced" mode). */
 export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => void } = {}) {
-  // Core state
-  const [userName, setUserName] = useState<string | null>(null);
-  const [nameInput, setNameInput] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [userInput, setUserInput] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isGreeting, setIsGreeting] = useState(false);
-  const [isPreparingGreeting, setIsPreparingGreeting] = useState(false);
   // The active persona (built-in or custom), chosen in the toolbar.
   const personaState = usePersona();
-  const { persona, chatOptions, speechOptions, formatReply, voiceProcessing } = personaState;
+  const { persona } = personaState;
   const characterId = persona.id;
 
   // Audio mode state (v1.3.0)
@@ -108,11 +63,6 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   const { settings: accessibilitySettings, updateSetting, resetSettings } = useAccessibility();
   const { announce } = useScreenReader();
 
-  // v1.5.0 Feature states
-
-  // v1.6.0 Feature states
-
-  // v1.8.0 Feature states
   // Open/closed state of every panel and dialog (hooks/usePanels).
   const panels = usePanels();
   const { open: panelOpen, setPanel } = panels;
@@ -121,19 +71,43 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   const currentTheme = themeChoice.theme.id;
   const activeTheme = themeChoice.theme;
 
+  // Sound Effects (v1.9.0)
+  const soundEffects = useSoundEffects();
+
+  // Name entry, greeting and the turn pipeline (hooks/useChatPipeline).
+  const chat = useChatPipeline({
+    personaState,
+    speech,
+    mutedRef,
+    soundEffects,
+    announce,
+    announceMessages: accessibilitySettings.announceMessages,
+  });
+  const {
+    userName,
+    nameInput,
+    setNameInput,
+    messages,
+    userInput,
+    setUserInput,
+    isLoading,
+    isGreeting,
+    isPreparingGreeting,
+    handleNameSubmit,
+    clearConversation,
+    switchPersona,
+    handleUserInput,
+    handleKeyDown,
+    handleVoiceTranscript,
+    handleSelectTemplate,
+  } = chat;
+
   // Conversation history is opt-in (the greeting promises memory is wiped).
   const { keepHistory, setKeepHistory, currentSession, savedSessions, mergeSessions } = useSessionHistory(messages, {
     characterId,
     themeId: currentTheme,
     audioQualityId: audioMode,
   });
-
-
-  // v1.9.0 Feature states
-
-  // v1.10.0 Feature states
-
-  // v1.11.0 Feature states (Option C)
 
   // Keeps keyboard focus inside the voice-help dialog while it is open.
   const voiceHelpRef = useFocusTrap(panelOpen.voiceControlHelp);
@@ -180,27 +154,10 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     },
   });
 
-  // Sound Effects (v1.9.0)
-  const soundEffects = useSoundEffects();
-
   // Refs
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  // Guards one conversational turn at a time across async callers (typed input,
-  // templates, voice) without depending on render-time state.
-  const busyRef = useRef(false);
-  // Local engine state per persona (ELIZA, PARRY, HAL, JOSHUA); see engine/personaTurn.
-  const enginesRef = useRef<PersonaEngines>({});
-  const engineSeedRef = useRef(Date.now() >>> 0);
-  // Lets in-flight async sequences (greeting, typewriter) stop after unmount.
-  const unmountedRef = useRef(false);
-  useEffect(() => {
-    unmountedRef.current = false;
-    return () => {
-      unmountedRef.current = true;
-    };
-  }, []);
 
   // Theme switches play the sound pack's theme-change sound (not on first render).
   const lastThemeRef = useRef(currentTheme);
@@ -221,153 +178,12 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       // Using a timeout helps ensure the focus command runs after the browser has
       // finished rendering, making it more reliable.
       setTimeout(() => nameInputRef.current?.focus(), 50);
-    } 
+    }
     // When the chat is ready for user input, focus the chat input.
     else if (userName && !isLoading && !isGreeting) {
       inputRef.current?.focus();
     }
   }, [userName, isLoading, isGreeting, isPreparingGreeting]);
-  
-  const handleNameSubmit = async () => {
-    const name = nameInput.trim().toUpperCase();
-    if (!name || isPreparingGreeting) return;
-
-    // The submit is a user gesture, so this is when audio may be unlocked.
-    void ensureAudioReady();
-    setIsPreparingGreeting(true);
-
-    const lines = personaGreeting(persona.id, persona.name, name);
-
-    // One TTS request for the whole greeting stays well inside rate limits.
-    // Any failure degrades to a text-only session rather than blocking it.
-    // JOSHUA's LOGON prompt is printed, never spoken.
-    const spokenGreeting = characterId === 'joshua' ? '' : lines.filter((line) => line.trim()).join('. ');
-    const audio = await (spokenGreeting ? synthesizeSpeech(spokenGreeting, characterId, speechOptions) : Promise.resolve('')).catch(
-      (error) => {
-        console.warn('Greeting speech unavailable; continuing text-only:', error);
-        return '';
-      },
-    );
-    if (unmountedRef.current) return;
-
-    setIsPreparingGreeting(false);
-    setUserName(name);
-    setIsGreeting(true);
-    void playSoundPackEvent('startup');
-
-    // Speak while the lines appear; input unlocks once both have finished.
-    const spoken = speech.speak(audio, lines.filter((l) => l.trim()).join(' '), { processing: voiceProcessing }).catch((error) => console.warn('Greeting audio failed:', error));
-    for (const line of lines) {
-      if (unmountedRef.current) return;
-      setMessages((prev) => [...prev, { author: 'dr', text: line, timestamp: Date.now(), characterId }]);
-      await sleep(GREETING_LINE_DELAY_MS);
-    }
-    await spoken;
-    if (unmountedRef.current) return;
-    setIsGreeting(false);
-    setIsLoading(false);
-  };
-
-  /**
-   * One conversational turn: get the reply, type it out, then speak it.
-   * Returns false if no reply was produced. A speech or playback failure never
-   * removes a reply the user has already read.
-   */
-  const sendMessage = async (text: string): Promise<boolean> => {
-    const trimmed = text.trim();
-    if (!trimmed || busyRef.current) return false;
-    busyRef.current = true;
-    setIsLoading(true);
-    void ensureAudioReady();
-
-    soundEffects.playSound('message-send');
-    void playSoundPackEvent('message-send');
-    setMessages((prev) => [...prev, { author: 'user', text: trimmed, timestamp: Date.now(), characterId }]);
-
-    // Personas with a local engine decide the turn first (engine/personaTurn).
-    const turn = personaTurn(characterId, enginesRef.current, trimmed, {
-      userName: userName ?? '',
-      seed: engineSeedRef.current,
-    });
-    enginesRef.current = turn.engines;
-    const plan = turn.plan;
-
-    try {
-      if (plan.kind === 'ignore') return false;
-      let reply: string;
-      try {
-        if (plan.kind === 'local') {
-          reply = plan.lines.join('\n');
-        } else if (plan.kind === 'model') {
-          const options = plan.customCharacter ? { customCharacter: plan.customCharacter } : {};
-          reply = plan.finalize(await getAIResponse(plan.message, plan.historyKey, options).catch((error: unknown) => {
-            if (plan.fallback) return plan.fallback;
-            throw error;
-          }));
-        } else {
-          reply = formatReply(await getAIResponse(trimmed, characterId, chatOptions));
-        }
-      } catch (error) {
-        console.error('Reply failed:', error);
-        soundEffects.playSound('error');
-        void playSoundPackEvent('error');
-        const ctx = getSharedAudioContext();
-        if (ctx) playErrorBeep(ctx);
-        setMessages((prev) => [
-          ...prev,
-          { author: 'dr', text: retroErrorMessage(error), timestamp: Date.now(), characterId },
-        ]);
-        return false;
-      }
-
-      if (GLITCH_PHRASES.some((phrase) => reply.includes(phrase))) {
-        const ctx = getSharedAudioContext();
-        if (ctx) playGlitchSound(ctx);
-        void playSoundPackEvent('glitch');
-      }
-
-      // What is spoken can differ from what is shown (JOSHUA's boards and lists).
-      const spokenText = plan.kind === 'local' ? plan.speak : reply;
-      // Synthesis runs while the reply is typed out.
-      const audioPromise = (mutedRef.current || !spokenText.trim() ? Promise.resolve('') : synthesizeSpeech(spokenText, characterId, speechOptions)).catch((error) => {
-        console.warn('Reply speech unavailable; continuing text-only:', error);
-        return '';
-      });
-
-      setMessages((prev) => [...prev, { author: 'dr', text: '', timestamp: Date.now(), characterId }]);
-      // Long printouts (JOSHUA's self-play lesson) scroll at terminal speed.
-      const typingDelay = reply.length > LONG_PRINTOUT_CHARS ? FAST_TYPING_DELAY_MS : TYPING_DELAY_MS;
-      for (let i = 0; i < reply.length; i++) {
-        await sleep(typingDelay);
-        if (unmountedRef.current) return true;
-        // Set the visible prefix rather than appending: the updater must be
-        // pure, because React StrictMode invokes it twice.
-        const visible = reply.slice(0, i + 1);
-        setMessages((prev) => {
-          const last = prev[prev.length - 1];
-          return [...prev.slice(0, -1), { ...last, text: visible }];
-        });
-      }
-
-      try {
-        await speech.speak(await audioPromise, spokenText, { processing: voiceProcessing });
-      } catch (error) {
-        console.warn('Reply audio could not be played; the text is kept:', error);
-      }
-
-      soundEffects.playSound('message-receive');
-      void playSoundPackEvent('message-receive');
-      // The log itself is not a live region (it would re-announce every typed
-      // character), so the finished reply is announced once here.
-      if (accessibilitySettings.announceMessages) {
-        announce(`${persona.name} says: ${reply}`);
-      }
-      return true;
-    } finally {
-      busyRef.current = false;
-      if (!unmountedRef.current) setIsLoading(false);
-    }
-  };
 
   const toggleMute = () => {
     const next = !mutedRef.current;
@@ -375,74 +191,6 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     setMuted(next);
     if (next) speech.stop();
     announce(next ? 'Speech muted' : 'Speech unmuted');
-  };
-
-  const clearConversation = () => {
-    setMessages([]);
-    setUserInput('');
-    resetChat(characterId); // the model forgets too, as the greeting promises
-    if (characterId === 'parry') resetChat('parry-engine');
-    enginesRef.current = resetPersona(enginesRef.current, characterId);
-  };
-
-  /**
-   * Switches persona mid-conversation. Each persona keeps its own model
-   * history (services/geminiService.ts); the log shows where the switch
-   * happened.
-   */
-  const switchPersona = (id: string) => {
-    const next = personaState.personas.find((p) => p.id === id);
-    if (!next || next.id === persona.id) return;
-    personaState.selectPersona(id);
-    void playSoundPackEvent('character-switch');
-    if (userName) {
-      setMessages((prev) => [
-        ...prev,
-        { author: 'dr', text: `--- NOW TALKING TO ${next.name.toUpperCase()} ---`, timestamp: Date.now(), characterId: id },
-        // A persona with its own opener (JOSHUA's LOGON:) shows it on arrival.
-        ...(hasStarted(enginesRef.current, id) ? [] : (personaOpening(id) ?? [])).map((text) => ({ author: 'dr' as const, text, timestamp: Date.now(), characterId: id })),
-      ]);
-    }
-    announce(`Now talking to ${next.name}`);
-  };
-
-  const handleUserInput = () => {
-    if (!userInput.trim() || busyRef.current) return;
-    const text = userInput;
-    setUserInput('');
-    void sendMessage(text);
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    // Play keypress sound (v1.9.0)
-    soundEffects.playSound('keypress');
-
-    if (event.key === 'Enter') {
-      handleUserInput();
-    }
-  };
-
-  // Handle voice transcript (v1.11.0)
-  const handleVoiceTranscript = useCallback((transcript: string) => {
-    if (transcript.trim()) {
-      setUserInput(prev => prev + (prev ? ' ' : '') + transcript.trim());
-      announce(`Voice input: ${transcript}`);
-    }
-  }, [announce]);
-
-  // Handle template selection (v1.11.0): each prompt is a normal turn, with
-  // typing, speech and the busy guard, instead of a parallel side channel.
-  const handleSelectTemplate = async (prompts: string[]) => {
-    if (prompts.length === 0 || !userName) return;
-    announce('Applying conversation template');
-    for (const prompt of prompts) {
-      const ok = await sendMessage(prompt);
-      if (!ok || unmountedRef.current) {
-        announce('Template stopped');
-        break;
-      }
-      await sleep(1000);
-    }
   };
 
   const cycleAudioMode = () => {
