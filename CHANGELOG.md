@@ -183,6 +183,51 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   sat above the Nyquist limit and did nothing. The random-noise "aliasing" and
   one-sample "pre-echo" effects are gone: neither is something the hardware did.
   The chain no longer needs `OfflineAudioContext` and is deterministic.
+- **Sound packs.** Uploaded WAV/MP3/OGG files were stored as raw file bytes and then
+  played as headerless PCM: noise, or a `RangeError` on an odd byte count. They are
+  now decoded by the browser and stored as 24 kHz mono PCM16; packs saved by older
+  versions are recognised and decoded as files. Packs live in IndexedDB instead of
+  localStorage (one pack could exhaust the quota) and are migrated automatically.
+  Imported JSON and share codes are schema-checked and size-capped, base64
+  encoding no longer builds strings byte by byte, copying uses the Clipboard API,
+  and the active pack is remembered across reloads. A new `glitch` trigger joins
+  the existing events.
+- **Onboarding tour.** Its steps pointed at element ids that do not exist, and two
+  steps waited for a click or keystroke the modal overlay made impossible, so the
+  tour could not get past step 2. Steps now target the enhanced UI's
+  `data-tour-id` hooks, sit next to the highlighted control, and fall back to a
+  centred card when a control is absent. The false "a sample conversation has been
+  loaded" claim is gone, and shortcut text is generated from `utils/shortcuts.ts`.
+- **"PDF" export.** It downloaded an `.html` file. It is now **PDF (via print
+  dialog)**: the print-ready document opens the browser's print dialog, where
+  "Save as PDF" produces the PDF. The HTML download remains a separate option, and
+  the batch "PDF" format is now labelled "HTML (print-ready)". Downloads no longer
+  revoke their object URL immediately, which cancelled them in Firefox and Safari.
+  Every interpolated field (session title, names, theme, ids) is HTML-escaped; the
+  standalone HTML export left the title unescaped. The two export modules are
+  consolidated: `exportConversation.ts` is now a thin adapter over
+  `advancedExport.ts`.
+- **Cloud sync internals.** It could not have connected: the Firebase config was
+  built from an API key plus placeholder `messagingSenderId`/`appId` values. It now
+  takes the full web config the Firebase console shows (pasted as an object, JSON
+  or the console snippet) and validates `apiKey`, `authDomain`, `projectId` and
+  `appId`. Offline caching uses `initializeFirestore` with `persistentLocalCache`
+  instead of the deprecated `enableIndexedDbPersistence`. The auth listener,
+  timers and window listeners are released on teardown. Auto-sync used to emit an
+  `auto-sync-trigger` event nobody listened to; it now syncs data from a registered
+  provider and reports newer cloud data. Last-write-wins compared a Firestore
+  server Timestamp object with a number; both sides are now milliseconds. A new
+  `CloudSyncPanel` wraps the settings UI and hook. Firebase stays a lazily loaded
+  chunk (a test rejects static imports).
+- **Performance profiler.** Nothing loaded it, it logged every measurement to the
+  console, overlapping async calls of one method overwrote each other, and "Core
+  Web Vitals" covered only FCP and TTFB. Timings are now aggregated per name
+  (count, average, min, max) and mirrored to the User Timing API; the `profile`
+  decorator supports both legacy and standard decorators; LCP, CLS and INP are
+  observed with `PerformanceObserver`. Development builds load it automatically and
+  print a console report (`window.sbaitsoProfiler.report()` on demand); in
+  production, `?profile=1` enables it and adds a small on-screen vitals overlay. It
+  is a separate lazy chunk, absent from normal page loads.
 
 ### Changed
 - **Dr. Sbaitso persona rebuilt from the original program.** The prompt no longer

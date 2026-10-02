@@ -705,6 +705,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
               type="button"
               onClick={() => setShowVoiceInput(v => !v)}
               className="enh-icon-button"
+              data-tour-id="voice-input"
               aria-label="Speak instead of typing"
               aria-pressed={showVoiceInput}
               title={`Voice input (${shortcutLabel('voiceInput')})`}

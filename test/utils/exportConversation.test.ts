@@ -261,6 +261,7 @@ describe('ConversationExporter', () => {
       const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink);
       const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink);
 
+      vi.useFakeTimers();
       ConversationExporter.download('test content', 'test-file.txt', 'text/plain');
 
       expect(createElementSpy).toHaveBeenCalledWith('a');
@@ -270,7 +271,11 @@ describe('ConversationExporter', () => {
       expect(appendChildSpy).toHaveBeenCalled();
       expect(mockLink.click).toHaveBeenCalled();
       expect(removeChildSpy).toHaveBeenCalled();
+      // Revoking synchronously cancels the download in Firefox and Safari.
+      expect(revokeObjectURLSpy).not.toHaveBeenCalled();
+      vi.runAllTimers();
       expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:mock-url');
+      vi.useRealTimers();
 
       createElementSpy.mockRestore();
       appendChildSpy.mockRestore();

@@ -1,32 +1,30 @@
 /**
- * Sound Pack Manager Component (v1.10.0)
+ * Sound Pack Manager Component
  *
- * UI for browsing, installing, and sharing custom sound packs.
+ * UI for browsing, installing, activating and sharing custom sound packs.
+ * Packs are stored in IndexedDB (see utils/soundPackStore); the active pack
+ * is remembered across reloads by utils/soundPackPlayer.
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
 import type { Theme } from '@/constants';
 import type { SoundPack } from '@/utils/soundPackFormat';
-import {
-  validateSoundPack,
-  generateShareCode,
-  parseShareCode,
-  getSoundPackSize
-} from '@/utils/soundPackFormat';
-import { soundPackPlayer } from '@/utils/soundPackPlayer';
+import { generateShareCode, parseShareCode, getSoundPackSize } from '@/utils/soundPackFormat';
+import { soundPackPlayer, activateSoundPack, deactivateSoundPack } from '@/utils/soundPackPlayer';
+import { listSoundPacks, saveSoundPack, deleteSoundPack } from '@/utils/soundPackStore';
 
 interface SoundPackManagerProps {
   theme: Theme;
-  audioContext: AudioContext | null;
+  /** @deprecated Ignored: packs always play on the shared AudioContext. */
+  audioContext?: AudioContext | null;
   onClose: () => void;
   onCreateNew: () => void;
 }
 
-const STORAGE_KEY = 'dr_sbaitso_sound_packs';
+const errorText = (error: unknown) => (error instanceof Error ? error.message : 'Unknown error');
 
 export default function SoundPackManager({
   theme,
-  audioContext,
   onClose,
   onCreateNew
 }: SoundPackManagerProps) {
@@ -34,101 +32,77 @@ export default function SoundPackManager({
   const [selectedPack, setSelectedPack] = useState<SoundPack | null>(null);
   const [shareCode, setShareCode] = useState('');
   const [showShareInput, setShowShareInput] = useState(false);
-  const [currentPackId, setCurrentPackId] = useState<string | null>(null);
+  const [shareInput, setShareInput] = useState('');
+  const [currentPackId, setCurrentPackId] = useState<string | null>(
+    () => soundPackPlayer.getCurrentPack()?.metadata.name ?? null
+  );
+  const [status, setStatus] = useState('');
 
-  // Load installed packs from localStorage
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const packs = JSON.parse(stored) as SoundPack[];
-        setInstalledPacks(packs);
-      }
+      setInstalledPacks(await listSoundPacks());
     } catch (error) {
       console.error('Failed to load sound packs:', error);
-    }
-
-    // Get current active pack
-    const currentPack = soundPackPlayer.getCurrentPack();
-    if (currentPack) {
-      setCurrentPackId(currentPack.metadata.name);
+      setStatus(`Could not read installed sound packs: ${errorText(error)}`);
     }
   }, []);
 
-  // Save packs to localStorage
-  const savePacks = useCallback((packs: SoundPack[]) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(packs));
-      setInstalledPacks(packs);
-    } catch (error) {
-      console.error('Failed to save sound packs:', error);
-      alert('Failed to save sound packs to storage');
-    }
-  }, []);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   // Install a pack
-  const installPack = useCallback((pack: SoundPack) => {
-    // Check if pack with same name already exists
-    const existing = installedPacks.find(p => p.metadata.name === pack.metadata.name);
-
-    if (existing) {
-      const replace = confirm(
-        `A pack named "${pack.metadata.name}" already exists. Replace it?`
-      );
-
-      if (!replace) return;
-
-      // Replace existing
-      const updated = installedPacks.map(p =>
-        p.metadata.name === pack.metadata.name ? pack : p
-      );
-      savePacks(updated);
-    } else {
-      // Add new
-      savePacks([...installedPacks, pack]);
-    }
-
-    alert(`Sound pack "${pack.metadata.name}" installed successfully!`);
-  }, [installedPacks, savePacks]);
-
-  // Uninstall a pack
-  const uninstallPack = useCallback((packName: string) => {
-    const confirmed = confirm(`Are you sure you want to uninstall "${packName}"?`);
-
-    if (!confirmed) return;
-
-    const updated = installedPacks.filter(p => p.metadata.name !== packName);
-    savePacks(updated);
-
-    if (currentPackId === packName) {
-      soundPackPlayer.unload();
-      setCurrentPackId(null);
-    }
-
-    setSelectedPack(null);
-  }, [installedPacks, savePacks, currentPackId]);
-
-  // Load/activate a pack
-  const loadPack = useCallback(async (pack: SoundPack) => {
-    if (!audioContext) {
-      alert('Audio context not available');
+  const installPack = useCallback(async (pack: SoundPack) => {
+    const existing = installedPacks.some(p => p.metadata.name === pack.metadata.name);
+    if (existing && !confirm(`A pack named "${pack.metadata.name}" already exists. Replace it?`)) {
       return;
     }
 
     try {
-      await soundPackPlayer.loadPack(pack, audioContext);
+      await saveSoundPack(pack);
+      await refresh();
+      setStatus(`Sound pack "${pack.metadata.name}" installed.`);
+    } catch (error) {
+      console.error('Failed to save sound pack:', error);
+      setStatus(`Failed to install sound pack: ${errorText(error)}`);
+    }
+  }, [installedPacks, refresh]);
+
+  // Uninstall a pack
+  const uninstallPack = useCallback(async (packName: string) => {
+    if (!confirm(`Are you sure you want to uninstall "${packName}"?`)) return;
+
+    try {
+      await deleteSoundPack(packName);
+      if (currentPackId === packName) {
+        deactivateSoundPack();
+        setCurrentPackId(null);
+      }
+      setSelectedPack(null);
+      await refresh();
+      setStatus(`Sound pack "${packName}" uninstalled.`);
+    } catch (error) {
+      setStatus(`Failed to uninstall sound pack: ${errorText(error)}`);
+    }
+  }, [currentPackId, refresh]);
+
+  // Load/activate a pack
+  const loadPack = useCallback(async (pack: SoundPack) => {
+    try {
+      await activateSoundPack(pack);
       setCurrentPackId(pack.metadata.name);
-      alert(`Sound pack "${pack.metadata.name}" loaded!`);
+      setStatus(`Sound pack "${pack.metadata.name}" is now active.`);
     } catch (error) {
       console.error('Failed to load sound pack:', error);
-      alert(`Failed to load sound pack: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatus(`Failed to load sound pack: ${errorText(error)}`);
     }
-  }, [audioContext]);
+  }, []);
 
   // Unload current pack
   const unloadCurrentPack = useCallback(() => {
-    soundPackPlayer.unload();
+    deactivateSoundPack();
     setCurrentPackId(null);
+    setStatus('Sound pack unloaded.');
   }, []);
 
   // Generate share code for selected pack
@@ -136,49 +110,36 @@ export default function SoundPackManager({
     if (!selectedPack) return;
 
     try {
-      const code = generateShareCode(selectedPack);
-      setShareCode(code);
-      alert('Share code generated! You can now copy it to share this sound pack.');
+      setShareCode(generateShareCode(selectedPack));
+      setStatus('Share code generated.');
     } catch (error) {
-      alert(`Failed to generate share code: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatus(`Failed to generate share code: ${errorText(error)}`);
     }
   }, [selectedPack]);
 
-  // Install from share code
-  const handleInstallFromShareCode = useCallback(() => {
-    const code = prompt('Enter share code:');
-
+  // Install from a pasted share code (parseShareCode validates the schema)
+  const handleInstallFromShareCode = useCallback(async () => {
+    const code = shareInput.trim();
     if (!code) return;
 
     try {
       const pack = parseShareCode(code);
-      const validation = validateSoundPack(pack);
-
-      if (!validation.valid) {
-        alert(`Invalid sound pack:\n${validation.errors.join('\n')}`);
-        return;
-      }
-
-      installPack(pack);
+      await installPack(pack);
+      setShareInput('');
+      setShowShareInput(false);
     } catch (error) {
-      alert(`Failed to install from share code: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatus(`Failed to install from share code: ${errorText(error)}`);
     }
-  }, [installPack]);
+  }, [shareInput, installPack]);
 
   // Copy share code to clipboard
   const copyShareCode = useCallback(async () => {
     try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
       await navigator.clipboard.writeText(shareCode);
-      alert('Share code copied to clipboard!');
-    } catch (error) {
-      // Fallback: select text
-      const textarea = document.createElement('textarea');
-      textarea.value = shareCode;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      alert('Share code copied to clipboard!');
+      setStatus('Share code copied to clipboard.');
+    } catch {
+      setStatus('Could not copy automatically. Select the share code and copy it manually.');
     }
   }, [shareCode]);
 
@@ -224,7 +185,8 @@ export default function SoundPackManager({
           </button>
 
           <button
-            onClick={handleInstallFromShareCode}
+            onClick={() => setShowShareInput(v => !v)}
+            aria-expanded={showShareInput}
             className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
@@ -247,6 +209,41 @@ export default function SoundPackManager({
             </button>
           )}
         </div>
+
+        {status && (
+          <p role="status" className="mb-4 text-sm">
+            {status}
+          </p>
+        )}
+
+        {showShareInput && (
+          <div className="mb-6 flex gap-2">
+            <label htmlFor="sound-pack-share-input" className="sr-only">
+              Share code
+            </label>
+            <textarea
+              id="sound-pack-share-input"
+              value={shareInput}
+              onChange={(e) => setShareInput(e.target.value)}
+              placeholder="Paste a share code"
+              className="flex-1 p-2 border rounded-sm text-xs font-mono"
+              style={{
+                backgroundColor: theme.colors.background,
+                color: theme.colors.text,
+                borderColor: theme.colors.border
+              }}
+              rows={3}
+            />
+            <button
+              onClick={() => void handleInstallFromShareCode()}
+              disabled={!shareInput.trim()}
+              className="px-3 py-1 border rounded-sm hover:opacity-80"
+              style={{ borderColor: theme.colors.primary }}
+            >
+              Install
+            </button>
+          </div>
+        )}
 
         {/* Current Pack Status */}
         {currentPackId && (

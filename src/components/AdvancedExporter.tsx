@@ -2,7 +2,7 @@
  * Advanced Exporter Component (v1.6.0)
  *
  * Multi-format export system with:
- * - PDF-ready HTML export with customization
+ * - PDF via the browser print dialog, or the same print-ready document as HTML
  * - CSV export in 4 variants
  * - Theme packaging for collections
  * - Batch export for multiple sessions
@@ -17,6 +17,8 @@ import {
   ThemePackager,
   BatchExporter,
   downloadExportResult,
+  printHtml,
+  type BatchFormat,
   type ExportResult
 } from '../utils/advancedExport';
 
@@ -56,7 +58,7 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
 
   // Batch Options
   const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
-  const [batchFormat, setBatchFormat] = useState<'pdf' | 'csv' | 'json' | 'markdown'>('json');
+  const [batchFormat, setBatchFormat] = useState<BatchFormat>('json');
   const [batchCombined, setBatchCombined] = useState(false);
 
   // Theme Selection
@@ -64,7 +66,23 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
 
   if (!isOpen) return null;
 
-  const handlePDFExport = async () => {
+  // There is no PDF encoder: the browser's print dialog offers "Save as PDF".
+  const handlePrintToPDF = () => {
+    if (!currentSession) {
+      showMessage('error', 'No active session to export');
+      return;
+    }
+
+    try {
+      printHtml(PDFExporter.buildDocument(currentSession, pdfOptions));
+      showMessage('success', 'Print dialog opened: choose "Save as PDF" as the destination');
+    } catch (error) {
+      console.error('Print failed:', error);
+      showMessage('error', 'Could not open the print dialog');
+    }
+  };
+
+  const handleHTMLExport = async () => {
     if (!currentSession) {
       showMessage('error', 'No active session to export');
       return;
@@ -74,10 +92,10 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
     try {
       const result = await PDFExporter.exportToPDF(currentSession, pdfOptions);
       downloadExportResult(result);
-      showMessage('success', `PDF exported: ${result.filename}`);
+      showMessage('success', `HTML exported: ${result.filename}`);
     } catch (error) {
-      console.error('PDF export failed:', error);
-      showMessage('error', 'PDF export failed');
+      console.error('HTML export failed:', error);
+      showMessage('error', 'HTML export failed');
     } finally {
       setExportInProgress(false);
     }
@@ -283,7 +301,7 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                 fontSize: '14px',
               }}
             >
-              {tab === 'pdf' && '📄 PDF'}
+              {tab === 'pdf' && '📄 PDF / HTML'}
               {tab === 'csv' && '📊 CSV'}
               {tab === 'theme' && '🎨 Themes'}
               {tab === 'batch' && '📦 Batch'}
@@ -297,7 +315,7 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
           {activeTab === 'pdf' && (
             <div>
               <p style={{ marginBottom: '15px', color: 'var(--color-text)', opacity: 0.8 }}>
-                Export current session as print-ready HTML
+                Print the current session to PDF (choose &quot;Save as PDF&quot; in the print dialog), or download it as a print-ready HTML file.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -366,7 +384,7 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                 </label>
 
                 <button
-                  onClick={handlePDFExport}
+                  onClick={handlePrintToPDF}
                   disabled={exportInProgress || !currentSession}
                   style={{
                     padding: '12px',
@@ -379,7 +397,23 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                     marginTop: '10px',
                   }}
                 >
-                  {exportInProgress ? 'EXPORTING...' : '📄 EXPORT PDF'}
+                  PDF (VIA PRINT DIALOG)
+                </button>
+
+                <button
+                  onClick={handleHTMLExport}
+                  disabled={exportInProgress || !currentSession}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-text)',
+                    border: '2px solid var(--color-primary)',
+                    cursor: exportInProgress ? 'not-allowed' : 'pointer',
+                    fontFamily: 'monospace',
+                    fontSize: '16px',
+                  }}
+                >
+                  {exportInProgress ? 'EXPORTING...' : 'DOWNLOAD HTML'}
                 </button>
               </div>
             </div>
@@ -618,7 +652,7 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                   <span>Export Format:</span>
                   <select
                     value={batchFormat}
-                    onChange={(e) => setBatchFormat(e.target.value as 'pdf' | 'csv' | 'json' | 'markdown')}
+                    onChange={(e) => setBatchFormat(e.target.value as BatchFormat)}
                     style={{
                       padding: '8px',
                       backgroundColor: 'var(--color-background)',
@@ -627,7 +661,7 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                       fontFamily: 'monospace',
                     }}
                   >
-                    <option value="pdf">PDF</option>
+                    <option value="html">HTML (print-ready)</option>
                     <option value="csv">CSV</option>
                     <option value="json">JSON</option>
                     <option value="markdown">Markdown</option>
@@ -639,9 +673,9 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                     type="checkbox"
                     checked={batchCombined}
                     onChange={(e) => setBatchCombined(e.target.checked)}
-                    disabled={batchFormat === 'pdf' || batchFormat === 'markdown'}
+                    disabled={batchFormat === 'html' || batchFormat === 'pdf' || batchFormat === 'markdown'}
                   />
-                  <span>Combine into single file {(batchFormat === 'pdf' || batchFormat === 'markdown') && '(not supported for PDF/Markdown)'}</span>
+                  <span>Combine into single file {(batchFormat === 'html' || batchFormat === 'pdf' || batchFormat === 'markdown') && '(not supported for HTML/Markdown)'}</span>
                 </label>
               </div>
 

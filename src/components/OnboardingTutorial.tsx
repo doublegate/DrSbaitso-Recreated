@@ -1,10 +1,12 @@
 /**
  * Onboarding Tutorial Component (v1.8.0)
  *
- * Interactive first-time user experience with 8 guided steps.
+ * First-time tour of the enhanced UI (steps in ONBOARDING_STEPS).
  * Features:
- * - Step-by-step walkthrough of all features
- * - Interactive elements requiring user action
+ * - Each step highlights its `[data-tour-id]` target and sits next to it;
+ *   a missing target centres the card instead of breaking the step
+ * - Optional click/type actions, completed by the real event on the target
+ *   (and waived when the target is absent)
  * - Skip and restart functionality
  * - localStorage persistence
  * - Keyboard navigation (Tab, Enter, Escape)
@@ -19,6 +21,32 @@ import { ONBOARDING_STEPS } from '@/constants';
 const ONBOARDING_COMPLETED_KEY = 'sbaitso_onboarding_completed';
 const ONBOARDING_STATE_KEY = 'sbaitso_onboarding_state';
 
+/** Returns the first element matching a step selector, or null (also for invalid selectors). */
+function findTarget(selector: string | undefined): HTMLElement | null {
+  if (!selector) return null;
+  try {
+    return document.querySelector<HTMLElement>(selector);
+  } catch {
+    return null;
+  }
+}
+
+/** Places the card below a target in the top half of the screen, above one in the bottom half. */
+function anchoredCardStyle(rect: DOMRect): React.CSSProperties {
+  const gap = 12;
+  const below = rect.top + rect.height / 2 < window.innerHeight / 2;
+  return {
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    marginInline: 'auto',
+    width: 'min(42rem, calc(100vw - 2rem))',
+    ...(below
+      ? { top: Math.min(rect.bottom + gap, window.innerHeight - 160) }
+      : { bottom: Math.min(window.innerHeight - rect.top + gap, window.innerHeight - 160) }),
+  };
+}
+
 interface OnboardingTutorialProps {
   onComplete: () => void;
   onSkip: () => void;
@@ -30,6 +58,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
   const [actionCompleted, setActionCompleted] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
+  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const announcerRef = useRef<HTMLDivElement>(null);
 
   const step: OnboardingStep = ONBOARDING_STEPS[currentStep];
@@ -79,13 +108,39 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
     announceStep(message);
   }, [currentStep, step.title, announceStep]);
 
-  // Check if step requires action
+  // Locate the step's target. A missing target (or an invalid selector) is
+  // not an error: the card is simply centred.
   useEffect(() => {
-    if (!step.action) {
-      setActionCompleted(true);
-    } else {
-      setActionCompleted(false);
+    const element = findTarget(step.target);
+    if (!element) {
+      setTargetRect(null);
+      return;
     }
+    element.scrollIntoView?.({ block: 'nearest' });
+    const measure = () => setTargetRect(element.getBoundingClientRect());
+    measure();
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', measure, true);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', measure, true);
+    };
+  }, [step.target]);
+
+  // A step that requires an action is completed by that action on its
+  // target. If the target is missing the action cannot be performed, so the
+  // step must not block the tutorial.
+  useEffect(() => {
+    const element = step.action ? findTarget(step.actionTarget ?? step.target) : null;
+    if (!step.action || !element || step.action === 'wait') {
+      setActionCompleted(true);
+      return;
+    }
+    setActionCompleted(false);
+    const eventName = step.action === 'type' ? 'input' : 'click';
+    const done = () => setActionCompleted(true);
+    element.addEventListener(eventName, done, { once: true });
+    return () => element.removeEventListener(eventName, done);
   }, [step]);
 
   // Keyboard navigation. An effect event always sees the latest state and
@@ -228,8 +283,29 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
         aria-atomic="true"
       />
 
-      {/* Main tutorial card */}
-      <div className="bg-blue-900 border-4 border-blue-500 rounded-lg max-w-2xl w-full shadow-2xl">
+      {/* Highlight around the step's target (drawn above the dimmed backdrop) */}
+      {targetRect && (
+        <div
+          data-testid="onboarding-highlight"
+          aria-hidden="true"
+          className="fixed pointer-events-none rounded-sm motion-safe:animate-pulse"
+          style={{
+            top: targetRect.top - 6,
+            left: targetRect.left - 6,
+            width: targetRect.width + 12,
+            height: targetRect.height + 12,
+            boxShadow: '0 0 0 4px rgba(251, 191, 36, 0.8), 0 0 24px rgba(251, 191, 36, 0.5)',
+          }}
+        />
+      )}
+
+      {/* Main tutorial card: next to the target when there is one, centred otherwise */}
+      <div
+        data-testid="onboarding-card"
+        data-placement={targetRect ? 'anchored' : 'center'}
+        className="bg-blue-900 border-4 border-blue-500 rounded-lg max-w-2xl w-full shadow-2xl"
+        style={targetRect ? anchoredCardStyle(targetRect) : undefined}
+      >
         {/* Header */}
         <div className="bg-blue-800 border-b-4 border-blue-500 p-4">
           <h2
@@ -276,13 +352,6 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
               {step.actionPlaceholder && (
                 <p className="text-yellow-300 text-sm mt-1">{step.actionPlaceholder}</p>
               )}
-            </div>
-          )}
-
-          {/* Target element highlight indicator */}
-          {step.target && (
-            <div className="mt-3 text-sm text-blue-300 italic">
-              Look for the highlighted element: {step.target}
             </div>
           )}
         </div>
@@ -358,27 +427,6 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
           )}
         </div>
       </div>
-
-      {/* Target element highlighting (would need integration with app) */}
-      {step.target && (
-        <style>{`
-          ${step.target} {
-            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.5), 0 0 20px rgba(251, 191, 36, 0.3);
-            position: relative;
-            z-index: 40;
-            animation: pulse-border 2s infinite;
-          }
-
-          @keyframes pulse-border {
-            0%, 100% {
-              box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.5), 0 0 20px rgba(251, 191, 36, 0.3);
-            }
-            50% {
-              box-shadow: 0 0 0 8px rgba(251, 191, 36, 0.8), 0 0 30px rgba(251, 191, 36, 0.5);
-            }
-          }
-        `}</style>
-      )}
     </div>
   );
 }

@@ -322,67 +322,77 @@ export const DEFAULT_AUDIO_MODE = 'authentic';
 // Keyboard shortcuts
 // Keyboard shortcuts live in utils/shortcuts.ts (single source of truth).
 
-// Onboarding Tutorial Steps (v1.8.0)
+// Onboarding tutorial steps (Enhanced mode).
+// Targets are `[data-tour-id]` hooks rendered by EnhancedApp; a step whose
+// target is absent is shown centred. No step requires an action: the tutorial
+// overlay is modal, so the page underneath cannot be clicked or typed into.
 import type { OnboardingStep } from './types';
+import { shortcutLabel } from './utils/shortcuts';
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to Dr. Sbaitso Recreated!',
-    content: 'Experience the legendary 1991 AI therapist recreated for the modern web. This quick tutorial will introduce you to all the amazing features. Ready to begin your journey into retro AI therapy?',
+    content: 'The 1991 Sound Blaster AI therapist, recreated for the web. This short tour points out the main controls of the enhanced interface.',
     skipable: true
   },
   {
     id: 'characters',
-    title: 'Choose Your AI Personality',
-    content: 'Meet 5 legendary AI personalities from computing history: Dr. Sbaitso (1991), ELIZA (1966), HAL 9000 (1968), JOSHUA/WOPR (1983), and PARRY (1972). Each has unique conversational styles and historical context. Try the character selector below!',
-    target: '#character-select',
-    action: 'click',
-    actionTarget: '#character-select',
+    title: 'AI Personalities',
+    content: 'Five personalities from computing history are built in: Dr. Sbaitso (1991), ELIZA (1966), HAL 9000 (1968), JOSHUA/WOPR (1983) and PARRY (1972). The highlighted character button opens the Character Creator, where you can design your own.',
+    target: '[data-tour-id="character-selection"]',
     skipable: true
   },
   {
     id: 'first-message',
     title: 'Start a Conversation',
-    content: 'Type your first message in the input box below. Dr. Sbaitso responds in ALL CAPS with authentic 1991 robotic charm. Press Enter to send your message!',
-    target: '#message-input',
-    action: 'type',
-    actionTarget: '#message-input',
-    actionPlaceholder: 'Type "Hello Dr. Sbaitso" and press Enter',
+    content: 'Type on the input line at the bottom of the screen and press Enter to send. Dr. Sbaitso answers in ALL CAPS, with his synthesized voice.',
+    target: '[data-tour-id="chat-input"]',
+    skipable: true
+  },
+  {
+    id: 'audio',
+    title: 'Audio Mode',
+    content: `Choose how authentic the voice sounds, from modern to ultra lo-fi Sound Blaster. Press ${shortcutLabel('cycleAudioMode')} to cycle modes. Tick SAVE HISTORY to keep conversations in this browser for search, replay and insights.`,
+    target: '[data-tour-id="audio-settings"]',
     skipable: true
   },
   {
     id: 'keyboard-shortcuts',
-    title: 'Master Keyboard Shortcuts',
-    content: 'Work faster with Alt+Shift shortcuts:\n• Alt+Shift+I - Conversation insights\n• Alt+Shift+V - Voice input\n• Alt+Shift+Q - Cycle audio quality\n• Alt+Shift+A - Accessibility settings\n• Alt+Shift+H - Show this tutorial again\n\nHover over any toolbar button to see its shortcut.',
+    title: 'Keyboard Shortcuts',
+    content: `Every shortcut is Alt+Shift plus a letter:\n• ${shortcutLabel('insights')} - Conversation insights\n• ${shortcutLabel('voiceInput')} - Voice input\n• ${shortcutLabel('cycleAudioMode')} - Cycle audio quality\n• ${shortcutLabel('accessibility')} - Accessibility settings\n• ${shortcutLabel('tutorial')} - Show this tutorial again\n• ${shortcutLabel('switchMode')} - Switch to the classic screen\n\nEach menu item lists its shortcut.`,
+    target: '[data-tour-id="settings-panel"]',
     skipable: true
   },
   {
     id: 'voice-control',
-    title: 'Voice Input Support',
-    content: 'Use your voice to chat! Click the voice input button or press Alt+Shift+V to activate voice input. Speak naturally and Dr. Sbaitso will respond. Note: Your browser must support Web Speech API.',
-    target: '#voice-button',
+    title: 'Voice Input',
+    content: `Talk instead of typing: use the microphone button or press ${shortcutLabel('voiceInput')}. Voice input needs a browser with the Web Speech API (Chrome, Edge or Safari).`,
+    target: '[data-tour-id="voice-input"]',
     skipable: true
   },
   {
     id: 'accessibility',
-    title: 'Accessibility Features',
-    content: 'Dr. Sbaitso is designed for everyone:\n• Full keyboard navigation (Tab, Enter, Escape)\n• Screen reader support with ARIA labels\n• High contrast themes\n• Customizable font sizes\n• Reduced motion mode\n\nPress Alt+Shift+A to open the Accessibility Panel!',
+    title: 'Accessibility',
+    content: `Built for everyone:\n• Full keyboard navigation (Tab, Enter, Escape)\n• Screen reader announcements\n• High contrast mode\n• Adjustable font size\n• Reduced motion\n\nPress ${shortcutLabel('accessibility')}, or open Accessibility in the highlighted SETTINGS menu.`,
+    target: '[data-tour-id="theme-button"]',
     skipable: true
   },
   {
     id: 'advanced-features',
-    title: 'Explore Advanced Features',
-    content: 'Discover powerful tools:\n• Audio Visualizer - See sound waves in real-time\n• Theme Customizer - Create custom retro color schemes\n• Conversation Search - Find past messages instantly\n• Session Replay - Relive conversations\n• Cloud Sync - Save sessions across devices\n\nCheck the toolbar for quick access!',
+    title: 'More to Explore',
+    content: '• Theme customizer - your own retro colour schemes\n• Search - find past messages (needs SAVE HISTORY)\n• Export - save the conversation as text, Markdown, JSON or HTML, or print it to PDF\n• Sound packs - your own sounds for app events\n\nSearch and Export are in the highlighted CONVERSATION menu; the rest are under VISUALS, SOUND and SETTINGS.',
+    target: '[data-tour-id="session-panel"]',
     skipable: true
   },
   {
     id: 'completion',
     title: 'You\'re All Set!',
-    content: 'Congratulations! You\'ve completed the tutorial. A sample conversation has been loaded so you can explore the interface. You can restart this tutorial anytime from Help → Tutorial.\n\nReady to experience retro AI therapy?',
+    content: `That is the tour. Press ${shortcutLabel('tutorial')} any time to see it again.\n\nReady to experience retro AI therapy?`,
     skipable: false
   }
 ];
+
 
 // Sentiment Analysis Keywords (v1.8.0)
 export const POSITIVE_KEYWORDS = [
