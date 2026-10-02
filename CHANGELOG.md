@@ -7,8 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Work toward 2.0.0 (branch `fix/v2-audit-remediation`). The deployed app was broken:
-it crashed right after name entry and leaked its Gemini API key in the client bundle.
+## [2.0.0] - 2026-10-02
+
+A full audit and rebuild. The deployed 1.11 app crashed right after name entry and
+leaked its Gemini API key in the client bundle; 2.0 fixes both, moves Gemini behind
+a server proxy, makes the classic DOS screen the default (faithful to the original
+as measured in DOSBox), gives every persona a local engine and its own voice, and
+repairs every feature that existed in code but could not be reached.
+
+**Upgrading from 1.x**
+
+- Set `GEMINI_API_KEY` as a server environment variable (Vercel: Production and
+  Preview). The browser no longer uses a key at all; a missing key gives an
+  in-character "SYSTEM NOT CONFIGURED" message.
+- The app opens on the classic screen. Alt+Shift+X or `?mode=enhanced` switches;
+  the choice is remembered.
+- Keyboard shortcuts are now Alt+Shift+<key> (several Ctrl shortcuts clashed with
+  the browser). Each menu item shows its shortcut.
+- Conversation history is off by default (SAVE HISTORY turns it on). Sound packs
+  move from localStorage to IndexedDB automatically.
+- Browsers that installed the 1.x service worker are moved to the new one on their
+  next visit; no action is needed.
 
 ### Security
 - **Content-Security-Policy in production.** Scripts load only from the site
@@ -494,14 +513,6 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Node.js 22.22.2+ (or 24.15+ / 26+)** is now required for development (jsdom 30
   and jest-dom 7);
   Vite 8 alone needs 20.19+.
-
-### Planned
-- Additional retro voice options (Pico, Kali, Aoede)
-- Email/password authentication for cloud sync
-- Shared conversations and collaboration features
-- Custom template creation UI
-- Advanced NLP-based topic analysis
-- Real-time collaboration features
 
 ## [1.11.0] - 2025-11-19
 
