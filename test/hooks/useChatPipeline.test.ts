@@ -174,11 +174,21 @@ describe('useChatPipeline', () => {
     expect(result.current.isLoading).toBe(false);
   });
 
-  it('plays the glitch sound pack event for a glitch phrase', async () => {
-    vi.mocked(getAIResponse).mockResolvedValue('IRQ CONFLICT');
+  it("plays the glitch sound pack event for the original's parity text", async () => {
+    vi.mocked(getAIResponse).mockResolvedValue('PARITY ERR ... RECOVERED');
     const { result } = await startSession(makeDeps());
     await settle(result.current.sendMessage('hello'));
     expect(playSoundPackEvent).toHaveBeenCalledWith('glitch');
+  });
+
+  it('treats the invented glitch phrases as ordinary text', async () => {
+    const { result } = await startSession(makeDeps());
+    for (const reply of ['PARITY CHECKING...', 'IRQ CONFLICT AT ADDRESS 220H']) {
+      vi.mocked(getAIResponse).mockResolvedValue(reply);
+      vi.mocked(playSoundPackEvent).mockClear();
+      await settle(result.current.sendMessage('hello'));
+      expect(playSoundPackEvent).not.toHaveBeenCalledWith('glitch');
+    }
   });
 
   it('keeps the reply when its audio cannot be played', async () => {

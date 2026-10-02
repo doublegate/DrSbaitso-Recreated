@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
 import type { Message } from '../types';
 import { getAIResponse, resetChat, synthesizeSpeech } from '../services/geminiService';
+import { isParityText } from '../engine/sbaitso';
 import { playGlitchSound, playErrorBeep } from '../utils/audio';
 import { getSharedAudioContext, ensureAudioReady } from '../utils/sharedAudio';
 import { retroErrorMessage } from '../utils/retroErrors';
@@ -24,7 +25,6 @@ export const TYPING_DELAY_MS = 40;
 export const LONG_PRINTOUT_CHARS = 400;
 export const FAST_TYPING_DELAY_MS = 4;
 export const GREETING_LINE_DELAY_MS = 800;
-const GLITCH_PHRASES = ['PARITY CHECKING', 'IRQ CONFLICT'];
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
@@ -197,7 +197,9 @@ export function useChatPipeline({
         return false;
       }
 
-      if (GLITCH_PHRASES.some((phrase) => reply.includes(phrase))) {
+      // The original's parity text (the model is told never to emit it, but the
+      // same check counts glitches in saved sessions).
+      if (isParityText(reply)) {
         const ctx = getSharedAudioContext();
         if (ctx) playGlitchSound(ctx);
         void playSoundPackEvent('glitch');

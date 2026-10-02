@@ -31,12 +31,12 @@ Byte's patents). Everything else is a factual correction to make either way.
 - [x] The Authentic preset's 5 kHz high cut has no effect; the original sits under a
       roughly 4 kHz ceiling at 8,475 Hz (`src/utils/vintageAudioProcessing.ts`).
 - [x] `pitchVarianceReduction` is never read by any code: implement or remove it.
-- [ ] "PARITY CHECKING" and "IRQ CONFLICT AT ADDRESS 220H" never appear in the original.
+- [x] "PARITY CHECKING" and "IRQ CONFLICT AT ADDRESS 220H" never appear in the original.
       The real glitch is "PARITY ERR ... RECOVERED / PHEW! THAT WAS CLOSE!", triggered
       by swearing. Fix in `src/constants.ts`, `src/App.tsx` (`GLITCH_PHRASES`) and
       `src/utils/retroErrors.ts`. (Done in `src/constants.ts`, `src/utils/retroErrors.ts`
-      and `src/utils/sessionManager.ts`; `App.tsx` should switch `GLITCH_PHRASES` to the
-      engine's `isParityText` / `PARITY_TRIGGER_LINES` during integration.)
+      and `src/utils/sessionManager.ts`; Enhanced mode's glitch check in
+      `src/hooks/useChatPipeline.ts` now uses the engine's `isParityText`.)
       DOSBox (ref-docs/04) showed the real sequence is a flood of `PARITY ERR ...  <n>`
       lines, then `RECOVERED` and `PARITY`; PHEW!/YOU ARE BAD never appeared. The engine
       and the classic screen now do that.
