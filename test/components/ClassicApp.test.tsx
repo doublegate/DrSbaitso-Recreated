@@ -312,4 +312,56 @@ describe('ClassicApp', () => {
       expect(row.length).toBe(40);
     });
   }, 40_000);
+
+  describe('screen clears measured in DOSBox (ref-docs/04)', () => {
+    const banner = () => rows().some((r) => r.includes('╔'));
+
+    it('HELP page 1 clears the whole screen, banner included; M brings the banner back', async () => {
+      const user = userEvent.setup();
+      await startSession(user);
+      await say(user, 'help');
+      expect(banner()).toBe(false);
+      expect(screenText()).not.toContain('TELL ME ABOUT YOUR PROBLEMS');
+      await say(user, 'm');
+      expect(banner()).toBe(true);
+      expect(screenText()).not.toContain('TELL ME ABOUT YOUR PROBLEMS');
+    }, 40_000);
+
+    it('.COLOR clears below the banner and starts again at the top', async () => {
+      const user = userEvent.setup();
+      await startSession(user);
+      await say(user, '.color 4');
+      expect(banner()).toBe(true);
+      expect(screenText()).not.toContain('TELL ME ABOUT YOUR PROBLEMS');
+      expect(rows()[6]).toBe('>');
+    }, 40_000);
+
+    it('.WIDTH clears below the banner too', async () => {
+      const user = userEvent.setup();
+      await startSession(user);
+      await say(user, '.width 40');
+      expect(screenText()).not.toContain('TELL ME ABOUT YOUR PROBLEMS');
+    }, 40_000);
+  });
+
+  it('takes an Enter pressed while the doctor speaks as an input, once the prompt returns', async () => {
+    const user = userEvent.setup();
+    await startSession(user);
+    let releaseTts!: () => void;
+    fetchMock.mockImplementation((url: string) =>
+      url === '/api/tts'
+        ? new Promise((resolve) => (releaseTts = () => resolve(json({ audio: 'AAAAAA==' }))))
+        : json({ text: 'WHY DO YOU FEEL THAT WAY?' }),
+    );
+    const userLines = () =>
+      [...document.querySelectorAll('[role="log"] p')].filter((p) => p.textContent?.startsWith('You:')).length;
+    await user.type(input(), 'i feel sad{Enter}');
+    await waitFor(() => expect(chatCalls(fetchMock)).toHaveLength(1));
+    expect(phase()).toBe('busy');
+    await user.keyboard('{Enter}');
+    releaseTts();
+    // The typed-ahead Enter is consumed as an (empty) input (CONFIRMED (DOSBox), run K).
+    await waitFor(() => expect(userLines()).toBe(2), { timeout: 20_000 });
+    await waitForPrompt();
+  }, 40_000);
 });

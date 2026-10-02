@@ -230,6 +230,10 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
   hidden screen-reader announcer sat in the page flow below the app; it is now fixed
   in place.
+- **Classic screen, three more DOSBox corrections.** HELP replaces the screen
+  (page 1 without the banner), `.WIDTH` and `.COLOR` clear the rows below the
+  banner, and an Enter pressed while the doctor speaks is taken as the next input
+  instead of being lost.
 - **Request size limit measured in bytes.** The 64 KiB body cap counted
   characters, so multibyte text could exceed it; the body is now read as a
   stream and rejected as soon as it passes the limit.

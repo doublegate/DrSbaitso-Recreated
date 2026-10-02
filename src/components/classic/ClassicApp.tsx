@@ -124,9 +124,10 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
     if (Object.keys(changes).length === 0) return;
     setSettings((prev) => {
       const next = { ...prev, ...changes };
-      if (next.width !== prev.width) {
-        // .WIDTH redraws the screen at the new size, keeping the session.
-        setScreen((s) => ({ ...createScreen({ cols: next.width }), lines: s.lines }));
+      if (next.width !== prev.width || next.background !== prev.background) {
+        // .WIDTH and .COLOR redraw the banner and clear the rows below it
+        // (CONFIRMED (DOSBox), ref-docs/04 section 6).
+        setScreen(createScreen({ cols: next.width }));
       }
       return next;
     });
@@ -305,18 +306,30 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
         await parityFlood(result.flood);
         await printAndSpeak(result.lines, result.speak);
         return chat;
-      case 'help':
-        for (const helpLine of result.lines) printRows(text(helpLine));
+      case 'help': {
+        // Each page replaces the screen; page 1 removes the banner too and
+        // later pages redraw it (CONFIRMED (DOSBox), ref-docs/04 section 6).
+        const pageRows = result.lines.map((l) => text(l));
+        setScreen((s) =>
+          result.page === 1
+            ? { ...createScreen({ cols: s.cols }), banner: [], lines: pageRows }
+            : print(createScreen({ cols: s.cols }), ...pageRows),
+        );
         result.lines.forEach((l) => log(l));
         return chat;
+      }
       case 'setting': {
         const promptOff = result.settings.prompt === false && settings.prompt;
+        const redraw =
+          (result.settings.width !== undefined && result.settings.width !== settings.width) ||
+          (result.settings.background !== undefined && result.settings.background !== settings.background);
         applySettings(result.settings);
         for (const msg of result.lines) printRows(text(msg));
         result.lines.forEach((l) => log(l));
         // .PROMPT OFF prints an empty "Computer:" line and the prompt follows directly.
         if (promptOff) printRows(text(CALC_LABEL.trimEnd()));
-        return { next: 'chat', blank: !promptOff };
+        // After a redraw the prompt starts on row 6, right below the blank row 5.
+        return { next: 'chat', blank: !promptOff && !redraw };
       }
       case 'repeat':
         // R re-speaks the last reply; nothing is printed and the prompt follows on the next row.
@@ -363,6 +376,18 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
     setPhase(next);
   };
 
+  // An Enter pressed while the doctor is busy is kept and taken as the next
+  // input once the prompt returns (CONFIRMED (DOSBox), ref-docs/04 run K).
+  const enterQueued = useRef(false);
+  const takeQueuedEnter = useEffectEvent(() => {
+    if (!enterQueued.current) return;
+    enterQueued.current = false;
+    void submitLine();
+  });
+  useEffect(() => {
+    if (phase === 'chat') takeQueuedEnter();
+  }, [phase]);
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Any key cuts the doctor's speech; queued lines then print unspoken.
     if (cutSpeech.current && !['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) cutSpeech.current();
@@ -383,7 +408,11 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
     }
     if (e.key !== 'Enter') return;
     e.preventDefault();
-    if (phase === 'busy' || phase === 'intro') return;
+    if (phase === 'busy') {
+      enterQueued.current = true;
+      return;
+    }
+    if (phase === 'intro') return;
     if (phase === 'dos') {
       setInput('');
       startProgram();

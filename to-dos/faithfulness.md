@@ -116,14 +116,13 @@ Still open:
 
 - [ ] The very first start is silent: browsers block audio until a user gesture, so the
       spoken intro only plays when audio is already unlocked (a restart after Q).
-- [ ] An Enter typed ahead during speech is ignored; the original consumes it as an
-      empty input.
-- [ ] HELP page 1 clears the whole screen, banner included; page 2 redraws the banner;
-      page 3 ends with a blank row and `>`. The classic screen prints the pages inline.
-- [ ] `.WIDTH` and `.COLOR` clear the area below the banner and restart at row 6; the
-      classic screen keeps the conversation.
+- [x] An Enter pressed while the doctor speaks is taken as the next input when the
+      prompt returns, as the original consumes it.
+- [x] HELP page 1 clears the whole screen, banner included; pages 2 and 3 redraw the
+      banner and replace the rows below it.
+- [x] `.WIDTH` and `.COLOR` clear the area below the banner and restart at row 6.
 - [ ] Each letter of the name is spoken as it is typed.
-- [ ] Enhanced-mode toggle that restores the toolbar, panels and persona selector.
+- [x] Enhanced-mode toggle that restores the toolbar, panels and persona selector (Alt+Shift+X, `?mode=`).
 
 ## Personas
 
