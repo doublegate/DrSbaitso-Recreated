@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSpeechPlayer } from './hooks/useSpeechPlayer';
 import { AUDIO_MODES } from './constants';
 import { useAccessibility } from './hooks/useAccessibility';
@@ -6,17 +6,21 @@ import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useFocusTrap } from './hooks/useFocusTrap';
-import MenuGroup from './components/enhanced/MenuGroup';
 import { playSoundPackEvent } from './utils/soundPackPlayer';
 import { useSessionHistory } from './hooks/useSessionHistory';
 import { useThemeChoice } from './hooks/useThemeChoice';
 import { usePersona } from './hooks/usePersona';
-import { shortcutLabel } from './utils/shortcuts';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import { usePanels } from './hooks/usePanels';
 import { useChatPipeline } from './hooks/useChatPipeline';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import SkipNav from './components/SkipNav';
+import NameEntry from './components/enhanced/NameEntry';
+import EnhancedHeader from './components/enhanced/EnhancedHeader';
+import VoiceControlIndicator from './components/enhanced/VoiceControlIndicator';
+import ChatLog from './components/enhanced/ChatLog';
+import InputBar from './components/enhanced/InputBar';
+import StatusBar from './components/enhanced/StatusBar';
 import EnhancedPanels from './components/enhanced/EnhancedPanels';
 
 /** The modern UI: toolbar, panels, personas and extras ("Enhanced" mode). */
@@ -56,24 +60,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     announce,
     announceMessages: accessibilitySettings.announceMessages,
   });
-  const {
-    userName,
-    nameInput,
-    setNameInput,
-    messages,
-    userInput,
-    setUserInput,
-    isLoading,
-    isGreeting,
-    isPreparingGreeting,
-    handleNameSubmit,
-    clearConversation,
-    switchPersona,
-    handleUserInput,
-    handleKeyDown,
-    handleVoiceTranscript,
-    handleSelectTemplate,
-  } = chat;
+  const { userName, messages, isLoading, isGreeting, isPreparingGreeting } = chat;
 
   // Conversation history is opt-in (the greeting promises memory is wiped).
   const { keepHistory, setKeepHistory, currentSession, savedSessions, mergeSessions } = useSessionHistory(messages, {
@@ -94,9 +81,9 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     wakeWordEnabled: true,
     handsFreeModeEnabled: false,
     confirmDestructiveCommands: true,
-    onClear: () => clearConversation(),
+    onClear: () => chat.clearConversation(),
     onExport: () => setPanel('advancedExport', true),
-    onSwitchCharacter: (id) => switchPersona(id),
+    onSwitchCharacter: (id) => chat.switchPersona(id),
     onToggleMute: () => toggleMute(),
     onToggleSettings: () => setPanel('soundSettings', prev => !prev),
     onToggleStats: () => setPanel('conversationSearch', true),
@@ -127,8 +114,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     },
   });
 
-  // Refs
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  // Focus targets: the name input, then the chat input.
   const nameInputRef = useRef<HTMLInputElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -139,11 +125,6 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     lastThemeRef.current = currentTheme;
     void playSoundPackEvent('theme-change');
   }, [currentTheme]);
-
-  // Keep the newest line in view (messages changes on every typed character).
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   useEffect(() => {
     // When the name screen is visible and not loading, focus the name input.
@@ -193,53 +174,13 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     return (
       <>
         <SkipNav />
-        <main
-          id="main-content"
-          className="bg-(--color-background) text-(--color-text) font-mono w-full h-dvh flex flex-col items-center justify-center p-4"
-          role="main"
-          aria-label="Dr. Sbaitso name entry screen"
-        >
-          <div className="w-full max-w-md text-center">
-            {isPreparingGreeting ? (
-              <p
-                className="text-xl mb-4 animate-pulse"
-                role="status"
-                aria-live="polite"
-              >
-                PREPARING SESSION...
-              </p>
-            ) : (
-              <>
-                <label htmlFor="name-input" className="text-xl mb-4 block">
-                  PLEASE ENTER YOUR NAME:
-                </label>
-                <div className="flex items-center justify-center">
-                  <span className="text-yellow-300 mr-2" aria-hidden="true">{'>'}</span>
-                  <input
-                    id="name-input"
-                    ref={nameInputRef}
-                    type="text"
-                    value={nameInput}
-                    onChange={(e) => setNameInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleNameSubmit();
-                      }
-                    }}
-                    className="bg-transparent border-none text-yellow-300 w-3/4 focus:outline-hidden placeholder-gray-500 text-center"
-                    placeholder="TYPE NAME AND PRESS ENTER"
-                    disabled={isPreparingGreeting}
-                    aria-label="Enter your name"
-                    aria-describedby="name-input-help"
-                  />
-                </div>
-                <span id="name-input-help" className="sr-only">
-                  Type your name and press Enter to begin your session with Dr. Sbaitso
-                </span>
-              </>
-            )}
-          </div>
-        </main>
+        <NameEntry
+          value={chat.nameInput}
+          onChange={chat.setNameInput}
+          onSubmit={chat.handleNameSubmit}
+          isPreparing={isPreparingGreeting}
+          inputRef={nameInputRef}
+        />
       </>
     );
   }
@@ -253,266 +194,52 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
         role="main"
       >
         <div className="w-full max-w-4xl mx-auto flex flex-col grow border-2 border-(--color-border) p-4 min-h-0">
-          {/* Header: persona and tool menus */}
-          {/* z-50: the menus stay above the floating panels (z-40), which they toggle. */}
-          <header className="relative z-50 shrink-0 flex flex-wrap items-center gap-x-4 gap-y-2 mb-3 pb-2 border-b-2 border-(--color-border)">
-            <div className="flex items-center gap-2 min-w-0" data-tour-id="character-selection">
-              <label htmlFor="persona-select" className="text-sm font-bold">
-                PERSONA:
-              </label>
-              <select
-                id="persona-select"
-                value={persona.id}
-                onChange={(e) => switchPersona(e.target.value)}
-                disabled={isLoading && !!userName}
-                className="enh-select font-bold"
-                title={persona.description}
-              >
-                <optgroup label="Classic programs">
-                  {personaState.personas.filter((p) => !p.isCustom).map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </optgroup>
-                {personaState.customCharacters.length > 0 && (
-                  <optgroup label="Your characters">
-                    {personaState.personas.filter((p) => p.isCustom).map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
-              <span className="hidden md:inline text-xs opacity-75 truncate max-w-xs" title={persona.description}>
-                {persona.description}
-              </span>
-            </div>
+          <EnhancedHeader
+            persona={persona}
+            personas={personaState.personas}
+            hasCustomCharacters={personaState.customCharacters.length > 0}
+            onSwitchPersona={chat.switchPersona}
+            personaDisabled={isLoading && !!userName}
+            panels={panels}
+            muted={muted}
+            onToggleMute={toggleMute}
+            onClearConversation={chat.clearConversation}
+            handsFree={{
+              active: voiceControl.isHandsFreeMode,
+              supported: voiceControl.isSupported,
+              toggle: () => voiceControl.toggleHandsFreeMode(),
+            }}
+            onSwitchMode={onSwitchMode}
+          />
 
-            <nav aria-label="Tools" className="flex flex-wrap items-center gap-2 ml-auto" data-tour-id="settings-panel">
-              <span data-tour-id="session-panel">
-                <MenuGroup
-                  label="CONVERSATION"
-                  items={[
-                    { id: 'search', icon: '🔍', label: 'Search and replay', onSelect: () => setPanel('conversationSearch', true) },
-                    { id: 'export', icon: '📦', label: 'Export', onSelect: () => setPanel('advancedExport', true) },
-                    { id: 'templates', icon: '📝', label: 'Templates', shortcut: shortcutLabel('templates'), onSelect: () => setPanel('templates', true) },
-                    { id: 'insights', icon: '📈', label: 'Insights', shortcut: shortcutLabel('insights'), onSelect: () => setPanel('insights', true) },
-                    { id: 'clear', icon: '🧹', label: 'Clear conversation', onSelect: clearConversation },
-                  ]}
-                />
-              </span>
-              <MenuGroup
-                label="VISUALS"
-                items={[
-                  { id: 'emotions', icon: '😊', label: 'Emotion visualizer', shortcut: shortcutLabel('emotionViz'), active: panelOpen.emotionViz, onSelect: () => setPanel('emotionViz', v => !v) },
-                  { id: 'topics', icon: '🔀', label: 'Topic diagram', shortcut: shortcutLabel('topicDiagram'), active: panelOpen.topicDiagram, onSelect: () => setPanel('topicDiagram', v => !v) },
-                  { id: 'audioviz', icon: '📊', label: 'Audio visualizer', active: panelOpen.audioVisualizer, onSelect: () => setPanel('audioVisualizer', v => !v) },
-                ]}
-              />
-              <MenuGroup
-                label="SOUND"
-                items={[
-                  { id: 'voice-input', icon: '🗣️', label: 'Voice input', shortcut: shortcutLabel('voiceInput'), active: panelOpen.voiceInput, onSelect: () => setPanel('voiceInput', v => !v) },
-                  { id: 'hands-free', icon: '🎤', label: 'Hands-free voice control', active: voiceControl.isHandsFreeMode, disabled: !voiceControl.isSupported, onSelect: () => voiceControl.toggleHandsFreeMode() },
-                  { id: 'mute', icon: muted ? '🔇' : '🔈', label: muted ? 'Unmute speech' : 'Mute speech', active: muted, onSelect: toggleMute },
-                  { id: 'music', icon: '🎵', label: 'Music player', shortcut: shortcutLabel('musicPlayer'), active: panelOpen.musicPlayer, onSelect: () => setPanel('musicPlayer', v => !v) },
-                  { id: 'packs', icon: '🎼', label: 'Sound packs', shortcut: shortcutLabel('soundPacks'), onSelect: () => setPanel('soundPackManager', true) },
-                  { id: 'sound-settings', icon: '🔊', label: 'Sound settings', shortcut: shortcutLabel('soundSettings'), onSelect: () => setPanel('soundSettings', true) },
-                ]}
-              />
-              <span data-tour-id="theme-button">
-                <MenuGroup
-                  label="SETTINGS"
-                  items={[
-                    { id: 'theme', icon: '🎨', label: 'Theme customizer', onSelect: () => setPanel('themeCustomizer', true) },
-                    { id: 'characters', icon: '🎭', label: 'Character creator', onSelect: () => setPanel('characterCreator', true) },
-                    { id: 'a11y', icon: '♿', label: 'Accessibility', shortcut: shortcutLabel('accessibility'), onSelect: () => setPanel('accessibility', true) },
-                    { id: 'voice-help', icon: '❔', label: 'Voice commands', onSelect: () => setPanel('voiceControlHelp', true) },
-                    { id: 'cloud-sync', icon: '☁️', label: 'Cloud sync', onSelect: () => setPanel('cloudSync', true) },
-                    { id: 'tutorial', icon: '🎓', label: 'Tutorial', shortcut: shortcutLabel('tutorial'), onSelect: () => setPanel('onboarding', true) },
-                  ]}
-                />
-              </span>
-              {onSwitchMode && (
-                <button
-                  type="button"
-                  onClick={onSwitchMode}
-                  className="enh-menu-trigger"
-                  title={`Switch to the classic screen (${shortcutLabel('switchMode')})`}
-                >
-                  CLASSIC
-                </button>
-              )}
-            </nav>
-          </header>
-
-          {/* Voice Control Indicator (v1.6.0) */}
           {voiceControl.isHandsFreeMode && (
-            <div className="mt-2 p-2 border-2 border-green-400 bg-green-900/30">
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <span className={`${voiceControl.isListeningForWakeWord ? 'animate-pulse' : ''}`}>
-                    {voiceControl.isListeningForWakeWord && '🎤 Listening for "Hey Doctor"...'}
-                    {voiceControl.isListeningForCommand && '🎯 Listening for command...'}
-                    {!voiceControl.isListeningForWakeWord && !voiceControl.isListeningForCommand && '⏸ Standby'}
-                  </span>
-                  {voiceControl.suggestions.length > 0 && (
-                    <span className="text-yellow-300">
-                      Suggestions: {voiceControl.suggestions.map(s => s.name).join(', ')}
-                    </span>
-                  )}
-                </div>
-                <button
-                  onClick={() => setPanel('voiceControlHelp', true)}
-                  className="px-2 py-1 border border-gray-400 hover:border-yellow-300 text-xs"
-                  title="View voice commands"
-                >
-                  Help
-                </button>
-              </div>
-              {voiceControl.error && (
-                <div className="mt-1 text-red-400 text-xs">
-                  ⚠ {voiceControl.error}
-                </div>
-              )}
-              {voiceControl.pendingConfirmation && (
-                <div className="mt-2 p-2 bg-yellow-900/50 border border-yellow-400">
-                  <div className="text-yellow-300 text-xs mb-2">
-                    Confirm: {voiceControl.pendingConfirmation.name}?
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => voiceControl.confirmCommand()}
-                      className="px-3 py-1 bg-green-700 hover:bg-green-600 text-xs"
-                    >
-                      Yes
-                    </button>
-                    <button
-                      onClick={() => voiceControl.cancelConfirmation()}
-                      className="px-3 py-1 bg-red-700 hover:bg-red-600 text-xs"
-                    >
-                      No
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <VoiceControlIndicator voiceControl={voiceControl} onShowHelp={() => setPanel('voiceControlHelp', true)} />
           )}
 
-          {/* Messages area */}
-          <div
-            id="main-content"
-            className="grow overflow-y-auto pr-2 min-h-0"
-            role="log"
-            aria-live="off"
-            aria-label="Conversation messages"
-          >
-            {messages.map((msg, index) => (
-              <p
-                key={index}
-                className={`whitespace-pre-wrap ${msg.author === 'dr' ? 'text-(--color-text)' : 'text-(--color-accent)'}`}
-              >
-                <span className="sr-only">
-                  {msg.author === 'dr'
-                    ? `${personaState.personas.find((p) => p.id === msg.characterId)?.name ?? persona.name}: `
-                    : 'You: '}
-                </span>
-                {msg.author === 'user' && <span aria-hidden="true">{'> '}</span>}
-                {msg.text}
-                {isLoading && !isGreeting && msg.author === 'dr' && index === messages.length - 1 && (
-                  <span className="animate-pulse" aria-hidden="true">_</span>
-                )}
-              </p>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+          <ChatLog messages={messages} personas={personaState.personas} persona={persona} typing={isLoading && !isGreeting} />
 
-          {/* Chat input */}
-          <div className="shrink-0 flex items-center gap-2 mt-3 border-t-2 border-(--color-border) pt-3" data-tour-id="chat-input">
-            <span className="text-(--color-accent)" aria-hidden="true">{'>'}</span>
-            <input
-              id="chat-input"
-              ref={inputRef}
-              type="text"
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isLoading}
-              className="bg-transparent border-none text-(--color-accent) w-full focus:outline-hidden placeholder-gray-500"
-              placeholder={isLoading ? '' : 'TYPE HERE AND PRESS ENTER...'}
-              aria-label="Enter your message"
-              aria-describedby="chat-input-help"
-            />
-            <span id="chat-input-help" className="sr-only">
-              Type your message and press Enter to send it to {persona.name}
-            </span>
-            <button
-              type="button"
-              onClick={() => setPanel('voiceInput', v => !v)}
-              className="enh-icon-button"
-              data-tour-id="voice-input"
-              aria-label="Speak instead of typing"
-              aria-pressed={panelOpen.voiceInput}
-              title={`Voice input (${shortcutLabel('voiceInput')})`}
-            >
-              <span aria-hidden="true">🎤</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleUserInput}
-              disabled={isLoading || !userInput.trim()}
-              className="enh-send-button"
-            >
-              SEND
-            </button>
-          </div>
+          <InputBar
+            value={chat.userInput}
+            onChange={chat.setUserInput}
+            onKeyDown={chat.handleKeyDown}
+            onSend={chat.handleUserInput}
+            isLoading={isLoading}
+            personaName={persona.name}
+            voiceInputOpen={panelOpen.voiceInput}
+            onToggleVoiceInput={() => setPanel('voiceInput', v => !v)}
+            inputRef={inputRef}
+          />
 
-          {/* Status bar: persistent display and privacy settings */}
-          <footer className="shrink-0 mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" data-tour-id="audio-settings">
-            <label className="flex items-center gap-1">
-              AUDIO
-              <select
-                id="audio-mode-select"
-                value={audioMode}
-                onChange={(e) => setAudioMode(e.target.value as typeof audioMode)}
-                className="enh-select"
-                aria-label="Audio quality mode"
-                title={AUDIO_MODES.find(m => m.id === audioMode)?.description || ''}
-              >
-                {AUDIO_MODES.map((mode) => (
-                  <option key={mode.id} value={mode.id}>{mode.name}</option>
-                ))}
-              </select>
-            </label>
-            <label className="flex items-center gap-1">
-              THEME
-              <select
-                id="theme-select"
-                value={currentTheme}
-                onChange={(e) => themeChoice.selectTheme(e.target.value)}
-                className="enh-select"
-                aria-label="Colour theme"
-              >
-                {themeChoice.themes.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-            </label>
-            <label
-              className="flex items-center gap-1"
-              title="Off by default: memory contents are wiped when you leave. Turn on to keep sessions in this browser for search, replay and insights."
-            >
-              <input
-                type="checkbox"
-                checked={keepHistory}
-                onChange={(e) => setKeepHistory(e.target.checked)}
-                className="accent-(--color-accent)"
-              />
-              SAVE HISTORY
-            </label>
-            {muted && <span aria-live="polite">SPEECH MUTED</span>}
-            <span className="ml-auto opacity-60 hidden sm:inline">
-              {shortcutLabel('switchMode')} classic screen
-            </span>
-          </footer>
+          <StatusBar
+            audioMode={audioMode}
+            onAudioModeChange={setAudioMode}
+            themeId={currentTheme}
+            themes={themeChoice.themes}
+            onThemeChange={themeChoice.selectTheme}
+            keepHistory={keepHistory}
+            onKeepHistoryChange={setKeepHistory}
+            muted={muted}
+          />
         </div>
       </main>
 
@@ -528,8 +255,8 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
         voiceHelpRef={voiceHelpRef}
         messages={messages}
         announce={announce}
-        onVoiceTranscript={handleVoiceTranscript}
-        onSelectTemplate={handleSelectTemplate}
+        onVoiceTranscript={chat.handleVoiceTranscript}
+        onSelectTemplate={chat.handleSelectTemplate}
       />
     </>
   );
