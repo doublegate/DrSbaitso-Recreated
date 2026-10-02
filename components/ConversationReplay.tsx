@@ -11,7 +11,7 @@
  * - Jump to any message via timeline
  */
 
-import { useState, useEffect, useRef, useCallback, MouseEvent } from 'react';
+import { useState, useEffect, useEffectEvent, useRef, useCallback, MouseEvent } from 'react';
 import type { ConversationSession, ReplayState } from '../types';
 
 interface ConversationReplayProps {
@@ -96,11 +96,9 @@ export function ConversationReplay({ isOpen, onClose, session }: ConversationRep
     };
   }, [isTyping, isPlaying, currentIndex, loop, messages.length]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyPress = (e: KeyboardEvent) => {
+  // Keyboard shortcuts. The effect event always calls the latest controls,
+  // so the listener only depends on whether the replay is open.
+  const onReplayKey = useEffectEvent((e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return; // Don't handle shortcuts when typing
       }
@@ -140,11 +138,14 @@ export function ConversationReplay({ isOpen, onClose, session }: ConversationRep
           toggleLoop();
           break;
       }
-    };
+  });
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyPress = (e: KeyboardEvent) => onReplayKey(e);
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isOpen, currentIndex, isPlaying, speed, loop, messages.length]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

@@ -33,17 +33,14 @@ export default function SoundSettingsPanel({ isOpen, onClose }: SoundSettingsPan
     playSound(soundType);
   };
 
-  const handlePreviewAmbience = () => {
+  // Preview ambience as the toggle changes (start/stop are stable callbacks).
+  useEffect(() => {
     if (settings.ambienceEnabled) {
-      startAmbience();
+      void startAmbience();
     } else {
       stopAmbience();
     }
-  };
-
-  useEffect(() => {
-    handlePreviewAmbience();
-  }, [settings.ambienceEnabled]);
+  }, [settings.ambienceEnabled, startAmbience, stopAmbience]);
 
   if (!isOpen) return null;
 

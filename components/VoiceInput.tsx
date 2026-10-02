@@ -253,6 +253,10 @@ export function useVoiceInput(options: {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
+  // Latest callbacks, read at event time so they are never stale.
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const { language = 'en-US', continuous = false } = options;
 
   useEffect(() => {
     const SpeechRecognition =
@@ -263,9 +267,9 @@ export function useVoiceInput(options: {
       setIsSupported(true);
       recognitionRef.current = new SpeechRecognition();
 
-      recognitionRef.current.continuous = options.continuous || false;
+      recognitionRef.current.continuous = continuous;
       recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = options.language || 'en-US';
+      recognitionRef.current.lang = language;
 
       recognitionRef.current.onstart = () => setIsListening(true);
       recognitionRef.current.onend = () => setIsListening(false);
@@ -273,18 +277,16 @@ export function useVoiceInput(options: {
       recognitionRef.current.onresult = (event: any) => {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           if (event.results[i].isFinal) {
-            options.onTranscript(event.results[i][0].transcript);
+            optionsRef.current.onTranscript(event.results[i][0].transcript);
           }
         }
       };
 
       recognitionRef.current.onerror = (event: any) => {
-        if (options.onError) {
-          options.onError(getErrorMessage(event.error));
-        }
+        optionsRef.current.onError?.(getErrorMessage(event.error));
       };
 
-      if (options.autoStart) {
+      if (optionsRef.current.autoStart) {
         recognitionRef.current.start();
       }
     }
@@ -298,7 +300,7 @@ export function useVoiceInput(options: {
         }
       }
     };
-  }, []);
+  }, [language, continuous]);
 
   const start = () => {
     if (recognitionRef.current && !isListening) {

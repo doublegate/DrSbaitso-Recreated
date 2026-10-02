@@ -208,13 +208,10 @@ export default function App() {
     }
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  // Keep the newest line in view (messages changes on every typed character).
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, messages.length > 0 && messages[messages.length-1].text]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   // Load custom characters from localStorage on mount (v1.6.0)
   useEffect(() => {

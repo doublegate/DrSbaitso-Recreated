@@ -240,18 +240,17 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     }
   }
 
-  // Execute command action
-  function executeCommand(command: VoiceCommand) {
+  // Execute command action (stable; reads the latest onError via the ref)
+  const executeCommand = useCallback((command: VoiceCommand) => {
     try {
       command.action();
-      console.log('[VoiceControl] Command executed:', command.name);
     } catch (error) {
       console.error('[VoiceControl] Command execution error:', error);
       const errorMsg = `Failed to execute command: ${command.name}`;
       setState(prev => ({ ...prev, error: errorMsg }));
-      onError?.(errorMsg);
+      optionsRef.current.onError?.(errorMsg);
     }
-  }
+  }, []);
 
   // Handle wake word error
   function handleWakeWordError(error: string) {
@@ -380,7 +379,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     if (state.isHandsFreeMode) {
       setTimeout(() => startWakeWordListening(), 500);
     }
-  }, [state.pendingConfirmation, state.isHandsFreeMode, startWakeWordListening]);
+  }, [state.pendingConfirmation, state.isHandsFreeMode, startWakeWordListening, executeCommand]);
 
   // Cancel pending command confirmation
   const cancelConfirmation = useCallback(() => {

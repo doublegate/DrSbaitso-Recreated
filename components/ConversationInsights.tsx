@@ -19,7 +19,7 @@
  * - Keyboard navigation and screen reader support
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useEffectEvent } from 'react';
 import { InsightsData, InsightsFilter } from '@/types';
 import { SessionManager } from '@/utils/sessionManager';
 import { drawLineChart, drawPieChart, drawWordCloud, drawGauge } from '@/utils/chartUtils';
@@ -63,28 +63,31 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
   const theme = THEMES.find(t => t.id === currentTheme) || THEMES[0];
   const chartColors = INSIGHT_CHART_COLORS[currentTheme as keyof typeof INSIGHT_CHART_COLORS] || INSIGHT_CHART_COLORS['dos-blue'];
 
-  // Load insights data when filter changes
-  useEffect(() => {
-    loadInsights();
-  }, [filter]);
-
-  // Redraw charts when data or theme changes
-  useEffect(() => {
+  // Effect events see the latest state and callbacks without making the
+  // effects below re-run (or re-subscribe) on every render.
+  const loadInsightsEvent = useEffectEvent(() => loadInsights());
+  const redrawCharts = useEffectEvent(() => {
     if (insightsData && !loading) {
       drawCharts();
     }
-  }, [insightsData, currentTheme]);
+  });
+
+  // Load insights data when filter changes
+  useEffect(() => {
+    loadInsightsEvent();
+  }, [filter]);
+
+  // Redraw charts when data, loading state or theme changes
+  useEffect(() => {
+    redrawCharts();
+  }, [insightsData, loading, currentTheme]);
 
   // Handle window resize
   useEffect(() => {
     let resizeTimeout: ReturnType<typeof setTimeout>;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        if (insightsData) {
-          drawCharts();
-        }
-      }, 300);
+      resizeTimeout = setTimeout(() => redrawCharts(), 300);
     };
 
     window.addEventListener('resize', handleResize);
@@ -92,7 +95,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimeout);
     };
-  }, [insightsData]);
+  }, []);
 
   // Keyboard navigation
   useEffect(() => {

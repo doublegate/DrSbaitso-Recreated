@@ -12,7 +12,7 @@
  * - Celebration animation on completion
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useEffectEvent, useCallback, useRef } from 'react';
 import { OnboardingStep, OnboardingState } from '@/types';
 import { ONBOARDING_STEPS } from '@/constants';
 
@@ -88,9 +88,9 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
     }
   }, [step]);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+  // Keyboard navigation. An effect event always sees the latest state and
+  // handlers, so the listener is attached once.
+  const onKeyDown = useEffectEvent((e: KeyboardEvent) => {
       if (celebrating) return; // Disable during celebration
 
       if (e.key === 'Escape') {
@@ -106,11 +106,13 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
           handleNext();
         }
       }
-    };
+  });
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => onKeyDown(e);
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentStep, actionCompleted, step, showSkipConfirm, celebrating]);
+  }, []);
 
   const handleNext = () => {
     if (isLastStep) {

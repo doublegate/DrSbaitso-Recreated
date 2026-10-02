@@ -54,10 +54,11 @@ export function useCloudSync(): UseCloudSyncReturn {
       setUserId(data.userId);
     };
 
-    cloudSync.current.on('auth-state-changed', handleAuthChange);
+    const sync = cloudSync.current;
+    sync.on('auth-state-changed', handleAuthChange);
 
     return () => {
-      cloudSync.current.off('auth-state-changed', handleAuthChange);
+      sync.off('auth-state-changed', handleAuthChange);
     };
   }, []);
 
