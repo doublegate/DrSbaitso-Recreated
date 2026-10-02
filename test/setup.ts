@@ -255,12 +255,12 @@ global.cancelAnimationFrame = vi.fn((id) => {
   clearTimeout(id);
 });
 
-// Mock localStorage
-const localStorageMock = (() => {
+// In-memory Web Storage. localStorage and sessionStorage get separate instances.
+const createStorageMock = () => {
   let store: Record<string, string> = {};
 
   return {
-    getItem: (key: string) => store[key] || null,
+    getItem: (key: string) => (Object.hasOwn(store, key) ? store[key] : null),
     setItem: (key: string, value: string) => {
       store[key] = value.toString();
     },
@@ -275,19 +275,18 @@ const localStorageMock = (() => {
     },
     key: (index: number) => {
       const keys = Object.keys(store);
-      return keys[index] || null;
+      return keys[index] ?? null;
     },
   };
-})();
+};
 
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
+  value: createStorageMock(),
   writable: true,
 });
 
-// Mock sessionStorage
 Object.defineProperty(window, 'sessionStorage', {
-  value: localStorageMock,
+  value: createStorageMock(),
   writable: true,
 });
 
@@ -328,26 +327,6 @@ Object.defineProperty(navigator, 'serviceWorker', {
     removeEventListener: vi.fn(),
   },
 });
-
-// Mock Gemini API
-vi.mock('@google/genai', () => ({
-  GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
-    getGenerativeModel: vi.fn(() => ({
-      startChat: vi.fn(() => ({
-        sendMessage: vi.fn().mockResolvedValue({
-          response: {
-            text: vi.fn(() => 'HELLO, I AM DR. SBAITSO. TELL ME ABOUT YOUR PROBLEMS.'),
-          },
-        }),
-      })),
-      generateContent: vi.fn().mockResolvedValue({
-        response: {
-          text: vi.fn(() => 'PARITY CHECKING...'),
-        },
-      }),
-    })),
-  })),
-}));
 
 // Mock canvas getContext
 HTMLCanvasElement.prototype.getContext = vi.fn((contextType) => {
