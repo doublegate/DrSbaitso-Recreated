@@ -42,46 +42,155 @@ export interface TopicEvolution {
 
 // Topic keyword categories for detection
 const TOPIC_KEYWORDS: Record<string, string[]> = {
-  'mental_health': [
-    'anxiety', 'depression', 'stress', 'worry', 'therapy', 'counseling',
-    'mental', 'emotional', 'feelings', 'mood', 'psychology', 'psychiatrist'
+  mental_health: [
+    'anxiety',
+    'depression',
+    'stress',
+    'worry',
+    'therapy',
+    'counseling',
+    'mental',
+    'emotional',
+    'feelings',
+    'mood',
+    'psychology',
+    'psychiatrist',
   ],
-  'relationships': [
-    'relationship', 'family', 'friend', 'partner', 'spouse', 'boyfriend',
-    'girlfriend', 'marriage', 'divorce', 'parent', 'child', 'sibling'
+  relationships: [
+    'relationship',
+    'family',
+    'friend',
+    'partner',
+    'spouse',
+    'boyfriend',
+    'girlfriend',
+    'marriage',
+    'divorce',
+    'parent',
+    'child',
+    'sibling',
   ],
-  'work_career': [
-    'work', 'job', 'career', 'boss', 'coworker', 'office', 'business',
-    'employee', 'employer', 'project', 'deadline', 'meeting', 'promotion'
+  work_career: [
+    'work',
+    'job',
+    'career',
+    'boss',
+    'coworker',
+    'office',
+    'business',
+    'employee',
+    'employer',
+    'project',
+    'deadline',
+    'meeting',
+    'promotion',
   ],
-  'health': [
-    'health', 'sick', 'illness', 'disease', 'doctor', 'hospital', 'medicine',
-    'pain', 'symptom', 'treatment', 'diagnosis', 'medical', 'wellness'
+  health: [
+    'health',
+    'sick',
+    'illness',
+    'disease',
+    'doctor',
+    'hospital',
+    'medicine',
+    'pain',
+    'symptom',
+    'treatment',
+    'diagnosis',
+    'medical',
+    'wellness',
   ],
-  'technology': [
-    'computer', 'software', 'programming', 'code', 'internet', 'website',
-    'app', 'digital', 'tech', 'ai', 'robot', 'algorithm', 'data'
+  technology: [
+    'computer',
+    'software',
+    'programming',
+    'code',
+    'internet',
+    'website',
+    'app',
+    'digital',
+    'tech',
+    'ai',
+    'robot',
+    'algorithm',
+    'data',
   ],
-  'education': [
-    'school', 'college', 'university', 'student', 'teacher', 'study',
-    'class', 'exam', 'grade', 'homework', 'learn', 'education', 'degree'
+  education: [
+    'school',
+    'college',
+    'university',
+    'student',
+    'teacher',
+    'study',
+    'class',
+    'exam',
+    'grade',
+    'homework',
+    'learn',
+    'education',
+    'degree',
   ],
-  'finance': [
-    'money', 'finance', 'budget', 'debt', 'loan', 'bank', 'credit',
-    'savings', 'investment', 'cost', 'expensive', 'cheap', 'pay', 'bill'
+  finance: [
+    'money',
+    'finance',
+    'budget',
+    'debt',
+    'loan',
+    'bank',
+    'credit',
+    'savings',
+    'investment',
+    'cost',
+    'expensive',
+    'cheap',
+    'pay',
+    'bill',
   ],
-  'hobbies_leisure': [
-    'hobby', 'game', 'sport', 'music', 'art', 'movie', 'book', 'travel',
-    'vacation', 'entertainment', 'fun', 'play', 'relax', 'enjoy'
+  hobbies_leisure: [
+    'hobby',
+    'game',
+    'sport',
+    'music',
+    'art',
+    'movie',
+    'book',
+    'travel',
+    'vacation',
+    'entertainment',
+    'fun',
+    'play',
+    'relax',
+    'enjoy',
   ],
-  'life_goals': [
-    'goal', 'dream', 'ambition', 'future', 'plan', 'hope', 'aspiration',
-    'success', 'achieve', 'accomplish', 'purpose', 'meaning', 'change'
+  life_goals: [
+    'goal',
+    'dream',
+    'ambition',
+    'future',
+    'plan',
+    'hope',
+    'aspiration',
+    'success',
+    'achieve',
+    'accomplish',
+    'purpose',
+    'meaning',
+    'change',
   ],
-  'personal_growth': [
-    'growth', 'improve', 'better', 'change', 'develop', 'progress',
-    'self', 'identity', 'confidence', 'skill', 'learning', 'motivation'
-  ]
+  personal_growth: [
+    'growth',
+    'improve',
+    'better',
+    'change',
+    'develop',
+    'progress',
+    'self',
+    'identity',
+    'confidence',
+    'skill',
+    'learning',
+    'motivation',
+  ],
 };
 
 /**
@@ -89,7 +198,10 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
  */
 function detectTopicsInMessage(message: Message): Map<string, number> {
   const text = message.text.toLowerCase();
-  const words = text.replace(/[^\w\s]/g, ' ').split(/\s+/).filter(w => w.length > 0);
+  const words = text
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 0);
 
   const topicScores = new Map<string, number>();
 
@@ -136,7 +248,7 @@ export function analyzeTopicEvolution(session: ConversationSession): TopicEvolut
           occurrences: [],
           peakIntensity: 0,
           averageIntensity: 0,
-          totalMentions: 0
+          totalMentions: 0,
         });
       }
 
@@ -146,7 +258,7 @@ export function analyzeTopicEvolution(session: ConversationSession): TopicEvolut
         topic,
         timestamp,
         messageIndex: index,
-        intensity
+        intensity,
       });
       timeline.peakIntensity = Math.max(timeline.peakIntensity, intensity);
       timeline.totalMentions++;
@@ -155,8 +267,7 @@ export function analyzeTopicEvolution(session: ConversationSession): TopicEvolut
     // Detect topic transitions
     if (topics.size > 0) {
       // Find dominant topic in this message
-      const dominantTopic = Array.from(topics.entries())
-        .sort((a, b) => b[1] - a[1])[0][0];
+      const dominantTopic = Array.from(topics.entries()).sort((a, b) => b[1] - a[1])[0][0];
 
       if (previousDominantTopic && previousDominantTopic !== dominantTopic) {
         // Topic shift detected
@@ -165,7 +276,7 @@ export function analyzeTopicEvolution(session: ConversationSession): TopicEvolut
           toTopic: dominantTopic,
           timestamp,
           messageIndex: index,
-          transitionType: 'shift'
+          transitionType: 'shift',
         });
       } else if (!previousDominantTopic) {
         // Topic emergence (first topic in conversation)
@@ -174,7 +285,7 @@ export function analyzeTopicEvolution(session: ConversationSession): TopicEvolut
           toTopic: dominantTopic,
           timestamp,
           messageIndex: index,
-          transitionType: 'emergence'
+          transitionType: 'emergence',
         });
       }
 
@@ -183,23 +294,20 @@ export function analyzeTopicEvolution(session: ConversationSession): TopicEvolut
   });
 
   // Calculate average intensities
-  topicTimelines.forEach(timeline => {
+  topicTimelines.forEach((timeline) => {
     const totalIntensity = timeline.occurrences.reduce((sum, occ) => sum + occ.intensity, 0);
     timeline.averageIntensity = Math.round(totalIntensity / timeline.occurrences.length);
   });
 
   // Sort timelines by total mentions
-  const sortedTimelines = Array.from(topicTimelines.values())
-    .sort((a, b) => b.totalMentions - a.totalMentions);
+  const sortedTimelines = Array.from(topicTimelines.values()).sort((a, b) => b.totalMentions - a.totalMentions);
 
   // Identify dominant topics (top 5)
-  const dominantTopics = sortedTimelines
-    .slice(0, 5)
-    .map(t => t.topic);
+  const dominantTopics = sortedTimelines.slice(0, 5).map((t) => t.topic);
 
   // Identify emerging topics (intensity increasing in recent messages)
   const emergingTopics = sortedTimelines
-    .filter(timeline => {
+    .filter((timeline) => {
       if (timeline.occurrences.length < 3) return false;
 
       const recent = timeline.occurrences.slice(-3);
@@ -211,11 +319,11 @@ export function analyzeTopicEvolution(session: ConversationSession): TopicEvolut
       return recentAvg > earlierAvg * 1.3; // 30% increase
     })
     .slice(0, 3)
-    .map(t => t.topic);
+    .map((t) => t.topic);
 
   // Identify declining topics (intensity decreasing)
   const decliningTopics = sortedTimelines
-    .filter(timeline => {
+    .filter((timeline) => {
       if (timeline.occurrences.length < 3) return false;
 
       const recent = timeline.occurrences.slice(-3);
@@ -227,14 +335,14 @@ export function analyzeTopicEvolution(session: ConversationSession): TopicEvolut
       return recentAvg < earlierAvg * 0.7; // 30% decrease
     })
     .slice(0, 3)
-    .map(t => t.topic);
+    .map((t) => t.topic);
 
   return {
     timelines: sortedTimelines,
     transitions,
     dominantTopics,
     emergingTopics,
-    decliningTopics
+    decliningTopics,
   };
 }
 
@@ -247,7 +355,7 @@ export function analyzeMultiSessionTopicEvolution(sessions: ConversationSession[
 
   sessions
     .sort((a, b) => a.createdAt - b.createdAt)
-    .forEach(session => {
+    .forEach((session) => {
       allMessages.push(...session.messages);
     });
 
@@ -261,7 +369,7 @@ export function analyzeMultiSessionTopicEvolution(sessions: ConversationSession[
     updatedAt: sessions[sessions.length - 1]?.updatedAt || Date.now(),
     messages: allMessages,
     messageCount: allMessages.length,
-    glitchCount: 0
+    glitchCount: 0,
   };
 
   return analyzeTopicEvolution(virtualSession);
@@ -276,17 +384,17 @@ export function getTopicEvolutionSummary(evolution: TopicEvolution): string {
   const parts: string[] = [];
 
   if (dominantTopics.length > 0) {
-    const formatted = dominantTopics.map(t => t.replace(/_/g, ' ')).join(', ');
+    const formatted = dominantTopics.map((t) => t.replace(/_/g, ' ')).join(', ');
     parts.push(`Dominant topics: ${formatted}`);
   }
 
   if (emergingTopics.length > 0) {
-    const formatted = emergingTopics.map(t => t.replace(/_/g, ' ')).join(', ');
+    const formatted = emergingTopics.map((t) => t.replace(/_/g, ' ')).join(', ');
     parts.push(`Emerging: ${formatted}`);
   }
 
   if (decliningTopics.length > 0) {
-    const formatted = decliningTopics.map(t => t.replace(/_/g, ' ')).join(', ');
+    const formatted = decliningTopics.map((t) => t.replace(/_/g, ' ')).join(', ');
     parts.push(`Declining: ${formatted}`);
   }
 
@@ -303,7 +411,7 @@ export function getTopicEvolutionSummary(evolution: TopicEvolution): string {
 export function formatTopicName(topic: string): string {
   return topic
     .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
 
@@ -312,16 +420,16 @@ export function formatTopicName(topic: string): string {
  */
 export function getTopicColor(topic: string): string {
   const colors: Record<string, string> = {
-    mental_health: '#9370DB',    // Purple
-    relationships: '#FF69B4',    // Pink
-    work_career: '#4169E1',      // Royal Blue
-    health: '#32CD32',           // Lime Green
-    technology: '#00CED1',       // Dark Turquoise
-    education: '#FFD700',        // Gold
-    finance: '#228B22',          // Forest Green
-    hobbies_leisure: '#FF8C00',  // Dark Orange
-    life_goals: '#DC143C',       // Crimson
-    personal_growth: '#8A2BE2'   // Blue Violet
+    mental_health: '#9370DB', // Purple
+    relationships: '#FF69B4', // Pink
+    work_career: '#4169E1', // Royal Blue
+    health: '#32CD32', // Lime Green
+    technology: '#00CED1', // Dark Turquoise
+    education: '#FFD700', // Gold
+    finance: '#228B22', // Forest Green
+    hobbies_leisure: '#FF8C00', // Dark Orange
+    life_goals: '#DC143C', // Crimson
+    personal_growth: '#8A2BE2', // Blue Violet
   };
 
   return colors[topic] || '#808080'; // Gray as fallback

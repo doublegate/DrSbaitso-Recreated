@@ -11,7 +11,7 @@ import {
   darkenColor,
   lightenColor,
   exportThemeJSON,
-  importThemeJSON
+  importThemeJSON,
 } from '@/utils/themeValidator';
 
 describe('Theme Validator', () => {
@@ -80,7 +80,7 @@ describe('Theme Validator', () => {
         background: '#000000',
         text: '#FFFFFF',
         border: '#888888',
-        accent: '#FFAA00'
+        accent: '#FFAA00',
       };
 
       const validation = validateThemeColors(colors);
@@ -95,7 +95,7 @@ describe('Theme Validator', () => {
         background: '#FFFFFF',
         text: '#FEFEFE', // Too similar
         border: '#888888',
-        accent: '#FFAA00'
+        accent: '#FFAA00',
       };
 
       const validation = validateThemeColors(colors);
@@ -109,12 +109,12 @@ describe('Theme Validator', () => {
         background: '#FFFFFF',
         text: '#CCCCCC', // Low contrast
         border: '#DDDDDD',
-        accent: '#EEEEEE'
+        accent: '#EEEEEE',
       };
 
       const validation = validateThemeColors(colors);
       expect(validation.suggestions.length).toBeGreaterThan(0);
-      expect(validation.suggestions.some(s => s.includes('contrast'))).toBe(true);
+      expect(validation.suggestions.some((s) => s.includes('contrast'))).toBe(true);
     });
 
     it('should calculate accessibility score', () => {
@@ -123,7 +123,7 @@ describe('Theme Validator', () => {
         background: '#000000',
         text: '#FFFFFF',
         border: '#888888',
-        accent: '#FFAA00'
+        accent: '#FFAA00',
       };
 
       const validation = validateThemeColors(colors);
@@ -254,10 +254,10 @@ describe('Theme Validator', () => {
         text: '#FFFFFF',
         border: '#888888',
         accent: '#FFAA00',
-        shadow: '#000000'
+        shadow: '#000000',
       },
       isCustom: true as const,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
 
     it('should export theme to JSON string', () => {
@@ -303,10 +303,10 @@ describe('Theme Validator', () => {
         text: '#FFFFFF',
         border: '#888888',
         accent: '#00FF00',
-        shadow: '#000000'
+        shadow: '#000000',
       },
       isCustom: true as const,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
 
     it('should generate share code for theme', () => {
@@ -344,8 +344,8 @@ describe('Theme Validator', () => {
         ...sampleTheme,
         colors: {
           ...sampleTheme.colors,
-          primary: '#0000FF'
-        }
+          primary: '#0000FF',
+        },
       };
 
       const code1 = generateShareCode(sampleTheme);

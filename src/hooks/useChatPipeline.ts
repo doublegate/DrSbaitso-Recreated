@@ -124,12 +124,12 @@ export function useChatPipeline({
     // Any failure degrades to a text-only session rather than blocking it.
     // JOSHUA's LOGON prompt is printed, never spoken.
     const spokenGreeting = characterId === 'joshua' ? '' : lines.filter((line) => line.trim()).join('. ');
-    const audio = await (spokenGreeting ? synthesizeSpeech(spokenGreeting, characterId, speechOptions) : Promise.resolve('')).catch(
-      (error) => {
-        console.warn('Greeting speech unavailable; continuing text-only:', error);
-        return '';
-      },
-    );
+    const audio = await (
+      spokenGreeting ? synthesizeSpeech(spokenGreeting, characterId, speechOptions) : Promise.resolve('')
+    ).catch((error) => {
+      console.warn('Greeting speech unavailable; continuing text-only:', error);
+      return '';
+    });
     if (unmountedRef.current) return;
 
     setIsPreparingGreeting(false);
@@ -138,7 +138,9 @@ export function useChatPipeline({
     void playSoundPackEvent('startup');
 
     // Speak while the lines appear; input unlocks once both have finished.
-    const spoken = speech.speak(audio, lines.filter((l) => l.trim()).join(' '), { processing: voiceProcessing }).catch((error) => console.warn('Greeting audio failed:', error));
+    const spoken = speech
+      .speak(audio, lines.filter((l) => l.trim()).join(' '), { processing: voiceProcessing })
+      .catch((error) => console.warn('Greeting audio failed:', error));
     for (const line of lines) {
       if (unmountedRef.current) return;
       setMessages((prev) => [...prev, { author: 'dr', text: line, timestamp: Date.now(), characterId }]);
@@ -186,10 +188,12 @@ export function useChatPipeline({
           reply = plan.lines.join('\n');
         } else if (plan.kind === 'model') {
           const options = plan.customCharacter ? { customCharacter: plan.customCharacter } : {};
-          reply = plan.finalize(await getAIResponse(plan.message, plan.historyKey, options).catch((error: unknown) => {
-            if (plan.fallback) return plan.fallback;
-            throw error;
-          }));
+          reply = plan.finalize(
+            await getAIResponse(plan.message, plan.historyKey, options).catch((error: unknown) => {
+              if (plan.fallback) return plan.fallback;
+              throw error;
+            }),
+          );
           if (plan.onReply) enginesRef.current = plan.onReply(enginesRef.current, reply);
         } else {
           reply = formatReply(await getAIResponse(trimmed, characterId, chatOptions));
@@ -218,7 +222,11 @@ export function useChatPipeline({
       // What is spoken can differ from what is shown (JOSHUA's boards and lists).
       const spokenText = plan.kind === 'local' ? plan.speak : reply;
       // Synthesis runs while the reply is typed out.
-      const audioPromise = (mutedRef.current || !spokenText.trim() ? Promise.resolve('') : synthesizeSpeech(spokenText, characterId, speechOptions)).catch((error) => {
+      const audioPromise = (
+        mutedRef.current || !spokenText.trim()
+          ? Promise.resolve('')
+          : synthesizeSpeech(spokenText, characterId, speechOptions)
+      ).catch((error) => {
         console.warn('Reply speech unavailable; continuing text-only:', error);
         return '';
       });
@@ -283,9 +291,19 @@ export function useChatPipeline({
     if (userName) {
       setMessages((prev) => [
         ...prev,
-        { author: 'dr', text: `--- NOW TALKING TO ${next.name.toUpperCase()} ---`, timestamp: Date.now(), characterId: id },
+        {
+          author: 'dr',
+          text: `--- NOW TALKING TO ${next.name.toUpperCase()} ---`,
+          timestamp: Date.now(),
+          characterId: id,
+        },
         // A persona with its own opener (JOSHUA's LOGON:) shows it on arrival.
-        ...(hasStarted(enginesRef.current, id) ? [] : (personaOpening(id) ?? [])).map((text) => ({ author: 'dr' as const, text, timestamp: Date.now(), characterId: id })),
+        ...(hasStarted(enginesRef.current, id) ? [] : (personaOpening(id) ?? [])).map((text) => ({
+          author: 'dr' as const,
+          text,
+          timestamp: Date.now(),
+          characterId: id,
+        })),
       ]);
     }
     announce(`Now talking to ${next.name}`);
@@ -308,12 +326,15 @@ export function useChatPipeline({
   };
 
   // Handle voice transcript (v1.11.0)
-  const handleVoiceTranscript = useCallback((transcript: string) => {
-    if (transcript.trim()) {
-      setUserInput(prev => prev + (prev ? ' ' : '') + transcript.trim());
-      announce(`Voice input: ${transcript}`);
-    }
-  }, [announce]);
+  const handleVoiceTranscript = useCallback(
+    (transcript: string) => {
+      if (transcript.trim()) {
+        setUserInput((prev) => prev + (prev ? ' ' : '') + transcript.trim());
+        announce(`Voice input: ${transcript}`);
+      }
+    },
+    [announce],
+  );
 
   // Handle template selection (v1.11.0): each prompt is a normal turn, with
   // typing, speech and the busy guard, instead of a parallel side channel.

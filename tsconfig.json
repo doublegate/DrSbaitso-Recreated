@@ -9,30 +9,15 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "strict": true,
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
-    "types": [
-      "vite/client",
-      "vite-plugin-pwa/react"
-    ],
+    "types": ["vite/client", "vite-plugin-pwa/react"],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "src/sw.ts",
-    "**/*.test.ts",
-    "**/*.test.tsx"
-  ]
+  "include": ["src"],
+  "exclude": ["src/sw.ts", "**/*.test.ts", "**/*.test.tsx"]
 }

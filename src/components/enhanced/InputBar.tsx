@@ -27,8 +27,13 @@ export default function InputBar({
   inputRef,
 }: InputBarProps) {
   return (
-    <div className="shrink-0 flex items-center gap-2 mt-3 border-t-2 border-(--color-border) pt-3" data-tour-id="chat-input">
-      <span className="text-(--color-accent)" aria-hidden="true">{'>'}</span>
+    <div
+      className="shrink-0 flex items-center gap-2 mt-3 border-t-2 border-(--color-border) pt-3"
+      data-tour-id="chat-input"
+    >
+      <span className="text-(--color-accent)" aria-hidden="true">
+        {'>'}
+      </span>
       <input
         id="chat-input"
         ref={inputRef}
@@ -56,12 +61,7 @@ export default function InputBar({
       >
         <span aria-hidden="true">🎤</span>
       </button>
-      <button
-        type="button"
-        onClick={onSend}
-        disabled={isLoading || !value.trim()}
-        className="enh-send-button"
-      >
+      <button type="button" onClick={onSend} disabled={isLoading || !value.trim()} className="enh-send-button">
         SEND
       </button>
     </div>

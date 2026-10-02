@@ -7,14 +7,7 @@
  * the 1965 code lacks (NEWKEY, PRE, reassembly-level links) are rejected, so
  * an unsupported script fails loudly instead of misbehaving.
  */
-import type {
-  ElizaScript,
-  KeywordEntry,
-  MemoryRule,
-  PatternElem,
-  ReassemblyElem,
-  Transformation,
-} from './types';
+import type { ElizaScript, KeywordEntry, MemoryRule, PatternElem, ReassemblyElem, Transformation } from './types';
 import { DOCTOR_SCRIPT_1965_TEXT } from './doctorScript1965';
 
 type Node = string | Node[];

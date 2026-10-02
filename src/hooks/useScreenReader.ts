@@ -43,6 +43,6 @@ export function useScreenReader() {
   return {
     announce,
     announceAssertive,
-    clearAnnouncement
+    clearAnnouncement,
   };
 }

@@ -9,16 +9,8 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "strict": true,
-    "lib": [
-      "ES2023"
-    ],
-    "types": [
-      "node"
-    ]
+    "lib": ["ES2023"],
+    "types": ["node"]
   },
-  "include": [
-    "api",
-    "vite.config.ts",
-    "vitest.config.ts"
-  ]
+  "include": ["api", "vite.config.ts", "vitest.config.ts"]
 }

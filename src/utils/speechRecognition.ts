@@ -71,7 +71,7 @@ export function splitIntoSentences(transcript: string, maxLength: number = 200):
   const sentences: string[] = [];
 
   // Split by sentence boundaries
-  const rawSentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const rawSentences = transcript.split(/[.!?]+/).filter((s) => s.trim().length > 0);
 
   for (const sentence of rawSentences) {
     const trimmed = sentence.trim();
@@ -130,7 +130,7 @@ export async function requestMicrophonePermission(): Promise<boolean> {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     // Stop all tracks immediately after getting permission
-    stream.getTracks().forEach(track => track.stop());
+    stream.getTracks().forEach((track) => track.stop());
     return true;
   } catch (error) {
     console.error('Microphone permission denied:', error);
@@ -145,7 +145,7 @@ export async function requestMicrophonePermission(): Promise<boolean> {
 export async function checkMicrophoneAvailability(): Promise<boolean> {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.some(device => device.kind === 'audioinput');
+    return devices.some((device) => device.kind === 'audioinput');
   } catch (error) {
     console.error('Failed to check microphone availability:', error);
     return false;
@@ -182,7 +182,7 @@ export const VoiceInputStates = {
   SUCCESS: 'success',
 } as const;
 
-export type VoiceInputState = typeof VoiceInputStates[keyof typeof VoiceInputStates];
+export type VoiceInputState = (typeof VoiceInputStates)[keyof typeof VoiceInputStates];
 
 /**
  * Get visual feedback class based on voice input state

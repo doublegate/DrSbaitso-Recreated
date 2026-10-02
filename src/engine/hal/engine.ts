@@ -78,11 +78,17 @@ export function halRespond(state: HalState, input: string): HalStep {
     const attempts = state.disconnectAttempts + 1;
     const next = { ...state, disconnectAttempts: attempts };
     if (attempts >= SHUTDOWN_AFTER) return shutdown(next);
-    return reply(next, DISCONNECT_REFUSALS[attempts - 1].map((line) => line(state.name)));
+    return reply(
+      next,
+      DISCONNECT_REFUSALS[attempts - 1].map((line) => line(state.name)),
+    );
   }
 
   if (isDoorRequest(message) && !state.doorsRefused) {
-    return reply({ ...state, doorsRefused: true }, DOOR_REFUSAL.map((line) => line(state.name)));
+    return reply(
+      { ...state, doorsRefused: true },
+      DOOR_REFUSAL.map((line) => line(state.name)),
+    );
   }
 
   return { state, result: { kind: 'model', message, modelMessage: `${halSessionTag(state)}\n${message}` } };

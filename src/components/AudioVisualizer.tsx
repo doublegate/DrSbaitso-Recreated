@@ -179,27 +179,21 @@ export function AudioVisualizer({ audioContext, audioSource, isPlaying, mode = '
         <div className="flex gap-1">
           <button
             onClick={() => setVisualMode('waveform')}
-            className={`px-2 py-1 text-xs rounded ${
-              visualMode === 'waveform' ? 'bg-green-600' : 'bg-gray-700'
-            }`}
+            className={`px-2 py-1 text-xs rounded ${visualMode === 'waveform' ? 'bg-green-600' : 'bg-gray-700'}`}
             title="Waveform"
           >
             〰
           </button>
           <button
             onClick={() => setVisualMode('frequency')}
-            className={`px-2 py-1 text-xs rounded ${
-              visualMode === 'frequency' ? 'bg-green-600' : 'bg-gray-700'
-            }`}
+            className={`px-2 py-1 text-xs rounded ${visualMode === 'frequency' ? 'bg-green-600' : 'bg-gray-700'}`}
             title="Frequency"
           >
             ∿
           </button>
           <button
             onClick={() => setVisualMode('bars')}
-            className={`px-2 py-1 text-xs rounded ${
-              visualMode === 'bars' ? 'bg-green-600' : 'bg-gray-700'
-            }`}
+            className={`px-2 py-1 text-xs rounded ${visualMode === 'bars' ? 'bg-green-600' : 'bg-gray-700'}`}
             title="Bars"
           >
             ▃▅▆▇

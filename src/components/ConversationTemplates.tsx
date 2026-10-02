@@ -12,7 +12,7 @@ import {
   getCategoryColor,
   type ConversationTemplate,
   type TemplateCategory,
-  type TemplatePrompt
+  type TemplatePrompt,
 } from '@/utils/templateManager';
 
 interface ConversationTemplatesProps {
@@ -33,7 +33,7 @@ export function ConversationTemplates({
   isOpen,
   onClose,
   onSelectTemplate,
-  theme
+  theme,
 }: ConversationTemplatesProps): React.JSX.Element | null {
   const [templates, setTemplates] = useState<ConversationTemplate[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
@@ -54,9 +54,10 @@ export function ConversationTemplates({
   };
 
   // Filter templates
-  const filteredTemplates = templates.filter(template => {
+  const filteredTemplates = templates.filter((template) => {
     const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
-    const matchesSearch = searchQuery === '' || TemplateManager.searchTemplates(searchQuery).some(t => t.id === template.id);
+    const matchesSearch =
+      searchQuery === '' || TemplateManager.searchTemplates(searchQuery).some((t) => t.id === template.id);
     return matchesCategory && matchesSearch;
   });
 
@@ -71,15 +72,23 @@ export function ConversationTemplates({
     if (!selectedTemplate) return;
 
     const prompts = selectedTemplate.prompts
-      .filter(prompt => !prompt.isOptional || customPrompts[prompt.id])
-      .map(prompt => customPrompts[prompt.id] || prompt.text);
+      .filter((prompt) => !prompt.isOptional || customPrompts[prompt.id])
+      .map((prompt) => customPrompts[prompt.id] || prompt.text);
 
     TemplateManager.recordUsage(selectedTemplate.id);
     onSelectTemplate(prompts);
     onClose();
   };
 
-  const categories: Array<TemplateCategory | 'all'> = ['all', 'therapy', 'casual', 'technical', 'creative', 'educational', 'custom'];
+  const categories: Array<TemplateCategory | 'all'> = [
+    'all',
+    'therapy',
+    'casual',
+    'technical',
+    'creative',
+    'educational',
+    'custom',
+  ];
 
   if (!isOpen) return null;
 
@@ -89,7 +98,7 @@ export function ConversationTemplates({
         className="max-w-4xl w-full max-h-[90vh] overflow-y-auto border-4 p-6"
         style={{
           backgroundColor: theme?.colors.background || '#1e3a8a',
-          borderColor: theme?.colors.border || '#4b5563'
+          borderColor: theme?.colors.border || '#4b5563',
         }}
       >
         {/* Header */}
@@ -98,9 +107,7 @@ export function ConversationTemplates({
             <h2 className="text-2xl font-bold" style={{ color: theme?.colors.text }}>
               📝 Conversation Templates
             </h2>
-            <p className="text-sm text-gray-400 mt-1">
-              Quick-start your conversation with pre-defined templates
-            </p>
+            <p className="text-sm text-gray-400 mt-1">Quick-start your conversation with pre-defined templates</p>
           </div>
           <button
             onClick={onClose}
@@ -122,26 +129,30 @@ export function ConversationTemplates({
             className="w-full px-4 py-2 border-2 bg-black/30"
             style={{
               borderColor: theme?.colors.border,
-              color: theme?.colors.text
+              color: theme?.colors.text,
             }}
           />
 
           {/* Category Filter */}
           <div className="flex flex-wrap gap-2">
-            {categories.map(category => (
+            {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className="px-3 py-1 border-2 text-sm font-bold"
                 style={{
-                  borderColor: category === 'all' ? theme?.colors.border : getCategoryColor(category as TemplateCategory),
-                  backgroundColor: selectedCategory === category
-                    ? (category === 'all' ? theme?.colors.accent : getCategoryColor(category as TemplateCategory)) + '44'
-                    : 'transparent',
-                  color: theme?.colors.text
+                  borderColor:
+                    category === 'all' ? theme?.colors.border : getCategoryColor(category as TemplateCategory),
+                  backgroundColor:
+                    selectedCategory === category
+                      ? (category === 'all' ? theme?.colors.accent : getCategoryColor(category as TemplateCategory)) +
+                        '44'
+                      : 'transparent',
+                  color: theme?.colors.text,
                 }}
               >
-                {category === 'all' ? '🌐' : getCategoryIcon(category as TemplateCategory)} {category.charAt(0).toUpperCase() + category.slice(1)}
+                {category === 'all' ? '🌐' : getCategoryIcon(category as TemplateCategory)}{' '}
+                {category.charAt(0).toUpperCase() + category.slice(1)}
               </button>
             ))}
           </div>
@@ -150,13 +161,9 @@ export function ConversationTemplates({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Template List */}
           <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-            {filteredTemplates.length === 0 && (
-              <p className="text-center text-gray-400 py-8">
-                No templates found
-              </p>
-            )}
+            {filteredTemplates.length === 0 && <p className="text-center text-gray-400 py-8">No templates found</p>}
 
-            {filteredTemplates.map(template => (
+            {filteredTemplates.map((template) => (
               // A div with a button role: the card holds a heading, which a
               // <button> may not contain.
               <div
@@ -174,9 +181,8 @@ export function ConversationTemplates({
                 className="p-4 border-2 cursor-pointer transition-all"
                 style={{
                   borderColor: getCategoryColor(template.category),
-                  backgroundColor: selectedTemplate?.id === template.id
-                    ? `${getCategoryColor(template.category)}22`
-                    : 'transparent'
+                  backgroundColor:
+                    selectedTemplate?.id === template.id ? `${getCategoryColor(template.category)}22` : 'transparent',
                 }}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -192,25 +198,26 @@ export function ConversationTemplates({
                     </div>
                   </div>
                   {template.useCount > 0 && (
-                    <span className="text-xs px-2 py-1 rounded-sm" style={{
-                      backgroundColor: `${theme?.colors.accent}33`,
-                      color: theme?.colors.text
-                    }}>
+                    <span
+                      className="text-xs px-2 py-1 rounded-sm"
+                      style={{
+                        backgroundColor: `${theme?.colors.accent}33`,
+                        color: theme?.colors.text,
+                      }}
+                    >
                       Used {template.useCount}×
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-300 mb-2">
-                  {template.description}
-                </p>
+                <p className="text-sm text-gray-300 mb-2">{template.description}</p>
                 <div className="flex flex-wrap gap-1">
-                  {template.tags.slice(0, 3).map(tag => (
+                  {template.tags.slice(0, 3).map((tag) => (
                     <span
                       key={tag}
                       className="text-xs px-2 py-0.5 rounded-sm"
                       style={{
                         backgroundColor: `${getCategoryColor(template.category)}33`,
-                        color: theme?.colors.text
+                        color: theme?.colors.text,
                       }}
                     >
                       #{tag}
@@ -233,9 +240,7 @@ export function ConversationTemplates({
                   <h3 className="text-xl font-bold mb-2" style={{ color: theme?.colors.text }}>
                     {selectedTemplate.icon} {selectedTemplate.name}
                   </h3>
-                  <p className="text-sm text-gray-300 mb-3">
-                    {selectedTemplate.description}
-                  </p>
+                  <p className="text-sm text-gray-300 mb-3">{selectedTemplate.description}</p>
                 </div>
 
                 <div>
@@ -246,38 +251,44 @@ export function ConversationTemplates({
                     {selectedTemplate.prompts.map((prompt, index) => (
                       <div key={prompt.id}>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-mono px-2 py-0.5 rounded-sm" style={{
-                            backgroundColor: theme?.colors.accent,
-                            color: theme?.colors.background
-                          }}>
+                          <span
+                            className="text-xs font-mono px-2 py-0.5 rounded-sm"
+                            style={{
+                              backgroundColor: theme?.colors.accent,
+                              color: theme?.colors.background,
+                            }}
+                          >
                             {index + 1}
                           </span>
                           <span className="text-xs" style={{ color: theme?.colors.text }}>
-                            {prompt.isOptional && (
-                              <span className="text-gray-400">(Optional) </span>
-                            )}
+                            {prompt.isOptional && <span className="text-gray-400">(Optional) </span>}
                           </span>
                         </div>
                         {prompt.placeholder ? (
                           <textarea
                             placeholder={prompt.placeholder}
                             value={customPrompts[prompt.id] || ''}
-                            onChange={(e) => setCustomPrompts(prev => ({
-                              ...prev,
-                              [prompt.id]: e.target.value
-                            }))}
+                            onChange={(e) =>
+                              setCustomPrompts((prev) => ({
+                                ...prev,
+                                [prompt.id]: e.target.value,
+                              }))
+                            }
                             className="w-full px-3 py-2 text-sm border bg-black/30 resize-none"
                             rows={2}
                             style={{
                               borderColor: theme?.colors.border,
-                              color: theme?.colors.text
+                              color: theme?.colors.text,
                             }}
                           />
                         ) : (
-                          <p className="text-sm px-3 py-2 border bg-black/20" style={{
-                            borderColor: theme?.colors.border,
-                            color: theme?.colors.text
-                          }}>
+                          <p
+                            className="text-sm px-3 py-2 border bg-black/20"
+                            style={{
+                              borderColor: theme?.colors.border,
+                              color: theme?.colors.text,
+                            }}
+                          >
                             {prompt.text}
                           </p>
                         )}
@@ -293,7 +304,7 @@ export function ConversationTemplates({
                     style={{
                       borderColor: theme?.colors.accent,
                       backgroundColor: `${theme?.colors.accent}33`,
-                      color: theme?.colors.text
+                      color: theme?.colors.text,
                     }}
                   >
                     ✓ Apply Template

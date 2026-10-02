@@ -51,7 +51,7 @@ function frameStats(x: Float32Array, frameLength: number): { db: Float64Array; z
     let crossings = 0;
     for (let i = from; i < to; i++) {
       sum += x[i] * x[i];
-      if (i > from && (x[i] >= 0) !== (x[i - 1] >= 0)) crossings++;
+      if (i > from && x[i] >= 0 !== x[i - 1] >= 0) crossings++;
     }
     const rms = Math.sqrt(sum / Math.max(1, to - from));
     db[f] = rms > 0 ? 20 * Math.log10(rms) : -Infinity;
@@ -369,7 +369,7 @@ export function segmentWords(x: Float32Array, sampleRate: number, expectedWords?
   }
 
   const gaps: { from: number; to: number; score: number }[] = [];
-  for (let f = first; f <= last; ) {
+  for (let f = first; f <= last;) {
     if (speech[f] && depth[f] < 12) {
       f++;
       continue;
@@ -394,7 +394,10 @@ export function segmentWords(x: Float32Array, sampleRate: number, expectedWords?
   if (kept.length === 0 && expectedWords !== undefined && expectedWords > 1) {
     const span = last - first + 1;
     for (let w = 0; w < expectedWords; w++) {
-      spans.push([first + Math.floor((w * span) / expectedWords), first + Math.floor(((w + 1) * span) / expectedWords)]);
+      spans.push([
+        first + Math.floor((w * span) / expectedWords),
+        first + Math.floor(((w + 1) * span) / expectedWords),
+      ]);
     }
   } else {
     let from = first;
@@ -448,7 +451,11 @@ function wordsOf(text: string): TextWord[] {
     .filter((token) => /[A-Za-z0-9]/.test(token))
     .map((token) => {
       const trailing = /[^A-Za-z0-9']*$/.exec(token)?.[0] ?? '';
-      const gap = /[.?!]/.test(trailing) ? GAP_SECONDS.sentence : /[,;:]/.test(trailing) ? GAP_SECONDS.comma : GAP_SECONDS.word;
+      const gap = /[.?!]/.test(trailing)
+        ? GAP_SECONDS.sentence
+        : /[,;:]/.test(trailing)
+          ? GAP_SECONDS.comma
+          : GAP_SECONDS.word;
       return { word: token, gap };
     });
 }
@@ -475,7 +482,11 @@ export interface WoprVoiceOptions {
  * 5. back to the input rate, peak at -3 dBFS.
  * The output is usually shorter or longer than the input.
  */
-export function processWoprVoice(input: Float32Array, sampleRate: number, options: WoprVoiceOptions = {}): Float32Array {
+export function processWoprVoice(
+  input: Float32Array,
+  sampleRate: number,
+  options: WoprVoiceOptions = {},
+): Float32Array {
   const { text, seed = WOPR_SEED } = options;
   const rate = Math.min(WOPR_RATE, sampleRate);
   const work =
@@ -545,7 +556,9 @@ export function processWoprVoice(input: Float32Array, sampleRate: number, option
   });
 
   const out =
-    rate < sampleRate ? resampleLinear(joined, rate, sampleRate, Math.round((joined.length * sampleRate) / rate)) : joined;
+    rate < sampleRate
+      ? resampleLinear(joined, rate, sampleRate, Math.round((joined.length * sampleRate) / rate))
+      : joined;
   normalise(out, 0, dbToGain(-3));
   return out;
 }

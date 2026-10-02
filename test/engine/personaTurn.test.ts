@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { hasEngine, personaOpening, personaTurn, resetPersona, hasStarted, type PersonaEngines } from '@/engine/personaTurn';
+import {
+  hasEngine,
+  personaOpening,
+  personaTurn,
+  resetPersona,
+  hasStarted,
+  type PersonaEngines,
+} from '@/engine/personaTurn';
 import { ELIZA_OPENER } from '@/engine/eliza';
 import { LOGON_PROMPT, GREETING } from '@/engine/joshua';
 

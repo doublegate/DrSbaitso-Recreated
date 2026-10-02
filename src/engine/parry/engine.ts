@@ -22,15 +22,7 @@ import {
   decayAffect,
   raise,
 } from './affect';
-import {
-  BYE_LINE,
-  DELUSION_LINES,
-  FLARE_LINES,
-  INTAKE_LINES,
-  KIND_LINES,
-  SENSITIVE_LINES,
-  STORY_LINES,
-} from './lines';
+import { BYE_LINE, DELUSION_LINES, FLARE_LINES, INTAKE_LINES, KIND_LINES, SENSITIVE_LINES, STORY_LINES } from './lines';
 import {
   AMBIGUOUS_MISTRUST,
   APOLOGY_PATTERN,
@@ -140,7 +132,8 @@ export function normalizeInput(input: string): string {
     .trim();
 }
 
-const QUESTION_START = /^(what|why|how|who|where|when|which|do|does|did|are|is|was|were|can|could|will|would|have|has|should)\b/;
+const QUESTION_START =
+  /^(what|why|how|who|where|when|which|do|does|did|are|is|was|were|can|could|will|would|have|has|should)\b/;
 
 type DelusionLevel = 'strong' | 'weak' | 'ambiguous';
 
@@ -274,7 +267,11 @@ function flareStatement(s: ParryState, flare: FlareId): Decision {
 function tellDelusion(s: ParryState): Decision {
   const index = Math.min(s.delusionIndex, DELUSION_FACTS.length - 1);
   return {
-    state: { ...s, delusionIndex: Math.min(s.delusionIndex + 1, DELUSION_FACTS.length), delusionsUnderDiscussion: true },
+    state: {
+      ...s,
+      delusionIndex: Math.min(s.delusionIndex + 1, DELUSION_FACTS.length),
+      delusionsUnderDiscussion: true,
+    },
     kind: 'delusion',
     delusionIndex: index,
     facts: DELUSION_FACTS[index],
@@ -393,7 +390,13 @@ function decide(s: ParryState, c: Classification, provoked: boolean): Decision {
 
 function sensitiveMove(s: ParryState, area: SensitiveArea, isQuestion: boolean): Decision {
   const bank = SENSITIVE_LINES[area];
-  return { state: s, kind: 'sensitive', area, facts: SENSITIVE_FACTS[area], lines: isQuestion ? bank.question : bank.statement };
+  return {
+    state: s,
+    kind: 'sensitive',
+    area,
+    facts: SENSITIVE_FACTS[area],
+    lines: isQuestion ? bank.question : bank.statement,
+  };
 }
 
 // ---------------------------------------------------------------- the step

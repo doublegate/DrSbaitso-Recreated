@@ -94,7 +94,7 @@ export default function EnhancedApp({
     onExport: () => setPanel('advancedExport', true),
     onSwitchCharacter: (id) => chat.switchPersona(id),
     onToggleMute: () => toggleMute(),
-    onToggleSettings: () => setPanel('soundSettings', prev => !prev),
+    onToggleSettings: () => setPanel('soundSettings', (prev) => !prev),
     onToggleStats: () => setPanel('conversationSearch', true),
     onStopAudio: () => speech.stop(),
     onCycleTheme: () => themeChoice.cycleTheme(),
@@ -102,7 +102,7 @@ export default function EnhancedApp({
     onOpenAccessibility: () => setPanel('accessibility', true),
     onOpenSearch: () => setPanel('conversationSearch', true),
     onOpenVisualizer: () => setPanel('audioVisualizer', !panelOpen.audioVisualizer),
-    onToggleMusic: () => setPanel('musicPlayer', prev => !prev),
+    onToggleMusic: () => setPanel('musicPlayer', (prev) => !prev),
     onOpenSoundPacks: () => setPanel('soundPackManager', true),
     onHelp: () => {
       setPanel('voiceControlHelp', true);
@@ -157,7 +157,7 @@ export default function EnhancedApp({
   };
 
   const cycleAudioMode = () => {
-    const currentIndex = AUDIO_MODES.findIndex(m => m.id === audioMode);
+    const currentIndex = AUDIO_MODES.findIndex((m) => m.id === audioMode);
     const next = AUDIO_MODES[(currentIndex + 1) % AUDIO_MODES.length];
     setAudioMode(next.id);
     announce(`Audio mode changed to ${next.name}`);
@@ -167,14 +167,14 @@ export default function EnhancedApp({
   useGlobalShortcuts({
     accessibility: () => setPanel('accessibility', true),
     cycleAudioMode,
-    insights: () => setPanel('insights', prev => !prev),
+    insights: () => setPanel('insights', (prev) => !prev),
     tutorial: () => setPanel('onboarding', true),
     soundSettings: () => setPanel('soundSettings', true),
-    musicPlayer: () => setPanel('musicPlayer', prev => !prev),
+    musicPlayer: () => setPanel('musicPlayer', (prev) => !prev),
     soundPacks: () => setPanel('soundPackManager', true),
-    voiceInput: () => setPanel('voiceInput', prev => !prev),
-    emotionViz: () => setPanel('emotionViz', prev => !prev),
-    topicDiagram: () => setPanel('topicDiagram', prev => !prev),
+    voiceInput: () => setPanel('voiceInput', (prev) => !prev),
+    emotionViz: () => setPanel('emotionViz', (prev) => !prev),
+    topicDiagram: () => setPanel('topicDiagram', (prev) => !prev),
     templates: () => setPanel('templates', true),
     switchMode: () => {}, // handled by App
   });
@@ -225,7 +225,12 @@ export default function EnhancedApp({
             <VoiceControlIndicator voiceControl={voiceControl} onShowHelp={() => setPanel('voiceControlHelp', true)} />
           )}
 
-          <ChatLog messages={messages} personas={personaState.personas} persona={persona} typing={isLoading && !isGreeting} />
+          <ChatLog
+            messages={messages}
+            personas={personaState.personas}
+            persona={persona}
+            typing={isLoading && !isGreeting}
+          />
 
           <InputBar
             value={chat.userInput}
@@ -235,7 +240,7 @@ export default function EnhancedApp({
             isLoading={isLoading}
             personaName={persona.name}
             voiceInputOpen={panelOpen.voiceInput}
-            onToggleVoiceInput={() => setPanel('voiceInput', v => !v)}
+            onToggleVoiceInput={() => setPanel('voiceInput', (v) => !v)}
             inputRef={inputRef}
           />
 

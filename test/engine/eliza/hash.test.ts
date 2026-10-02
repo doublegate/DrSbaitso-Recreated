@@ -37,20 +37,51 @@ describe('elizaHash (SLIP mid-square HASH)', () => {
   // Bucket indexes of every .TAPE. 100 keyword, dumped from the original code
   // running on the s709 emulator (5-bit hash of the first six characters).
   it.each([
-    ['NOONE', 0], ['WIFE', 1], ['I', 2], ['CAN', 2], ['BECAUSE', 3], ['IF', 5],
-    ['CHILDREN', 5], ['HOW', 6], ['YES', 6], ['ALWAYS', 7], ['MY', 8],
-    ["YOU'RE", 11], ['ARE', 12], ['EVERYONE', 12], ['MAYBE', 13], ['YOU', 13],
-    ['AM', 16], ['YOUR', 17], ['PERHAPS', 18], ['MYSELF', 19], ['BROTHER', 21],
-    ['WHAT', 21], ['MOTHER', 22], ['SISTER', 22], ['NO', 24], ["I'M", 25],
-    ['WHY', 27], ['NOBODY', 27], ['FATHER', 28], ['WHEN', 29], ['WAS', 29],
-    ['ME', 29], ['YOURSELF', 30], ['WERE', 31], ['EVERYBODY', 31],
+    ['NOONE', 0],
+    ['WIFE', 1],
+    ['I', 2],
+    ['CAN', 2],
+    ['BECAUSE', 3],
+    ['IF', 5],
+    ['CHILDREN', 5],
+    ['HOW', 6],
+    ['YES', 6],
+    ['ALWAYS', 7],
+    ['MY', 8],
+    ["YOU'RE", 11],
+    ['ARE', 12],
+    ['EVERYONE', 12],
+    ['MAYBE', 13],
+    ['YOU', 13],
+    ['AM', 16],
+    ['YOUR', 17],
+    ['PERHAPS', 18],
+    ['MYSELF', 19],
+    ['BROTHER', 21],
+    ['WHAT', 21],
+    ['MOTHER', 22],
+    ['SISTER', 22],
+    ['NO', 24],
+    ["I'M", 25],
+    ['WHY', 27],
+    ['NOBODY', 27],
+    ['FATHER', 28],
+    ['WHEN', 29],
+    ['WAS', 29],
+    ['ME', 29],
+    ['YOURSELF', 30],
+    ['WERE', 31],
+    ['EVERYBODY', 31],
   ])('TAPE 100 keyword %s is in bucket %i', (word, bucket) => {
     expect(elizaHash(lastChunkAsBcd(word.slice(0, 6)), 5)).toBe(bucket);
   });
 
   // Confirmed on the emulator by typing "my <word>" and waiting for the memory.
   it.each([
-    ['PURPOSE', 1], ['DEVONSHIRE', 0], ['PREDICAMENT', 3], ['EXECUTIONERS', 3],
+    ['PURPOSE', 1],
+    ['DEVONSHIRE', 0],
+    ['PREDICAMENT', 3],
+    ['EXECUTIONERS', 3],
     ['GLOUCESTERSHIRE', 2],
   ])('memory selector for last word %s is %i', (word, index) => {
     expect(elizaHash(lastChunkAsBcd(word), 2)).toBe(index);

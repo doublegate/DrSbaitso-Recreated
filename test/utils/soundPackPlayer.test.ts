@@ -83,7 +83,7 @@ describe('SoundPackPlayer', () => {
         { event: 'message_sent', soundId: 'send', probability: 100 },
         { event: 'glitch', soundId: 'glitch', probability: 100 },
         { event: 'error', soundId: 'glitch', probability: 0 },
-      ]
+      ],
     );
     await player.loadPack(pack, ctx);
 
@@ -104,7 +104,7 @@ describe('SoundPackPlayer', () => {
     const { ctx, started } = makeContext();
     await player.loadPack(
       makePack([pcmSound('s', new Uint8Array([0, 0]))], [{ event: 'startup', soundId: 's', probability: 100 }]),
-      ctx
+      ctx,
     );
     player.setEnabled(false);
     await player.triggerEvent('startup');

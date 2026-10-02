@@ -26,13 +26,7 @@ export interface CommandMatch {
 /**
  * Wake words that activate voice control
  */
-export const WAKE_WORDS = [
-  'hey doctor',
-  'hey sbaitso',
-  'doctor sbaitso',
-  'okay doctor',
-  'listen doctor',
-] as const;
+export const WAKE_WORDS = ['hey doctor', 'hey sbaitso', 'doctor sbaitso', 'okay doctor', 'listen doctor'] as const;
 
 /**
  * Command categories for better organization
@@ -87,8 +81,8 @@ function levenshteinDistance(a: string, b: string): number {
       } else {
         matrix[i][j] = Math.min(
           matrix[i - 1][j - 1] + 1, // substitution
-          matrix[i][j - 1] + 1,     // insertion
-          matrix[i - 1][j] + 1      // deletion
+          matrix[i][j - 1] + 1, // insertion
+          matrix[i - 1][j] + 1, // deletion
         );
       }
     }
@@ -105,7 +99,7 @@ function levenshteinDistance(a: string, b: string): number {
 export function detectWakeWord(transcript: string): boolean {
   const normalized = transcript.toLowerCase().trim();
 
-  return WAKE_WORDS.some(wakeWord => {
+  return WAKE_WORDS.some((wakeWord) => {
     // Exact match
     if (normalized.includes(wakeWord)) {
       return true;
@@ -153,7 +147,7 @@ export function extractCommandFromTranscript(transcript: string): string {
 export function matchCommand(
   transcript: string,
   commands: VoiceCommand[],
-  threshold: number = 0.7
+  threshold: number = 0.7,
 ): CommandMatch | null {
   const normalized = transcript.toLowerCase().trim();
   let bestMatch: CommandMatch | null = null;
@@ -236,13 +230,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'export',
       name: 'Export Conversation',
-      phrases: [
-        'export conversation',
-        'export chat',
-        'save conversation',
-        'download conversation',
-        'export messages',
-      ],
+      phrases: ['export conversation', 'export chat', 'save conversation', 'download conversation', 'export messages'],
       description: 'Export the current conversation',
       category: 'conversation',
       action: handlers.onExport,
@@ -254,12 +242,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'switch_sbaitso',
       name: 'Switch to Dr. Sbaitso',
-      phrases: [
-        'switch to doctor sbaitso',
-        'switch to sbaitso',
-        'change to doctor sbaitso',
-        'talk to doctor sbaitso',
-      ],
+      phrases: ['switch to doctor sbaitso', 'switch to sbaitso', 'change to doctor sbaitso', 'talk to doctor sbaitso'],
       description: 'Switch to Dr. Sbaitso character',
       category: 'character',
       action: () => handlers.onSwitchCharacter?.('sbaitso'),
@@ -268,11 +251,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'switch_eliza',
       name: 'Switch to ELIZA',
-      phrases: [
-        'switch to eliza',
-        'change to eliza',
-        'talk to eliza',
-      ],
+      phrases: ['switch to eliza', 'change to eliza', 'talk to eliza'],
       description: 'Switch to ELIZA character',
       category: 'character',
       action: () => handlers.onSwitchCharacter?.('eliza'),
@@ -281,12 +260,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'switch_hal',
       name: 'Switch to HAL 9000',
-      phrases: [
-        'switch to hal',
-        'switch to hal 9000',
-        'change to hal',
-        'talk to hal',
-      ],
+      phrases: ['switch to hal', 'switch to hal 9000', 'change to hal', 'talk to hal'],
       description: 'Switch to HAL 9000 character',
       category: 'character',
       action: () => handlers.onSwitchCharacter?.('hal9000'),
@@ -295,11 +269,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'switch_joshua',
       name: 'Switch to JOSHUA',
-      phrases: [
-        'switch to joshua',
-        'change to joshua',
-        'talk to joshua',
-      ],
+      phrases: ['switch to joshua', 'change to joshua', 'talk to joshua'],
       description: 'Switch to JOSHUA character',
       category: 'character',
       action: () => handlers.onSwitchCharacter?.('joshua'),
@@ -308,11 +278,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'switch_parry',
       name: 'Switch to PARRY',
-      phrases: [
-        'switch to parry',
-        'change to parry',
-        'talk to parry',
-      ],
+      phrases: ['switch to parry', 'change to parry', 'talk to parry'],
       description: 'Switch to PARRY character',
       category: 'character',
       action: () => handlers.onSwitchCharacter?.('parry'),
@@ -324,13 +290,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'toggle_mute',
       name: 'Toggle Mute',
-      phrases: [
-        'mute',
-        'unmute',
-        'toggle sound',
-        'turn off sound',
-        'turn on sound',
-      ],
+      phrases: ['mute', 'unmute', 'toggle sound', 'turn off sound', 'turn on sound'],
       description: 'Mute or unmute audio',
       category: 'audio',
       action: handlers.onToggleMute,
@@ -341,13 +301,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'stop_audio',
       name: 'Stop Audio',
-      phrases: [
-        'stop',
-        'stop talking',
-        'stop audio',
-        'be quiet',
-        'silence',
-      ],
+      phrases: ['stop', 'stop talking', 'stop audio', 'be quiet', 'silence'],
       description: 'Stop currently playing audio',
       category: 'audio',
       action: handlers.onStopAudio,
@@ -358,12 +312,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'cycle_audio_quality',
       name: 'Cycle Audio Quality',
-      phrases: [
-        'change audio quality',
-        'cycle audio quality',
-        'next audio quality',
-        'switch audio mode',
-      ],
+      phrases: ['change audio quality', 'cycle audio quality', 'next audio quality', 'switch audio mode'],
       description: 'Change audio quality preset',
       category: 'audio',
       action: handlers.onCycleAudioQuality,
@@ -375,12 +324,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'cycle_theme',
       name: 'Cycle Theme',
-      phrases: [
-        'change theme',
-        'next theme',
-        'cycle theme',
-        'switch theme',
-      ],
+      phrases: ['change theme', 'next theme', 'cycle theme', 'switch theme'],
       description: 'Change visual theme',
       category: 'navigation',
       action: handlers.onCycleTheme,
@@ -391,11 +335,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'open_settings',
       name: 'Open Settings',
-      phrases: [
-        'open settings',
-        'show settings',
-        'settings',
-      ],
+      phrases: ['open settings', 'show settings', 'settings'],
       description: 'Open settings panel',
       category: 'settings',
       action: handlers.onToggleSettings,
@@ -406,12 +346,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'open_stats',
       name: 'Open Statistics',
-      phrases: [
-        'open statistics',
-        'show statistics',
-        'show stats',
-        'statistics',
-      ],
+      phrases: ['open statistics', 'show statistics', 'show stats', 'statistics'],
       description: 'Open statistics dashboard',
       category: 'settings',
       action: handlers.onToggleStats,
@@ -422,11 +357,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'open_accessibility',
       name: 'Open Accessibility',
-      phrases: [
-        'open accessibility',
-        'accessibility settings',
-        'accessibility',
-      ],
+      phrases: ['open accessibility', 'accessibility settings', 'accessibility'],
       description: 'Open accessibility settings',
       category: 'settings',
       action: handlers.onOpenAccessibility,
@@ -437,11 +368,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'open_search',
       name: 'Open Search',
-      phrases: [
-        'search',
-        'search conversations',
-        'find',
-      ],
+      phrases: ['search', 'search conversations', 'find'],
       description: 'Open conversation search',
       category: 'navigation',
       action: handlers.onOpenSearch,
@@ -452,11 +379,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'toggle_visualizer',
       name: 'Toggle Visualizer',
-      phrases: [
-        'show visualizer',
-        'hide visualizer',
-        'toggle visualizer',
-      ],
+      phrases: ['show visualizer', 'hide visualizer', 'toggle visualizer'],
       description: 'Toggle audio visualizer',
       category: 'navigation',
       action: handlers.onOpenVisualizer,
@@ -489,12 +412,7 @@ export function createVoiceCommands(handlers: {
     commands.push({
       id: 'help',
       name: 'Show Help',
-      phrases: [
-        'help',
-        'show commands',
-        'what can I say',
-        'voice commands',
-      ],
+      phrases: ['help', 'show commands', 'what can I say', 'voice commands'],
       description: 'Show available voice commands',
       category: 'navigation',
       action: handlers.onHelp,
@@ -511,11 +429,7 @@ export function createVoiceCommands(handlers: {
  * @param limit - Maximum number of suggestions
  * @returns Array of command suggestions
  */
-export function getCommandSuggestions(
-  transcript: string,
-  commands: VoiceCommand[],
-  limit: number = 5
-): VoiceCommand[] {
+export function getCommandSuggestions(transcript: string, commands: VoiceCommand[], limit: number = 5): VoiceCommand[] {
   const normalized = transcript.toLowerCase().trim();
   const suggestions: Array<{ command: VoiceCommand; score: number }> = [];
 
@@ -546,7 +460,7 @@ export function getCommandSuggestions(
   return suggestions
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
-    .map(s => s.command);
+    .map((s) => s.command);
 }
 
 /**
@@ -555,13 +469,16 @@ export function getCommandSuggestions(
  * @returns Formatted help text
  */
 export function formatCommandHelp(commands: VoiceCommand[]): string {
-  const byCategory = commands.reduce((acc, cmd) => {
-    if (!acc[cmd.category]) {
-      acc[cmd.category] = [];
-    }
-    acc[cmd.category].push(cmd);
-    return acc;
-  }, {} as Record<string, VoiceCommand[]>);
+  const byCategory = commands.reduce(
+    (acc, cmd) => {
+      if (!acc[cmd.category]) {
+        acc[cmd.category] = [];
+      }
+      acc[cmd.category].push(cmd);
+      return acc;
+    },
+    {} as Record<string, VoiceCommand[]>,
+  );
 
   let help = 'AVAILABLE VOICE COMMANDS:\n\n';
 

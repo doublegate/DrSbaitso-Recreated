@@ -37,7 +37,7 @@ describe('ONBOARDING_STEPS', () => {
       [step.target, step.actionTarget]
         .filter((selector): selector is string => Boolean(selector))
         .filter((selector) => !selectorExistsInEnhancedApp(selector))
-        .map((selector) => `${step.id}: ${selector}`)
+        .map((selector) => `${step.id}: ${selector}`),
     );
     expect(missing).toEqual([]);
     expect(ONBOARDING_STEPS.filter((s) => s.target).length).toBeGreaterThan(4);

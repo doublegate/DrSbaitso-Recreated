@@ -452,7 +452,7 @@ export class CloudSync {
       (error) => {
         this.setStatus({ error: error.message });
         this.emit('sync-error', { error: error.message });
-      }
+      },
     );
   }
 

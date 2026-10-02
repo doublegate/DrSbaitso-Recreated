@@ -100,7 +100,7 @@ describe('decodeAudioFileForPack', () => {
   it('rejects sounds longer than the per-sound limit', async () => {
     const decoded = fakeBuffer([new Float32Array(24_000 * 30)], 24_000);
     await expect(decodeAudioFileForPack(new ArrayBuffer(4), ctxDecoding(Promise.resolve(decoded)))).rejects.toThrow(
-      /too long/
+      /too long/,
     );
   });
 });

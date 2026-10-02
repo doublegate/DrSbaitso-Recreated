@@ -65,14 +65,16 @@ function toMarkdown(session: ConversationSession, options: ExportFormat): string
     output += `---\n\n`;
   }
 
-  session.messages.forEach(msg => {
+  session.messages.forEach((msg) => {
     const author = speaker(msg, session.characterId, 'You');
-    const timestamp = options.includeTimestamps && msg.timestamp
-      ? ` *(${new Date(msg.timestamp).toLocaleTimeString()})*`
-      : '';
+    const timestamp =
+      options.includeTimestamps && msg.timestamp ? ` *(${new Date(msg.timestamp).toLocaleTimeString()})*` : '';
     // Quote every line, so a multi-line reply stays inside its blockquote.
     output += `**${author}${timestamp}:**\n\n`;
-    output += `${msg.text.split('\n').map(line => `> ${line}`).join('\n')}\n\n`;
+    output += `${msg.text
+      .split('\n')
+      .map((line) => `> ${line}`)
+      .join('\n')}\n\n`;
   });
 
   return output;
@@ -91,11 +93,10 @@ function toText(session: ConversationSession, options: ExportFormat): string {
     output += `${'-'.repeat(60)}\n\n`;
   }
 
-  session.messages.forEach(msg => {
+  session.messages.forEach((msg) => {
     const author = speaker(msg, session.characterId, 'You').toUpperCase();
-    const timestamp = options.includeTimestamps && msg.timestamp
-      ? ` [${new Date(msg.timestamp).toLocaleTimeString()}]`
-      : '';
+    const timestamp =
+      options.includeTimestamps && msg.timestamp ? ` [${new Date(msg.timestamp).toLocaleTimeString()}]` : '';
     output += `${author}${timestamp}:\n${msg.text}\n\n`;
   });
 
@@ -141,10 +142,11 @@ function toStandaloneHTML(session: ConversationSession, options: ExportFormat): 
 `;
   }
 
-  session.messages.forEach(msg => {
-    const timestamp = options.includeTimestamps && msg.timestamp
-      ? `<span class="timestamp">${escapeHtml(new Date(msg.timestamp).toLocaleTimeString())}</span>`
-      : '';
+  session.messages.forEach((msg) => {
+    const timestamp =
+      options.includeTimestamps && msg.timestamp
+        ? `<span class="timestamp">${escapeHtml(new Date(msg.timestamp).toLocaleTimeString())}</span>`
+        : '';
     const cssClass = msg.author === 'user' ? 'user' : 'ai';
     html += `
   <div class="message ${cssClass}">
@@ -224,24 +226,18 @@ export class PDFExporter {
    * Print-ready HTML as a downloadable `.html` file (kept under its old name
    * for compatibility; it never produced a PDF).
    */
-  static async exportToPDF(
-    session: ConversationSession,
-    options: PDFExportOptions
-  ): Promise<ExportResult> {
+  static async exportToPDF(session: ConversationSession, options: PDFExportOptions): Promise<ExportResult> {
     return {
       filename: `${safeFileStem(session.name)}_${Date.now()}.html`,
       content: this.buildDocument(session, options),
-      mimeType: 'text/html'
+      mimeType: 'text/html',
     };
   }
 
   /**
    * The complete print-ready HTML document, for {@link printHtml} or download.
    */
-  static buildDocument(
-    session: ConversationSession,
-    options: PDFExportOptions
-  ): string {
+  static buildDocument(session: ConversationSession, options: PDFExportOptions): string {
     const styles = this.getPDFStyles(options);
     const coverPage = options.includeCoverPage ? this.generateCoverPage(session) : '';
     const statistics = options.includeStatistics ? this.generateStatistics(session) : '';
@@ -439,9 +435,7 @@ export class PDFExporter {
    * Generate statistics section
    */
   private static generateStatistics(session: ConversationSession): string {
-    const duration = session.endedAt
-      ? Math.floor((session.endedAt - sessionStart(session)) / 1000 / 60)
-      : 0;
+    const duration = session.endedAt ? Math.floor((session.endedAt - sessionStart(session)) / 1000 / 60) : 0;
 
     return `
       <div class="section">
@@ -474,9 +468,7 @@ export class PDFExporter {
   private static formatMessages(messages: Message[], characterId: string): string {
     const messagesHTML = messages
       .map((msg, index) => {
-        const timestamp = msg.timestamp
-          ? new Date(msg.timestamp).toLocaleTimeString()
-          : '';
+        const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : '';
         const className = msg.author === 'user' ? 'user' : 'ai';
 
         return `
@@ -507,10 +499,7 @@ export class CSVExporter {
   /**
    * Export messages to CSV
    */
-  static exportMessages(
-    sessions: ConversationSession[],
-    options: CSVExportOptions
-  ): ExportResult {
+  static exportMessages(sessions: ConversationSession[], options: CSVExportOptions): ExportResult {
     const rows: string[][] = [];
 
     // Headers
@@ -519,17 +508,10 @@ export class CSVExporter {
     }
 
     // Data
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       session.messages.forEach((msg, index) => {
         const timestamp = this.formatDate(msg.timestamp || sessionStart(session), options.dateFormat);
-        rows.push([
-          session.name,
-          session.characterId,
-          msg.author,
-          msg.text,
-          timestamp,
-          index.toString()
-        ]);
+        rows.push([session.name, session.characterId, msg.author, msg.text, timestamp, index.toString()]);
       });
     });
 
@@ -539,7 +521,7 @@ export class CSVExporter {
     return {
       filename,
       content: csv,
-      mimeType: 'text/csv'
+      mimeType: 'text/csv',
     };
   }
 
@@ -559,15 +541,13 @@ export class CSVExporter {
         'End Time',
         'Duration (min)',
         'Message Count',
-        'Glitch Count'
+        'Glitch Count',
       ]);
     }
 
     // Data
-    sessions.forEach(session => {
-      const duration = session.endedAt
-        ? Math.floor((session.endedAt - sessionStart(session)) / 1000 / 60)
-        : 0;
+    sessions.forEach((session) => {
+      const duration = session.endedAt ? Math.floor((session.endedAt - sessionStart(session)) / 1000 / 60) : 0;
 
       rows.push([
         session.name,
@@ -577,7 +557,7 @@ export class CSVExporter {
         session.endedAt ? this.formatDate(session.endedAt, options.dateFormat) : 'In Progress',
         duration.toString(),
         session.messageCount.toString(),
-        session.glitchCount.toString()
+        session.glitchCount.toString(),
       ]);
     });
 
@@ -587,7 +567,7 @@ export class CSVExporter {
     return {
       filename,
       content: csv,
-      mimeType: 'text/csv'
+      mimeType: 'text/csv',
     };
   }
 
@@ -598,11 +578,11 @@ export class CSVExporter {
     const wordFrequency: Record<string, number> = {};
 
     // Calculate frequency
-    sessions.forEach(session => {
-      session.messages.forEach(msg => {
+    sessions.forEach((session) => {
+      session.messages.forEach((msg) => {
         if (msg.author === 'user') {
           const words = msg.text.toLowerCase().match(/\b\w+\b/g) || [];
-          words.forEach(word => {
+          words.forEach((word) => {
             if (word.length > 3) {
               wordFrequency[word] = (wordFrequency[word] || 0) + 1;
             }
@@ -612,8 +592,7 @@ export class CSVExporter {
     });
 
     // Sort by frequency
-    const sorted = Object.entries(wordFrequency)
-      .sort((a, b) => b[1] - a[1]);
+    const sorted = Object.entries(wordFrequency).sort((a, b) => b[1] - a[1]);
 
     const rows: string[][] = [];
 
@@ -633,7 +612,7 @@ export class CSVExporter {
     return {
       filename,
       content: csv,
-      mimeType: 'text/csv'
+      mimeType: 'text/csv',
     };
   }
 
@@ -643,7 +622,7 @@ export class CSVExporter {
   static exportCharacterUsage(sessions: ConversationSession[], options: CSVExportOptions): ExportResult {
     const characterCounts: Record<string, number> = {};
 
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       characterCounts[session.characterId] = (characterCounts[session.characterId] || 0) + 1;
     });
 
@@ -665,7 +644,7 @@ export class CSVExporter {
     return {
       filename,
       content: csv,
-      mimeType: 'text/csv'
+      mimeType: 'text/csv',
     };
   }
 
@@ -674,9 +653,9 @@ export class CSVExporter {
    */
   private static toCSV(rows: string[][], delimiter: string): string {
     return rows
-      .map(row =>
+      .map((row) =>
         row
-          .map(cell => {
+          .map((cell) => {
             // Escape quotes and wrap in quotes if contains delimiter, quote, or newline
             const needsQuotes = cell.includes(delimiter) || cell.includes('"') || cell.includes('\n');
             if (needsQuotes) {
@@ -684,7 +663,7 @@ export class CSVExporter {
             }
             return cell;
           })
-          .join(delimiter)
+          .join(delimiter),
       )
       .join('\n');
   }
@@ -719,7 +698,7 @@ export class ThemePackager {
       version: '1.6.0',
       exportDate: Date.now(),
       themeCount: themes.length,
-      themes: themes
+      themes: themes,
     };
 
     const json = JSON.stringify(package_data, null, 2);
@@ -728,7 +707,7 @@ export class ThemePackager {
     return {
       filename,
       content: json,
-      mimeType: 'application/json'
+      mimeType: 'application/json',
     };
   }
 
@@ -762,21 +741,23 @@ export class BatchExporter {
   static async batchExport(
     sessions: ConversationSession[],
     format: BatchFormat,
-    combined: boolean = false
+    combined: boolean = false,
   ): Promise<ExportResult[]> {
     const results: ExportResult[] = [];
 
     if (combined && format === 'csv') {
-      results.push(CSVExporter.exportMessages(sessions, {
-        delimiter: ',',
-        includeHeaders: true,
-        dateFormat: 'iso'
-      }));
+      results.push(
+        CSVExporter.exportMessages(sessions, {
+          delimiter: ',',
+          includeHeaders: true,
+          dateFormat: 'iso',
+        }),
+      );
     } else if (combined && format === 'json') {
       results.push({
         filename: `combined_export_${Date.now()}.json`,
         content: JSON.stringify(sessions, null, 2),
-        mimeType: 'application/json'
+        mimeType: 'application/json',
       });
     } else {
       // HTML and Markdown are one file per session.
@@ -791,10 +772,7 @@ export class BatchExporter {
   /**
    * Export a single session
    */
-  private static async exportSingle(
-    session: ConversationSession,
-    format: BatchFormat
-  ): Promise<ExportResult> {
+  private static async exportSingle(session: ConversationSession, format: BatchFormat): Promise<ExportResult> {
     switch (format) {
       case 'html':
       case 'pdf':
@@ -804,13 +782,13 @@ export class BatchExporter {
           includeCharacterInfo: true,
           fontSize: 12,
           pageSize: 'A4',
-          includeThemeStyling: false
+          includeThemeStyling: false,
         });
       case 'csv':
         return CSVExporter.exportMessages([session], {
           delimiter: ',',
           includeHeaders: true,
-          dateFormat: 'iso'
+          dateFormat: 'iso',
         });
       case 'json':
       case 'markdown': {
@@ -818,7 +796,7 @@ export class BatchExporter {
         return {
           filename: `${safeFileStem(session.name)}_${Date.now()}.${FORMAT_EXTENSIONS[format]}`,
           content,
-          mimeType: FORMAT_MIME_TYPES[format]
+          mimeType: FORMAT_MIME_TYPES[format],
         };
       }
       default:
@@ -885,16 +863,20 @@ export function printHtml(html: string): HTMLIFrameElement {
     iframe.remove();
   };
 
-  iframe.addEventListener('load', () => {
-    const win = iframe.contentWindow;
-    if (!win) {
-      remove();
-      return;
-    }
-    win.addEventListener?.('afterprint', () => setTimeout(remove, 0));
-    win.focus?.();
-    win.print();
-  }, { once: true });
+  iframe.addEventListener(
+    'load',
+    () => {
+      const win = iframe.contentWindow;
+      if (!win) {
+        remove();
+        return;
+      }
+      win.addEventListener?.('afterprint', () => setTimeout(remove, 0));
+      win.focus?.();
+      win.print();
+    },
+    { once: true },
+  );
 
   iframe.setAttribute('srcdoc', html);
   document.body.appendChild(iframe);

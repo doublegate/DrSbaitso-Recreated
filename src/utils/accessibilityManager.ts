@@ -26,7 +26,7 @@ export const DEFAULT_ACCESSIBILITY_SETTINGS: AccessibilitySettings = {
   screenReaderOptimized: false,
   focusIndicatorStyle: 'default',
   announceMessages: true,
-  keyboardNavigationHints: true
+  keyboardNavigationHints: true,
 };
 
 /**
@@ -62,15 +62,20 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 
   // Handle 3-digit hex
   if (hex.length === 3) {
-    hex = hex.split('').map(c => c + c).join('');
+    hex = hex
+      .split('')
+      .map((c) => c + c)
+      .join('');
   }
 
   const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
 }
 
 /**
@@ -101,7 +106,7 @@ export function getContrastRatio(color1: string, color2: string): number {
 export function meetsWCAGAA(
   foreground: string,
   background: string,
-  isLargeText: boolean = false
+  isLargeText: boolean = false,
 ): { passes: boolean; ratio: number; required: number } {
   const ratio = getContrastRatio(foreground, background);
   const required = isLargeText ? WCAG_AA_LARGE_CONTRAST : WCAG_AA_NORMAL_CONTRAST;
@@ -109,7 +114,7 @@ export function meetsWCAGAA(
   return {
     passes: ratio >= required,
     ratio: Math.round(ratio * 100) / 100,
-    required
+    required,
   };
 }
 
@@ -119,7 +124,7 @@ export function meetsWCAGAA(
 export function meetsWCAGAAA(
   foreground: string,
   background: string,
-  isLargeText: boolean = false
+  isLargeText: boolean = false,
 ): { passes: boolean; ratio: number; required: number } {
   const ratio = getContrastRatio(foreground, background);
   const required = isLargeText ? WCAG_AAA_LARGE_CONTRAST : WCAG_AAA_NORMAL_CONTRAST;
@@ -127,7 +132,7 @@ export function meetsWCAGAAA(
   return {
     passes: ratio >= required,
     ratio: Math.round(ratio * 100) / 100,
-    required
+    required,
   };
 }
 
@@ -209,7 +214,7 @@ export class FocusManager {
     'textarea:not([disabled])',
     'input:not([disabled])',
     'select:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])'
+    '[tabindex]:not([tabindex="-1"])',
   ].join(', ');
 
   /**
@@ -421,13 +426,13 @@ export class KeyboardNav {
     options: {
       orientation?: 'horizontal' | 'vertical';
       loop?: boolean;
-    } = {}
+    } = {},
   ): () => void {
     const { orientation = 'vertical', loop = true } = options;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const items = FocusManager.getFocusableElements(container);
-      const currentIndex = items.findIndex(item => item === document.activeElement);
+      const currentIndex = items.findIndex((item) => item === document.activeElement);
 
       if (currentIndex === -1) return;
 

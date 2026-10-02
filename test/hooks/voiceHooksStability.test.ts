@@ -110,9 +110,11 @@ describe('voice hook stability', () => {
   });
 
   it('useVoiceControl rebuilds commands when the set of handlers changes', () => {
-    const { rerender, result } = renderHook(({ withExport }) =>
-      useVoiceControl(withExport ? { onClear: () => {}, onExport: () => {} } : { onClear: () => {} }),
-    { initialProps: { withExport: false } });
+    const { rerender, result } = renderHook(
+      ({ withExport }) =>
+        useVoiceControl(withExport ? { onClear: () => {}, onExport: () => {} } : { onClear: () => {} }),
+      { initialProps: { withExport: false } },
+    );
     expect(result.current.commands.some((c) => c.id === 'export')).toBe(false);
     rerender({ withExport: true });
     expect(result.current.commands.some((c) => c.id === 'export')).toBe(true);

@@ -19,13 +19,25 @@ import VoiceHelpDialog from './VoiceHelpDialog';
 
 // Lazy-loaded components (only load when needed)
 const AccessibilityPanel = lazy(() => import('../AccessibilityPanel'));
-const ThemeCustomizer = lazy(() => import('../ThemeCustomizer').then(module => ({ default: module.ThemeCustomizer })));
-const ConversationSearch = lazy(() => import('../ConversationSearch').then(module => ({ default: module.ConversationSearch })));
-const AudioVisualizer = lazy(() => import('../AudioVisualizer').then(module => ({ default: module.AudioVisualizer })));
+const ThemeCustomizer = lazy(() =>
+  import('../ThemeCustomizer').then((module) => ({ default: module.ThemeCustomizer })),
+);
+const ConversationSearch = lazy(() =>
+  import('../ConversationSearch').then((module) => ({ default: module.ConversationSearch })),
+);
+const AudioVisualizer = lazy(() =>
+  import('../AudioVisualizer').then((module) => ({ default: module.AudioVisualizer })),
+);
 // v1.6.0 Components (lazy-loaded)
-const AdvancedExporter = lazy(() => import('../AdvancedExporter').then(module => ({ default: module.AdvancedExporter })));
-const CharacterCreator = lazy(() => import('../CharacterCreator').then(module => ({ default: module.CharacterCreator })));
-const ConversationReplay = lazy(() => import('../ConversationReplay').then(module => ({ default: module.ConversationReplay })));
+const AdvancedExporter = lazy(() =>
+  import('../AdvancedExporter').then((module) => ({ default: module.AdvancedExporter })),
+);
+const CharacterCreator = lazy(() =>
+  import('../CharacterCreator').then((module) => ({ default: module.CharacterCreator })),
+);
+const ConversationReplay = lazy(() =>
+  import('../ConversationReplay').then((module) => ({ default: module.ConversationReplay })),
+);
 // v1.8.0 Components (lazy-loaded)
 const OnboardingTutorial = lazy(() => import('../OnboardingTutorial'));
 const ConversationInsights = lazy(() => import('../ConversationInsights'));
@@ -45,7 +57,11 @@ const ConversationTemplates = lazy(() => import('../ConversationTemplates'));
 
 /** Full-screen loading overlay shown while a modal panel's code loads. */
 function ModalFallback({ label }: { label: string }) {
-  return <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">{label}</div></div>;
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="text-white">{label}</div>
+    </div>
+  );
 }
 
 type PersonaState = ReturnType<typeof usePersona>;
@@ -127,7 +143,7 @@ export default function EnhancedPanels({
             onOpenSession={(sessionId) => {
               console.log('Opening session:', sessionId);
               // Find the session and trigger replay
-              const session = savedSessions.find(s => s.id === sessionId);
+              const session = savedSessions.find((s) => s.id === sessionId);
               if (session) panels.openReplay(session);
             }}
           />
@@ -197,31 +213,24 @@ export default function EnhancedPanels({
       {/* Conversation Insights (v1.8.0) */}
       {panelOpen.insights && (
         <Suspense fallback={<ModalFallback label="Loading insights..." />}>
-          <ConversationInsights
-            onClose={() => setPanel('insights', false)}
-            currentTheme={currentTheme}
-          />
+          <ConversationInsights onClose={() => setPanel('insights', false)} currentTheme={currentTheme} />
         </Suspense>
       )}
 
       {/* Sound Settings Panel (v1.9.0) */}
       {panelOpen.soundSettings && (
         <Suspense fallback={<ModalFallback label="Loading sound settings..." />}>
-          <SoundSettingsPanel
-            isOpen={panelOpen.soundSettings}
-            onClose={() => setPanel('soundSettings', false)}
-          />
+          <SoundSettingsPanel isOpen={panelOpen.soundSettings} onClose={() => setPanel('soundSettings', false)} />
         </Suspense>
       )}
 
       {/* Music Player (v1.10.0) */}
       {panelOpen.musicPlayer && (
-        <Suspense fallback={<div className="fixed bottom-4 left-4 z-40 text-white text-sm">Loading music player...</div>}>
+        <Suspense
+          fallback={<div className="fixed bottom-4 left-4 z-40 text-white text-sm">Loading music player...</div>}
+        >
           <div className="fixed bottom-4 left-4 z-40">
-            <MusicPlayer
-              theme={activeTheme}
-              audioContext={getSharedAudioContext()}
-            />
+            <MusicPlayer theme={activeTheme} audioContext={getSharedAudioContext()} />
           </div>
         </Suspense>
       )}
@@ -229,11 +238,7 @@ export default function EnhancedPanels({
       {/* PWA Install Prompt (v1.10.0) */}
       {installPrompt.canInstall && (
         <Suspense fallback={null}>
-          <InstallPrompt
-            onInstall={installPrompt.install}
-            onDismiss={installPrompt.dismiss}
-            theme={activeTheme}
-          />
+          <InstallPrompt onInstall={installPrompt.install} onDismiss={installPrompt.dismiss} theme={activeTheme} />
         </Suspense>
       )}
 
@@ -295,7 +300,9 @@ export default function EnhancedPanels({
 
       {/* Voice Input Panel (v1.11.0 - Option C1) */}
       {panelOpen.voiceInput && (
-        <Suspense fallback={<div className="fixed bottom-20 left-4 z-40 text-white text-sm">Loading voice input...</div>}>
+        <Suspense
+          fallback={<div className="fixed bottom-20 left-4 z-40 text-white text-sm">Loading voice input...</div>}
+        >
           <div className="fixed bottom-20 left-4 z-40 max-w-md">
             <VoiceInput
               onTranscript={onVoiceTranscript}
@@ -313,25 +320,24 @@ export default function EnhancedPanels({
 
       {/* Emotion Visualizer (v1.11.0 - Option C2) */}
       {panelOpen.emotionViz && (
-        <Suspense fallback={<div className="fixed bottom-20 right-4 z-40 text-white text-sm">Loading emotion visualizer...</div>}>
+        <Suspense
+          fallback={
+            <div className="fixed bottom-20 right-4 z-40 text-white text-sm">Loading emotion visualizer...</div>
+          }
+        >
           <div className="fixed bottom-20 right-4 z-40 max-w-sm">
-            <EmotionVisualizer
-              messages={messages}
-              theme={activeTheme}
-              maxHistory={10}
-            />
+            <EmotionVisualizer messages={messages} theme={activeTheme} maxHistory={10} />
           </div>
         </Suspense>
       )}
 
       {/* Topic Flow Diagram (v1.11.0 - Option C3) */}
       {panelOpen.topicDiagram && (
-        <Suspense fallback={<div className="fixed top-20 left-4 z-40 text-white text-sm">Loading topic diagram...</div>}>
+        <Suspense
+          fallback={<div className="fixed top-20 left-4 z-40 text-white text-sm">Loading topic diagram...</div>}
+        >
           <div className="fixed top-20 left-4 z-40 max-w-2xl">
-            <TopicFlowDiagram
-              messages={messages}
-              theme={activeTheme}
-            />
+            <TopicFlowDiagram messages={messages} theme={activeTheme} />
           </div>
         </Suspense>
       )}

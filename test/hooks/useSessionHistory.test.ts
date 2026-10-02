@@ -17,7 +17,9 @@ describe('useSessionHistory', () => {
   afterEach(() => vi.useRealTimers());
 
   it('is off by default, honouring "MEMORY CONTENTS WILL BE WIPED OFF"', () => {
-    const { result, rerender } = renderHook(({ m }) => useSessionHistory(m, opts), { initialProps: { m: msgs('hi', 'WHY?') } });
+    const { result, rerender } = renderHook(({ m }) => useSessionHistory(m, opts), {
+      initialProps: { m: msgs('hi', 'WHY?') },
+    });
     rerender({ m: msgs('hi', 'WHY?', 'because') });
     act(() => vi.advanceTimersByTime(5000));
     expect(result.current.keepHistory).toBe(false);
@@ -99,7 +101,11 @@ describe('useSessionHistory', () => {
       const { result } = renderHook(() => useSessionHistory([], opts));
       let merged = -1;
       act(() => {
-        merged = result.current.mergeSessions([remote('old', 5, 'cloud'), remote('new', 2, 'stale'), remote('extra', 3)]);
+        merged = result.current.mergeSessions([
+          remote('old', 5, 'cloud'),
+          remote('new', 2, 'stale'),
+          remote('extra', 3),
+        ]);
       });
       expect(merged).toBe(2);
       const byId = Object.fromEntries(result.current.savedSessions.map((s) => [s.id, s.messages[0].text]));

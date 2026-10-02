@@ -293,10 +293,7 @@ class OfflineManager {
     if (!this.db) throw new Error('Database not initialized');
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(
-        [SESSIONS_STORE, SETTINGS_STORE, CACHE_STORE],
-        'readwrite'
-      );
+      const transaction = this.db!.transaction([SESSIONS_STORE, SETTINGS_STORE, CACHE_STORE], 'readwrite');
 
       transaction.objectStore(SESSIONS_STORE).clear();
       transaction.objectStore(SETTINGS_STORE).clear();
@@ -321,10 +318,7 @@ class OfflineManager {
     await this.init();
     if (!this.db) throw new Error('Database not initialized');
 
-    const transaction = this.db.transaction(
-      [SESSIONS_STORE, SETTINGS_STORE, CACHE_STORE],
-      'readonly'
-    );
+    const transaction = this.db.transaction([SESSIONS_STORE, SETTINGS_STORE, CACHE_STORE], 'readonly');
 
     const sessionsCount = await this.getCount(transaction.objectStore(SESSIONS_STORE));
     const settingsCount = await this.getCount(transaction.objectStore(SETTINGS_STORE));
@@ -333,7 +327,7 @@ class OfflineManager {
     return {
       sessions: sessionsCount,
       settings: settingsCount,
-      cache: cacheCount
+      cache: cacheCount,
     };
   }
 

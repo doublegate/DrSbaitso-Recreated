@@ -268,10 +268,19 @@ describe('ending the interview', () => {
   });
 
   it('does not count listening prompts such as "Go on." as repetition', () => {
-    const { state } = run(
-      createParryState({ strength: 'MILD', seed: 1 }),
-      ['Go on.', 'I see.', 'Go on.', 'I see.', 'Go on.', 'OK.', 'OK.', 'Go on.', 'I see.', 'Go on.', 'I see.'],
-    );
+    const { state } = run(createParryState({ strength: 'MILD', seed: 1 }), [
+      'Go on.',
+      'I see.',
+      'Go on.',
+      'I see.',
+      'Go on.',
+      'OK.',
+      'OK.',
+      'Go on.',
+      'I see.',
+      'Go on.',
+      'I see.',
+    ]);
     expect(state.repeatCount).toBe(0);
     expect(state.ended).toBe(false);
   });

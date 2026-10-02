@@ -1,11 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  createElizaState,
-  elizaRespond,
-  ELIZA_NOMATCH_REPLIES,
-  ELIZA_OPENER,
-  type ElizaState,
-} from '@/engine/eliza';
+import { createElizaState, elizaRespond, ELIZA_NOMATCH_REPLIES, ELIZA_OPENER, type ElizaState } from '@/engine/eliza';
 
 /** Feed inputs in order from a fresh (or given) state; return every reply. */
 function converse(inputs: readonly string[], state: ElizaState = createElizaState()) {
@@ -35,7 +29,10 @@ const CTSS_TAPE_100_CONVERSATION: readonly (readonly [string, string])[] = [
   ['My mother takes care of me.', 'TELL ME MORE ABOUT YOUR FAMILY'],
   ['My father.', 'WHO ELSE IN YOUR FAMILY'],
   ['You are like my father in some ways.', 'WHAT MAKES YOU THINK I AM LIKE YOUR FATHER IN SOME WAYS'],
-  ["You are not very aggressive, but I think you don't want me to notice that.", 'DOES IT PLEASE YOU TO BELIEVE I AM NOT VERY AGGRESSIVE'],
+  [
+    "You are not very aggressive, but I think you don't want me to notice that.",
+    'DOES IT PLEASE YOU TO BELIEVE I AM NOT VERY AGGRESSIVE',
+  ],
   ["You don't argue with me.", "WHY DO YOU THINK I DON'T ARGUE WITH YOU"],
   ['You are afraid of me.', 'DID YOUR PARENTS AM AFRAID OF YOU'],
   ['My father is afraid of everybody.', 'REALLY, EVERYONE'],
@@ -61,7 +58,10 @@ const HAY_MICHIE_1968: readonly (readonly [string, string])[] = [
   ['because', "DON'T ANY OTHER REASONS COME TO MIND"],
   ['because', 'DOES THAT REASON SEEM TO EXPLAIN ANYTHING ELSE'],
   ['I wish I had my baggage.', 'CAN YOU ELABORATE ON THAT'],
-  ['I am not quite clear as to what sort of elaboration is wanted.', 'DO YOU BELIEVE IT NORMAL TO BE NOT QUITE CLEAR AS TO WHAT SORT OF ELABORATION IS WANTED'],
+  [
+    'I am not quite clear as to what sort of elaboration is wanted.',
+    'DO YOU BELIEVE IT NORMAL TO BE NOT QUITE CLEAR AS TO WHAT SORT OF ELABORATION IS WANTED',
+  ],
   ['Yes, quite normal.', 'I UNDERSTAND'],
   ['I have lost my baggage.', 'DO YOU SAY YOU HAVE LOST YOUR BAGGAGE FOR SOME SPECIAL REASON'],
   ['I feel lost without it.', 'DO YOU OFTEN FEEL LOST WITHOUT IT'],
@@ -94,9 +94,7 @@ describe('golden conversations (.TAPE. 100)', () => {
 
 describe('elizaRespond', () => {
   it('never prints a question mark and always answers in capitals', () => {
-    const { replies } = converse([
-      'What is your name?', 'Why?', 'How are you?', 'Can I go?', 'Are you mad?', 'is it?',
-    ]);
+    const { replies } = converse(['What is your name?', 'Why?', 'How are you?', 'Can I go?', 'Are you mad?', 'is it?']);
     for (const reply of replies) {
       expect(reply).not.toContain('?');
       expect(reply).toBe(reply.toUpperCase());
@@ -136,7 +134,9 @@ describe('elizaRespond', () => {
       // PERHAPS, I and MY are all rank 0: PERHAPS came first
       expect(elizaRespond(createElizaState(), 'perhaps I love my dog').reply).toBe("YOU DON'T SEEM QUITE CERTAIN");
       // IF is rank 3 and beats ALWAYS (1)
-      expect(elizaRespond(createElizaState(), 'I always fail if I try').reply).toBe('DO YOU THINK ITS LIKELY THAT YOU TRY');
+      expect(elizaRespond(createElizaState(), 'I always fail if I try').reply).toBe(
+        'DO YOU THINK ITS LIKELY THAT YOU TRY',
+      );
     });
 
     it('follows rule-level links to another keyword', () => {
@@ -149,7 +149,11 @@ describe('elizaRespond', () => {
 
     it('shares the reassembly cursor of a linked keyword', () => {
       const { replies } = converse(['what now', 'how so', 'when then']);
-      expect(replies).toEqual(['WHY DO YOU ASK', 'DOES THAT QUESTION INTEREST YOU', 'WHAT IS IT YOU REALLY WANT TO KNOW']);
+      expect(replies).toEqual([
+        'WHY DO YOU ASK',
+        'DOES THAT QUESTION INTEREST YOU',
+        'WHAT IS IT YOU REALLY WANT TO KNOW',
+      ]);
     });
   });
 
@@ -190,7 +194,13 @@ describe('elizaRespond', () => {
 
     it('cycles reassemblies per decomposition rule and wraps around', () => {
       const { replies } = converse(['yes', 'yes', 'yes', 'yes', 'yes']);
-      expect(replies).toEqual(['YOU SEEM QUITE POSITIVE', 'YOU ARE SURE', 'I SEE', 'I UNDERSTAND', 'YOU SEEM QUITE POSITIVE']);
+      expect(replies).toEqual([
+        'YOU SEEM QUITE POSITIVE',
+        'YOU ARE SURE',
+        'I SEE',
+        'I UNDERSTAND',
+        'YOU SEEM QUITE POSITIVE',
+      ]);
     });
 
     it('keeps a separate cursor for each decomposition of a keyword', () => {
@@ -207,7 +217,10 @@ describe('elizaRespond', () => {
       const { replies } = converse(['can we', 'can we', 'can we', 'can we']);
       // LIMIT is 2, 3, 4, 1 on these turns
       expect(replies).toEqual([
-        ELIZA_NOMATCH_REPLIES[1], ELIZA_NOMATCH_REPLIES[2], ELIZA_NOMATCH_REPLIES[3], ELIZA_NOMATCH_REPLIES[0],
+        ELIZA_NOMATCH_REPLIES[1],
+        ELIZA_NOMATCH_REPLIES[2],
+        ELIZA_NOMATCH_REPLIES[3],
+        ELIZA_NOMATCH_REPLIES[0],
       ]);
       expect(ELIZA_NOMATCH_REPLIES).toEqual(['PLEASE CONTINUE', 'HMMM', 'GO ON, PLEASE', 'I SEE']);
     });
@@ -249,7 +262,9 @@ describe('elizaRespond', () => {
       const { replies, state } = converse(['my purpose', 'xyzzy', 'yes', 'xyzzy', 'xyzzy', 'xyzzy', 'xyzzy']);
       expect(replies[2]).toBe('YOU SEEM QUITE POSITIVE');
       expect(replies.slice(3, 6)).toEqual([
-        'PLEASE GO ON', 'WHAT DOES THAT SUGGEST TO YOU', 'DO YOU FEEL STRONGLY ABOUT DISCUSSING SUCH THINGS',
+        'PLEASE GO ON',
+        'WHAT DOES THAT SUGGEST TO YOU',
+        'DO YOU FEEL STRONGLY ABOUT DISCUSSING SUCH THINGS',
       ]);
       expect(replies[6]).toBe('EARLIER YOU SAID YOUR PURPOSE');
       expect(state.memories).toEqual([]);

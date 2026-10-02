@@ -39,9 +39,12 @@ describe('createHalState', () => {
 });
 
 describe('the pod bay doors', () => {
-  it.each(['Open the pod bay doors, HAL.', 'open the doors please', 'HAL, open the pod bay doors'])('recognises %s', (input) => {
-    expect(isDoorRequest(input)).toBe(true);
-  });
+  it.each(['Open the pod bay doors, HAL.', 'open the doors please', 'HAL, open the pod bay doors'])(
+    'recognises %s',
+    (input) => {
+      expect(isDoorRequest(input)).toBe(true);
+    },
+  );
 
   it('refuses once, in sentence case, with the name and an apology first', () => {
     const { state, results } = run(['Open the pod bay doors, HAL.']);

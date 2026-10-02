@@ -40,7 +40,7 @@ function createSession(
   characterId: string,
   messages: Message[],
   createdAt?: number,
-  endedAt?: number
+  endedAt?: number,
 ): ConversationSession {
   const created = createdAt || Date.now();
   return {
@@ -94,12 +94,7 @@ describe('insightEngine', () => {
     });
 
     it('should provide breakdown metrics', () => {
-      const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', 'Hello'),
-          createMessage('dr', 'HI'),
-        ]),
-      ];
+      const sessions = [createSession('1', 'sbaitso', [createMessage('user', 'Hello'), createMessage('dr', 'HI')])];
 
       const result = calculateConversationHealth(sessions);
 
@@ -114,12 +109,7 @@ describe('insightEngine', () => {
     });
 
     it('should generate recommendations', () => {
-      const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', 'Test'),
-          createMessage('dr', 'OK'),
-        ]),
-      ];
+      const sessions = [createSession('1', 'sbaitso', [createMessage('user', 'Test'), createMessage('dr', 'OK')])];
 
       const result = calculateConversationHealth(sessions);
 
@@ -129,12 +119,7 @@ describe('insightEngine', () => {
     });
 
     it('should identify concerns when present', () => {
-      const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', 'hi'),
-          createMessage('dr', 'HI'),
-        ]),
-      ];
+      const sessions = [createSession('1', 'sbaitso', [createMessage('user', 'hi'), createMessage('dr', 'HI')])];
 
       const result = calculateConversationHealth(sessions);
 
@@ -154,7 +139,7 @@ describe('insightEngine', () => {
       const result = calculateConversationHealth(sessions);
 
       expect(result.breakdown.sentimentBalance).toBeLessThan(50);
-      expect(result.concerns.some(c => c.includes('sentiment'))).toBe(true);
+      expect(result.concerns.some((c) => c.includes('sentiment'))).toBe(true);
     });
 
     it('should detect limited topic variety', () => {
@@ -173,42 +158,39 @@ describe('insightEngine', () => {
     });
 
     it('should detect short conversations', () => {
-      const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', 'hi'),
-          createMessage('dr', 'HI'),
-        ]),
-      ];
+      const sessions = [createSession('1', 'sbaitso', [createMessage('user', 'hi'), createMessage('dr', 'HI')])];
 
       const result = calculateConversationHealth(sessions);
 
       expect(result.breakdown.engagementLevel).toBeLessThan(50);
-      expect(result.concerns.some(c => c.includes('Short conversations'))).toBe(true);
+      expect(result.concerns.some((c) => c.includes('Short conversations'))).toBe(true);
     });
 
     it('should detect high abandonment rate', () => {
       const sessions = Array.from({ length: 10 }, (_, i) =>
-        createSession(`${i}`, 'sbaitso', [
-          createMessage('user', 'hi'),
-          createMessage('dr', 'HI'),
-        ])
+        createSession(`${i}`, 'sbaitso', [createMessage('user', 'hi'), createMessage('dr', 'HI')]),
       );
 
       const result = calculateConversationHealth(sessions);
 
       expect(result.breakdown.responsiveness).toBeLessThan(50);
-      expect(result.concerns.some(c => c.includes('abandonment'))).toBe(true);
+      expect(result.concerns.some((c) => c.includes('abandonment'))).toBe(true);
     });
 
     it('should give excellent rating for high quality conversations', () => {
       const sessions = Array.from({ length: 10 }, (_, i) =>
-        createSession(`${i}`, 'sbaitso',
+        createSession(
+          `${i}`,
+          'sbaitso',
           Array.from({ length: 25 }, (_, j) =>
             j % 2 === 0
-              ? createMessage('user', `I am discussing interesting topic number ${j} about technology, science, philosophy, art, and culture`)
-              : createMessage('dr', 'TELL ME MORE')
-          )
-        )
+              ? createMessage(
+                  'user',
+                  `I am discussing interesting topic number ${j} about technology, science, philosophy, art, and culture`,
+                )
+              : createMessage('dr', 'TELL ME MORE'),
+          ),
+        ),
       );
 
       const result = calculateConversationHealth(sessions);
@@ -219,11 +201,11 @@ describe('insightEngine', () => {
 
     it('should recommend exploring new topics when diversity is low', () => {
       const sessions = Array.from({ length: 10 }, (_, i) =>
-        createSession(`${i}`, 'sbaitso',
-          Array.from({ length: 15 }, () =>
-            createMessage('user', 'hello how are you doing today')
-          )
-        )
+        createSession(
+          `${i}`,
+          'sbaitso',
+          Array.from({ length: 15 }, () => createMessage('user', 'hello how are you doing today')),
+        ),
       );
 
       const result = calculateConversationHealth(sessions);
@@ -235,10 +217,7 @@ describe('insightEngine', () => {
 
     it('should only analyze last 10 sessions', () => {
       const sessions = Array.from({ length: 20 }, (_, i) =>
-        createSession(`${i}`, 'sbaitso', [
-          createMessage('user', `Message ${i}`),
-          createMessage('dr', 'OK'),
-        ])
+        createSession(`${i}`, 'sbaitso', [createMessage('user', `Message ${i}`), createMessage('dr', 'OK')]),
       );
 
       const result = calculateConversationHealth(sessions);
@@ -301,19 +280,13 @@ describe('insightEngine', () => {
 
     it('should track frequency across sessions', () => {
       const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', 'programming is great'),
-          createMessage('dr', 'OK'),
-        ]),
-        createSession('2', 'sbaitso', [
-          createMessage('user', 'I love programming'),
-          createMessage('dr', 'GOOD'),
-        ]),
+        createSession('1', 'sbaitso', [createMessage('user', 'programming is great'), createMessage('dr', 'OK')]),
+        createSession('2', 'sbaitso', [createMessage('user', 'I love programming'), createMessage('dr', 'GOOD')]),
       ];
 
       const result = clusterTopics(sessions);
 
-      const programmingTopic = result.find(t => t.topic === 'programming');
+      const programmingTopic = result.find((t) => t.topic === 'programming');
       if (programmingTopic) {
         expect(programmingTopic.frequency).toBeGreaterThan(1);
         expect(programmingTopic.sessions.length).toBeGreaterThan(1);
@@ -331,24 +304,21 @@ describe('insightEngine', () => {
       const result = clusterTopics(sessions);
 
       // Should not include stop words as topics
-      const hasStopWords = result.some(t =>
-        ['the', 'and', 'or', 'but', 'is', 'are', 'was', 'were'].includes(t.topic)
+      const hasStopWords = result.some((t) =>
+        ['the', 'and', 'or', 'but', 'is', 'are', 'was', 'were'].includes(t.topic),
       );
       expect(hasStopWords).toBe(false);
     });
 
     it('should filter out short words', () => {
       const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', 'I am ok hi bye yes no'),
-          createMessage('dr', 'OK'),
-        ]),
+        createSession('1', 'sbaitso', [createMessage('user', 'I am ok hi bye yes no'), createMessage('dr', 'OK')]),
       ];
 
       const result = clusterTopics(sessions);
 
       // Should not include words <= 3 characters
-      const hasShortWords = result.some(t => t.topic.length <= 3);
+      const hasShortWords = result.some((t) => t.topic.length <= 3);
       expect(hasShortWords).toBe(false);
     });
 
@@ -386,12 +356,7 @@ describe('insightEngine', () => {
 
     it('should limit to top 20 topics', () => {
       const manyWords = Array.from({ length: 50 }, (_, i) => `topic${i.toString().padStart(4, '0')}`).join(' ');
-      const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', manyWords),
-          createMessage('dr', 'OK'),
-        ]),
-      ];
+      const sessions = [createSession('1', 'sbaitso', [createMessage('user', manyWords), createMessage('dr', 'OK')])];
 
       const result = clusterTopics(sessions);
 
@@ -401,17 +366,13 @@ describe('insightEngine', () => {
     it('should track first and last seen timestamps', () => {
       const now = Date.now();
       const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', 'testing programming', now),
-        ], now, now + 1000),
-        createSession('2', 'sbaitso', [
-          createMessage('user', 'testing again', now + 5000),
-        ], now + 5000, now + 6000),
+        createSession('1', 'sbaitso', [createMessage('user', 'testing programming', now)], now, now + 1000),
+        createSession('2', 'sbaitso', [createMessage('user', 'testing again', now + 5000)], now + 5000, now + 6000),
       ];
 
       const result = clusterTopics(sessions);
 
-      const testingTopic = result.find(t => t.topic === 'testing');
+      const testingTopic = result.find((t) => t.topic === 'testing');
       if (testingTopic) {
         expect(testingTopic.firstSeen).toBeLessThan(testingTopic.lastSeen);
       }
@@ -436,12 +397,8 @@ describe('insightEngine', () => {
 
     it('should analyze sentiment over time', () => {
       const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', 'I am happy'),
-        ]),
-        createSession('2', 'sbaitso', [
-          createMessage('user', 'I am sad'),
-        ]),
+        createSession('1', 'sbaitso', [createMessage('user', 'I am happy')]),
+        createSession('2', 'sbaitso', [createMessage('user', 'I am sad')]),
       ];
 
       const result = analyzeSentimentTrajectory(sessions);
@@ -456,18 +413,10 @@ describe('insightEngine', () => {
 
     it('should calculate trend direction', () => {
       const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', 'terrible awful bad'),
-        ]),
-        createSession('2', 'sbaitso', [
-          createMessage('user', 'okay fine'),
-        ]),
-        createSession('3', 'sbaitso', [
-          createMessage('user', 'good nice'),
-        ]),
-        createSession('4', 'sbaitso', [
-          createMessage('user', 'wonderful excellent amazing'),
-        ]),
+        createSession('1', 'sbaitso', [createMessage('user', 'terrible awful bad')]),
+        createSession('2', 'sbaitso', [createMessage('user', 'okay fine')]),
+        createSession('3', 'sbaitso', [createMessage('user', 'good nice')]),
+        createSession('4', 'sbaitso', [createMessage('user', 'wonderful excellent amazing')]),
       ];
 
       const result = analyzeSentimentTrajectory(sessions);
@@ -478,8 +427,11 @@ describe('insightEngine', () => {
     it('should detect improving trend', () => {
       const sessions = Array.from({ length: 5 }, (_, i) =>
         createSession(`${i}`, 'sbaitso', [
-          createMessage('user', i === 0 ? 'bad' : i === 1 ? 'okay' : i === 2 ? 'good' : i === 3 ? 'great' : 'wonderful amazing excellent'),
-        ])
+          createMessage(
+            'user',
+            i === 0 ? 'bad' : i === 1 ? 'okay' : i === 2 ? 'good' : i === 3 ? 'great' : 'wonderful amazing excellent',
+          ),
+        ]),
       );
 
       const result = analyzeSentimentTrajectory(sessions);
@@ -491,8 +443,11 @@ describe('insightEngine', () => {
     it('should detect declining trend', () => {
       const sessions = Array.from({ length: 5 }, (_, i) =>
         createSession(`${i}`, 'sbaitso', [
-          createMessage('user', i === 0 ? 'wonderful' : i === 1 ? 'good' : i === 2 ? 'okay' : i === 3 ? 'bad' : 'terrible awful'),
-        ])
+          createMessage(
+            'user',
+            i === 0 ? 'wonderful' : i === 1 ? 'good' : i === 2 ? 'okay' : i === 3 ? 'bad' : 'terrible awful',
+          ),
+        ]),
       );
 
       const result = analyzeSentimentTrajectory(sessions);
@@ -519,7 +474,7 @@ describe('insightEngine', () => {
       const sessions = Array.from({ length: 10 }, (_, i) =>
         createSession(`${i}`, 'sbaitso', [
           createMessage('user', i % 2 === 0 ? 'wonderful amazing excellent' : 'terrible awful horrible'),
-        ])
+        ]),
       );
 
       const result = analyzeSentimentTrajectory(sessions);
@@ -529,9 +484,7 @@ describe('insightEngine', () => {
 
     it('should calculate recent average', () => {
       const sessions = Array.from({ length: 10 }, (_, i) =>
-        createSession(`${i}`, 'sbaitso', [
-          createMessage('user', i >= 5 ? 'wonderful' : 'terrible'),
-        ])
+        createSession(`${i}`, 'sbaitso', [createMessage('user', i >= 5 ? 'wonderful' : 'terrible')]),
       );
 
       const result = analyzeSentimentTrajectory(sessions);
@@ -553,9 +506,7 @@ describe('insightEngine', () => {
     });
 
     it('should return stable for insufficient data', () => {
-      const sessions = [
-        createSession('1', 'sbaitso', [createMessage('user', 'hello')]),
-      ];
+      const sessions = [createSession('1', 'sbaitso', [createMessage('user', 'hello')])];
 
       const result = analyzeSentimentTrajectory(sessions);
 
@@ -578,10 +529,13 @@ describe('insightEngine', () => {
 
     it('should analyze character metrics', () => {
       const sessions = [
-        createSession('1', 'sbaitso', [
-          createMessage('user', 'hello'),
-          createMessage('dr', 'HI'),
-        ], Date.now(), Date.now() + 10000),
+        createSession(
+          '1',
+          'sbaitso',
+          [createMessage('user', 'hello'), createMessage('dr', 'HI')],
+          Date.now(),
+          Date.now() + 10000,
+        ),
       ];
 
       const result = analyzeCharacterEffectiveness(sessions);
@@ -592,12 +546,12 @@ describe('insightEngine', () => {
 
     it('should include all required metrics', () => {
       const sessions = [
-        createSession('1', 'sbaitso',
-          Array.from({ length: 10 }, (_, i) =>
-            createMessage(i % 2 === 0 ? 'user' : 'dr', 'test')
-          ),
+        createSession(
+          '1',
+          'sbaitso',
+          Array.from({ length: 10 }, (_, i) => createMessage(i % 2 === 0 ? 'user' : 'dr', 'test')),
           Date.now(),
-          Date.now() + 30000
+          Date.now() + 30000,
         ),
       ];
 
@@ -614,8 +568,16 @@ describe('insightEngine', () => {
 
     it('should calculate average session length', () => {
       const sessions = [
-        createSession('1', 'sbaitso', Array.from({ length: 10 }, () => createMessage('user', 'test'))),
-        createSession('2', 'sbaitso', Array.from({ length: 20 }, () => createMessage('user', 'test'))),
+        createSession(
+          '1',
+          'sbaitso',
+          Array.from({ length: 10 }, () => createMessage('user', 'test')),
+        ),
+        createSession(
+          '2',
+          'sbaitso',
+          Array.from({ length: 20 }, () => createMessage('user', 'test')),
+        ),
       ];
 
       const result = analyzeCharacterEffectiveness(sessions);
@@ -625,9 +587,21 @@ describe('insightEngine', () => {
 
     it('should calculate user retention rate', () => {
       const sessions = [
-        createSession('1', 'sbaitso', Array.from({ length: 2 }, () => createMessage('user', 'test'))), // Short
-        createSession('2', 'sbaitso', Array.from({ length: 10 }, () => createMessage('user', 'test'))), // Long
-        createSession('3', 'sbaitso', Array.from({ length: 15 }, () => createMessage('user', 'test'))), // Long
+        createSession(
+          '1',
+          'sbaitso',
+          Array.from({ length: 2 }, () => createMessage('user', 'test')),
+        ), // Short
+        createSession(
+          '2',
+          'sbaitso',
+          Array.from({ length: 10 }, () => createMessage('user', 'test')),
+        ), // Long
+        createSession(
+          '3',
+          'sbaitso',
+          Array.from({ length: 15 }, () => createMessage('user', 'test')),
+        ), // Long
       ];
 
       const result = analyzeCharacterEffectiveness(sessions);
@@ -654,7 +628,11 @@ describe('insightEngine', () => {
 
     it('should calculate effectiveness score 0-100', () => {
       const sessions = [
-        createSession('1', 'sbaitso', Array.from({ length: 10 }, () => createMessage('user', 'test'))),
+        createSession(
+          '1',
+          'sbaitso',
+          Array.from({ length: 10 }, () => createMessage('user', 'test')),
+        ),
       ];
 
       const result = analyzeCharacterEffectiveness(sessions);
@@ -665,9 +643,21 @@ describe('insightEngine', () => {
 
     it('should sort by effectiveness descending', () => {
       const sessions = [
-        createSession('1', 'sbaitso', Array.from({ length: 25 }, () => createMessage('user', 'wonderful'))),
-        createSession('2', 'eliza', Array.from({ length: 2 }, () => createMessage('user', 'hi'))),
-        createSession('3', 'hal', Array.from({ length: 15 }, () => createMessage('user', 'good'))),
+        createSession(
+          '1',
+          'sbaitso',
+          Array.from({ length: 25 }, () => createMessage('user', 'wonderful')),
+        ),
+        createSession(
+          '2',
+          'eliza',
+          Array.from({ length: 2 }, () => createMessage('user', 'hi')),
+        ),
+        createSession(
+          '3',
+          'hal',
+          Array.from({ length: 15 }, () => createMessage('user', 'good')),
+        ),
       ];
 
       const result = analyzeCharacterEffectiveness(sessions);
@@ -698,8 +688,8 @@ describe('insightEngine', () => {
 
       const result = analyzeCharacterEffectiveness(sessions);
 
-      const sbaitso = result.find(c => c.characterId === 'sbaitso');
-      const eliza = result.find(c => c.characterId === 'eliza');
+      const sbaitso = result.find((c) => c.characterId === 'sbaitso');
+      const eliza = result.find((c) => c.characterId === 'eliza');
 
       expect(sbaitso?.conversationCount).toBe(2);
       expect(eliza?.conversationCount).toBe(1);
@@ -842,11 +832,21 @@ describe('insightEngine', () => {
     it('should sort by occurrence count', () => {
       const sessions = [
         createSession('1', 'sbaitso', [
-          createMessage('user', 'a'), createMessage('user', 'b'), createMessage('user', 'c'),
-          createMessage('user', 'a'), createMessage('user', 'b'), createMessage('user', 'c'),
-          createMessage('user', 'x'), createMessage('user', 'y'), createMessage('user', 'z'),
-          createMessage('user', 'x'), createMessage('user', 'y'), createMessage('user', 'z'),
-          createMessage('user', 'x'), createMessage('user', 'y'), createMessage('user', 'z'),
+          createMessage('user', 'a'),
+          createMessage('user', 'b'),
+          createMessage('user', 'c'),
+          createMessage('user', 'a'),
+          createMessage('user', 'b'),
+          createMessage('user', 'c'),
+          createMessage('user', 'x'),
+          createMessage('user', 'y'),
+          createMessage('user', 'z'),
+          createMessage('user', 'x'),
+          createMessage('user', 'y'),
+          createMessage('user', 'z'),
+          createMessage('user', 'x'),
+          createMessage('user', 'y'),
+          createMessage('user', 'z'),
         ]),
       ];
 
@@ -867,7 +867,7 @@ describe('insightEngine', () => {
           createMessage('user', `loop${i}c`),
           createMessage('user', `loop${i}a`),
           createMessage('user', `loop${i}b`),
-          createMessage('user', `loop${i}c`)
+          createMessage('user', `loop${i}c`),
         );
       }
 
@@ -920,9 +920,7 @@ describe('insightEngine', () => {
     });
 
     it('should calculate message frequency by hour', () => {
-      const sessions = [
-        createSession('1', 'sbaitso', [createMessage('user', 'test')]),
-      ];
+      const sessions = [createSession('1', 'sbaitso', [createMessage('user', 'test')])];
 
       const result = analyzeEngagementMetrics(sessions);
 
@@ -937,10 +935,12 @@ describe('insightEngine', () => {
       hour14.setHours(14, 0, 0, 0);
 
       const sessions = Array.from({ length: 10 }, (_, i) =>
-        createSession(`${i}`, 'sbaitso',
+        createSession(
+          `${i}`,
+          'sbaitso',
           Array.from({ length: 5 }, () => createMessage('user', 'test')),
-          hour14.getTime()
-        )
+          hour14.getTime(),
+        ),
       );
 
       const result = analyzeEngagementMetrics(sessions);
@@ -977,8 +977,10 @@ describe('insightEngine', () => {
   describe('generateInsightSummary', () => {
     it('should generate complete insight summary', () => {
       const sessions = [
-        createSession('1', 'sbaitso',
-          Array.from({ length: 10 }, () => createMessage('user', 'I love programming'))
+        createSession(
+          '1',
+          'sbaitso',
+          Array.from({ length: 10 }, () => createMessage('user', 'I love programming')),
         ),
       ];
 

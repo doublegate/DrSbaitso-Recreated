@@ -29,11 +29,7 @@ interface EmotionVisualizerProps {
   maxHistory?: number;
 }
 
-export function EmotionVisualizer({
-  messages,
-  theme,
-  maxHistory = 10
-}: EmotionVisualizerProps): React.JSX.Element {
+export function EmotionVisualizer({ messages, theme, maxHistory = 10 }: EmotionVisualizerProps): React.JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Derived from the user's messages, so opening the panel mid-conversation
@@ -81,12 +77,12 @@ export function EmotionVisualizer({
       anger: '#ef4444',
       fear: '#a855f7',
       sadness: '#3b82f6',
-      surprise: '#f59e0b'
+      surprise: '#f59e0b',
     };
 
     const spacing = width / (emotionHistory.length - 1 || 1);
 
-    emotions.forEach(emotion => {
+    emotions.forEach((emotion) => {
       ctx.strokeStyle = colors[emotion];
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -112,15 +108,17 @@ export function EmotionVisualizer({
       ctx.fillStyle = colors[emotion];
       ctx.fillText(emotion, 5, 12 + index * 15);
     });
-
   }, [emotionHistory, theme]);
 
   if (!currentEmotion) {
     return (
-      <div className="p-4 border-2 rounded-sm" style={{
-        borderColor: theme?.colors.border || '#4b5563',
-        backgroundColor: theme?.colors.background || '#1e3a8a'
-      }}>
+      <div
+        className="p-4 border-2 rounded-sm"
+        style={{
+          borderColor: theme?.colors.border || '#4b5563',
+          backgroundColor: theme?.colors.background || '#1e3a8a',
+        }}
+      >
         <p className="text-sm" style={{ color: theme?.colors.text || '#ffffff' }}>
           Start a conversation to see emotion analysis
         </p>
@@ -129,19 +127,25 @@ export function EmotionVisualizer({
   }
 
   return (
-    <div className="emotion-visualizer p-4 border-2 rounded-sm" style={{
-      borderColor: theme?.colors.border || '#4b5563',
-      backgroundColor: theme?.colors.background || '#1e3a8a'
-    }}>
+    <div
+      className="emotion-visualizer p-4 border-2 rounded-sm"
+      style={{
+        borderColor: theme?.colors.border || '#4b5563',
+        backgroundColor: theme?.colors.background || '#1e3a8a',
+      }}
+    >
       <h3 className="text-lg font-bold mb-3" style={{ color: theme?.colors.text || '#ffffff' }}>
         😊 Emotion Analysis
       </h3>
 
       {/* Current Emotion */}
-      <div className="mb-4 p-3 border rounded-sm" style={{
-        borderColor: getEmotionColor(currentEmotion.dominant),
-        backgroundColor: `${getEmotionColor(currentEmotion.dominant)}22`
-      }}>
+      <div
+        className="mb-4 p-3 border rounded-sm"
+        style={{
+          borderColor: getEmotionColor(currentEmotion.dominant),
+          backgroundColor: `${getEmotionColor(currentEmotion.dominant)}22`,
+        }}
+      >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="text-3xl">{getEmotionEmoji(currentEmotion.dominant)}</span>
@@ -181,7 +185,7 @@ export function EmotionVisualizer({
                 className="h-full rounded-full transition-all duration-300"
                 style={{
                   width: `${Math.min(100, Math.max(0, score))}%`,
-                  backgroundColor: getEmotionColor(emotion)
+                  backgroundColor: getEmotionColor(emotion),
                 }}
               />
             </div>
@@ -226,7 +230,7 @@ export function EmotionVisualizer({
 function getMostCommonEmotion(history: EmotionAnalysis[]): string {
   const counts: Record<string, number> = {};
 
-  history.forEach(analysis => {
+  history.forEach((analysis) => {
     counts[analysis.dominant] = (counts[analysis.dominant] || 0) + 1;
   });
 
@@ -245,7 +249,7 @@ export function EmotionBadge({ text }: { text: string }): React.JSX.Element {
       className="inline-flex items-center gap-1 px-2 py-1 rounded-sm text-xs"
       style={{
         backgroundColor: `${getEmotionColor(analysis.dominant)}33`,
-        color: getEmotionColor(analysis.dominant)
+        color: getEmotionColor(analysis.dominant),
       }}
       title={`${analysis.dominant} (${Math.round(dominantStrength(analysis))}%)`}
     >

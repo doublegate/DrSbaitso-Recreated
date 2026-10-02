@@ -36,7 +36,7 @@ const PERSONALITY_TRAITS = [
   'aggressive',
   'analytical',
   'creative',
-  'logical'
+  'logical',
 ];
 
 export function CharacterCreator({
@@ -45,7 +45,7 @@ export function CharacterCreator({
   onSave,
   onDelete,
   existingCharacters,
-  editCharacter
+  editCharacter,
 }: CharacterCreatorProps) {
   const [activeTab, setActiveTab] = useState<TabType>('create');
   const [characterName, setCharacterName] = useState('');
@@ -112,7 +112,7 @@ export function CharacterCreator({
       newErrors.name = 'Name must be 3-50 characters';
     }
 
-    if (existingCharacters.some(c => c.name === characterName && c.id !== editCharacter?.id)) {
+    if (existingCharacters.some((c) => c.name === characterName && c.id !== editCharacter?.id)) {
       newErrors.name = 'Name already exists';
     }
 
@@ -163,7 +163,7 @@ export function CharacterCreator({
       glitchMessages,
       isCustom: true,
       createdAt: editCharacter?.createdAt || Date.now(),
-      usageCount: editCharacter?.usageCount || 0
+      usageCount: editCharacter?.usageCount || 0,
     };
 
     onSave(character);
@@ -217,11 +217,7 @@ export function CharacterCreator({
   };
 
   const toggleTrait = (trait: string) => {
-    setPersonalityTraits(prev =>
-      prev.includes(trait)
-        ? prev.filter(t => t !== trait)
-        : [...prev, trait]
-    );
+    setPersonalityTraits((prev) => (prev.includes(trait) ? prev.filter((t) => t !== trait) : [...prev, trait]));
   };
 
   const addGlitchMessage = () => {
@@ -287,9 +283,7 @@ export function CharacterCreator({
       >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--color-primary)' }}>
-            🎭 CHARACTER CREATOR
-          </h2>
+          <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--color-primary)' }}>🎭 CHARACTER CREATOR</h2>
           <button
             onClick={onClose}
             style={{
@@ -323,7 +317,9 @@ export function CharacterCreator({
         )}
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '5px', marginBottom: '20px', borderBottom: '2px solid var(--color-border)' }}>
+        <div
+          style={{ display: 'flex', gap: '5px', marginBottom: '20px', borderBottom: '2px solid var(--color-border)' }}
+        >
           {(['create', 'gallery'] as TabType[]).map((tab) => (
             <button
               key={tab}
@@ -357,9 +353,7 @@ export function CharacterCreator({
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>
-                      Character Name * (3-50 chars)
-                    </label>
+                    <label style={{ display: 'block', marginBottom: '5px' }}>Character Name * (3-50 chars)</label>
                     <input
                       type="text"
                       value={characterName}
@@ -375,7 +369,9 @@ export function CharacterCreator({
                       }}
                       placeholder="e.g., CYBER-SAGE"
                     />
-                    {errors.name && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.name}</div>}
+                    {errors.name && (
+                      <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.name}</div>
+                    )}
                   </div>
 
                   <div>
@@ -398,14 +394,14 @@ export function CharacterCreator({
                       }}
                       placeholder="Brief description of the character's personality and purpose..."
                     />
-                    {errors.description && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.description}</div>}
+                    {errors.description && (
+                      <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.description}</div>
+                    )}
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <div>
-                      <label style={{ display: 'block', marginBottom: '5px' }}>
-                        Era * (1960-2025)
-                      </label>
+                      <label style={{ display: 'block', marginBottom: '5px' }}>Era * (1960-2025)</label>
                       <input
                         type="number"
                         value={era}
@@ -421,13 +417,13 @@ export function CharacterCreator({
                           fontFamily: 'monospace',
                         }}
                       />
-                      {errors.era && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.era}</div>}
+                      {errors.era && (
+                        <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.era}</div>
+                      )}
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', marginBottom: '5px' }}>
-                        Knowledge Cutoff * (1960-2025)
-                      </label>
+                      <label style={{ display: 'block', marginBottom: '5px' }}>Knowledge Cutoff * (1960-2025)</label>
                       <input
                         type="number"
                         value={knowledgeCutoff}
@@ -443,7 +439,11 @@ export function CharacterCreator({
                           fontFamily: 'monospace',
                         }}
                       />
-                      {errors.knowledgeCutoff && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.knowledgeCutoff}</div>}
+                      {errors.knowledgeCutoff && (
+                        <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>
+                          {errors.knowledgeCutoff}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -474,7 +474,11 @@ export function CharacterCreator({
                       }}
                       placeholder="Define how the character should behave, respond, and interact..."
                     />
-                    {errors.systemInstruction && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.systemInstruction}</div>}
+                    {errors.systemInstruction && (
+                      <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>
+                        {errors.systemInstruction}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -497,21 +501,28 @@ export function CharacterCreator({
                       }}
                       placeholder="e.g., Speak in a robotic monotone with occasional static"
                     />
-                    {errors.voicePrompt && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.voicePrompt}</div>}
+                    {errors.voicePrompt && (
+                      <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.voicePrompt}</div>
+                    )}
                   </div>
 
                   <div>
                     <label style={{ display: 'block', marginBottom: '5px' }}>Response Style *</label>
                     <div style={{ display: 'flex', gap: '15px' }}>
                       {(['uppercase', 'mixedcase', 'lowercase'] as ResponseStyleType[]).map((style) => (
-                        <label key={style} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                        <label
+                          key={style}
+                          style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}
+                        >
                           <input
                             type="radio"
                             name="responseStyle"
                             checked={responseStyle === style}
                             onChange={() => setResponseStyle(style)}
                           />
-                          <span>{style === 'uppercase' ? 'ALL CAPS' : style === 'mixedcase' ? 'Mixed Case' : 'lowercase'}</span>
+                          <span>
+                            {style === 'uppercase' ? 'ALL CAPS' : style === 'mixedcase' ? 'Mixed Case' : 'lowercase'}
+                          </span>
                         </label>
                       ))}
                     </div>
@@ -545,7 +556,11 @@ export function CharacterCreator({
                         </label>
                       ))}
                     </div>
-                    {errors.personalityTraits && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>{errors.personalityTraits}</div>}
+                    {errors.personalityTraits && (
+                      <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '2px' }}>
+                        {errors.personalityTraits}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -585,14 +600,29 @@ export function CharacterCreator({
                   </button>
                 </div>
 
-                <div style={{ maxHeight: '100px', overflow: 'auto', border: '1px solid var(--color-border)', padding: '10px' }}>
+                <div
+                  style={{
+                    maxHeight: '100px',
+                    overflow: 'auto',
+                    border: '1px solid var(--color-border)',
+                    padding: '10px',
+                  }}
+                >
                   {glitchMessages.length === 0 ? (
                     <p style={{ textAlign: 'center', color: 'var(--color-text)', opacity: 0.6 }}>
                       No glitch messages added
                     </p>
                   ) : (
                     glitchMessages.map((msg, index) => (
-                      <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0' }}>
+                      <div
+                        key={index}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '5px 0',
+                        }}
+                      >
                         <span>{msg}</span>
                         <button
                           onClick={() => removeGlitchMessage(index)}
@@ -732,7 +762,9 @@ export function CharacterCreator({
                   </button>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
+                <div
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}
+                >
                   {existingCharacters.map((character) => (
                     <div
                       key={character.id}
@@ -742,12 +774,8 @@ export function CharacterCreator({
                         backgroundColor: 'var(--color-background)',
                       }}
                     >
-                      <h4 style={{ margin: '0 0 10px 0', color: 'var(--color-primary)' }}>
-                        {character.name}
-                      </h4>
-                      <p style={{ fontSize: '12px', marginBottom: '10px', opacity: 0.8 }}>
-                        {character.description}
-                      </p>
+                      <h4 style={{ margin: '0 0 10px 0', color: 'var(--color-primary)' }}>{character.name}</h4>
+                      <p style={{ fontSize: '12px', marginBottom: '10px', opacity: 0.8 }}>{character.description}</p>
                       <div style={{ fontSize: '11px', marginBottom: '10px', opacity: 0.6 }}>
                         <div>Era: {character.era}</div>
                         <div>Style: {character.responseStyle}</div>

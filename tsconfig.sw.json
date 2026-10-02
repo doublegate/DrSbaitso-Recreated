@@ -8,15 +8,8 @@
     "skipLibCheck": true,
     "noEmit": true,
     "strict": true,
-    "lib": [
-      "ES2022",
-      "WebWorker"
-    ],
-    "types": [
-      "vite-plugin-pwa/client"
-    ]
+    "lib": ["ES2022", "WebWorker"],
+    "types": ["vite-plugin-pwa/client"]
   },
-  "include": [
-    "src/sw.ts"
-  ]
+  "include": ["src/sw.ts"]
 }

@@ -301,7 +301,11 @@ describe('dot commands', () => {
   });
 
   it('rejects unknown dot commands', () => {
-    expect(run(['.FOO']).last).toEqual({ kind: 'setting', lines: ['Invalid Dot Command, type HELP for the list.'], settings: {} });
+    expect(run(['.FOO']).last).toEqual({
+      kind: 'setting',
+      lines: ['Invalid Dot Command, type HELP for the list.'],
+      settings: {},
+    });
   });
 
   it('requires the dot in the first column', () => {
@@ -369,8 +373,16 @@ describe('short and garbage input', () => {
 
   it('switches to 40 columns or changes colour on the coded lines', () => {
     const { results, state } = run(['ok', 'hmm', 'fine', 'lol', 'meh', 'pfft']);
-    expect(results[4]).toMatchObject({ kind: 'reply', lines: ['TOO LITTLE DATA, SO I MAKE BIG'], settings: { width: 40 } });
-    expect(results[5]).toMatchObject({ kind: 'reply', lines: ["I AM CONFUSED, LET'S CHANGE COLOR"], settings: { background: 2 } });
+    expect(results[4]).toMatchObject({
+      kind: 'reply',
+      lines: ['TOO LITTLE DATA, SO I MAKE BIG'],
+      settings: { width: 40 },
+    });
+    expect(results[5]).toMatchObject({
+      kind: 'reply',
+      lines: ["I AM CONFUSED, LET'S CHANGE COLOR"],
+      settings: { background: 2 },
+    });
     expect(state.settings).toMatchObject({ width: 40, background: 2 });
   });
 

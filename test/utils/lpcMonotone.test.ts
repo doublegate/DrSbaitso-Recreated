@@ -22,15 +22,15 @@ function noise(length: number, seed = 1): Float32Array {
     let t = s;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    out[i] = ((t ^ (t >>> 14)) >>> 0) / 4294967296 * 2 - 1;
+    out[i] = (((t ^ (t >>> 14)) >>> 0) / 4294967296) * 2 - 1;
   }
   return out;
 }
 
 /** Two-pole resonator, applied in place. */
 function resonate(x: Float32Array, freq: number, bandwidth: number, fs: number): Float32Array {
-  const r = Math.exp(-Math.PI * bandwidth / fs);
-  const a1 = 2 * r * Math.cos(2 * Math.PI * freq / fs);
+  const r = Math.exp((-Math.PI * bandwidth) / fs);
+  const a1 = 2 * r * Math.cos((2 * Math.PI * freq) / fs);
   const a2 = -r * r;
   const y = new Float32Array(x.length);
   for (let i = 0; i < x.length; i++) {

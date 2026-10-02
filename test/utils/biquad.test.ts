@@ -10,7 +10,8 @@ function sine(freq: number, seconds: number, fs = FS): Float32Array {
 }
 
 /** RMS of the second half (past the filter's start-up transient). */
-const tailRms = (a: Float32Array) => Math.sqrt(a.subarray(a.length >> 1).reduce((s, v) => s + v * v, 0) / (a.length >> 1));
+const tailRms = (a: Float32Array) =>
+  Math.sqrt(a.subarray(a.length >> 1).reduce((s, v) => s + v * v, 0) / (a.length >> 1));
 
 /** Gain in dB of a filter for one steady tone. */
 function gainDb(filter: (x: Float32Array) => Float32Array, freq: number): number {
@@ -40,7 +41,10 @@ describe('designBiquad', () => {
   });
 
   it('keeps the existing high shelf and low-pass designs', () => {
-    expect(gainDb((x) => applyBiquad(x, designBiquad('highshelf', 1200, FS, Math.SQRT1_2, -8)), 8000)).toBeCloseTo(-8, 0);
+    expect(gainDb((x) => applyBiquad(x, designBiquad('highshelf', 1200, FS, Math.SQRT1_2, -8)), 8000)).toBeCloseTo(
+      -8,
+      0,
+    );
     expect(gainDb((x) => applyBiquad(x, designBiquad('lowpass', 3800, FS)), 3800)).toBeCloseTo(-3, 0);
   });
 });

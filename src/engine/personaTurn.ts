@@ -102,7 +102,13 @@ export function personaTurn(
           return {
             engines: next,
             plan: local(
-              [...result.lead, ...result.flood.slice(0, PARITY_LOG_LINES), '...', ...result.flood.slice(-1), ...result.lines],
+              [
+                ...result.lead,
+                ...result.flood.slice(0, PARITY_LOG_LINES),
+                '...',
+                ...result.flood.slice(-1),
+                ...result.lines,
+              ],
               [...result.leadSpeak, ...result.speak],
             ),
           };

@@ -22,7 +22,7 @@ import {
   generateShareCode,
   parseShareCode,
   lightenColor,
-  darkenColor
+  darkenColor,
 } from '../utils/themeValidator';
 
 interface ThemeCustomizerProps {
@@ -56,7 +56,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
       background: backgroundColor,
       text: textColor,
       border: borderColor,
-      accent: accentColor
+      accent: accentColor,
     };
     const result = validateThemeColors(colors);
     setValidationResult(result);
@@ -74,11 +74,11 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
         background: normalizeHexColor(backgroundColor),
         text: normalizeHexColor(textColor),
         border: normalizeHexColor(borderColor),
-        accent: normalizeHexColor(accentColor)
+        accent: normalizeHexColor(accentColor),
       },
       isCustom: true,
       createdAt: currentTheme?.createdAt || Date.now(),
-      author: themeAuthor.trim() || undefined
+      author: themeAuthor.trim() || undefined,
     };
 
     if (isValidCustomTheme(theme)) {
@@ -97,11 +97,11 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
         background: normalizeHexColor(backgroundColor),
         text: normalizeHexColor(textColor),
         border: normalizeHexColor(borderColor),
-        accent: normalizeHexColor(accentColor)
+        accent: normalizeHexColor(accentColor),
       },
       isCustom: true,
       createdAt: Date.now(),
-      author: themeAuthor || undefined
+      author: themeAuthor || undefined,
     };
 
     setExportedJSON(exportThemeJSON(theme));
@@ -134,11 +134,11 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
         background: normalizeHexColor(backgroundColor),
         text: normalizeHexColor(textColor),
         border: normalizeHexColor(borderColor),
-        accent: normalizeHexColor(accentColor)
+        accent: normalizeHexColor(accentColor),
       },
       isCustom: true,
       createdAt: Date.now(),
-      author: themeAuthor || undefined
+      author: themeAuthor || undefined,
     };
 
     setShareCode(generateShareCode(theme));
@@ -354,29 +354,40 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
               <div className="bg-gray-800 p-4 rounded-sm border border-gray-700">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-lg font-semibold">Score:</span>
-                  <span className={`text-2xl font-bold ${
-                    validationResult.overall.score >= 80 ? 'text-green-400' :
-                    validationResult.overall.score >= 60 ? 'text-yellow-400' :
-                    'text-red-400'
-                  }`}>
+                  <span
+                    className={`text-2xl font-bold ${
+                      validationResult.overall.score >= 80
+                        ? 'text-green-400'
+                        : validationResult.overall.score >= 60
+                          ? 'text-yellow-400'
+                          : 'text-red-400'
+                    }`}
+                  >
                     {validationResult.overall.score}/100
                   </span>
                 </div>
 
                 <div className="space-y-2 text-sm">
                   <p>
-                    <span className="font-medium">Text Contrast:</span> {validationResult.textContrast.ratio.toFixed(2)}:1
+                    <span className="font-medium">Text Contrast:</span> {validationResult.textContrast.ratio.toFixed(2)}
+                    :1
                     {validationResult.textContrast.wcagAAA && <span className="ml-2 text-green-400">✓ WCAG AAA</span>}
-                    {!validationResult.textContrast.wcagAAA && validationResult.textContrast.wcagAA && <span className="ml-2 text-yellow-400">✓ WCAG AA</span>}
+                    {!validationResult.textContrast.wcagAAA && validationResult.textContrast.wcagAA && (
+                      <span className="ml-2 text-yellow-400">✓ WCAG AA</span>
+                    )}
                     {!validationResult.textContrast.wcagAA && <span className="ml-2 text-red-400">✗ Fails WCAG</span>}
                   </p>
                   <p>
-                    <span className="font-medium">Accent Contrast:</span> {validationResult.accentContrast.ratio.toFixed(2)}:1
+                    <span className="font-medium">Accent Contrast:</span>{' '}
+                    {validationResult.accentContrast.ratio.toFixed(2)}:1
                     {validationResult.accentContrast.wcagAALarge && <span className="ml-2 text-green-400">✓ OK</span>}
-                    {!validationResult.accentContrast.wcagAALarge && <span className="ml-2 text-yellow-400">⚠ Low</span>}
+                    {!validationResult.accentContrast.wcagAALarge && (
+                      <span className="ml-2 text-yellow-400">⚠ Low</span>
+                    )}
                   </p>
                   <p>
-                    <span className="font-medium">Border Contrast:</span> {validationResult.borderContrast.ratio.toFixed(2)}:1
+                    <span className="font-medium">Border Contrast:</span>{' '}
+                    {validationResult.borderContrast.ratio.toFixed(2)}:1
                   </p>
                 </div>
 
@@ -384,7 +395,9 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                   <div className="mt-4 space-y-1">
                     <p className="font-medium">Suggestions:</p>
                     {validationResult.suggestions.map((suggestion, i) => (
-                      <p key={i} className="text-sm text-gray-300">• {suggestion}</p>
+                      <p key={i} className="text-sm text-gray-300">
+                        • {suggestion}
+                      </p>
                     ))}
                   </div>
                 )}
@@ -410,7 +423,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                 style={{
                   backgroundColor: backgroundColor,
                   borderColor: borderColor,
-                  color: textColor
+                  color: textColor,
                 }}
               >
                 <div className="space-y-4">
@@ -418,7 +431,8 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                     Dr. Sbaitso Preview
                   </h4>
                   <p style={{ color: textColor }}>
-                    This is how your custom theme will look in the application. Text appears in the selected text color against the background.
+                    This is how your custom theme will look in the application. Text appears in the selected text color
+                    against the background.
                   </p>
                   <p style={{ color: accentColor }}>
                     This text uses the accent color for highlights and important information.
@@ -428,7 +442,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                       className="px-4 py-2 rounded-sm font-medium"
                       style={{
                         backgroundColor: primaryColor,
-                        color: backgroundColor
+                        color: backgroundColor,
                       }}
                     >
                       Primary Button
@@ -438,7 +452,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                       style={{
                         borderColor: accentColor,
                         color: accentColor,
-                        backgroundColor: 'transparent'
+                        backgroundColor: 'transparent',
                       }}
                     >
                       Secondary Button
@@ -456,10 +470,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
             {/* Export JSON */}
             <div>
               <div className="flex gap-2 mb-2">
-                <button
-                  onClick={handleExport}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-sm"
-                >
+                <button onClick={handleExport} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-sm">
                   Export JSON
                 </button>
                 {exportedJSON && (
@@ -492,10 +503,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm font-mono text-xs h-32 mb-2"
                 placeholder="Paste theme JSON here..."
               />
-              <button
-                onClick={handleImport}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-sm"
-              >
+              <button onClick={handleImport} className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-sm">
                 Import JSON
               </button>
             </div>
@@ -554,16 +562,10 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-gray-800 px-6 py-4 border-t border-gray-700 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-sm"
-          >
+          <button onClick={onClose} className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-sm">
             Cancel
           </button>
-          <button
-            onClick={handleSave}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-sm font-semibold"
-          >
+          <button onClick={handleSave} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-sm font-semibold">
             Save Theme
           </button>
         </div>

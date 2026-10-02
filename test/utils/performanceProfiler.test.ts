@@ -119,7 +119,11 @@ describe('Core Web Vitals', () => {
       { value: 0.5, hadRecentInput: true },
       { value: 0.02, hadRecentInput: false },
     ]);
-    emit('event', [{ duration: 40, interactionId: 1 }, { duration: 180, interactionId: 2 }, { duration: 999, interactionId: 0 }]);
+    emit('event', [
+      { duration: 40, interactionId: 1 },
+      { duration: 180, interactionId: 2 },
+      { duration: 999, interactionId: 0 },
+    ]);
     const vitals = getCoreWebVitals();
     expect(vitals.lcp).toBe(1200);
     expect(vitals.cls).toBeCloseTo(0.07);

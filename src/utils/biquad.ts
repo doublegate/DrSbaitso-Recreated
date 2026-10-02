@@ -26,7 +26,13 @@ export const BUTTERWORTH_8_Q = [0.5098, 0.6013, 0.9, 2.5629] as const;
  * Designs one biquad. `q` is the resonance for pass/peaking filters; the
  * shelves use slope S = 1. `gainDb` applies to shelves and peaking only.
  */
-export function designBiquad(type: BiquadType, frequency: number, sampleRate: number, q = Math.SQRT1_2, gainDb = 0): Biquad {
+export function designBiquad(
+  type: BiquadType,
+  frequency: number,
+  sampleRate: number,
+  q = Math.SQRT1_2,
+  gainDb = 0,
+): Biquad {
   const w0 = (2 * Math.PI * frequency) / sampleRate;
   const cos = Math.cos(w0);
   const sin = Math.sin(w0);

@@ -16,7 +16,7 @@ import { ChartOptions } from '@/types';
 export function drawLineChart(
   canvas: HTMLCanvasElement,
   data: Array<{ label: string; value: number; series?: string }>,
-  options: ChartOptions
+  options: ChartOptions,
 ): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -50,7 +50,7 @@ export function drawLineChart(
 
   // Group data by series
   const seriesMap = new Map<string, Array<{ label: string; value: number }>>();
-  data.forEach(point => {
+  data.forEach((point) => {
     const seriesName = point.series || 'default';
     if (!seriesMap.has(seriesName)) {
       seriesMap.set(seriesName, []);
@@ -59,7 +59,7 @@ export function drawLineChart(
   });
 
   // Find min/max values
-  const allValues = data.map(d => d.value);
+  const allValues = data.map((d) => d.value);
   const maxValue = Math.max(...allValues);
   const minValue = Math.min(0, Math.min(...allValues));
 
@@ -92,7 +92,7 @@ export function drawLineChart(
   // Draw X-axis labels (show every nth label to avoid crowding)
   ctx.textAlign = 'center';
   const labelStep = Math.ceil(data.length / 10);
-  const uniqueLabels = [...new Set(data.map(d => d.label))];
+  const uniqueLabels = [...new Set(data.map((d) => d.label))];
   uniqueLabels.forEach((label, i) => {
     if (i % labelStep === 0) {
       const x = chartLeft + (i / (uniqueLabels.length - 1)) * chartWidth;
@@ -169,7 +169,7 @@ export function drawLineChart(
 export function drawPieChart(
   canvas: HTMLCanvasElement,
   data: Array<{ label: string; value: number }>,
-  options: ChartOptions
+  options: ChartOptions,
 ): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -233,7 +233,8 @@ export function drawPieChart(
     const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
     const percentage = Math.round((item.value / total) * 100);
 
-    if (percentage >= 5) { // Only show label if slice is large enough
+    if (percentage >= 5) {
+      // Only show label if slice is large enough
       ctx.fillStyle = bgColor;
       ctx.font = `bold ${fontSize}px monospace`;
       ctx.textAlign = 'center';
@@ -273,7 +274,7 @@ export function drawPieChart(
 export function drawWordCloud(
   canvas: HTMLCanvasElement,
   words: Array<{ word: string; count: number; sentiment?: number }>,
-  options: ChartOptions
+  options: ChartOptions,
 ): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -304,8 +305,8 @@ export function drawWordCloud(
   }
 
   // Find max count for scaling
-  const maxCount = Math.max(...words.map(w => w.count));
-  const minCount = Math.min(...words.map(w => w.count));
+  const maxCount = Math.max(...words.map((w) => w.count));
+  const minCount = Math.min(...words.map((w) => w.count));
 
   // Simple grid-based layout
   const gridCols = 5;
@@ -352,7 +353,7 @@ export function drawGauge(
   canvas: HTMLCanvasElement,
   value: number,
   trend: 'up' | 'down' | 'stable' = 'stable',
-  options: ChartOptions
+  options: ChartOptions,
 ): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;

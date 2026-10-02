@@ -18,7 +18,7 @@ const font = readFileSync(path.join(root, 'public/fonts/Web437_IBM_VGA_9x16.woff
 const BLUE = '#0000AA';
 const WHITE = '#FFFFFF';
 const YELLOW = '#FFFF55';
-const FONT = "font-family=\"'IBM VGA 9x16'\"";
+const FONT = 'font-family="\'IBM VGA 9x16\'"';
 
 /** The title block: SOUND BLASTER / DR / SBAITSO, then a prompt with a cursor. */
 const content = `

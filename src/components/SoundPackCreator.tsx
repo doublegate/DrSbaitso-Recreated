@@ -14,7 +14,7 @@ import {
   importSoundPack,
   getSoundPackSize,
   decodeAudioFileForPack,
-  MAX_IMPORT_BYTES
+  MAX_IMPORT_BYTES,
 } from '@/utils/soundPackFormat';
 import { getSharedAudioContext } from '@/utils/sharedAudio';
 
@@ -29,15 +29,8 @@ interface SoundPackCreatorProps {
   initialPack?: SoundPack;
 }
 
-export default function SoundPackCreator({
-  theme,
-  onClose,
-  onSave,
-  initialPack
-}: SoundPackCreatorProps) {
-  const [pack, setPack] = useState<SoundPack>(
-    initialPack || createEmptySoundPack('Anonymous')
-  );
+export default function SoundPackCreator({ theme, onClose, onSave, initialPack }: SoundPackCreatorProps) {
+  const [pack, setPack] = useState<SoundPack>(initialPack || createEmptySoundPack('Anonymous'));
   const [selectedSoundIndex, setSelectedSoundIndex] = useState<number | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -45,13 +38,13 @@ export default function SoundPackCreator({
 
   // Update metadata
   const updateMetadata = useCallback((field: string, value: string | string[]) => {
-    setPack(prev => ({
+    setPack((prev) => ({
       ...prev,
       metadata: {
         ...prev.metadata,
         [field]: value,
-        updated: Date.now()
-      }
+        updated: Date.now(),
+      },
     }));
   }, []);
 
@@ -63,12 +56,12 @@ export default function SoundPackCreator({
       description: '',
       audioData: '',
       duration: 0,
-      volume: 100
+      volume: 100,
     };
 
-    setPack(prev => ({
+    setPack((prev) => ({
       ...prev,
-      sounds: [...prev.sounds, newSound]
+      sounds: [...prev.sounds, newSound],
     }));
 
     setSelectedSoundIndex(pack.sounds.length);
@@ -76,58 +69,57 @@ export default function SoundPackCreator({
 
   // Update sound
   const updateSound = useCallback((index: number, field: string, value: any) => {
-    setPack(prev => ({
+    setPack((prev) => ({
       ...prev,
-      sounds: prev.sounds.map((sound, i) =>
-        i === index ? { ...sound, [field]: value } : sound
-      )
+      sounds: prev.sounds.map((sound, i) => (i === index ? { ...sound, [field]: value } : sound)),
     }));
   }, []);
 
   // Delete sound
-  const deleteSound = useCallback((index: number) => {
-    const soundId = pack.sounds[index].id;
+  const deleteSound = useCallback(
+    (index: number) => {
+      const soundId = pack.sounds[index].id;
 
-    setPack(prev => ({
-      ...prev,
-      sounds: prev.sounds.filter((_, i) => i !== index),
-      triggers: prev.triggers.filter(t => t.soundId !== soundId)
-    }));
+      setPack((prev) => ({
+        ...prev,
+        sounds: prev.sounds.filter((_, i) => i !== index),
+        triggers: prev.triggers.filter((t) => t.soundId !== soundId),
+      }));
 
-    if (selectedSoundIndex === index) {
-      setSelectedSoundIndex(null);
-    }
-  }, [pack.sounds, selectedSoundIndex]);
+      if (selectedSoundIndex === index) {
+        setSelectedSoundIndex(null);
+      }
+    },
+    [pack.sounds, selectedSoundIndex],
+  );
 
   // Add trigger
   const addTrigger = useCallback(() => {
     const newTrigger: SoundTrigger = {
       event: 'message_sent',
       soundId: pack.sounds[0]?.id || '',
-      probability: 100
+      probability: 100,
     };
 
-    setPack(prev => ({
+    setPack((prev) => ({
       ...prev,
-      triggers: [...prev.triggers, newTrigger]
+      triggers: [...prev.triggers, newTrigger],
     }));
   }, [pack.sounds]);
 
   // Update trigger
   const updateTrigger = useCallback((index: number, field: string, value: any) => {
-    setPack(prev => ({
+    setPack((prev) => ({
       ...prev,
-      triggers: prev.triggers.map((trigger, i) =>
-        i === index ? { ...trigger, [field]: value } : trigger
-      )
+      triggers: prev.triggers.map((trigger, i) => (i === index ? { ...trigger, [field]: value } : trigger)),
     }));
   }, []);
 
   // Delete trigger
   const deleteTrigger = useCallback((index: number) => {
-    setPack(prev => ({
+    setPack((prev) => ({
       ...prev,
-      triggers: prev.triggers.filter((_, i) => i !== index)
+      triggers: prev.triggers.filter((_, i) => i !== index),
     }));
   }, []);
 
@@ -151,13 +143,13 @@ export default function SoundPackCreator({
         if (!ctx) throw new Error('Audio is not available in this browser.');
         // Decode the real file (WAV/MP3/OGG...) and store portable PCM16.
         const decoded = await decodeAudioFileForPack(await file.arrayBuffer(), ctx);
-        setPack(prev => ({
+        setPack((prev) => ({
           ...prev,
           sounds: prev.sounds.map((sound, i) =>
             i === index
               ? { ...sound, audioData: decoded.audioData, duration: decoded.duration, sampleRate: decoded.sampleRate }
-              : sound
-          )
+              : sound,
+          ),
         }));
         setErrors([]);
       } catch (error) {
@@ -247,7 +239,7 @@ export default function SoundPackCreator({
         style={{
           backgroundColor: theme.colors.background,
           color: theme.colors.text,
-          borderColor: theme.colors.primary
+          borderColor: theme.colors.primary,
         }}
       >
         <div className="flex justify-between items-center mb-6">
@@ -257,7 +249,7 @@ export default function SoundPackCreator({
             className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.background
+              backgroundColor: theme.colors.background,
             }}
           >
             ✕ Close
@@ -279,7 +271,7 @@ export default function SoundPackCreator({
                 style={{
                   backgroundColor: theme.colors.background,
                   color: theme.colors.text,
-                  borderColor: theme.colors.primary
+                  borderColor: theme.colors.primary,
                 }}
                 maxLength={100}
               />
@@ -295,7 +287,7 @@ export default function SoundPackCreator({
                 style={{
                   backgroundColor: theme.colors.background,
                   color: theme.colors.text,
-                  borderColor: theme.colors.primary
+                  borderColor: theme.colors.primary,
                 }}
                 maxLength={100}
               />
@@ -311,7 +303,7 @@ export default function SoundPackCreator({
                 style={{
                   backgroundColor: theme.colors.background,
                   color: theme.colors.text,
-                  borderColor: theme.colors.primary
+                  borderColor: theme.colors.primary,
                 }}
                 placeholder="1.0.0"
               />
@@ -326,16 +318,14 @@ export default function SoundPackCreator({
                 style={{
                   backgroundColor: theme.colors.background,
                   color: theme.colors.text,
-                  borderColor: theme.colors.primary
+                  borderColor: theme.colors.primary,
                 }}
                 rows={3}
                 maxLength={500}
               />
             </div>
 
-            <div className="text-sm opacity-70">
-              Pack Size: {packSize.toFixed(2)} KB
-            </div>
+            <div className="text-sm opacity-70">Pack Size: {packSize.toFixed(2)} KB</div>
           </div>
         </div>
 
@@ -348,7 +338,7 @@ export default function SoundPackCreator({
               className="px-3 py-1 border-2 rounded-sm hover:opacity-80"
               style={{
                 borderColor: theme.colors.primary,
-                backgroundColor: theme.colors.background
+                backgroundColor: theme.colors.background,
               }}
             >
               + Add Sound
@@ -362,7 +352,7 @@ export default function SoundPackCreator({
                 className="p-3 border rounded-sm cursor-pointer hover:opacity-80"
                 style={{
                   borderColor: selectedSoundIndex === index ? theme.colors.primary : theme.colors.border,
-                  backgroundColor: selectedSoundIndex === index ? theme.colors.border : 'transparent'
+                  backgroundColor: selectedSoundIndex === index ? theme.colors.border : 'transparent',
                 }}
                 onClick={() => setSelectedSoundIndex(index)}
               >
@@ -404,7 +394,7 @@ export default function SoundPackCreator({
                     style={{
                       backgroundColor: theme.colors.background,
                       color: theme.colors.text,
-                      borderColor: theme.colors.border
+                      borderColor: theme.colors.border,
                     }}
                   />
                 </div>
@@ -427,7 +417,7 @@ export default function SoundPackCreator({
                   className="w-full px-3 py-2 border-2 rounded-sm hover:opacity-80"
                   style={{
                     borderColor: theme.colors.primary,
-                    backgroundColor: theme.colors.background
+                    backgroundColor: theme.colors.background,
                   }}
                 >
                   📁 Import Audio File
@@ -446,7 +436,7 @@ export default function SoundPackCreator({
               className="px-3 py-1 border-2 rounded-sm hover:opacity-80"
               style={{
                 borderColor: theme.colors.primary,
-                backgroundColor: theme.colors.background
+                backgroundColor: theme.colors.background,
               }}
               disabled={pack.sounds.length === 0}
             >
@@ -468,7 +458,7 @@ export default function SoundPackCreator({
                   style={{
                     backgroundColor: theme.colors.background,
                     color: theme.colors.text,
-                    borderColor: theme.colors.border
+                    borderColor: theme.colors.border,
                   }}
                 >
                   <option value="message_sent">Message Sent</option>
@@ -487,11 +477,13 @@ export default function SoundPackCreator({
                   style={{
                     backgroundColor: theme.colors.background,
                     color: theme.colors.text,
-                    borderColor: theme.colors.border
+                    borderColor: theme.colors.border,
                   }}
                 >
-                  {pack.sounds.map(sound => (
-                    <option key={sound.id} value={sound.id}>{sound.name}</option>
+                  {pack.sounds.map((sound) => (
+                    <option key={sound.id} value={sound.id}>
+                      {sound.name}
+                    </option>
                   ))}
                 </select>
 
@@ -505,7 +497,7 @@ export default function SoundPackCreator({
                   style={{
                     backgroundColor: theme.colors.background,
                     color: theme.colors.text,
-                    borderColor: theme.colors.border
+                    borderColor: theme.colors.border,
                   }}
                 />
                 <span className="text-xs">%</span>
@@ -556,7 +548,7 @@ export default function SoundPackCreator({
             className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.background
+              backgroundColor: theme.colors.background,
             }}
           >
             🔍 Validate
@@ -567,7 +559,7 @@ export default function SoundPackCreator({
             className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.background
+              backgroundColor: theme.colors.background,
             }}
           >
             💾 Export
@@ -578,7 +570,7 @@ export default function SoundPackCreator({
             className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.background
+              backgroundColor: theme.colors.background,
             }}
           >
             📁 Import
@@ -592,7 +584,7 @@ export default function SoundPackCreator({
             style={{
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.primary,
-              color: theme.colors.background
+              color: theme.colors.background,
             }}
           >
             ✓ Save Pack

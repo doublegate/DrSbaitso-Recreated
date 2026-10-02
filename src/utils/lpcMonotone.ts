@@ -250,11 +250,7 @@ export function buildPitchContour(
 
   const minGlide = Math.max(1, Math.round(MIN_GLIDE_SECONDS * frameRate));
   const maxGlide = Math.max(minGlide, Math.round(MAX_GLIDE_SECONDS * frameRate));
-  const glideStart = Math.max(
-    firstVoiced,
-    Math.min(syllableStart[last], last - minGlide + 1),
-    last - maxGlide + 1,
-  );
+  const glideStart = Math.max(firstVoiced, Math.min(syllableStart[last], last - minGlide + 1), last - maxGlide + 1);
   const from = contour[glideStart];
   const to = endTarget(endPunctuation);
   const span = last - glideStart;
@@ -317,7 +313,14 @@ export interface LpcResynthesisOptions {
  * zero. Deterministic for a given input, contour and seed.
  */
 export function lpcResynthesize(input: Float32Array, options: LpcResynthesisOptions): Float32Array {
-  const { sampleRate, contour: buildContour, order = 12, seed = 0x5ba1750, unvoiced = 'noise', residualMix = 0 } = options;
+  const {
+    sampleRate,
+    contour: buildContour,
+    order = 12,
+    seed = 0x5ba1750,
+    unvoiced = 'noise',
+    residualMix = 0,
+  } = options;
   const length = input.length;
   const output = new Float32Array(length);
   if (length === 0) return output;
@@ -376,7 +379,7 @@ export function lpcResynthesize(input: Float32Array, options: LpcResynthesisOpti
       const from = Math.max(0, Math.min(padded.length - voicingLength, centre - (voicingLength >> 1)));
       const segment = padded.subarray(from, from + voicingLength);
       let crossings = 0;
-      for (let k = 1; k < segment.length; k++) if ((segment[k] >= 0) !== (segment[k - 1] >= 0)) crossings++;
+      for (let k = 1; k < segment.length; k++) if (segment[k] >= 0 !== segment[k - 1] >= 0) crossings++;
       const zeroCrossingRate = crossings / segment.length;
       voiced = zeroCrossingRate < 0.35 && estimatePitch(segment, sampleRate).strength >= 0.4;
     }

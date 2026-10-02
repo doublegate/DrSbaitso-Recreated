@@ -36,5 +36,7 @@ export function processPersonaSamples(
   sampleRate: number,
   text?: string,
 ): Float32Array {
-  return route === 'hal' ? processHalVoice(samples, sampleRate, { text }) : processWoprVoice(samples, sampleRate, { text });
+  return route === 'hal'
+    ? processHalVoice(samples, sampleRate, { text })
+    : processWoprVoice(samples, sampleRate, { text });
 }

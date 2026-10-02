@@ -51,15 +51,23 @@ export default function EnhancedHeader({
           title={persona.description}
         >
           <optgroup label="Classic programs">
-            {personas.filter((p) => !p.isCustom).map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
+            {personas
+              .filter((p) => !p.isCustom)
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
           </optgroup>
           {hasCustomCharacters && (
             <optgroup label="Your characters">
-              {personas.filter((p) => p.isCustom).map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
+              {personas
+                .filter((p) => p.isCustom)
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
             </optgroup>
           )}
         </select>
@@ -73,10 +81,27 @@ export default function EnhancedHeader({
           <MenuGroup
             label="CONVERSATION"
             items={[
-              { id: 'search', icon: '🔍', label: 'Search and replay', onSelect: () => setPanel('conversationSearch', true) },
+              {
+                id: 'search',
+                icon: '🔍',
+                label: 'Search and replay',
+                onSelect: () => setPanel('conversationSearch', true),
+              },
               { id: 'export', icon: '📦', label: 'Export', onSelect: () => setPanel('advancedExport', true) },
-              { id: 'templates', icon: '📝', label: 'Templates', shortcut: shortcutLabel('templates'), onSelect: () => setPanel('templates', true) },
-              { id: 'insights', icon: '📈', label: 'Insights', shortcut: shortcutLabel('insights'), onSelect: () => setPanel('insights', true) },
+              {
+                id: 'templates',
+                icon: '📝',
+                label: 'Templates',
+                shortcut: shortcutLabel('templates'),
+                onSelect: () => setPanel('templates', true),
+              },
+              {
+                id: 'insights',
+                icon: '📈',
+                label: 'Insights',
+                shortcut: shortcutLabel('insights'),
+                onSelect: () => setPanel('insights', true),
+              },
               { id: 'clear', icon: '🧹', label: 'Clear conversation', onSelect: onClearConversation },
             ]}
           />
@@ -84,20 +109,79 @@ export default function EnhancedHeader({
         <MenuGroup
           label="VISUALS"
           items={[
-            { id: 'emotions', icon: '😊', label: 'Emotion visualizer', shortcut: shortcutLabel('emotionViz'), active: panelOpen.emotionViz, onSelect: () => setPanel('emotionViz', v => !v) },
-            { id: 'topics', icon: '🔀', label: 'Topic diagram', shortcut: shortcutLabel('topicDiagram'), active: panelOpen.topicDiagram, onSelect: () => setPanel('topicDiagram', v => !v) },
-            { id: 'audioviz', icon: '📊', label: 'Audio visualizer', active: panelOpen.audioVisualizer, onSelect: () => setPanel('audioVisualizer', v => !v) },
+            {
+              id: 'emotions',
+              icon: '😊',
+              label: 'Emotion visualizer',
+              shortcut: shortcutLabel('emotionViz'),
+              active: panelOpen.emotionViz,
+              onSelect: () => setPanel('emotionViz', (v) => !v),
+            },
+            {
+              id: 'topics',
+              icon: '🔀',
+              label: 'Topic diagram',
+              shortcut: shortcutLabel('topicDiagram'),
+              active: panelOpen.topicDiagram,
+              onSelect: () => setPanel('topicDiagram', (v) => !v),
+            },
+            {
+              id: 'audioviz',
+              icon: '📊',
+              label: 'Audio visualizer',
+              active: panelOpen.audioVisualizer,
+              onSelect: () => setPanel('audioVisualizer', (v) => !v),
+            },
           ]}
         />
         <MenuGroup
           label="SOUND"
           items={[
-            { id: 'voice-input', icon: '🗣️', label: 'Voice input', shortcut: shortcutLabel('voiceInput'), active: panelOpen.voiceInput, onSelect: () => setPanel('voiceInput', v => !v) },
-            { id: 'hands-free', icon: '🎤', label: 'Hands-free voice control', active: handsFree.active, disabled: !handsFree.supported, onSelect: () => handsFree.toggle() },
-            { id: 'mute', icon: muted ? '🔇' : '🔈', label: muted ? 'Unmute speech' : 'Mute speech', active: muted, onSelect: onToggleMute },
-            { id: 'music', icon: '🎵', label: 'Music player', shortcut: shortcutLabel('musicPlayer'), active: panelOpen.musicPlayer, onSelect: () => setPanel('musicPlayer', v => !v) },
-            { id: 'packs', icon: '🎼', label: 'Sound packs', shortcut: shortcutLabel('soundPacks'), onSelect: () => setPanel('soundPackManager', true) },
-            { id: 'sound-settings', icon: '🔊', label: 'Sound settings', shortcut: shortcutLabel('soundSettings'), onSelect: () => setPanel('soundSettings', true) },
+            {
+              id: 'voice-input',
+              icon: '🗣️',
+              label: 'Voice input',
+              shortcut: shortcutLabel('voiceInput'),
+              active: panelOpen.voiceInput,
+              onSelect: () => setPanel('voiceInput', (v) => !v),
+            },
+            {
+              id: 'hands-free',
+              icon: '🎤',
+              label: 'Hands-free voice control',
+              active: handsFree.active,
+              disabled: !handsFree.supported,
+              onSelect: () => handsFree.toggle(),
+            },
+            {
+              id: 'mute',
+              icon: muted ? '🔇' : '🔈',
+              label: muted ? 'Unmute speech' : 'Mute speech',
+              active: muted,
+              onSelect: onToggleMute,
+            },
+            {
+              id: 'music',
+              icon: '🎵',
+              label: 'Music player',
+              shortcut: shortcutLabel('musicPlayer'),
+              active: panelOpen.musicPlayer,
+              onSelect: () => setPanel('musicPlayer', (v) => !v),
+            },
+            {
+              id: 'packs',
+              icon: '🎼',
+              label: 'Sound packs',
+              shortcut: shortcutLabel('soundPacks'),
+              onSelect: () => setPanel('soundPackManager', true),
+            },
+            {
+              id: 'sound-settings',
+              icon: '🔊',
+              label: 'Sound settings',
+              shortcut: shortcutLabel('soundSettings'),
+              onSelect: () => setPanel('soundSettings', true),
+            },
           ]}
         />
         <span data-tour-id="theme-button">
@@ -105,11 +189,33 @@ export default function EnhancedHeader({
             label="SETTINGS"
             items={[
               { id: 'theme', icon: '🎨', label: 'Theme customizer', onSelect: () => setPanel('themeCustomizer', true) },
-              { id: 'characters', icon: '🎭', label: 'Character creator', onSelect: () => setPanel('characterCreator', true) },
-              { id: 'a11y', icon: '♿', label: 'Accessibility', shortcut: shortcutLabel('accessibility'), onSelect: () => setPanel('accessibility', true) },
-              { id: 'voice-help', icon: '❔', label: 'Voice commands', onSelect: () => setPanel('voiceControlHelp', true) },
+              {
+                id: 'characters',
+                icon: '🎭',
+                label: 'Character creator',
+                onSelect: () => setPanel('characterCreator', true),
+              },
+              {
+                id: 'a11y',
+                icon: '♿',
+                label: 'Accessibility',
+                shortcut: shortcutLabel('accessibility'),
+                onSelect: () => setPanel('accessibility', true),
+              },
+              {
+                id: 'voice-help',
+                icon: '❔',
+                label: 'Voice commands',
+                onSelect: () => setPanel('voiceControlHelp', true),
+              },
               { id: 'cloud-sync', icon: '☁️', label: 'Cloud sync', onSelect: () => setPanel('cloudSync', true) },
-              { id: 'tutorial', icon: '🎓', label: 'Tutorial', shortcut: shortcutLabel('tutorial'), onSelect: () => setPanel('onboarding', true) },
+              {
+                id: 'tutorial',
+                icon: '🎓',
+                label: 'Tutorial',
+                shortcut: shortcutLabel('tutorial'),
+                onSelect: () => setPanel('onboarding', true),
+              },
             ]}
           />
         </span>

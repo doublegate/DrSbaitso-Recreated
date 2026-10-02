@@ -53,7 +53,7 @@ interface SpeechRecognition extends EventTarget {
 }
 
 interface SpeechRecognitionConstructor {
-  new(): SpeechRecognition;
+  new (): SpeechRecognition;
 }
 
 declare global {
@@ -120,8 +120,7 @@ export function useVoiceRecognition(options: VoiceRecognitionOptions = {}) {
       return;
     }
 
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       return;
@@ -273,10 +272,7 @@ export function useVoiceRecognition(options: VoiceRecognitionOptions = {}) {
  * @returns boolean
  */
 export function checkSpeechRecognitionSupport(): boolean {
-  return !!(
-    typeof window !== 'undefined' &&
-    (window.SpeechRecognition || window.webkitSpeechRecognition)
-  );
+  return !!(typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
 }
 
 /**

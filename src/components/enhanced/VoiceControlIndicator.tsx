@@ -29,7 +29,7 @@ export default function VoiceControlIndicator({ voiceControl, onShowHelp }: Voic
           </span>
           {voiceControl.suggestions.length > 0 && (
             <span className="text-yellow-300">
-              Suggestions: {voiceControl.suggestions.map(s => s.name).join(', ')}
+              Suggestions: {voiceControl.suggestions.map((s) => s.name).join(', ')}
             </span>
           )}
         </div>
@@ -41,16 +41,10 @@ export default function VoiceControlIndicator({ voiceControl, onShowHelp }: Voic
           Help
         </button>
       </div>
-      {voiceControl.error && (
-        <div className="mt-1 text-red-400 text-xs">
-          ⚠ {voiceControl.error}
-        </div>
-      )}
+      {voiceControl.error && <div className="mt-1 text-red-400 text-xs">⚠ {voiceControl.error}</div>}
       {voiceControl.pendingConfirmation && (
         <div className="mt-2 p-2 bg-yellow-900/50 border border-yellow-400">
-          <div className="text-yellow-300 text-xs mb-2">
-            Confirm: {voiceControl.pendingConfirmation.name}?
-          </div>
+          <div className="text-yellow-300 text-xs mb-2">Confirm: {voiceControl.pendingConfirmation.name}?</div>
           <div className="flex gap-2">
             <button
               onClick={() => voiceControl.confirmCommand()}

@@ -90,7 +90,9 @@ describe('ClassicApp', () => {
     let releaseTts!: () => void;
     fetchMock.mockImplementation((url: string) =>
       url === '/api/tts'
-        ? new Promise<Response>((resolve) => (releaseTts = () => resolve(new Response(JSON.stringify({ audio: 'AAAAAA==' })))))
+        ? new Promise<Response>(
+            (resolve) => (releaseTts = () => resolve(new Response(JSON.stringify({ audio: 'AAAAAA==' })))),
+          )
         : json({ text: 'WHY DO YOU FEEL THAT WAY?' }),
     );
     const user = userEvent.setup();

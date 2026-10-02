@@ -41,11 +41,7 @@ export function tokenise(input: string): string[] {
   return tokens;
 }
 
-function elemMatches(
-  elem: PatternElem,
-  word: string,
-  tags: ReadonlyMap<string, ReadonlySet<string>>,
-): boolean {
+function elemMatches(elem: PatternElem, word: string, tags: ReadonlyMap<string, ReadonlySet<string>>): boolean {
   switch (elem.kind) {
     case 'word':
       return elem.word === word;
@@ -86,7 +82,7 @@ export function matchPattern(
         wildEnd = words.length - wBegin - fixedLen;
       }
     }
-    for (;; wildLen++) {
+    for (; ; wildLen++) {
       let p = pBegin + (hasWildcard ? 1 : 0);
       let w = wBegin + wildLen;
       for (; p < pEnd; p++) {

@@ -7,9 +7,9 @@
 
 export interface ContrastRatio {
   ratio: number;
-  wcagAA: boolean;   // 4.5:1 for normal text
-  wcagAAA: boolean;  // 7:1 for normal text
-  wcagAALarge: boolean;  // 3:1 for large text
+  wcagAA: boolean; // 4.5:1 for normal text
+  wcagAAA: boolean; // 7:1 for normal text
+  wcagAALarge: boolean; // 3:1 for large text
   wcagAAALarge: boolean; // 4.5:1 for large text
 }
 
@@ -50,7 +50,10 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 
   // Handle 3-digit hex
   if (hex.length === 3) {
-    hex = hex.split('').map(c => c + c).join('');
+    hex = hex
+      .split('')
+      .map((c) => c + c)
+      .join('');
   }
 
   if (hex.length !== 6) {
@@ -98,7 +101,7 @@ export function evaluateContrast(ratio: number): ContrastRatio {
     wcagAA: ratio >= 4.5,
     wcagAAA: ratio >= 7.0,
     wcagAALarge: ratio >= 3.0,
-    wcagAAALarge: ratio >= 4.5
+    wcagAAALarge: ratio >= 4.5,
   };
 }
 
@@ -137,27 +140,26 @@ export function validateThemeColors(colors: {
   if (!textEval.wcagAA) {
     suggestions.push(
       `Text contrast (${textEval.ratio}:1) is below WCAG AA standard (4.5:1). ` +
-      `Consider using a ${textContrast < 4.5 ? 'darker' : 'lighter'} text color or ` +
-      `${textContrast < 4.5 ? 'lighter' : 'darker'} background.`
+        `Consider using a ${textContrast < 4.5 ? 'darker' : 'lighter'} text color or ` +
+        `${textContrast < 4.5 ? 'lighter' : 'darker'} background.`,
     );
   } else if (!textEval.wcagAAA) {
     suggestions.push(
       `Text contrast (${textEval.ratio}:1) meets WCAG AA but not AAA (7:1). ` +
-      `Consider improving for better readability.`
+        `Consider improving for better readability.`,
     );
   }
 
   if (!accentEval.wcagAALarge) {
     suggestions.push(
       `Accent contrast (${accentEval.ratio}:1) is below WCAG AA standard for large text (3:1). ` +
-      `Consider using a more contrasting accent color.`
+        `Consider using a more contrasting accent color.`,
     );
   }
 
   if (!borderEval.wcagAALarge) {
     suggestions.push(
-      `Border contrast (${borderEval.ratio}:1) is low. ` +
-      `Users may have difficulty distinguishing UI boundaries.`
+      `Border contrast (${borderEval.ratio}:1) is low. ` + `Users may have difficulty distinguishing UI boundaries.`,
     );
   }
 
@@ -176,9 +178,9 @@ export function validateThemeColors(colors: {
     overall: {
       passWCAG_AA,
       passWCAG_AAA,
-      score: Math.round(score)
+      score: Math.round(score),
     },
-    suggestions
+    suggestions,
   };
 }
 
@@ -188,7 +190,7 @@ export function validateThemeColors(colors: {
 export function suggestColorAdjustments(
   foreground: string,
   background: string,
-  targetRatio: number = 4.5
+  targetRatio: number = 4.5,
 ): { adjustedColor: string; ratio: number } | null {
   const bgRgb = hexToRgb(background);
   if (!bgRgb) return null;
@@ -199,15 +201,16 @@ export function suggestColorAdjustments(
   const needLighter = bgLum < 0.5;
 
   // Binary search for appropriate luminance
-  let low = 0, high = 255;
+  let low = 0,
+    high = 255;
   let bestColor = foreground;
   let bestRatio = 0;
 
   for (let i = 0; i < 20; i++) {
     const mid = Math.floor((low + high) / 2);
-    const testColor = needLighter ?
-      `#${mid.toString(16).padStart(2, '0').repeat(3)}` :
-      `#${(255 - mid).toString(16).padStart(2, '0').repeat(3)}`;
+    const testColor = needLighter
+      ? `#${mid.toString(16).padStart(2, '0').repeat(3)}`
+      : `#${(255 - mid).toString(16).padStart(2, '0').repeat(3)}`;
 
     const ratio = calculateContrastRatio(testColor, background);
 
@@ -248,7 +251,10 @@ export function normalizeHexColor(color: string): string {
   color = color.replace(/^#/, '');
 
   if (color.length === 3) {
-    color = color.split('').map(c => c + c).join('');
+    color = color
+      .split('')
+      .map((c) => c + c)
+      .join('');
   }
 
   return `#${color.toLowerCase()}`;
@@ -300,10 +306,15 @@ export function isValidCustomTheme(theme: Partial<CustomTheme>): boolean {
  * Convert RGB to hex color
  */
 export function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map(x => {
-    const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  }).join('');
+  return (
+    '#' +
+    [r, g, b]
+      .map((x) => {
+        const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      })
+      .join('')
+  );
 }
 
 /**
@@ -313,12 +324,8 @@ export function darkenColor(hex: string, percent: number): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return hex;
 
-  const factor = 1 - (percent / 100);
-  return rgbToHex(
-    rgb.r * factor,
-    rgb.g * factor,
-    rgb.b * factor
-  );
+  const factor = 1 - percent / 100;
+  return rgbToHex(rgb.r * factor, rgb.g * factor, rgb.b * factor);
 }
 
 /**
@@ -329,11 +336,7 @@ export function lightenColor(hex: string, percent: number): string {
   if (!rgb) return hex;
 
   const factor = percent / 100;
-  return rgbToHex(
-    rgb.r + (255 - rgb.r) * factor,
-    rgb.g + (255 - rgb.g) * factor,
-    rgb.b + (255 - rgb.b) * factor
-  );
+  return rgbToHex(rgb.r + (255 - rgb.r) * factor, rgb.g + (255 - rgb.g) * factor, rgb.b + (255 - rgb.b) * factor);
 }
 
 /**

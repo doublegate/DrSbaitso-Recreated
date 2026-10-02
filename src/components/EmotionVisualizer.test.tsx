@@ -76,10 +76,7 @@ describe('EmotionVisualizer', () => {
 
   it('reports the most common dominant emotion', () => {
     render(
-      <EmotionVisualizer
-        messages={[user('I am sad'), user('so sad and lonely'), user('I am happy')]}
-        theme={theme}
-      />,
+      <EmotionVisualizer messages={[user('I am sad'), user('so sad and lonely'), user('I am happy')]} theme={theme} />,
     );
     expect(screen.getByText(/Dominant pattern: sadness/)).toBeInTheDocument();
   });

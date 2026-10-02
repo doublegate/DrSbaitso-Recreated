@@ -95,7 +95,7 @@ Never:
     voiceName: 'Charon',
     voiceStyle: SBAITSO_STYLE,
     ttsCase: 'upper',
-    processing: 'sbaitso'
+    processing: 'sbaitso',
   },
   {
     id: 'eliza',
@@ -116,7 +116,7 @@ Never:
     voiceName: 'Kore',
     voiceStyle: ELIZA_STYLE,
     ttsCase: 'sentence',
-    processing: 'clean'
+    processing: 'clean',
   },
   {
     id: 'hal9000',
@@ -152,7 +152,7 @@ Never:
     voiceName: 'Algieba',
     voiceStyle: HAL_STYLE,
     ttsCase: 'sentence',
-    processing: 'hal'
+    processing: 'hal',
   },
   {
     id: 'joshua',
@@ -192,7 +192,7 @@ Never:
     voiceName: 'Iapetus',
     voiceStyle: JOSHUA_STYLE,
     ttsCase: 'sentence',
-    processing: 'wopr'
+    processing: 'wopr',
   },
   {
     id: 'parry',
@@ -214,8 +214,8 @@ Never:
     voiceName: 'Orus',
     voiceStyle: PARRY_STYLE,
     ttsCase: 'sentence',
-    processing: 'clean'
-  }
+    processing: 'clean',
+  },
 ];
 
 export const DEFAULT_CHARACTER = 'sbaitso';
@@ -248,7 +248,12 @@ export const VOICE_PROFILES: Record<VoiceProfileId, VoiceProfile> = {
   classic: { id: 'classic', label: 'CLASSIC SBAITSO', voiceName: 'Charon', style: '' },
   // Not the original voice: SmoothTalker 3.5 was an ordinary low male (about
   // 92 Hz) at a medium-fast pace. Kept as an optional enhancement.
-  deep: { id: 'deep', label: 'DEEP (ENHANCED, NOT ORIGINAL)', voiceName: 'Fenrir', style: 'incredibly deep, resonant and slow' },
+  deep: {
+    id: 'deep',
+    label: 'DEEP (ENHANCED, NOT ORIGINAL)',
+    voiceName: 'Fenrir',
+    style: 'incredibly deep, resonant and slow',
+  },
   glitchy: {
     id: 'glitchy',
     label: 'SLIGHTLY GLITCHY',
@@ -283,8 +288,8 @@ export const THEMES: Theme[] = [
       background: '#1e3a8a',
       text: '#ffffff',
       border: '#60a5fa',
-      accent: '#fbbf24'
-    }
+      accent: '#fbbf24',
+    },
   },
   {
     id: 'phosphor-green',
@@ -295,8 +300,8 @@ export const THEMES: Theme[] = [
       background: '#001a00',
       text: '#00ff00',
       border: '#00cc00',
-      accent: '#00ff00'
-    }
+      accent: '#00ff00',
+    },
   },
   {
     id: 'amber-mono',
@@ -307,8 +312,8 @@ export const THEMES: Theme[] = [
       background: '#1a0f00',
       text: '#ffb000',
       border: '#ff9500',
-      accent: '#ffc947'
-    }
+      accent: '#ffc947',
+    },
   },
   {
     id: 'paper-white',
@@ -319,8 +324,8 @@ export const THEMES: Theme[] = [
       background: '#f5f5dc',
       text: '#000000',
       border: '#8b7355',
-      accent: '#4a4a4a'
-    }
+      accent: '#4a4a4a',
+    },
   },
   {
     id: 'matrix-green',
@@ -331,9 +336,9 @@ export const THEMES: Theme[] = [
       background: '#000000',
       text: '#00ff41',
       border: '#008f11',
-      accent: '#00ff41'
-    }
-  }
+      accent: '#00ff41',
+    },
+  },
 ];
 
 export const DEFAULT_THEME = 'dos-blue';
@@ -353,29 +358,29 @@ export const AUDIO_QUALITIES: AudioQuality[] = [
     name: 'Extreme Lo-Fi',
     description: '4-bit audio (16 levels) - Most distorted',
     bitDepth: 16,
-    playbackRate: 1.2
+    playbackRate: 1.2,
   },
   {
     id: 'default',
     name: 'Authentic 8-bit',
     description: '6-bit audio (64 levels) - Original sound',
     bitDepth: 64,
-    playbackRate: 1.1
+    playbackRate: 1.1,
   },
   {
     id: 'high-quality',
     name: 'High Quality',
     description: '8-bit audio (256 levels) - Clearer sound',
     bitDepth: 256,
-    playbackRate: 1.0
+    playbackRate: 1.0,
   },
   {
     id: 'modern',
     name: 'Modern Quality',
     description: 'No bit-crushing - Clean audio',
     bitDepth: 0, // 0 = disabled
-    playbackRate: 1.0
-  }
+    playbackRate: 1.0,
+  },
 ];
 
 export const DEFAULT_AUDIO_QUALITY = 'default';
@@ -397,29 +402,30 @@ export const AUDIO_MODES: AudioMode[] = [
     name: 'Modern Quality',
     description: 'Gemini TTS as delivered - natural prosody',
     technicalSpecs: '24.0 kHz, 16-bit, 0-20000 Hz',
-    details: 'Clean, modern text-to-speech with natural intonation and full frequency range'
+    details: 'Clean, modern text-to-speech with natural intonation and full frequency range',
   },
   {
     id: 'subtle',
     name: 'Subtle Vintage',
     description: 'Light retro filtering - not period-accurate',
     technicalSpecs: '22.1 kHz, 16-bit, 200-8000 Hz',
-    details: 'A gentle telephone-band filter for a nostalgic feel, without the 8-bit sound'
+    details: 'A gentle telephone-band filter for a nostalgic feel, without the 8-bit sound',
   },
   {
     id: 'authentic',
     name: 'Authentic Sound Blaster',
     description: 'The measured original sound - Recommended',
     technicalSpecs: '8.5 kHz, 8-bit, 80-3800 Hz',
-    details: "Resampled to the original's 8,475 Hz, unsigned 8-bit with sample-and-hold, and the pitch flattened like the 1992 voice"
+    details:
+      "Resampled to the original's 8,475 Hz, unsigned 8-bit with sample-and-hold, and the pitch flattened like the 1992 voice",
   },
   {
     id: 'ultra',
     name: 'Ultra Authentic',
     description: 'Authentic, through a darker Sound Blaster Pro filter',
     technicalSpecs: '8.5 kHz, 8-bit, 80-3200 Hz',
-    details: "Everything in Authentic, with the SB Pro's lower 3.2 kHz output filter"
-  }
+    details: "Everything in Authentic, with the SB Pro's lower 3.2 kHz output filter",
+  },
 ];
 
 export const DEFAULT_AUDIO_MODE = 'authentic';
@@ -438,88 +444,183 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to Dr. Sbaitso Recreated!',
-    content: 'The Sound Blaster AI therapist (1990-1992), recreated for the web. This short tour points out the main controls of the enhanced interface.',
-    skipable: true
+    content:
+      'The Sound Blaster AI therapist (1990-1992), recreated for the web. This short tour points out the main controls of the enhanced interface.',
+    skipable: true,
   },
   {
     id: 'characters',
     title: 'AI Personalities',
-    content: 'Five personalities from computing history are built in: Dr. Sbaitso (1990-1992), ELIZA (1966), HAL 9000 (1968), JOSHUA/WOPR (1983) and PARRY (1972). The highlighted character button opens the Character Creator, where you can design your own.',
+    content:
+      'Five personalities from computing history are built in: Dr. Sbaitso (1990-1992), ELIZA (1966), HAL 9000 (1968), JOSHUA/WOPR (1983) and PARRY (1972). The highlighted character button opens the Character Creator, where you can design your own.',
     target: '[data-tour-id="character-selection"]',
-    skipable: true
+    skipable: true,
   },
   {
     id: 'first-message',
     title: 'Start a Conversation',
-    content: 'Type on the input line at the bottom of the screen and press Enter to send. Dr. Sbaitso answers in ALL CAPS, with his synthesized voice.',
+    content:
+      'Type on the input line at the bottom of the screen and press Enter to send. Dr. Sbaitso answers in ALL CAPS, with his synthesized voice.',
     target: '[data-tour-id="chat-input"]',
-    skipable: true
+    skipable: true,
   },
   {
     id: 'audio',
     title: 'Audio Mode',
     content: `Choose how authentic the voice sounds, from modern to ultra lo-fi Sound Blaster. Press ${shortcutLabel('cycleAudioMode')} to cycle modes. Tick SAVE HISTORY to keep conversations in this browser for search, replay and insights.`,
     target: '[data-tour-id="audio-settings"]',
-    skipable: true
+    skipable: true,
   },
   {
     id: 'keyboard-shortcuts',
     title: 'Keyboard Shortcuts',
     content: `Every shortcut is Alt+Shift plus a letter:\n• ${shortcutLabel('insights')} - Conversation insights\n• ${shortcutLabel('voiceInput')} - Voice input\n• ${shortcutLabel('cycleAudioMode')} - Cycle audio quality\n• ${shortcutLabel('accessibility')} - Accessibility settings\n• ${shortcutLabel('tutorial')} - Show this tutorial again\n• ${shortcutLabel('switchMode')} - Switch to the classic screen\n\nEach menu item lists its shortcut.`,
     target: '[data-tour-id="settings-panel"]',
-    skipable: true
+    skipable: true,
   },
   {
     id: 'voice-control',
     title: 'Voice Input',
     content: `Talk instead of typing: use the microphone button or press ${shortcutLabel('voiceInput')}. Voice input needs a browser with the Web Speech API (Chrome, Edge or Safari).`,
     target: '[data-tour-id="voice-input"]',
-    skipable: true
+    skipable: true,
   },
   {
     id: 'accessibility',
     title: 'Accessibility',
     content: `Built for everyone:\n• Full keyboard navigation (Tab, Enter, Escape)\n• Screen reader announcements\n• High contrast mode\n• Adjustable font size\n• Reduced motion\n\nPress ${shortcutLabel('accessibility')}, or open Accessibility in the highlighted SETTINGS menu.`,
     target: '[data-tour-id="theme-button"]',
-    skipable: true
+    skipable: true,
   },
   {
     id: 'advanced-features',
     title: 'More to Explore',
-    content: '• Theme customizer - your own retro colour schemes\n• Search - find past messages (needs SAVE HISTORY)\n• Export - save the conversation as text, Markdown, JSON or HTML, or print it to PDF\n• Sound packs - your own sounds for app events\n\nSearch and Export are in the highlighted CONVERSATION menu; the rest are under VISUALS, SOUND and SETTINGS.',
+    content:
+      '• Theme customizer - your own retro colour schemes\n• Search - find past messages (needs SAVE HISTORY)\n• Export - save the conversation as text, Markdown, JSON or HTML, or print it to PDF\n• Sound packs - your own sounds for app events\n\nSearch and Export are in the highlighted CONVERSATION menu; the rest are under VISUALS, SOUND and SETTINGS.',
     target: '[data-tour-id="session-panel"]',
-    skipable: true
+    skipable: true,
   },
   {
     id: 'completion',
-    title: 'You\'re All Set!',
+    title: "You're All Set!",
     content: `That is the tour. Press ${shortcutLabel('tutorial')} any time to see it again.\n\nReady to experience retro AI therapy?`,
-    skipable: false
-  }
+    skipable: false,
+  },
 ];
-
 
 // Sentiment Analysis Keywords (v1.8.0)
 export const POSITIVE_KEYWORDS = [
-  'happy', 'joy', 'excited', 'great', 'wonderful', 'amazing', 'fantastic',
-  'excellent', 'good', 'better', 'best', 'love', 'like', 'enjoy', 'fun',
-  'peaceful', 'calm', 'relaxed', 'hopeful', 'optimistic', 'confident',
-  'grateful', 'thankful', 'blessed', 'pleased', 'satisfied', 'content',
-  'delighted', 'cheerful', 'bright', 'positive', 'energetic', 'motivated',
-  'inspired', 'proud', 'accomplished', 'successful', 'winning', 'victory',
-  'smile', 'laugh', 'laughing', 'beautiful', 'lovely', 'nice', 'pleasant',
-  'comfortable', 'cozy', 'warm', 'friendly', 'kind', 'helpful', 'caring'
+  'happy',
+  'joy',
+  'excited',
+  'great',
+  'wonderful',
+  'amazing',
+  'fantastic',
+  'excellent',
+  'good',
+  'better',
+  'best',
+  'love',
+  'like',
+  'enjoy',
+  'fun',
+  'peaceful',
+  'calm',
+  'relaxed',
+  'hopeful',
+  'optimistic',
+  'confident',
+  'grateful',
+  'thankful',
+  'blessed',
+  'pleased',
+  'satisfied',
+  'content',
+  'delighted',
+  'cheerful',
+  'bright',
+  'positive',
+  'energetic',
+  'motivated',
+  'inspired',
+  'proud',
+  'accomplished',
+  'successful',
+  'winning',
+  'victory',
+  'smile',
+  'laugh',
+  'laughing',
+  'beautiful',
+  'lovely',
+  'nice',
+  'pleasant',
+  'comfortable',
+  'cozy',
+  'warm',
+  'friendly',
+  'kind',
+  'helpful',
+  'caring',
 ];
 
 export const NEGATIVE_KEYWORDS = [
-  'sad', 'unhappy', 'depressed', 'down', 'low', 'bad', 'terrible', 'awful',
-  'horrible', 'worst', 'hate', 'dislike', 'angry', 'mad', 'frustrated',
-  'annoyed', 'irritated', 'upset', 'worried', 'anxious', 'stressed',
-  'nervous', 'scared', 'afraid', 'fear', 'fearful', 'panic', 'terrified',
-  'lonely', 'alone', 'isolated', 'abandoned', 'rejected', 'hurt', 'pain',
-  'painful', 'suffering', 'ache', 'aching', 'sick', 'ill', 'tired',
-  'exhausted', 'drained', 'weak', 'helpless', 'hopeless', 'desperate',
-  'confused', 'lost', 'stuck', 'trapped', 'overwhelmed', 'bored', 'empty'
+  'sad',
+  'unhappy',
+  'depressed',
+  'down',
+  'low',
+  'bad',
+  'terrible',
+  'awful',
+  'horrible',
+  'worst',
+  'hate',
+  'dislike',
+  'angry',
+  'mad',
+  'frustrated',
+  'annoyed',
+  'irritated',
+  'upset',
+  'worried',
+  'anxious',
+  'stressed',
+  'nervous',
+  'scared',
+  'afraid',
+  'fear',
+  'fearful',
+  'panic',
+  'terrified',
+  'lonely',
+  'alone',
+  'isolated',
+  'abandoned',
+  'rejected',
+  'hurt',
+  'pain',
+  'painful',
+  'suffering',
+  'ache',
+  'aching',
+  'sick',
+  'ill',
+  'tired',
+  'exhausted',
+  'drained',
+  'weak',
+  'helpless',
+  'hopeless',
+  'desperate',
+  'confused',
+  'lost',
+  'stuck',
+  'trapped',
+  'overwhelmed',
+  'bored',
+  'empty',
 ];
 
 // Chart Colors (v1.8.0) - Retro-themed for insights dashboard
@@ -528,5 +629,5 @@ export const INSIGHT_CHART_COLORS = {
   'phosphor-green': ['#00ff00', '#00cc00', '#009900', '#006600', '#003300'],
   'amber-mono': ['#ffb000', '#ff9500', '#ffc947', '#ffd480', '#ffe0b3'],
   'paper-white': ['#000000', '#4a4a4a', '#8b7355', '#a0826d', '#b69968'],
-  'matrix-green': ['#00ff41', '#008f11', '#00cc2d', '#00b327', '#009922']
+  'matrix-green': ['#00ff41', '#008f11', '#00cc2d', '#00b327', '#009922'],
 };

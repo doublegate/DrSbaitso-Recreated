@@ -49,7 +49,9 @@ describe('usePersona', () => {
     const { result } = renderHook(() => usePersona());
     act(() => result.current.selectPersona('custom_robo'));
     expect(result.current.persona.isCustom).toBe(true);
-    expect(result.current.chatOptions).toEqual({ customCharacter: { name: 'ROBO', systemInstruction: 'You are ROBO.' } });
+    expect(result.current.chatOptions).toEqual({
+      customCharacter: { name: 'ROBO', systemInstruction: 'You are ROBO.' },
+    });
     expect(result.current.speechOptions).toEqual({ voicePrompt: 'Say in a squeaky robot voice' });
     expect(result.current.formatReply('Hello There')).toBe('hello there');
   });

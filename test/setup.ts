@@ -39,8 +39,8 @@ afterEach(() => {
 });
 
 // Mock Web Audio API
-global.AudioContext = vi.fn(function(this: any) {
-  this.createBuffer = vi.fn(function(channels: number, length: number, sampleRate: number) {
+global.AudioContext = vi.fn(function (this: any) {
+  this.createBuffer = vi.fn(function (channels: number, length: number, sampleRate: number) {
     return {
       length: length || 1000,
       duration: (length || 1000) / (sampleRate || 24000),
@@ -49,10 +49,12 @@ global.AudioContext = vi.fn(function(this: any) {
       getChannelData: vi.fn(() => new Float32Array(length || 1000)),
     };
   });
-  this.createBufferSource = vi.fn(function() {
+  this.createBufferSource = vi.fn(function () {
     const source = {
-      connect: vi.fn(function() { return source; }), // Return this for chaining
-      start: vi.fn(function() {
+      connect: vi.fn(function () {
+        return source;
+      }), // Return this for chaining
+      start: vi.fn(function () {
         // Automatically trigger onended after a short delay to simulate playback completion
         setTimeout(() => {
           if (source.onended) {
@@ -69,7 +71,7 @@ global.AudioContext = vi.fn(function(this: any) {
     };
     return source;
   });
-  this.createScriptProcessor = vi.fn(function() {
+  this.createScriptProcessor = vi.fn(function () {
     return {
       connect: vi.fn(),
       disconnect: vi.fn(),
@@ -78,9 +80,11 @@ global.AudioContext = vi.fn(function(this: any) {
       onaudioprocess: null,
     };
   });
-  this.createGain = vi.fn(function() {
+  this.createGain = vi.fn(function () {
     const gainNode = {
-      connect: vi.fn(function() { return gainNode; }), // Return this for chaining
+      connect: vi.fn(function () {
+        return gainNode;
+      }), // Return this for chaining
       disconnect: vi.fn(),
       gain: {
         value: 1,
@@ -91,7 +95,7 @@ global.AudioContext = vi.fn(function(this: any) {
     };
     return gainNode;
   });
-  this.createOscillator = vi.fn(function() {
+  this.createOscillator = vi.fn(function () {
     return {
       connect: vi.fn(),
       disconnect: vi.fn(),
@@ -107,7 +111,7 @@ global.AudioContext = vi.fn(function(this: any) {
       onended: null,
     };
   });
-  this.createAnalyser = vi.fn(function() {
+  this.createAnalyser = vi.fn(function () {
     return {
       connect: vi.fn(),
       disconnect: vi.fn(),
@@ -118,7 +122,7 @@ global.AudioContext = vi.fn(function(this: any) {
       smoothingTimeConstant: 0.8,
     };
   });
-  this.createBiquadFilter = vi.fn(function() {
+  this.createBiquadFilter = vi.fn(function () {
     return {
       connect: vi.fn(),
       frequency: { value: 1000 },
@@ -126,7 +130,7 @@ global.AudioContext = vi.fn(function(this: any) {
       type: 'lowpass',
     };
   });
-  this.createMediaStreamSource = vi.fn(function() {
+  this.createMediaStreamSource = vi.fn(function () {
     return {
       connect: vi.fn(),
       disconnect: vi.fn(),
@@ -149,16 +153,16 @@ global.AudioContext = vi.fn(function(this: any) {
 }) as any;
 
 // Mock OfflineAudioContext
-global.OfflineAudioContext = vi.fn(function(this: any) {
+global.OfflineAudioContext = vi.fn(function (this: any) {
   this.createBuffer = vi.fn();
-  this.createBufferSource = vi.fn(function() {
+  this.createBufferSource = vi.fn(function () {
     return {
       connect: vi.fn(),
       start: vi.fn(),
       buffer: null,
     };
   });
-  this.createBiquadFilter = vi.fn(function() {
+  this.createBiquadFilter = vi.fn(function () {
     return {
       connect: vi.fn(),
       frequency: { value: 1000 },
@@ -187,7 +191,7 @@ Object.defineProperty(global.AudioContext.prototype, 'audioWorklet', {
 });
 
 // Mock Web Speech API
-const mockSpeechRecognition = vi.fn(function(this: any) {
+const mockSpeechRecognition = vi.fn(function (this: any) {
   this.continuous = false;
   this.interimResults = false;
   this.lang = 'en-US';

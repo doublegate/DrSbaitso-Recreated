@@ -72,9 +72,7 @@ describe('parseFirebaseConfig', () => {
   });
 
   it('rejects missing or malformed required fields with every problem listed', () => {
-    expect(() => parseFirebaseConfig({ apiKey: 'nope', projectId: 'my-app' })).toThrow(
-      /apiKey.*authDomain.*appId/s
-    );
+    expect(() => parseFirebaseConfig({ apiKey: 'nope', projectId: 'my-app' })).toThrow(/apiKey.*authDomain.*appId/s);
   });
 
   it('rejects non-objects', () => {
@@ -187,7 +185,10 @@ describe('bundle boundary', () => {
       for (const name of readdirSync(dir)) {
         const full = path.join(dir, name);
         if (statSync(full).isDirectory()) walk(full);
-        else if (/\.tsx?$/.test(name) && /^\s*import\s+(?!type\b)[^(]*?from\s+['"]firebase\//m.test(readFileSync(full, 'utf8'))) {
+        else if (
+          /\.tsx?$/.test(name) &&
+          /^\s*import\s+(?!type\b)[^(]*?from\s+['"]firebase\//m.test(readFileSync(full, 'utf8'))
+        ) {
           offenders.push(path.relative(root, full));
         }
       }

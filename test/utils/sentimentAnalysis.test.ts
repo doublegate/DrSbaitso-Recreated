@@ -8,7 +8,7 @@ import {
   analyzeMessages,
   calculateSentimentTrend,
   extractTopKeywords,
-  getAverageSentiment
+  getAverageSentiment,
 } from '@/utils/sentimentAnalysis';
 import { Message } from '@/types';
 
@@ -60,7 +60,7 @@ describe('sentimentAnalysis', () => {
     it('analyzes multiple messages correctly', () => {
       const messages: Message[] = [
         { author: 'user', text: 'I am happy' },
-        { author: 'dr', text: 'That is good' }
+        { author: 'dr', text: 'That is good' },
       ];
       const result = analyzeMessages(messages);
       expect(result.score).toBeGreaterThan(0);
@@ -69,9 +69,7 @@ describe('sentimentAnalysis', () => {
 
   describe('calculateSentimentTrend', () => {
     it('returns stable for insufficient data', () => {
-      const messages: Message[] = [
-        { author: 'user', text: 'hello', timestamp: 1000 }
-      ];
+      const messages: Message[] = [{ author: 'user', text: 'hello', timestamp: 1000 }];
       const trend = calculateSentimentTrend(messages, 10);
       expect(trend).toBe('stable');
     });
@@ -97,7 +95,7 @@ describe('sentimentAnalysis', () => {
         { author: 'user', text: 'joyful peaceful content', timestamp: 17000 },
         { author: 'user', text: 'happy excited hopeful', timestamp: 18000 },
         { author: 'user', text: 'wonderful amazing excellent', timestamp: 19000 },
-        { author: 'user', text: 'great fantastic happy', timestamp: 20000 }
+        { author: 'user', text: 'great fantastic happy', timestamp: 20000 },
       ];
       const trend = calculateSentimentTrend(messages, 10);
       expect(trend).toBe('up');
@@ -124,7 +122,7 @@ describe('sentimentAnalysis', () => {
         { author: 'user', text: 'anxious stressed sad', timestamp: 17000 },
         { author: 'user', text: 'lonely isolated sad', timestamp: 18000 },
         { author: 'user', text: 'terrible awful horrible', timestamp: 19000 },
-        { author: 'user', text: 'sad worried anxious', timestamp: 20000 }
+        { author: 'user', text: 'sad worried anxious', timestamp: 20000 },
       ];
       const trend = calculateSentimentTrend(messages, 10);
       expect(trend).toBe('down');
@@ -141,46 +139,40 @@ describe('sentimentAnalysis', () => {
       const messages: Message[] = [
         { author: 'user', text: 'I love programming' },
         { author: 'dr', text: 'Programming is great' },
-        { author: 'user', text: 'I enjoy programming' }
+        { author: 'user', text: 'I enjoy programming' },
       ];
       const keywords = extractTopKeywords(messages);
-      const programmingKeyword = keywords.find(k => k.word === 'programming');
+      const programmingKeyword = keywords.find((k) => k.word === 'programming');
       expect(programmingKeyword).toBeDefined();
       expect(programmingKeyword?.count).toBe(3);
     });
 
     it('respects minimum length filter', () => {
-      const messages: Message[] = [
-        { author: 'user', text: 'I am ok' }
-      ];
+      const messages: Message[] = [{ author: 'user', text: 'I am ok' }];
       const keywords = extractTopKeywords(messages, 4);
-      expect(keywords.every(k => k.word.length >= 4)).toBe(true);
+      expect(keywords.every((k) => k.word.length >= 4)).toBe(true);
     });
 
     it('excludes stop words', () => {
-      const messages: Message[] = [
-        { author: 'user', text: 'that this with have from they' }
-      ];
+      const messages: Message[] = [{ author: 'user', text: 'that this with have from they' }];
       const keywords = extractTopKeywords(messages);
       expect(keywords.length).toBe(0);
     });
 
     it('limits results to specified count', () => {
       const messages: Message[] = [
-        { author: 'user', text: 'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10' }
+        { author: 'user', text: 'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10' },
       ];
       const keywords = extractTopKeywords(messages, 4, 5);
       expect(keywords.length).toBeLessThanOrEqual(5);
     });
 
     it('assigns sentiment to keywords', () => {
-      const messages: Message[] = [
-        { author: 'user', text: 'feeling happy today despite being worried yesterday' }
-      ];
+      const messages: Message[] = [{ author: 'user', text: 'feeling happy today despite being worried yesterday' }];
       const keywords = extractTopKeywords(messages);
-      const happy = keywords.find(k => k.word === 'happy');
-      const worried = keywords.find(k => k.word === 'worried');
-      const neutral = keywords.find(k => k.word === 'feeling');
+      const happy = keywords.find((k) => k.word === 'happy');
+      const worried = keywords.find((k) => k.word === 'worried');
+      const neutral = keywords.find((k) => k.word === 'feeling');
       expect(happy?.sentiment).toBe(1);
       expect(worried?.sentiment).toBe(-1);
       expect(neutral?.sentiment).toBe(0);
@@ -196,7 +188,7 @@ describe('sentimentAnalysis', () => {
     it('calculates average correctly', () => {
       const messages: Message[] = [
         { author: 'user', text: 'happy' },
-        { author: 'user', text: 'sad' }
+        { author: 'user', text: 'sad' },
       ];
       const avg = getAverageSentiment(messages);
       expect(typeof avg).toBe('number');
@@ -205,7 +197,7 @@ describe('sentimentAnalysis', () => {
     it('filters by date range', () => {
       const messages: Message[] = [
         { author: 'user', text: 'happy', timestamp: 1000 },
-        { author: 'user', text: 'sad', timestamp: 5000 }
+        { author: 'user', text: 'sad', timestamp: 5000 },
       ];
       const avg = getAverageSentiment(messages, 2000, 6000);
       // Should only include the 'sad' message

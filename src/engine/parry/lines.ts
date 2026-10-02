@@ -22,7 +22,7 @@ export const INTAKE_LINES: Readonly<Record<IntakeTopic, readonly string[]>> = {
 export const FLARE_LINES: Readonly<Record<FlareId, readonly string[]>> = {
   horses: ['I LIKE HORSES. GOOD ANIMALS.', 'HORSES ARE HONEST. MORE THAN PEOPLE.'],
   racing: ['I GO TO BAY MEADOWS A LOT.', 'THE RACES ARE THE ONLY PLACE I RELAX.'],
-  police: ["THE POLICE DON'T DO THEIR JOB.", "COPS NEVER GO AFTER THE ONES THEY SHOULD."],
+  police: ["THE POLICE DON'T DO THEIR JOB.", 'COPS NEVER GO AFTER THE ONES THEY SHOULD.'],
   // A hint about specific crooks, never a remark about a group of people.
   italians: ['COPS LOOK THE OTHER WAY FOR CERTAIN PEOPLE.', 'SOME CROOKS NEVER GET PICKED UP. YOU KNOW WHY?'],
   money: ['A GUY STILL OWES ME MONEY.', 'MONEY MAKES PEOPLE DO DIRTY THINGS.'],
@@ -46,11 +46,13 @@ export const STORY_LINES: readonly (readonly string[])[] = [
 export const DELUSION_LINES: readonly (readonly string[])[] = [
   ['THE MAFIA KNOWS WHO I AM.', 'I THINK THE MAFIA HAS MY NAME.'],
   ['THE BOOKIE WENT TO THEM ABOUT ME.', 'HE ASKED THEM TO SQUARE THINGS FOR HIM.'],
-  ['THEY HAVE PEOPLE EVERYWHERE. MAYBE IN HERE.', 'HOW DO I KNOW ONE OF THEM ISN\'T ON THIS WARD?'],
+  ['THEY HAVE PEOPLE EVERYWHERE. MAYBE IN HERE.', "HOW DO I KNOW ONE OF THEM ISN'T ON THIS WARD?"],
   ["I WON'T BE SAFE UNTIL THEY FORGET ME.", "THEY DON'T FORGET. THAT'S THE THING."],
 ];
 
-export const SENSITIVE_LINES: Readonly<Record<SensitiveArea, { statement: readonly string[]; question: readonly string[] }>> = {
+export const SENSITIVE_LINES: Readonly<
+  Record<SensitiveArea, { statement: readonly string[]; question: readonly string[] }>
+> = {
   looks: {
     statement: ['LEAVE MY LOOKS OUT OF IT.', "THERE'S NOTHING WRONG WITH HOW I LOOK."],
     question: ["WHAT'S IT TO YOU HOW I LOOK?", 'WHY DO YOU CARE WHAT I LOOK LIKE?'],
@@ -82,7 +84,11 @@ export const KIND_LINES = {
   refuse: ["I'M NOT GOING INTO THAT.", "THAT'S NONE OF YOUR CONCERN.", "I DON'T WANT TO GET INTO IT."],
   suspiciousQuery: ['WHY DO YOU WANT TO KNOW?', 'WHO PUT YOU UP TO THIS?', 'WHAT ARE YOU REALLY AFTER?'],
   drawIn: ["YOU'RE ONE OF THEM, AREN'T YOU?", 'I THINK YOU KNOW MORE THAN YOU SAY.', 'SOMEBODY SENT YOU.'],
-  counterAttack: ["YOU'VE GOT A LOT OF NERVE.", "WHO DO YOU THINK YOU'RE TALKING TO?", "YOU DON'T KNOW A THING ABOUT ME."],
+  counterAttack: [
+    "YOU'VE GOT A LOT OF NERVE.",
+    "WHO DO YOU THINK YOU'RE TALKING TO?",
+    "YOU DON'T KNOW A THING ABOUT ME.",
+  ],
   soften: ['MAYBE YOU MEAN WELL.', "YOU'RE NOT LIKE THE REST OF THEM.", 'OK. I GUESS YOU ARE LISTENING.'],
   defend: ["I'M TELLING YOU HOW IT IS.", 'WHY WOULD I MAKE IT UP?', "I'M NOT SCARED OF YOU."],
   noncommittal: ['MAYBE.', 'I DUNNO.', 'COULD BE.', 'SO?'],

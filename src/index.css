@@ -93,14 +93,18 @@ button {
 }
 
 /* Touch-friendly button minimum size */
-button, input[type="button"], .touch-target {
+button,
+input[type='button'],
+.touch-target {
   min-height: 44px;
   min-width: 44px;
 }
 
 /* Prevent iOS zoom on input focus */
 @media (max-width: 767px) {
-  input, textarea, select {
+  input,
+  textarea,
+  select {
     font-size: 16px !important;
   }
 }
@@ -108,16 +112,16 @@ button, input[type="button"], .touch-target {
 /* Accessibility Enhancements (v1.4.0) */
 
 /* Font Size Controls */
-:root[data-font-size="small"] {
+:root[data-font-size='small'] {
   font-size: 12px;
 }
-:root[data-font-size="medium"] {
+:root[data-font-size='medium'] {
   font-size: 16px;
 }
-:root[data-font-size="large"] {
+:root[data-font-size='large'] {
   font-size: 20px;
 }
-:root[data-font-size="x-large"] {
+:root[data-font-size='x-large'] {
   font-size: 24px;
 }
 
@@ -163,13 +167,13 @@ button, input[type="button"], .touch-target {
 }
 
 /* Focus Indicators - Thick (5px outline) */
-:root[data-focus-style="thick"] .user-is-tabbing *:focus {
+:root[data-focus-style='thick'] .user-is-tabbing *:focus {
   outline-width: 5px !important;
   outline-offset: 3px !important;
 }
 
 /* Focus Indicators - Underline */
-:root[data-focus-style="underline"] .user-is-tabbing *:focus {
+:root[data-focus-style='underline'] .user-is-tabbing *:focus {
   outline: none !important;
   border-bottom: 4px solid #fbbf24 !important;
   padding-bottom: 2px;
@@ -273,8 +277,12 @@ button, input[type="button"], .touch-target {
 }
 
 @keyframes dos-blink {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .reduce-motion .dos-cursor {
@@ -411,4 +419,3 @@ button, input[type="button"], .touch-target {
     min-width: 0;
   }
 }
-

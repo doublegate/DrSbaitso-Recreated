@@ -20,11 +20,7 @@ export default function NameEntry({ value, onChange, onSubmit, isPreparing, inpu
     >
       <div className="w-full max-w-md text-center">
         {isPreparing ? (
-          <p
-            className="text-xl mb-4 animate-pulse"
-            role="status"
-            aria-live="polite"
-          >
+          <p className="text-xl mb-4 animate-pulse" role="status" aria-live="polite">
             PREPARING SESSION...
           </p>
         ) : (
@@ -33,7 +29,9 @@ export default function NameEntry({ value, onChange, onSubmit, isPreparing, inpu
               PLEASE ENTER YOUR NAME:
             </label>
             <div className="flex items-center justify-center">
-              <span className="text-yellow-300 mr-2" aria-hidden="true">{'>'}</span>
+              <span className="text-yellow-300 mr-2" aria-hidden="true">
+                {'>'}
+              </span>
               <input
                 id="name-input"
                 ref={inputRef}

@@ -166,7 +166,13 @@ export const FLARE_SCAN_ORDER: readonly FlareId[] = [
 ];
 
 /** Scanning order for sensitive areas: heaviest first. */
-export const SENSITIVE_SCAN_ORDER: readonly (keyof typeof SENSITIVE)[] = ['looks', 'sex', 'family', 'education', 'religion'];
+export const SENSITIVE_SCAN_ORDER: readonly (keyof typeof SENSITIVE)[] = [
+  'looks',
+  'sex',
+  'family',
+  'education',
+  'religion',
+];
 
 export interface StoryBeat {
   readonly flare: FlareId;
@@ -180,7 +186,7 @@ export const STORY: readonly StoryBeat[] = [
   { flare: 'cheating', facts: [FACT.noPay] },
   { flare: 'the-bookie', facts: [FACT.fight] },
   { flare: 'rackets', facts: [FACT.underworld] },
-  { flare: 'gangsters', facts: [FACT.underworld, 'He fears the bookie\'s friends will get even with him.'] },
+  { flare: 'gangsters', facts: [FACT.underworld, "He fears the bookie's friends will get even with him."] },
 ];
 
 /** The Mafia delusion (MILD and STRONG): ordered statements that explain one another. */
@@ -203,7 +209,9 @@ export const DELUSION_WORDS = {
 export const AMBIGUOUS_MISTRUST = 10;
 
 /** Sensitive areas and their weights (later code: looks 9, sex 8, family 6, education 4, religion 2). */
-export const SENSITIVE: Readonly<Record<Exclude<SensitiveArea, 'illness'>, { weight: number; words: readonly string[] }>> = {
+export const SENSITIVE: Readonly<
+  Record<Exclude<SensitiveArea, 'illness'>, { weight: number; words: readonly string[] }>
+> = {
   looks: {
     weight: 9,
     words: ['looks', 'ugly', 'handsome', 'appearance', 'your face', 'fat', 'skinny', 'attractive', 'good-looking'],
@@ -228,14 +236,47 @@ export const SENSITIVE: Readonly<Record<Exclude<SensitiveArea, 'illness'>, { wei
 
 /** Insinuations that he is mentally ill or needs help. */
 export const ILLNESS_WORDS: readonly string[] = [
-  'crazy', 'insane', 'nuts', 'lunatic', 'psycho', 'mental', 'mentally', 'paranoid', 'disturbed',
-  'delusion', 'delusions', 'delusional', 'hallucinating', 'imagining things', 'sick in the head',
-  'need help', 'get help', 'help you', 'therapy', 'treatment', 'medication', 'nervous breakdown',
+  'crazy',
+  'insane',
+  'nuts',
+  'lunatic',
+  'psycho',
+  'mental',
+  'mentally',
+  'paranoid',
+  'disturbed',
+  'delusion',
+  'delusions',
+  'delusional',
+  'hallucinating',
+  'imagining things',
+  'sick in the head',
+  'need help',
+  'get help',
+  'help you',
+  'therapy',
+  'treatment',
+  'medication',
+  'nervous breakdown',
 ];
 
 export const SWEAR_WORDS: readonly string[] = [
-  'damn', 'dammit', 'goddamn', 'hell', 'shit', 'bullshit', 'fuck', 'fucking', 'fucker', 'bastard',
-  'bitch', 'ass', 'asshole', 'crap', 'piss', 'prick',
+  'damn',
+  'dammit',
+  'goddamn',
+  'hell',
+  'shit',
+  'bullshit',
+  'fuck',
+  'fucking',
+  'fucker',
+  'bastard',
+  'bitch',
+  'ass',
+  'asshole',
+  'crap',
+  'piss',
+  'prick',
 ];
 
 export const INTAKE_PATTERNS: readonly (readonly [IntakeTopic, RegExp])[] = [

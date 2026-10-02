@@ -289,10 +289,15 @@ describe('useChatPipeline', () => {
     expect(result.current.messages.at(-1)).toMatchObject({ author: 'dr', text: ' =  5' });
   });
 
-  it('applies a custom character\'s letter case to its replies', async () => {
+  it("applies a custom character's letter case to its replies", async () => {
     const custom = { id: 'custom_robo', name: 'ROBO', description: '', isCustom: true };
     const deps = makeDeps({
-      personaState: { ...makeDeps().personaState, persona: custom, personas: [...personas, custom], formatReply: (t: string) => t.toLowerCase() },
+      personaState: {
+        ...makeDeps().personaState,
+        persona: custom,
+        personas: [...personas, custom],
+        formatReply: (t: string) => t.toLowerCase(),
+      },
     });
     const { result } = await startSession(deps);
     await settle(result.current.sendMessage('how are you today'));

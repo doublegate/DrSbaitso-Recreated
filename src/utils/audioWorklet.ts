@@ -35,15 +35,12 @@ export async function initAudioWorklet(ctx: AudioContext): Promise<boolean> {
  * @param bitDepth - Number of quantization levels (0 = disabled, 16 = 4-bit, 64 = 6-bit, 256 = 8-bit)
  * @returns AudioWorkletNode | null
  */
-export function createBitCrusherNode(
-  ctx: AudioContext,
-  bitDepth: number
-): AudioWorkletNode | null {
+export function createBitCrusherNode(ctx: AudioContext, bitDepth: number): AudioWorkletNode | null {
   try {
     const node = new AudioWorkletNode(ctx, 'bit-crusher-processor', {
       processorOptions: {
-        bitDepth
-      }
+        bitDepth,
+      },
     });
     return node;
   } catch (error) {
@@ -60,7 +57,7 @@ export function createBitCrusherNode(
 export function updateBitDepth(node: AudioWorkletNode, bitDepth: number): void {
   node.port.postMessage({
     type: 'updateBitDepth',
-    value: bitDepth
+    value: bitDepth,
   });
 }
 
@@ -78,7 +75,7 @@ export function playAudioWithWorklet(
   ctx: AudioContext,
   bitDepth: number = 64,
   playbackRate: number = 1.1,
-  useWorklet: boolean = true
+  useWorklet: boolean = true,
 ): Promise<void> {
   return new Promise((resolve) => {
     if (ctx.state === 'suspended') {

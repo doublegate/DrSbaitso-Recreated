@@ -10,7 +10,9 @@ describe('usePanels', () => {
 
   it('starts with every panel closed except the first-run tutorial', () => {
     const { result } = renderHook(() => usePanels());
-    const openIds = Object.entries(result.current.open).filter(([, v]) => v).map(([k]) => k);
+    const openIds = Object.entries(result.current.open)
+      .filter(([, v]) => v)
+      .map(([k]) => k);
     expect(openIds).toEqual(['onboarding']);
     expect(result.current.replaySession).toBeNull();
   });

@@ -57,7 +57,14 @@ export const HELP_GAMES = [
   'STRATEGIC APPLICATIONS. TYPE LIST GAMES FOR A LIST.',
 ];
 
-export const SIDE_MENU = ['WHICH SIDE DO YOU WANT?', '', '  1.  UNITED STATES', '  2.  SOVIET UNION', '', 'PLEASE CHOOSE ONE:'];
+export const SIDE_MENU = [
+  'WHICH SIDE DO YOU WANT?',
+  '',
+  '  1.  UNITED STATES',
+  '  2.  SOVIET UNION',
+  '',
+  'PLEASE CHOOSE ONE:',
+];
 
 export const PLAYERS_PROMPT = 'NUMBER OF PLAYERS:';
 export const PLAYERS_INVALID = 'ONE OR ZERO PLAYERS ONLY.';

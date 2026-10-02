@@ -9,7 +9,12 @@ const sbaitso = CHARACTERS.find((c) => c.id === 'sbaitso')!;
 
 describe('Dr. Sbaitso persona prompt', () => {
   it('drops the catchphrases and glitches the original never had', () => {
-    for (const invented of ['TELL ME MORE ABOUT YOUR PROBLEMS', 'PLEASE ELABORATE', 'PARITY CHECKING', 'IRQ CONFLICT']) {
+    for (const invented of [
+      'TELL ME MORE ABOUT YOUR PROBLEMS',
+      'PLEASE ELABORATE',
+      'PARITY CHECKING',
+      'IRQ CONFLICT',
+    ]) {
       expect(sbaitso.systemInstruction).not.toContain(invented);
     }
   });

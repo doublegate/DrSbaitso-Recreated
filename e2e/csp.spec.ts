@@ -11,7 +11,9 @@ import { mockApi, send, startEnhanced } from './fixtures';
 const vercel = JSON.parse(readFileSync(path.resolve(import.meta.dirname, '../vercel.json'), 'utf8')) as {
   headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
 };
-const CSP = vercel.headers.find((h) => h.source === '/(.*)')!.headers.find((h) => h.key === 'Content-Security-Policy')!.value;
+const CSP = vercel.headers
+  .find((h) => h.source === '/(.*)')!
+  .headers.find((h) => h.key === 'Content-Security-Policy')!.value;
 
 async function enforceCsp(page: Page): Promise<string[]> {
   const violations: string[] = [];

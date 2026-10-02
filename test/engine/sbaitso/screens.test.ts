@@ -92,7 +92,18 @@ describe('helpPages', () => {
 
   it('lists every dot command on page 1 and offers more', () => {
     const page = pages[0].join('\n');
-    for (const cmd of ['.QUIT', '.TONE', '.VOLUME', '.PITCH', '.SPEED', '.PARAM', '.ECHO', '.WIDTH', '.COLOR', '.MASTER']) {
+    for (const cmd of [
+      '.QUIT',
+      '.TONE',
+      '.VOLUME',
+      '.PITCH',
+      '.SPEED',
+      '.PARAM',
+      '.ECHO',
+      '.WIDTH',
+      '.COLOR',
+      '.MASTER',
+    ]) {
       expect(page).toContain(cmd);
     }
     expect(page).toContain('Dot Commands are preceeded with a dot on the first column');

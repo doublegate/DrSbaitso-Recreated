@@ -10,14 +10,14 @@ const mockSession: ConversationSession = {
     { author: 'user', text: 'Hello Doctor', timestamp: 1699999999000, characterId: 'sbaitso' },
     { author: 'dr', text: 'HELLO. I AM DR. SBAITSO.', timestamp: 1700000001000, characterId: 'sbaitso' },
     { author: 'user', text: 'How are you?', timestamp: 1700000005000, characterId: 'sbaitso' },
-    { author: 'dr', text: 'I AM FUNCTIONING NORMALLY.', timestamp: 1700000007000, characterId: 'sbaitso' }
+    { author: 'dr', text: 'I AM FUNCTIONING NORMALLY.', timestamp: 1700000007000, characterId: 'sbaitso' },
   ],
   createdAt: 1699999990000,
   updatedAt: 1700000010000,
   messageCount: 4,
   glitchCount: 0,
   themeId: 'dos-blue',
-  audioQualityId: 'authentic'
+  audioQualityId: 'authentic',
 };
 
 describe('ConversationExporter', () => {
@@ -26,7 +26,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'markdown',
         includeMetadata: true,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       expect(result).toContain('# Test Session');
@@ -42,7 +42,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'markdown',
         includeMetadata: false,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       expect(result).not.toContain('**Character:**');
@@ -54,7 +54,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'markdown',
         includeMetadata: false,
-        includeTimestamps: true
+        includeTimestamps: true,
       });
 
       // Should contain time information in some format
@@ -67,7 +67,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'text',
         includeMetadata: true,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       expect(result).toContain('Test Session');
@@ -82,7 +82,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'text',
         includeMetadata: true,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       // Should contain separators
@@ -96,7 +96,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'json',
         includeMetadata: true,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       const parsed = JSON.parse(result);
@@ -111,7 +111,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'json',
         includeMetadata: false,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       const parsed = JSON.parse(result);
@@ -125,7 +125,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'json',
         includeMetadata: true,
-        includeTimestamps: true
+        includeTimestamps: true,
       });
 
       expect(() => JSON.parse(result)).not.toThrow();
@@ -137,7 +137,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'html',
         includeMetadata: true,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       expect(result).toContain('<!DOCTYPE html>');
@@ -154,7 +154,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'html',
         includeMetadata: true,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       expect(result).toContain('<style>');
@@ -168,15 +168,15 @@ describe('ConversationExporter', () => {
         ...mockSession,
         messages: [
           { author: 'user', text: '<b>Bold text</b>', timestamp: Date.now(), characterId: 'sbaitso' },
-          { author: 'dr', text: 'Text with & ampersand', timestamp: Date.now(), characterId: 'sbaitso' }
+          { author: 'dr', text: 'Text with & ampersand', timestamp: Date.now(), characterId: 'sbaitso' },
         ],
-        messageCount: 2
+        messageCount: 2,
       };
 
       const result = ConversationExporter.exportSession(sessionWithHtml, {
         format: 'html',
         includeMetadata: false,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       // escapeHtml uses textContent which escapes HTML entities
@@ -254,7 +254,7 @@ describe('ConversationExporter', () => {
         href: '',
         download: '',
         click: vi.fn(),
-        remove: vi.fn()
+        remove: vi.fn(),
       } as unknown as HTMLAnchorElement;
 
       const createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockLink);
@@ -290,13 +290,13 @@ describe('ConversationExporter', () => {
       const emptySession: ConversationSession = {
         ...mockSession,
         messages: [],
-        messageCount: 0
+        messageCount: 0,
       };
 
       const result = ConversationExporter.exportSession(emptySession, {
         format: 'markdown',
         includeMetadata: true,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       expect(result).toContain('Test Session');
@@ -307,16 +307,14 @@ describe('ConversationExporter', () => {
       const longText = 'A'.repeat(10000);
       const longSession: ConversationSession = {
         ...mockSession,
-        messages: [
-          { author: 'user', text: longText, timestamp: Date.now(), characterId: 'sbaitso' }
-        ],
-        messageCount: 1
+        messages: [{ author: 'user', text: longText, timestamp: Date.now(), characterId: 'sbaitso' }],
+        messageCount: 1,
       };
 
       const result = ConversationExporter.exportSession(longSession, {
         format: 'text',
         includeMetadata: false,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       expect(result).toContain(longText);
@@ -327,7 +325,7 @@ describe('ConversationExporter', () => {
       const result = ConversationExporter.exportSession(mockSession, {
         format: 'unknown' as any,
         includeMetadata: false,
-        includeTimestamps: false
+        includeTimestamps: false,
       });
 
       // Should fall back to text format

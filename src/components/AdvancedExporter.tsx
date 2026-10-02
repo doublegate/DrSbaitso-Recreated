@@ -19,7 +19,7 @@ import {
   downloadExportResult,
   printHtml,
   type BatchFormat,
-  type ExportResult
+  type ExportResult,
 } from '../utils/advancedExport';
 
 interface AdvancedExporterProps {
@@ -45,14 +45,14 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
     includeCharacterInfo: true,
     fontSize: 12,
     pageSize: 'A4',
-    includeThemeStyling: false
+    includeThemeStyling: false,
   });
 
   // CSV Options
   const [csvOptions, setCsvOptions] = useState<CSVExportOptions>({
     delimiter: ',',
     includeHeaders: true,
-    dateFormat: 'iso'
+    dateFormat: 'iso',
   });
   const [csvType, setCsvType] = useState<CSVType>('messages');
 
@@ -144,7 +144,7 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
 
     setExportInProgress(true);
     try {
-      const themesToExport = themes.filter(t => selectedThemes.includes(t.id));
+      const themesToExport = themes.filter((t) => selectedThemes.includes(t.id));
       const result = ThemePackager.packageThemes(themesToExport);
       downloadExportResult(result);
       showMessage('success', `Theme package exported: ${themesToExport.length} themes`);
@@ -164,10 +164,10 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
 
     setExportInProgress(true);
     try {
-      const sessionsToExport = sessions.filter(s => selectedSessions.includes(s.id));
+      const sessionsToExport = sessions.filter((s) => selectedSessions.includes(s.id));
       const results = await BatchExporter.batchExport(sessionsToExport, batchFormat, batchCombined);
 
-      results.forEach(result => downloadExportResult(result));
+      results.forEach((result) => downloadExportResult(result));
       showMessage('success', `Batch export complete: ${results.length} file(s)`);
     } catch (error) {
       console.error('Batch export failed:', error);
@@ -183,23 +183,17 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
   };
 
   const toggleSessionSelection = (sessionId: string) => {
-    setSelectedSessions(prev =>
-      prev.includes(sessionId)
-        ? prev.filter(id => id !== sessionId)
-        : [...prev, sessionId]
+    setSelectedSessions((prev) =>
+      prev.includes(sessionId) ? prev.filter((id) => id !== sessionId) : [...prev, sessionId],
     );
   };
 
   const toggleThemeSelection = (themeId: string) => {
-    setSelectedThemes(prev =>
-      prev.includes(themeId)
-        ? prev.filter(id => id !== themeId)
-        : [...prev, themeId]
-    );
+    setSelectedThemes((prev) => (prev.includes(themeId) ? prev.filter((id) => id !== themeId) : [...prev, themeId]));
   };
 
   const selectAllSessions = () => {
-    setSelectedSessions(sessions.map(s => s.id));
+    setSelectedSessions(sessions.map((s) => s.id));
   };
 
   const clearSessionSelection = () => {
@@ -207,7 +201,7 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
   };
 
   const selectAllThemes = () => {
-    setSelectedThemes(themes.map(t => t.id));
+    setSelectedThemes(themes.map((t) => t.id));
   };
 
   const clearThemeSelection = () => {
@@ -248,9 +242,7 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
       >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--color-primary)' }}>
-            📦 ADVANCED EXPORT
-          </h2>
+          <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--color-primary)' }}>📦 ADVANCED EXPORT</h2>
           <button
             onClick={onClose}
             style={{
@@ -284,7 +276,9 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
         )}
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '5px', marginBottom: '20px', borderBottom: '2px solid var(--color-border)' }}>
+        <div
+          style={{ display: 'flex', gap: '5px', marginBottom: '20px', borderBottom: '2px solid var(--color-border)' }}
+        >
           {(['pdf', 'csv', 'theme', 'batch'] as TabType[]).map((tab) => (
             <button
               key={tab}
@@ -315,7 +309,8 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
           {activeTab === 'pdf' && (
             <div>
               <p style={{ marginBottom: '15px', color: 'var(--color-text)', opacity: 0.8 }}>
-                Print the current session to PDF (choose &quot;Save as PDF&quot; in the print dialog), or download it as a print-ready HTML file.
+                Print the current session to PDF (choose &quot;Save as PDF&quot; in the print dialog), or download it as
+                a print-ready HTML file.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -350,7 +345,9 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                   <span>Font Size:</span>
                   <select
                     value={pdfOptions.fontSize}
-                    onChange={(e) => setPdfOptions({ ...pdfOptions, fontSize: parseInt(e.target.value) as 12 | 14 | 16 })}
+                    onChange={(e) =>
+                      setPdfOptions({ ...pdfOptions, fontSize: parseInt(e.target.value) as 12 | 14 | 16 })
+                    }
                     style={{
                       padding: '8px',
                       backgroundColor: 'var(--color-background)',
@@ -462,7 +459,7 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                   >
                     <option value=",">Comma (,)</option>
                     <option value=";">Semicolon (;)</option>
-                    <option value={"\t"}>Tab</option>
+                    <option value={'\t'}>Tab</option>
                   </select>
                 </label>
 
@@ -479,7 +476,9 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                   <span>Date Format:</span>
                   <select
                     value={csvOptions.dateFormat}
-                    onChange={(e) => setCsvOptions({ ...csvOptions, dateFormat: e.target.value as 'iso' | 'locale' | 'timestamp' })}
+                    onChange={(e) =>
+                      setCsvOptions({ ...csvOptions, dateFormat: e.target.value as 'iso' | 'locale' | 'timestamp' })
+                    }
                     style={{
                       padding: '8px',
                       backgroundColor: 'var(--color-background)',
@@ -552,14 +551,25 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                 </button>
               </div>
 
-              <div style={{ maxHeight: '300px', overflow: 'auto', marginBottom: '15px', border: '1px solid var(--color-border)', padding: '10px' }}>
+              <div
+                style={{
+                  maxHeight: '300px',
+                  overflow: 'auto',
+                  marginBottom: '15px',
+                  border: '1px solid var(--color-border)',
+                  padding: '10px',
+                }}
+              >
                 {themes.length === 0 ? (
                   <p style={{ textAlign: 'center', color: 'var(--color-text)', opacity: 0.6 }}>
                     No custom themes available
                   </p>
                 ) : (
                   themes.map((theme) => (
-                    <label key={theme.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', cursor: 'pointer' }}>
+                    <label
+                      key={theme.id}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', cursor: 'pointer' }}
+                    >
                       <input
                         type="checkbox"
                         checked={selectedThemes.includes(theme.id)}
@@ -628,20 +638,31 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                 </button>
               </div>
 
-              <div style={{ maxHeight: '200px', overflow: 'auto', marginBottom: '15px', border: '1px solid var(--color-border)', padding: '10px' }}>
+              <div
+                style={{
+                  maxHeight: '200px',
+                  overflow: 'auto',
+                  marginBottom: '15px',
+                  border: '1px solid var(--color-border)',
+                  padding: '10px',
+                }}
+              >
                 {sessions.length === 0 ? (
-                  <p style={{ textAlign: 'center', color: 'var(--color-text)', opacity: 0.6 }}>
-                    No sessions available
-                  </p>
+                  <p style={{ textAlign: 'center', color: 'var(--color-text)', opacity: 0.6 }}>No sessions available</p>
                 ) : (
                   sessions.map((session) => (
-                    <label key={session.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', cursor: 'pointer' }}>
+                    <label
+                      key={session.id}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', cursor: 'pointer' }}
+                    >
                       <input
                         type="checkbox"
                         checked={selectedSessions.includes(session.id)}
                         onChange={() => toggleSessionSelection(session.id)}
                       />
-                      <span>{session.name} ({session.messageCount} msgs)</span>
+                      <span>
+                        {session.name} ({session.messageCount} msgs)
+                      </span>
                     </label>
                   ))
                 )}
@@ -675,7 +696,11 @@ export function AdvancedExporter({ isOpen, onClose, sessions, themes, currentSes
                     onChange={(e) => setBatchCombined(e.target.checked)}
                     disabled={batchFormat === 'html' || batchFormat === 'pdf' || batchFormat === 'markdown'}
                   />
-                  <span>Combine into single file {(batchFormat === 'html' || batchFormat === 'pdf' || batchFormat === 'markdown') && '(not supported for HTML/Markdown)'}</span>
+                  <span>
+                    Combine into single file{' '}
+                    {(batchFormat === 'html' || batchFormat === 'pdf' || batchFormat === 'markdown') &&
+                      '(not supported for HTML/Markdown)'}
+                  </span>
                 </label>
               </div>
 

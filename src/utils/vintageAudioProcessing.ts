@@ -50,7 +50,7 @@ export enum AuthenticityLevel {
   Authentic = 'authentic',
 
   /** As Authentic, through the darker SB Pro 3.2 kHz output filter. */
-  UltraAuthentic = 'ultra'
+  UltraAuthentic = 'ultra',
 }
 
 /**
@@ -114,7 +114,7 @@ export const AUTHENTICITY_PRESETS: Record<AuthenticityLevel, VintageProcessingCo
     normalizeRms: 0,
     sampleAndHold: false,
     volumeVarianceReduction: 0,
-    pitchFlattening: false
+    pitchFlattening: false,
   },
 
   [AuthenticityLevel.SubtleVintage]: {
@@ -129,7 +129,7 @@ export const AUTHENTICITY_PRESETS: Record<AuthenticityLevel, VintageProcessingCo
     normalizeRms: 0,
     sampleAndHold: false,
     volumeVarianceReduction: 0.1,
-    pitchFlattening: false
+    pitchFlattening: false,
   },
 
   [AuthenticityLevel.Authentic]: {
@@ -144,7 +144,7 @@ export const AUTHENTICITY_PRESETS: Record<AuthenticityLevel, VintageProcessingCo
     normalizeRms: ORIGINAL_RMS,
     sampleAndHold: true,
     volumeVarianceReduction: 0.3,
-    pitchFlattening: true
+    pitchFlattening: true,
   },
 
   [AuthenticityLevel.UltraAuthentic]: {
@@ -159,8 +159,8 @@ export const AUTHENTICITY_PRESETS: Record<AuthenticityLevel, VintageProcessingCo
     normalizeRms: ORIGINAL_RMS,
     sampleAndHold: true,
     volumeVarianceReduction: 0.5,
-    pitchFlattening: true
-  }
+    pitchFlattening: true,
+  },
 };
 
 /** 8th-order Butterworth low-pass (four cascaded biquads): the resampler's anti-alias filter. */
@@ -262,21 +262,27 @@ export function processVintageSamples(
   input: Float32Array,
   sampleRate: number,
   config: VintageProcessingConfig,
-  endPunctuation: EndPunctuation = null
+  endPunctuation: EndPunctuation = null,
 ): Float32Array {
   const length = input.length;
   if (config.level === AuthenticityLevel.Modern || length === 0) return Float32Array.from(input);
 
-  let signal = config.volumeVarianceReduction > 0
-    ? compressLevel(input, sampleRate, config.volumeVarianceReduction)
-    : Float32Array.from(input);
+  let signal =
+    config.volumeVarianceReduction > 0
+      ? compressLevel(input, sampleRate, config.volumeVarianceReduction)
+      : Float32Array.from(input);
 
   // Into the engine's sample rate.
   const engineRate = Math.min(config.targetSampleRate, sampleRate);
   let engine = signal;
   if (engineRate < sampleRate) {
     const antiAlias = antiAliasLowPass(signal, 0.45 * engineRate, sampleRate);
-    engine = resampleLinear(antiAlias, sampleRate, engineRate, Math.max(1, Math.round((length * engineRate) / sampleRate)));
+    engine = resampleLinear(
+      antiAlias,
+      sampleRate,
+      engineRate,
+      Math.max(1, Math.round((length * engineRate) / sampleRate)),
+    );
   }
 
   if (config.pitchFlattening) {
@@ -284,7 +290,10 @@ export function processVintageSamples(
   }
 
   if (config.highShelfGainDb !== 0) {
-    engine = applyBiquad(engine, designBiquad('highshelf', config.highShelfFrequency, engineRate, Math.SQRT1_2, config.highShelfGainDb));
+    engine = applyBiquad(
+      engine,
+      designBiquad('highshelf', config.highShelfFrequency, engineRate, Math.SQRT1_2, config.highShelfGainDb),
+    );
   }
 
   if (config.normalizePeak > 0 || config.normalizeRms > 0) normalise(engine, config.normalizePeak, config.normalizeRms);
@@ -323,7 +332,7 @@ export async function applyVintageProcessing(
   buffer: AudioBuffer,
   ctx: AudioContext,
   config: VintageProcessingConfig,
-  endPunctuation: EndPunctuation = null
+  endPunctuation: EndPunctuation = null,
 ): Promise<AudioBuffer> {
   if (config.level === AuthenticityLevel.Modern) return buffer;
 
@@ -365,6 +374,8 @@ export function getAuthenticitySpecs(level: AuthenticityLevel): string {
   const config = AUTHENTICITY_PRESETS[level];
   const bitDepth = Math.log2(config.quantizationLevels);
 
-  return `${(config.targetSampleRate / 1000).toFixed(1)} kHz, ${bitDepth}-bit, ` +
-         `${config.lowCutoff}-${config.highCutoff} Hz`;
+  return (
+    `${(config.targetSampleRate / 1000).toFixed(1)} kHz, ${bitDepth}-bit, ` +
+    `${config.lowCutoff}-${config.highCutoff} Hz`
+  );
 }

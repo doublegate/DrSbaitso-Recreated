@@ -123,7 +123,9 @@ describe('Audio Utilities', () => {
         },
       } as unknown as AudioContext;
       const render = async (punctuation?: '.' | '?' | null) =>
-        Array.from((await decodeAudioData(pcm16(...samples), ctx, 24000, 1, 'authentic', punctuation)).getChannelData(0));
+        Array.from(
+          (await decodeAudioData(pcm16(...samples), ctx, 24000, 1, 'authentic', punctuation)).getChannelData(0),
+        );
       const question = await render('?');
       const statement = await render('.');
       expect(question.length).toBe(24000);
@@ -202,7 +204,7 @@ describe('Audio Utilities', () => {
       Object.defineProperty(mockContext, 'state', {
         value: 'suspended',
         writable: true,
-        configurable: true
+        configurable: true,
       });
       const resumeSpy = vi.spyOn(mockContext, 'resume');
 
@@ -230,7 +232,7 @@ describe('Audio Utilities', () => {
       Object.defineProperty(mockContext, 'state', {
         value: 'suspended',
         writable: true,
-        configurable: true
+        configurable: true,
       });
       const resumeSpy = vi.spyOn(mockContext, 'resume');
 
@@ -265,7 +267,7 @@ describe('Audio Utilities', () => {
       Object.defineProperty(mockContext, 'state', {
         value: 'suspended',
         writable: true,
-        configurable: true
+        configurable: true,
       });
       const resumeSpy = vi.spyOn(mockContext, 'resume');
 

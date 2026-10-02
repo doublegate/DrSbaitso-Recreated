@@ -22,13 +22,7 @@ import { getSharedAudioContext } from './sharedAudio';
 
 /** App events a sound pack can react to. */
 export type SoundPackEvent =
-  | 'message-send'
-  | 'message-receive'
-  | 'error'
-  | 'glitch'
-  | 'startup'
-  | 'character-switch'
-  | 'theme-change';
+  'message-send' | 'message-receive' | 'error' | 'glitch' | 'startup' | 'character-switch' | 'theme-change';
 
 const EVENT_TO_TRIGGER: Record<SoundPackEvent, SoundTriggerEvent> = {
   'message-send': 'message_sent',
@@ -70,7 +64,7 @@ export class SoundPackPlayer {
         } catch (error) {
           console.error(`Failed to load sound "${sound.name}":`, error);
         }
-      })
+      }),
     );
   }
 
@@ -111,7 +105,7 @@ export class SoundPackPlayer {
       return;
     }
 
-    const sound = this.currentPack.sounds.find(s => s.id === soundId);
+    const sound = this.currentPack.sounds.find((s) => s.id === soundId);
     if (!sound) return;
 
     try {
@@ -141,8 +135,8 @@ export class SoundPackPlayer {
     }
 
     const playPromises = this.currentPack.triggers
-      .filter(t => t.event === event && Math.random() * 100 < t.probability)
-      .map(trigger => this.playSound(trigger.soundId));
+      .filter((t) => t.event === event && Math.random() * 100 < t.probability)
+      .map((trigger) => this.playSound(trigger.soundId));
 
     await Promise.all(playPromises);
   }

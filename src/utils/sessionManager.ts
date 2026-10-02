@@ -43,7 +43,7 @@ export class SessionManager {
       createdAt: now,
       updatedAt: now,
       messageCount: 0,
-      glitchCount: 0
+      glitchCount: 0,
     };
   }
 
@@ -80,7 +80,7 @@ export class SessionManager {
   static saveSession(session: ConversationSession): void {
     try {
       const sessions = this.getAllSessions();
-      const existingIndex = sessions.findIndex(s => s.id === session.id);
+      const existingIndex = sessions.findIndex((s) => s.id === session.id);
 
       if (existingIndex >= 0) {
         sessions[existingIndex] = session;
@@ -119,7 +119,7 @@ export class SessionManager {
 
   static deleteSession(sessionId: string): void {
     try {
-      const sessions = this.getAllSessions().filter(s => s.id !== sessionId);
+      const sessions = this.getAllSessions().filter((s) => s.id !== sessionId);
       localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
 
       const current = this.getCurrentSession();
@@ -160,7 +160,7 @@ export class SessionManager {
       soundEnabled: true,
       autoScroll: true,
       showTimestamps: false,
-      compactMode: false
+      compactMode: false,
     };
   }
 
@@ -200,18 +200,17 @@ export class SessionManager {
       stats.themesUsed[session.themeId]++;
 
       // Calculate favorites
-      stats.favoriteCharacter = Object.entries(stats.charactersUsed)
-        .sort(([, a], [, b]) => b - a)[0]?.[0] || DEFAULT_CHARACTER;
+      stats.favoriteCharacter =
+        Object.entries(stats.charactersUsed).sort(([, a], [, b]) => b - a)[0]?.[0] || DEFAULT_CHARACTER;
 
-      stats.favoriteTheme = Object.entries(stats.themesUsed)
-        .sort(([, a], [, b]) => b - a)[0]?.[0] || DEFAULT_THEME;
+      stats.favoriteTheme = Object.entries(stats.themesUsed).sort(([, a], [, b]) => b - a)[0]?.[0] || DEFAULT_THEME;
 
       // Calculate conversation time
       if (session.messages.length > 1) {
         const firstMsg = session.messages[0];
         const lastMsg = session.messages[session.messages.length - 1];
         if (firstMsg.timestamp && lastMsg.timestamp) {
-          stats.totalConversationTime += (lastMsg.timestamp - firstMsg.timestamp);
+          stats.totalConversationTime += lastMsg.timestamp - firstMsg.timestamp;
         }
       }
 
@@ -240,7 +239,7 @@ export class SessionManager {
       favoriteTheme: DEFAULT_THEME,
       totalConversationTime: 0,
       charactersUsed: {},
-      themesUsed: {}
+      themesUsed: {},
     };
   }
 
@@ -269,8 +268,8 @@ export class SessionManager {
     const sessions = this.getAllSessions();
     const allMessages: Message[] = [];
 
-    sessions.forEach(session => {
-      session.messages.forEach(message => {
+    sessions.forEach((session) => {
+      session.messages.forEach((message) => {
         const timestamp = message.timestamp || session.createdAt;
         const afterStart = startDate === undefined || timestamp >= startDate;
         const beforeEnd = endDate === undefined || timestamp <= endDate;
@@ -279,7 +278,7 @@ export class SessionManager {
           allMessages.push({
             ...message,
             timestamp: timestamp,
-            characterId: session.characterId
+            characterId: session.characterId,
           });
         }
       });
@@ -331,21 +330,21 @@ export class SessionManager {
     const sessions = this.getAllSessions();
 
     // Filter sessions by date range and character
-    let filteredSessions = sessions.filter(session => {
+    let filteredSessions = sessions.filter((session) => {
       const sessionTime = session.updatedAt;
       const afterStart = startDate === undefined || sessionTime >= startDate;
       const beforeEnd = endDate === undefined || sessionTime <= endDate;
-      const matchesCharacter = !filter.characterIds || filter.characterIds.length === 0 ||
-                               filter.characterIds.includes(session.characterId);
-      const matchesSession = !filter.sessionIds || filter.sessionIds.length === 0 ||
-                              filter.sessionIds.includes(session.id);
+      const matchesCharacter =
+        !filter.characterIds || filter.characterIds.length === 0 || filter.characterIds.includes(session.characterId);
+      const matchesSession =
+        !filter.sessionIds || filter.sessionIds.length === 0 || filter.sessionIds.includes(session.id);
 
       return afterStart && beforeEnd && matchesCharacter && matchesSession;
     });
 
     // Build timeline data (group by date)
     const timelineMap = new Map<string, Map<string, number>>();
-    filteredSessions.forEach(session => {
+    filteredSessions.forEach((session) => {
       const date = new Date(session.createdAt).toLocaleDateString();
 
       if (!timelineMap.has(date)) {
@@ -369,27 +368,29 @@ export class SessionManager {
 
     // Get all messages for sentiment and topic analysis
     const allMessages: Message[] = [];
-    filteredSessions.forEach(session => {
-      allMessages.push(...session.messages.map(m => ({
-        ...m,
-        timestamp: m.timestamp || session.createdAt,
-        characterId: session.characterId
-      })));
+    filteredSessions.forEach((session) => {
+      allMessages.push(
+        ...session.messages.map((m) => ({
+          ...m,
+          timestamp: m.timestamp || session.createdAt,
+          characterId: session.characterId,
+        })),
+      );
     });
 
     // Calculate sentiment
-    const sentimentAnalysis = analyzeSentiment(allMessages.map(m => m.text).join(' '));
+    const sentimentAnalysis = analyzeSentiment(allMessages.map((m) => m.text).join(' '));
     const trend = allMessages.length > 0 ? calculateSentimentTrend(allMessages) : 'stable';
 
     // Get recent messages for average (last 7 days)
     const recentDate = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const recentMessages = allMessages.filter(m => (m.timestamp || 0) >= recentDate);
-    const recentSentiment = analyzeSentiment(recentMessages.map(m => m.text).join(' '));
+    const recentMessages = allMessages.filter((m) => (m.timestamp || 0) >= recentDate);
+    const recentSentiment = analyzeSentiment(recentMessages.map((m) => m.text).join(' '));
 
     const sentiment = {
       score: sentimentAnalysis.score,
       trend,
-      recentAverage: recentSentiment.score
+      recentAverage: recentSentiment.score,
     };
 
     // Extract topics
@@ -397,23 +398,23 @@ export class SessionManager {
 
     // Calculate character usage
     const characterCounts = new Map<string, number>();
-    filteredSessions.forEach(session => {
+    filteredSessions.forEach((session) => {
       const count = characterCounts.get(session.characterId) || 0;
       characterCounts.set(session.characterId, count + 1);
     });
 
     const totalSessions = filteredSessions.length;
     const characterUsage = Array.from(characterCounts.entries()).map(([character, count]) => ({
-      character: CHARACTERS.find(c => c.id === character)?.name || character,
+      character: CHARACTERS.find((c) => c.id === character)?.name || character,
       count,
-      percentage: totalSessions > 0 ? Math.round((count / totalSessions) * 100) : 0
+      percentage: totalSessions > 0 ? Math.round((count / totalSessions) * 100) : 0,
     }));
 
     return {
       timeline,
       sentiment,
       topics,
-      characterUsage
+      characterUsage,
     };
   }
 
@@ -438,7 +439,7 @@ export class SessionManager {
         avgMessagesPerSession: 0,
         avgConversationDuration: 0,
         oldestSession: 0,
-        newestSession: 0
+        newestSession: 0,
       };
     }
 
@@ -446,12 +447,12 @@ export class SessionManager {
     let totalDuration = 0;
     let sessionsWithDuration = 0;
 
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       if (session.messages.length > 1) {
         const first = session.messages[0];
         const last = session.messages[session.messages.length - 1];
         if (first.timestamp && last.timestamp) {
-          totalDuration += (last.timestamp - first.timestamp);
+          totalDuration += last.timestamp - first.timestamp;
           sessionsWithDuration++;
         }
       }
@@ -461,11 +462,9 @@ export class SessionManager {
       totalSessions: sessions.length,
       totalMessages,
       avgMessagesPerSession: Math.round(totalMessages / sessions.length),
-      avgConversationDuration: sessionsWithDuration > 0
-        ? Math.round(totalDuration / sessionsWithDuration)
-        : 0,
-      oldestSession: Math.min(...sessions.map(s => s.createdAt)),
-      newestSession: Math.max(...sessions.map(s => s.updatedAt))
+      avgConversationDuration: sessionsWithDuration > 0 ? Math.round(totalDuration / sessionsWithDuration) : 0,
+      oldestSession: Math.min(...sessions.map((s) => s.createdAt)),
+      newestSession: Math.max(...sessions.map((s) => s.updatedAt)),
     };
   }
 }

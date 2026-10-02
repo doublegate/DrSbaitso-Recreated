@@ -35,7 +35,7 @@ export function useAccessibility() {
     return {
       ...DEFAULT_ACCESSIBILITY_SETTINGS,
       reducedMotion: prefersReducedMotion(),
-      highContrast: prefersHighContrast()
+      highContrast: prefersHighContrast(),
     };
   });
 
@@ -53,25 +53,28 @@ export function useAccessibility() {
   /**
    * Update a specific setting
    */
-  const updateSetting = useCallback(<K extends keyof AccessibilitySettings>(
-    key: K,
-    value: AccessibilitySettings[K]
-  ) => {
-    setSettings(prev => {
-      const newSettings = { ...prev, [key]: value };
-      saveSettings(newSettings);
-      return newSettings;
-    });
-  }, [saveSettings]);
+  const updateSetting = useCallback(
+    <K extends keyof AccessibilitySettings>(key: K, value: AccessibilitySettings[K]) => {
+      setSettings((prev) => {
+        const newSettings = { ...prev, [key]: value };
+        saveSettings(newSettings);
+        return newSettings;
+      });
+    },
+    [saveSettings],
+  );
 
   /**
    * Toggle boolean setting
    */
-  const toggleSetting = useCallback((key: keyof AccessibilitySettings) => {
-    if (typeof settings[key] === 'boolean') {
-      updateSetting(key, !settings[key] as any);
-    }
-  }, [settings, updateSetting]);
+  const toggleSetting = useCallback(
+    (key: keyof AccessibilitySettings) => {
+      if (typeof settings[key] === 'boolean') {
+        updateSetting(key, !settings[key] as any);
+      }
+    },
+    [settings, updateSetting],
+  );
 
   /**
    * Reset to default settings
@@ -158,6 +161,6 @@ export function useAccessibility() {
     settings,
     updateSetting,
     toggleSetting,
-    resetSettings
+    resetSettings,
   };
 }

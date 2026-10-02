@@ -92,9 +92,7 @@ export interface InsightSummary {
 // CONVERSATION HEALTH ANALYSIS
 // ============================================================================
 
-export function calculateConversationHealth(
-  sessions: ConversationSession[]
-): ConversationHealth {
+export function calculateConversationHealth(sessions: ConversationSession[]): ConversationHealth {
   if (sessions.length === 0) {
     return {
       score: 0,
@@ -113,9 +111,7 @@ export function calculateConversationHealth(
   const allMessages = recentSessions.flatMap((s) => s.messages);
 
   // 1. Sentiment Balance (0-100) - ideal is neutral to slightly positive
-  const sentiments = allMessages
-    .filter((m) => m.author === 'user')
-    .map((m) => analyzeSentiment(m.text).score);
+  const sentiments = allMessages.filter((m) => m.author === 'user').map((m) => analyzeSentiment(m.text).score);
   const avgSentiment = sentiments.reduce((a, b) => a + b, 0) / sentiments.length || 0;
   const sentimentBalance = Math.min(100, Math.max(0, 50 + avgSentiment / 2));
 
@@ -124,8 +120,7 @@ export function calculateConversationHealth(
   const topicDiversity = Math.min(100, (topics.length / 10) * 100); // 10+ topics = perfect
 
   // 3. Engagement Level (0-100) - message count and session frequency
-  const avgMessagesPerSession =
-    recentSessions.reduce((sum, s) => sum + s.messageCount, 0) / recentSessions.length;
+  const avgMessagesPerSession = recentSessions.reduce((sum, s) => sum + s.messageCount, 0) / recentSessions.length;
   const engagementLevel = Math.min(100, (avgMessagesPerSession / 20) * 100); // 20+ messages = perfect
 
   // 4. Responsiveness (0-100) - user continuing conversations
@@ -134,10 +129,7 @@ export function calculateConversationHealth(
 
   // Overall score (weighted average)
   const score = Math.round(
-    sentimentBalance * 0.3 +
-      topicDiversity * 0.2 +
-      engagementLevel * 0.3 +
-      responsiveness * 0.2
+    sentimentBalance * 0.3 + topicDiversity * 0.2 + engagementLevel * 0.3 + responsiveness * 0.2,
   );
 
   // Generate recommendation
@@ -168,17 +160,12 @@ export function calculateConversationHealth(
   };
 }
 
-function getHealthRecommendation(
-  score: number,
-  breakdown: ConversationHealth['breakdown']
-): string {
+function getHealthRecommendation(score: number, breakdown: ConversationHealth['breakdown']): string {
   if (score >= 80) return 'Excellent conversation health! Keep engaging.';
   if (score >= 60) return 'Good conversation patterns. Consider exploring new topics.';
   if (score >= 40) {
-    if (breakdown.topicDiversity < 40)
-      return 'Try discussing different topics to increase variety.';
-    if (breakdown.sentimentBalance < 40)
-      return 'Detected negative sentiment. Consider positive topics.';
+    if (breakdown.topicDiversity < 40) return 'Try discussing different topics to increase variety.';
+    if (breakdown.sentimentBalance < 40) return 'Detected negative sentiment. Consider positive topics.';
     return 'Moderate health. Increase engagement length.';
   }
   return 'Low conversation health. Try longer, varied discussions.';
@@ -190,12 +177,70 @@ function getHealthRecommendation(
 
 // Simple stop words to filter out
 const STOP_WORDS = new Set([
-  'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for',
-  'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his',
-  'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or', 'an', 'will', 'my',
-  'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up', 'out', 'if',
-  'about', 'who', 'get', 'which', 'go', 'me', 'am', 'is', 'are', 'was', 'were',
-  'im', 'dont', 'cant', 'wont', 'didnt', 'doesnt', 'isnt', 'arent', 'wasnt',
+  'the',
+  'be',
+  'to',
+  'of',
+  'and',
+  'a',
+  'in',
+  'that',
+  'have',
+  'i',
+  'it',
+  'for',
+  'not',
+  'on',
+  'with',
+  'he',
+  'as',
+  'you',
+  'do',
+  'at',
+  'this',
+  'but',
+  'his',
+  'by',
+  'from',
+  'they',
+  'we',
+  'say',
+  'her',
+  'she',
+  'or',
+  'an',
+  'will',
+  'my',
+  'one',
+  'all',
+  'would',
+  'there',
+  'their',
+  'what',
+  'so',
+  'up',
+  'out',
+  'if',
+  'about',
+  'who',
+  'get',
+  'which',
+  'go',
+  'me',
+  'am',
+  'is',
+  'are',
+  'was',
+  'were',
+  'im',
+  'dont',
+  'cant',
+  'wont',
+  'didnt',
+  'doesnt',
+  'isnt',
+  'arent',
+  'wasnt',
 ]);
 
 function extractTopics(messages: Message[]): string[] {
@@ -239,7 +284,7 @@ export function clusterTopics(sessions: ConversationSession[]): TopicCluster[] {
 
     topWords.forEach(([word, freq]) => {
       const existing = clusters.get(word);
-      const sentiment = analyzeSentiment(messages.map(m => m.text).join(' ')).score;
+      const sentiment = analyzeSentiment(messages.map((m) => m.text).join(' ')).score;
 
       if (existing) {
         existing.frequency += freq;
@@ -247,8 +292,7 @@ export function clusterTopics(sessions: ConversationSession[]): TopicCluster[] {
         existing.lastSeen = Math.max(existing.lastSeen, session.updatedAt);
         // Update average sentiment
         existing.sentiment =
-          (existing.sentiment * (existing.sessions.length - 1) + sentiment) /
-          existing.sessions.length;
+          (existing.sentiment * (existing.sessions.length - 1) + sentiment) / existing.sessions.length;
       } else {
         clusters.set(word, {
           topic: word,
@@ -272,9 +316,7 @@ export function clusterTopics(sessions: ConversationSession[]): TopicCluster[] {
 // SENTIMENT TRAJECTORY
 // ============================================================================
 
-export function analyzeSentimentTrajectory(
-  sessions: ConversationSession[]
-): SentimentTrajectory {
+export function analyzeSentimentTrajectory(sessions: ConversationSession[]): SentimentTrajectory {
   if (sessions.length === 0) {
     return {
       timeline: [],
@@ -289,7 +331,12 @@ export function analyzeSentimentTrajectory(
   // Calculate sentiment for each session
   const timeline = sessions.map((session) => ({
     timestamp: session.updatedAt,
-    score: analyzeSentiment(session.messages.filter((m) => m.author === 'user').map(m => m.text).join(' ')).score,
+    score: analyzeSentiment(
+      session.messages
+        .filter((m) => m.author === 'user')
+        .map((m) => m.text)
+        .join(' '),
+    ).score,
     sessionId: session.id,
   }));
 
@@ -348,14 +395,15 @@ function calculateVolatility(scores: number[]): number {
 // CHARACTER EFFECTIVENESS
 // ============================================================================
 
-export function analyzeCharacterEffectiveness(
-  sessions: ConversationSession[]
-): CharacterEffectiveness[] {
-  const characterStats = new Map<string, {
-    sessions: ConversationSession[];
-    sentimentChanges: number[];
-    continuedSessions: number;
-  }>();
+export function analyzeCharacterEffectiveness(sessions: ConversationSession[]): CharacterEffectiveness[] {
+  const characterStats = new Map<
+    string,
+    {
+      sessions: ConversationSession[];
+      sentimentChanges: number[];
+      continuedSessions: number;
+    }
+  >();
 
   sessions.forEach((session) => {
     const existing = characterStats.get(session.characterId) || {
@@ -371,8 +419,8 @@ export function analyzeCharacterEffectiveness(
     if (userMessages.length >= 2) {
       const firstHalf = userMessages.slice(0, Math.floor(userMessages.length / 2));
       const secondHalf = userMessages.slice(Math.floor(userMessages.length / 2));
-      const firstSentiment = analyzeSentiment(firstHalf.map(m => m.text).join(' ')).score;
-      const secondSentiment = analyzeSentiment(secondHalf.map(m => m.text).join(' ')).score;
+      const firstSentiment = analyzeSentiment(firstHalf.map((m) => m.text).join(' ')).score;
+      const secondSentiment = analyzeSentiment(secondHalf.map((m) => m.text).join(' ')).score;
       existing.sentimentChanges.push(secondSentiment - firstSentiment);
     }
 
@@ -383,38 +431,37 @@ export function analyzeCharacterEffectiveness(
     characterStats.set(session.characterId, existing);
   });
 
-  return Array.from(characterStats.entries()).map(([characterId, stats]) => {
-    const avgSessionLength =
-      stats.sessions.reduce((sum, s) => sum + s.messageCount, 0) / stats.sessions.length;
-    const avgSessionDuration =
-      stats.sessions
-        .filter((s) => s.endedAt && s.startedAt)
-        .reduce((sum, s) => sum + ((s.endedAt || 0) - (s.startedAt || 0)), 0) /
-      stats.sessions.length;
-    const avgSentimentChange =
-      stats.sentimentChanges.reduce((a, b) => a + b, 0) / stats.sentimentChanges.length || 0;
-    const userRetention = (stats.continuedSessions / stats.sessions.length) * 100;
+  return Array.from(characterStats.entries())
+    .map(([characterId, stats]) => {
+      const avgSessionLength = stats.sessions.reduce((sum, s) => sum + s.messageCount, 0) / stats.sessions.length;
+      const avgSessionDuration =
+        stats.sessions
+          .filter((s) => s.endedAt && s.startedAt)
+          .reduce((sum, s) => sum + ((s.endedAt || 0) - (s.startedAt || 0)), 0) / stats.sessions.length;
+      const avgSentimentChange = stats.sentimentChanges.reduce((a, b) => a + b, 0) / stats.sentimentChanges.length || 0;
+      const userRetention = (stats.continuedSessions / stats.sessions.length) * 100;
 
-    // Composite effectiveness score
-    const effectiveness = Math.round(
-      Math.min(
-        100,
-        (avgSessionLength / 20) * 30 + // 30% weight: longer sessions
-          Math.min(50 + avgSentimentChange, 100) * 0.4 + // 40% weight: positive sentiment change
-          userRetention * 0.3 // 30% weight: retention
-      )
-    );
+      // Composite effectiveness score
+      const effectiveness = Math.round(
+        Math.min(
+          100,
+          (avgSessionLength / 20) * 30 + // 30% weight: longer sessions
+            Math.min(50 + avgSentimentChange, 100) * 0.4 + // 40% weight: positive sentiment change
+            userRetention * 0.3, // 30% weight: retention
+        ),
+      );
 
-    return {
-      characterId,
-      conversationCount: stats.sessions.length,
-      avgSessionLength,
-      avgSessionDuration,
-      avgSentimentChange,
-      userRetention,
-      effectiveness,
-    };
-  }).sort((a, b) => b.effectiveness - a.effectiveness);
+      return {
+        characterId,
+        conversationCount: stats.sessions.length,
+        avgSessionLength,
+        avgSessionDuration,
+        avgSentimentChange,
+        userRetention,
+        effectiveness,
+      };
+    })
+    .sort((a, b) => b.effectiveness - a.effectiveness);
 }
 
 // ============================================================================
@@ -425,9 +472,7 @@ export function detectConversationLoops(sessions: ConversationSession[]): Conver
   const patterns = new Map<string, ConversationLoop>();
 
   sessions.forEach((session) => {
-    const userMessages = session.messages
-      .filter((m) => m.author === 'user')
-      .map((m) => m.text.toLowerCase().trim());
+    const userMessages = session.messages.filter((m) => m.author === 'user').map((m) => m.text.toLowerCase().trim());
 
     // Look for repeated sequences (3+ messages)
     for (let len = 3; len <= Math.min(5, userMessages.length - 1); len++) {
@@ -493,11 +538,8 @@ export function analyzeEngagementMetrics(sessions: ConversationSession[]): Engag
   }
 
   // Average message length
-  const allUserMessages = sessions.flatMap((s) =>
-    s.messages.filter((m) => m.author === 'user')
-  );
-  const avgMessageLength =
-    allUserMessages.reduce((sum, m) => sum + m.text.length, 0) / allUserMessages.length || 0;
+  const allUserMessages = sessions.flatMap((s) => s.messages.filter((m) => m.author === 'user'));
+  const avgMessageLength = allUserMessages.reduce((sum, m) => sum + m.text.length, 0) / allUserMessages.length || 0;
 
   // Average response time (estimated based on message timestamps if available)
   const avgResponseTime = 5000; // Placeholder: would need message-level timestamps
@@ -506,7 +548,7 @@ export function analyzeEngagementMetrics(sessions: ConversationSession[]): Engag
   const sessionsWithDuration = sessions.filter((s) => s.endedAt && s.startedAt);
   const avgSessionDuration =
     sessionsWithDuration.reduce((sum, s) => sum + ((s.endedAt || 0) - (s.startedAt || 0)), 0) /
-    sessionsWithDuration.length || 0;
+      sessionsWithDuration.length || 0;
 
   // Message frequency by hour
   const hourCounts: number[] = Array.from({ length: 24 }, () => 0);
@@ -520,8 +562,7 @@ export function analyzeEngagementMetrics(sessions: ConversationSession[]): Engag
   // Consistency score (based on variance in session times)
   const sessionHours = sessions.map((s) => new Date(s.createdAt).getHours());
   const hourMean = sessionHours.reduce((a, b) => a + b, 0) / sessionHours.length;
-  const hourVariance =
-    sessionHours.reduce((sum, h) => sum + (h - hourMean) ** 2, 0) / sessionHours.length;
+  const hourVariance = sessionHours.reduce((sum, h) => sum + (h - hourMean) ** 2, 0) / sessionHours.length;
   const consistencyScore = Math.max(0, 100 - hourVariance * 2);
 
   return {

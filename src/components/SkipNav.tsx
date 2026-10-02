@@ -20,7 +20,7 @@ export interface SkipNavProps {
 const DEFAULT_LINKS = [
   { href: '#main-content', label: 'Skip to main content' },
   { href: '#chat-input', label: 'Skip to chat input' },
-  { href: '#settings', label: 'Skip to settings' }
+  { href: '#settings', label: 'Skip to settings' },
 ];
 
 export default function SkipNav({ links = DEFAULT_LINKS }: SkipNavProps) {
@@ -32,7 +32,7 @@ export default function SkipNav({ links = DEFAULT_LINKS }: SkipNavProps) {
         position: 'absolute',
         top: 0,
         left: 0,
-        zIndex: 9999
+        zIndex: 9999,
       }}
     >
       {links.map((link, index) => (
@@ -57,7 +57,7 @@ export default function SkipNav({ links = DEFAULT_LINKS }: SkipNavProps) {
             border: '2px solid #ffffff',
             borderRadius: '4px',
             whiteSpace: 'nowrap',
-            transition: 'none'
+            transition: 'none',
           }}
           onFocus={(e) => {
             const target = e.target as HTMLAnchorElement;

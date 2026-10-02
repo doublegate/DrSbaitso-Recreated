@@ -23,13 +23,7 @@ export type {
   ReassemblyElem,
   Transformation,
 } from './types';
-export {
-  createElizaState,
-  elizaRespond,
-  respondWithScript,
-  ELIZA_NOMATCH_REPLIES,
-  ELIZA_OPENER,
-} from './engine';
+export { createElizaState, elizaRespond, respondWithScript, ELIZA_NOMATCH_REPLIES, ELIZA_OPENER } from './engine';
 export { DOCTOR_SCRIPT_1965, parseElizaScript } from './script';
 export { DOCTOR_SCRIPT_1965_TEXT } from './doctorScript1965';
 export { DELIMITERS, matchPattern, reassemble, tokenise } from './match';

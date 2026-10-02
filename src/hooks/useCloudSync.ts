@@ -109,14 +109,11 @@ export function useCloudSync(): UseCloudSyncReturn {
   const signOut = useCallback(() => CloudSync.getInstance().signOut(), []);
   const uploadData = useCallback((data: Partial<SyncData>) => CloudSync.getInstance().uploadData(data), []);
   const downloadData = useCallback(() => CloudSync.getInstance().downloadData(), []);
-  const syncData = useCallback(
-    (localData: Partial<SyncData>) => CloudSync.getInstance().syncData(localData),
-    []
-  );
+  const syncData = useCallback((localData: Partial<SyncData>) => CloudSync.getInstance().syncData(localData), []);
   const syncNow = useCallback(() => CloudSync.getInstance().syncNow(), []);
   const setLocalDataProvider = useCallback(
     (provider: LocalDataProvider | null) => CloudSync.getInstance().setLocalDataProvider(provider),
-    []
+    [],
   );
   const updateOptions = useCallback((newOptions: Partial<SyncOptions>) => {
     CloudSync.getInstance().updateOptions(newOptions);
@@ -124,14 +121,8 @@ export function useCloudSync(): UseCloudSyncReturn {
   const startAutoSync = useCallback(() => CloudSync.getInstance().startAutoSync(), []);
   const stopAutoSync = useCallback(() => CloudSync.getInstance().stopAutoSync(), []);
 
-  const onRemoteChange = useCallback(
-    (callback: (data: SyncData) => void) => subscribe('remote-change', callback),
-    []
-  );
-  const onRemoteData = useCallback(
-    (callback: (data: SyncData) => void) => subscribe('remote-data', callback),
-    []
-  );
+  const onRemoteChange = useCallback((callback: (data: SyncData) => void) => subscribe('remote-change', callback), []);
+  const onRemoteData = useCallback((callback: (data: SyncData) => void) => subscribe('remote-data', callback), []);
 
   return {
     status,

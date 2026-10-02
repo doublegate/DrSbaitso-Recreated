@@ -24,7 +24,9 @@ export const VOICE_PROFILE_KEY = 'drSbaitsoVoice';
 function loadVoiceProfile(): VoiceProfileId {
   try {
     const stored = localStorage.getItem(VOICE_PROFILE_KEY);
-    return stored !== null && Object.hasOwn(VOICE_PROFILES, stored) ? (stored as VoiceProfileId) : DEFAULT_VOICE_PROFILE;
+    return stored !== null && Object.hasOwn(VOICE_PROFILES, stored)
+      ? (stored as VoiceProfileId)
+      : DEFAULT_VOICE_PROFILE;
   } catch {
     return DEFAULT_VOICE_PROFILE;
   }
@@ -113,7 +115,9 @@ export function usePersona() {
     if (personaId === id) setPersonaId(DEFAULT_CHARACTER);
   };
 
-  const chatOptions = custom ? { customCharacter: { name: custom.name, systemInstruction: custom.systemInstruction } } : {};
+  const chatOptions = custom
+    ? { customCharacter: { name: custom.name, systemInstruction: custom.systemInstruction } }
+    : {};
   // Voice profiles are Dr. Sbaitso's only (the server ignores them for other personas).
   const voiceProfileApplies = persona.id === 'sbaitso';
   const speechOptions = custom

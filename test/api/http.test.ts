@@ -24,7 +24,11 @@ describe('serve', () => {
     expect(await res.json()).toEqual({ text: 'OK' });
     expect(res.headers.get('content-type')).toContain('application/json');
     expect(res.headers.get('cache-control')).toBe('no-store');
-    expect(ok).toHaveBeenCalledWith({ message: 'hi' }, expect.anything(), expect.objectContaining({ chat: expect.any(String) }));
+    expect(ok).toHaveBeenCalledWith(
+      { message: 'hi' },
+      expect.anything(),
+      expect.objectContaining({ chat: expect.any(String) }),
+    );
   });
 
   it('rejects non-POST methods', async () => {
@@ -61,7 +65,11 @@ describe('serve', () => {
         controller.close();
       },
     });
-    return new Request('https://example.test/api/chat', { method: 'POST', body: stream, duplex: 'half' } as RequestInit);
+    return new Request('https://example.test/api/chat', {
+      method: 'POST',
+      body: stream,
+      duplex: 'half',
+    } as RequestInit);
   }
 
   it('measures the body cap in bytes, not characters', async () => {
@@ -86,7 +94,10 @@ describe('serve', () => {
   });
 
   it('uses model overrides from the environment', async () => {
-    await serve(post({}), ok, { env: { ...env, GEMINI_CHAT_MODEL: 'm-chat', GEMINI_TTS_MODEL: 'm-tts' }, createClient });
+    await serve(post({}), ok, {
+      env: { ...env, GEMINI_CHAT_MODEL: 'm-chat', GEMINI_TTS_MODEL: 'm-tts' },
+      createClient,
+    });
     expect(ok.mock.calls[0][2]).toMatchObject({ chat: 'm-chat', tts: 'm-tts' });
   });
 

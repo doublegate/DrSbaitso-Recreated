@@ -211,8 +211,7 @@ class SoundGenerator {
       // Fan noise (filtered white noise)
       const fanNoise = (Math.random() * 2 - 1) * 0.03;
       // Occasional disk activity
-      const diskPulse =
-        Math.sin(t * 2) > 0.98 ? (Math.random() * 2 - 1) * 0.15 * Math.exp(-(t % 1) / 0.1) : 0;
+      const diskPulse = Math.sin(t * 2) > 0.98 ? (Math.random() * 2 - 1) * 0.15 * Math.exp(-(t % 1) / 0.1) : 0;
       data[i] = hum + fanNoise + diskPulse;
     }
 
@@ -283,9 +282,7 @@ export class SoundEffectsManager {
       switch (eventType) {
         case 'keypress':
           if (!this.settings.keyboardClicksEnabled) return;
-          buffer = this.soundGenerator.generateKeyClick(
-            ((Math.floor(Math.random() * 3) + 1) as 1 | 2 | 3)
-          );
+          buffer = this.soundGenerator.generateKeyClick((Math.floor(Math.random() * 3) + 1) as 1 | 2 | 3);
           break;
         case 'message-send':
           if (!this.settings.systemBeepsEnabled) return;

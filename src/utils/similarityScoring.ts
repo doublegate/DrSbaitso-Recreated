@@ -42,21 +42,61 @@ function extractKeywords(text: string): Map<string, number> {
     .toLowerCase()
     .replace(/[^\w\s]/g, ' ')
     .split(/\s+/)
-    .filter(word => word.length > 3); // Filter short words
+    .filter((word) => word.length > 3); // Filter short words
 
   // Common stop words to exclude
   const stopWords = new Set([
-    'that', 'this', 'with', 'from', 'have', 'been', 'were', 'said',
-    'will', 'would', 'could', 'about', 'what', 'when', 'where', 'which',
-    'your', 'their', 'there', 'they', 'them', 'then', 'than', 'these',
-    'those', 'very', 'just', 'even', 'also', 'only', 'much', 'more',
-    'some', 'such', 'into', 'like', 'well', 'make', 'made', 'want',
-    'need', 'know', 'think', 'tell', 'hello', 'okay'
+    'that',
+    'this',
+    'with',
+    'from',
+    'have',
+    'been',
+    'were',
+    'said',
+    'will',
+    'would',
+    'could',
+    'about',
+    'what',
+    'when',
+    'where',
+    'which',
+    'your',
+    'their',
+    'there',
+    'they',
+    'them',
+    'then',
+    'than',
+    'these',
+    'those',
+    'very',
+    'just',
+    'even',
+    'also',
+    'only',
+    'much',
+    'more',
+    'some',
+    'such',
+    'into',
+    'like',
+    'well',
+    'make',
+    'made',
+    'want',
+    'need',
+    'know',
+    'think',
+    'tell',
+    'hello',
+    'okay',
   ]);
 
   const keywords = new Map<string, number>();
 
-  words.forEach(word => {
+  words.forEach((word) => {
     if (!stopWords.has(word)) {
       keywords.set(word, (keywords.get(word) || 0) + 1);
     }
@@ -68,10 +108,7 @@ function extractKeywords(text: string): Map<string, number> {
 /**
  * Calculate cosine similarity between two keyword frequency maps
  */
-function calculateCosineSimilarity(
-  keywords1: Map<string, number>,
-  keywords2: Map<string, number>
-): number {
+function calculateCosineSimilarity(keywords1: Map<string, number>, keywords2: Map<string, number>): number {
   // Get all unique words
   const allWords = new Set([...keywords1.keys(), ...keywords2.keys()]);
 
@@ -81,7 +118,7 @@ function calculateCosineSimilarity(
   const vector1: number[] = [];
   const vector2: number[] = [];
 
-  allWords.forEach(word => {
+  allWords.forEach((word) => {
     vector1.push(keywords1.get(word) || 0);
     vector2.push(keywords2.get(word) || 0);
   });
@@ -109,16 +146,14 @@ function calculateCosineSimilarity(
  * Extract text from all messages in a session
  */
 function getSessionText(session: ConversationSession): string {
-  return session.messages
-    .map(m => m.text)
-    .join(' ');
+  return session.messages.map((m) => m.text).join(' ');
 }
 
 /**
  * Calculate average sentiment across session
  */
 function getSessionSentiment(session: ConversationSession): number {
-  const sentiments = session.messages.map(m => analyzeSentiment(m.text));
+  const sentiments = session.messages.map((m) => analyzeSentiment(m.text));
   const sum = sentiments.reduce((acc, s) => acc + s.score, 0);
   return sum / sentiments.length;
 }
@@ -129,7 +164,7 @@ function getSessionSentiment(session: ConversationSession): number {
 function getSessionDominantEmotion(session: ConversationSession): string {
   const emotionCounts = new Map<string, number>();
 
-  session.messages.forEach(message => {
+  session.messages.forEach((message) => {
     const emotions = detectEmotions(message.text);
     const dominant = emotions.dominant;
     emotionCounts.set(dominant, (emotionCounts.get(dominant) || 0) + 1);
@@ -153,7 +188,7 @@ function getSessionDominantEmotion(session: ConversationSession): string {
  */
 export function calculateSessionSimilarity(
   session1: ConversationSession,
-  session2: ConversationSession
+  session2: ConversationSession,
 ): SimilarityScore {
   // Topic similarity (via keyword overlap)
   const text1 = getSessionText(session1);
@@ -186,10 +221,10 @@ export function calculateSessionSimilarity(
   // Overall score (weighted average)
   const overallScore = Math.round(
     topicSimilarity * 0.4 +
-    sentimentSimilarity * 0.2 +
-    emotionSimilarity * 0.2 +
-    lengthSimilarity * 0.1 +
-    (characterMatch ? 10 : 0)
+      sentimentSimilarity * 0.2 +
+      emotionSimilarity * 0.2 +
+      lengthSimilarity * 0.1 +
+      (characterMatch ? 10 : 0),
   );
 
   return {
@@ -200,7 +235,7 @@ export function calculateSessionSimilarity(
     sentimentSimilarity: Math.round(sentimentSimilarity),
     emotionSimilarity: Math.round(emotionSimilarity),
     lengthSimilarity: Math.round(lengthSimilarity),
-    characterMatch
+    characterMatch,
   };
 }
 
@@ -210,20 +245,18 @@ export function calculateSessionSimilarity(
 export function findSimilarSessions(
   targetSession: ConversationSession,
   allSessions: ConversationSession[],
-  limit: number = 5
+  limit: number = 5,
 ): SimilarityScore[] {
   const scores: SimilarityScore[] = [];
 
-  allSessions.forEach(session => {
+  allSessions.forEach((session) => {
     if (session.id !== targetSession.id) {
       const score = calculateSessionSimilarity(targetSession, session);
       scores.push(score);
     }
   });
 
-  return scores
-    .sort((a, b) => b.overallScore - a.overallScore)
-    .slice(0, limit);
+  return scores.sort((a, b) => b.overallScore - a.overallScore).slice(0, limit);
 }
 
 /**
@@ -231,7 +264,7 @@ export function findSimilarSessions(
  */
 export function clusterConversations(
   sessions: ConversationSession[],
-  similarityThreshold: number = 60
+  similarityThreshold: number = 60,
 ): ConversationCluster[] {
   if (sessions.length === 0) return [];
 
@@ -259,8 +292,8 @@ export function clusterConversations(
 
     // Extract common topics
     const allKeywords = new Map<string, number>();
-    clusterSessions.forEach(sessionId => {
-      const clusterSession = sessions.find(s => s.id === sessionId);
+    clusterSessions.forEach((sessionId) => {
+      const clusterSession = sessions.find((s) => s.id === sessionId);
       if (clusterSession) {
         const text = getSessionText(clusterSession);
         const keywords = extractKeywords(text);
@@ -279,8 +312,8 @@ export function clusterConversations(
     let totalSentiment = 0;
     const emotionCounts = new Map<string, number>();
 
-    clusterSessions.forEach(sessionId => {
-      const clusterSession = sessions.find(s => s.id === sessionId);
+    clusterSessions.forEach((sessionId) => {
+      const clusterSession = sessions.find((s) => s.id === sessionId);
       if (clusterSession) {
         totalSentiment += getSessionSentiment(clusterSession);
         const emotion = getSessionDominantEmotion(clusterSession);
@@ -306,7 +339,7 @@ export function clusterConversations(
       commonTopics,
       averageSentiment: Math.round(averageSentiment),
       dominantEmotion,
-      size: clusterSessions.length
+      size: clusterSessions.length,
     });
   });
 
@@ -318,18 +351,18 @@ export function clusterConversations(
  */
 export function detectRecurringPatterns(
   sessions: ConversationSession[],
-  minOccurrences: number = 3
+  minOccurrences: number = 3,
 ): RecurringPattern[] {
   // Extract all phrases (2-4 word sequences)
   const phraseCounts = new Map<string, { count: number; sessions: Set<string> }>();
 
-  sessions.forEach(session => {
+  sessions.forEach((session) => {
     const text = getSessionText(session);
     const words = text
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter(w => w.length > 2);
+      .filter((w) => w.length > 2);
 
     // Generate 2-word, 3-word, and 4-word phrases
     for (let len = 2; len <= 4; len++) {
@@ -361,22 +394,18 @@ export function detectRecurringPatterns(
         pattern: phrase,
         occurrences: data.count,
         sessions: Array.from(data.sessions),
-        confidence
+        confidence,
       });
     }
   });
 
-  return patterns
-    .sort((a, b) => b.confidence - a.confidence)
-    .slice(0, 20); // Top 20 patterns
+  return patterns.sort((a, b) => b.confidence - a.confidence).slice(0, 20); // Top 20 patterns
 }
 
 /**
  * Get similarity analysis summary
  */
-export function getSimilarityAnalysisSummary(
-  sessions: ConversationSession[]
-): string {
+export function getSimilarityAnalysisSummary(sessions: ConversationSession[]): string {
   if (sessions.length < 2) {
     return 'Not enough sessions for similarity analysis';
   }
@@ -392,7 +421,7 @@ export function getSimilarityAnalysisSummary(
     const largestCluster = clusters[0];
     if (largestCluster.size > 1) {
       parts.push(
-        `Largest cluster: ${largestCluster.size} similar conversations about ${largestCluster.commonTopics[0] || 'various topics'}`
+        `Largest cluster: ${largestCluster.size} similar conversations about ${largestCluster.commonTopics[0] || 'various topics'}`,
       );
     }
   }

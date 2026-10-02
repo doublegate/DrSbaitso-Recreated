@@ -20,7 +20,8 @@ export const CALC_ERRORS = {
 export type CalcOutcome = { ok: true; value: number; text: string } | { ok: false; error: keyof typeof CALC_ERRORS };
 
 type Op = '+' | '-' | '*' | '/';
-type Token = { type: 'num'; value: number; raw: string } | { type: 'op'; op: Op } | { type: 'lparen' } | { type: 'rparen' };
+type Token =
+  { type: 'num'; value: number; raw: string } | { type: 'op'; op: Op } | { type: 'lparen' } | { type: 'rparen' };
 
 /** Deepest bracket nesting the original copes with (LIKELY). */
 const MAX_BRACKET_DEPTH = 1;
@@ -42,7 +43,12 @@ const WORD_OPS: ReadonlyArray<[RegExp, Op]> = [
 function tokenize(input: string): Token[] | null {
   const tokens: Token[] = [];
   // Trailing question marks and full stops are punctuation, not maths.
-  let rest = input.toUpperCase().trim().replace(/[?!=]+$/, '').replace(/\.+$/, '').trim();
+  let rest = input
+    .toUpperCase()
+    .trim()
+    .replace(/[?!=]+$/, '')
+    .replace(/\.+$/, '')
+    .trim();
   while (rest.length > 0) {
     const number = /^(\d+(?:\.\d+)?|\.\d+)/.exec(rest);
     if (number) {

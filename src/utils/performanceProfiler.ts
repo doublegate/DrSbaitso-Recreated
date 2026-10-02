@@ -40,7 +40,9 @@ export interface MetricStats {
 }
 
 const hasUserTiming = () =>
-  typeof performance !== 'undefined' && typeof performance.mark === 'function' && typeof performance.measure === 'function';
+  typeof performance !== 'undefined' &&
+  typeof performance.mark === 'function' &&
+  typeof performance.measure === 'function';
 
 /**
  * Performance Profiler Class
@@ -264,7 +266,7 @@ export function profile(name?: string) {
   function decorator(
     targetOrValue: unknown,
     keyOrContext: string | ClassMethodDecoratorContext,
-    descriptor?: PropertyDescriptor
+    descriptor?: PropertyDescriptor,
   ): unknown {
     if (typeof keyOrContext === 'object' && keyOrContext !== null && 'kind' in keyOrContext) {
       const metricName = name ?? String(keyOrContext.name);
@@ -347,7 +349,7 @@ export function observeCoreWebVitals(onUpdate?: (vitals: CoreWebVitals) => void)
         }
       }
     },
-    { durationThreshold: 40 }
+    { durationThreshold: 40 },
   );
   if (!supported.includes('event')) {
     watch('first-input', (entries) => {
@@ -401,15 +403,17 @@ export function getMemoryUsage(): {
   totalJSHeapSize?: number;
   jsHeapSizeLimit?: number;
 } | null {
-  const memory = (performance as Performance & {
-    memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number };
-  }).memory;
+  const memory = (
+    performance as Performance & {
+      memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number };
+    }
+  ).memory;
   if (!memory) return null;
 
   return {
     usedJSHeapSize: memory.usedJSHeapSize,
     totalJSHeapSize: memory.totalJSHeapSize,
-    jsHeapSizeLimit: memory.jsHeapSizeLimit
+    jsHeapSizeLimit: memory.jsHeapSizeLimit,
   };
 }
 
@@ -428,7 +432,7 @@ export function logPerformanceSummary(): void {
         calls: s.count,
         'avg ms': Number(s.avgMs.toFixed(2)),
         'max ms': Number(s.maxMs.toFixed(2)),
-      }))
+      })),
     );
   } else {
     console.log('No profiled calls yet (use profile(), measureFn() or measureAsyncFn()).');
@@ -496,7 +500,8 @@ export function initDevProfiler(options: DevProfilerOptions = {}): () => void {
   const render = (vitals: CoreWebVitals) => {
     if (!overlay) return;
     const heap = getMemoryUsage()?.usedJSHeapSize;
-    overlay.textContent = formatVitals(vitals).split(' | ').join('\n') +
+    overlay.textContent =
+      formatVitals(vitals).split(' | ').join('\n') +
       (heap === undefined ? '' : `\nHeap ${(heap / 1024 / 1024).toFixed(1)} MB`);
   };
 

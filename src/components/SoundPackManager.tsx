@@ -23,18 +23,14 @@ interface SoundPackManagerProps {
 
 const errorText = (error: unknown) => (error instanceof Error ? error.message : 'Unknown error');
 
-export default function SoundPackManager({
-  theme,
-  onClose,
-  onCreateNew
-}: SoundPackManagerProps) {
+export default function SoundPackManager({ theme, onClose, onCreateNew }: SoundPackManagerProps) {
   const [installedPacks, setInstalledPacks] = useState<SoundPack[]>([]);
   const [selectedPack, setSelectedPack] = useState<SoundPack | null>(null);
   const [shareCode, setShareCode] = useState('');
   const [showShareInput, setShowShareInput] = useState(false);
   const [shareInput, setShareInput] = useState('');
   const [currentPackId, setCurrentPackId] = useState<string | null>(
-    () => soundPackPlayer.getCurrentPack()?.metadata.name ?? null
+    () => soundPackPlayer.getCurrentPack()?.metadata.name ?? null,
   );
   const [status, setStatus] = useState('');
 
@@ -52,39 +48,45 @@ export default function SoundPackManager({
   }, [refresh]);
 
   // Install a pack
-  const installPack = useCallback(async (pack: SoundPack) => {
-    const existing = installedPacks.some(p => p.metadata.name === pack.metadata.name);
-    if (existing && !confirm(`A pack named "${pack.metadata.name}" already exists. Replace it?`)) {
-      return;
-    }
+  const installPack = useCallback(
+    async (pack: SoundPack) => {
+      const existing = installedPacks.some((p) => p.metadata.name === pack.metadata.name);
+      if (existing && !confirm(`A pack named "${pack.metadata.name}" already exists. Replace it?`)) {
+        return;
+      }
 
-    try {
-      await saveSoundPack(pack);
-      await refresh();
-      setStatus(`Sound pack "${pack.metadata.name}" installed.`);
-    } catch (error) {
-      console.error('Failed to save sound pack:', error);
-      setStatus(`Failed to install sound pack: ${errorText(error)}`);
-    }
-  }, [installedPacks, refresh]);
+      try {
+        await saveSoundPack(pack);
+        await refresh();
+        setStatus(`Sound pack "${pack.metadata.name}" installed.`);
+      } catch (error) {
+        console.error('Failed to save sound pack:', error);
+        setStatus(`Failed to install sound pack: ${errorText(error)}`);
+      }
+    },
+    [installedPacks, refresh],
+  );
 
   // Uninstall a pack
-  const uninstallPack = useCallback(async (packName: string) => {
-    if (!confirm(`Are you sure you want to uninstall "${packName}"?`)) return;
+  const uninstallPack = useCallback(
+    async (packName: string) => {
+      if (!confirm(`Are you sure you want to uninstall "${packName}"?`)) return;
 
-    try {
-      await deleteSoundPack(packName);
-      if (currentPackId === packName) {
-        deactivateSoundPack();
-        setCurrentPackId(null);
+      try {
+        await deleteSoundPack(packName);
+        if (currentPackId === packName) {
+          deactivateSoundPack();
+          setCurrentPackId(null);
+        }
+        setSelectedPack(null);
+        await refresh();
+        setStatus(`Sound pack "${packName}" uninstalled.`);
+      } catch (error) {
+        setStatus(`Failed to uninstall sound pack: ${errorText(error)}`);
       }
-      setSelectedPack(null);
-      await refresh();
-      setStatus(`Sound pack "${packName}" uninstalled.`);
-    } catch (error) {
-      setStatus(`Failed to uninstall sound pack: ${errorText(error)}`);
-    }
-  }, [currentPackId, refresh]);
+    },
+    [currentPackId, refresh],
+  );
 
   // Load/activate a pack
   const loadPack = useCallback(async (pack: SoundPack) => {
@@ -153,7 +155,7 @@ export default function SoundPackManager({
         style={{
           backgroundColor: theme.colors.background,
           color: theme.colors.text,
-          borderColor: theme.colors.primary
+          borderColor: theme.colors.primary,
         }}
       >
         <div className="flex justify-between items-center mb-6">
@@ -163,7 +165,7 @@ export default function SoundPackManager({
             className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.background
+              backgroundColor: theme.colors.background,
             }}
           >
             ✕ Close
@@ -178,19 +180,19 @@ export default function SoundPackManager({
             style={{
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.primary,
-              color: theme.colors.background
+              color: theme.colors.background,
             }}
           >
             ➕ Create New Pack
           </button>
 
           <button
-            onClick={() => setShowShareInput(v => !v)}
+            onClick={() => setShowShareInput((v) => !v)}
             aria-expanded={showShareInput}
             className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.background
+              backgroundColor: theme.colors.background,
             }}
           >
             📥 Install from Share Code
@@ -202,7 +204,7 @@ export default function SoundPackManager({
               className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
               style={{
                 borderColor: theme.colors.primary,
-                backgroundColor: theme.colors.background
+                backgroundColor: theme.colors.background,
               }}
             >
               ⏹️ Unload Current Pack
@@ -230,7 +232,7 @@ export default function SoundPackManager({
               style={{
                 backgroundColor: theme.colors.background,
                 color: theme.colors.text,
-                borderColor: theme.colors.border
+                borderColor: theme.colors.border,
               }}
               rows={3}
             />
@@ -253,9 +255,7 @@ export default function SoundPackManager({
           >
             <div className="font-bold text-green-400 mb-1">✓ Active Sound Pack:</div>
             <div>{currentPackId}</div>
-            <div className="text-sm opacity-70">
-              {soundPackPlayer.getLoadedSoundCount()} sounds loaded
-            </div>
+            <div className="text-sm opacity-70">{soundPackPlayer.getLoadedSoundCount()} sounds loaded</div>
           </div>
         )}
 
@@ -275,12 +275,10 @@ export default function SoundPackManager({
                   key={pack.metadata.name}
                   className="p-4 border-2 rounded-sm cursor-pointer hover:opacity-80"
                   style={{
-                    borderColor: selectedPack?.metadata.name === pack.metadata.name
-                      ? theme.colors.primary
-                      : theme.colors.border,
-                    backgroundColor: selectedPack?.metadata.name === pack.metadata.name
-                      ? theme.colors.border
-                      : 'transparent'
+                    borderColor:
+                      selectedPack?.metadata.name === pack.metadata.name ? theme.colors.primary : theme.colors.border,
+                    backgroundColor:
+                      selectedPack?.metadata.name === pack.metadata.name ? theme.colors.border : 'transparent',
                   }}
                   onClick={() => setSelectedPack(pack)}
                 >
@@ -314,12 +312,9 @@ export default function SoundPackManager({
                       className="flex-1 px-3 py-1 border rounded-sm text-sm hover:opacity-80"
                       style={{
                         borderColor: theme.colors.primary,
-                        backgroundColor: currentPackId === pack.metadata.name
-                          ? theme.colors.primary
-                          : theme.colors.background,
-                        color: currentPackId === pack.metadata.name
-                          ? theme.colors.background
-                          : theme.colors.text
+                        backgroundColor:
+                          currentPackId === pack.metadata.name ? theme.colors.primary : theme.colors.background,
+                        color: currentPackId === pack.metadata.name ? theme.colors.background : theme.colors.text,
                       }}
                       disabled={currentPackId === pack.metadata.name}
                     >
@@ -374,7 +369,7 @@ export default function SoundPackManager({
             <div className="mb-4">
               <div className="font-bold mb-2">🔊 Sounds:</div>
               <div className="max-h-32 overflow-y-auto text-sm">
-                {selectedPack.sounds.map(sound => (
+                {selectedPack.sounds.map((sound) => (
                   <div key={sound.id} className="py-1 opacity-80">
                     • {sound.name} ({sound.duration}ms, {sound.volume}% volume)
                   </div>
@@ -389,7 +384,7 @@ export default function SoundPackManager({
                 className="w-full px-4 py-2 border-2 rounded-sm hover:opacity-80 mb-2"
                 style={{
                   borderColor: theme.colors.primary,
-                  backgroundColor: theme.colors.background
+                  backgroundColor: theme.colors.background,
                 }}
               >
                 🔗 Generate Share Code
@@ -406,7 +401,7 @@ export default function SoundPackManager({
                       style={{
                         backgroundColor: theme.colors.background,
                         color: theme.colors.text,
-                        borderColor: theme.colors.border
+                        borderColor: theme.colors.border,
                       }}
                       rows={3}
                       onClick={(e) => (e.target as HTMLTextAreaElement).select()}

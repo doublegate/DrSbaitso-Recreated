@@ -119,8 +119,6 @@ export interface EngineStep {
   result: EngineResult;
 }
 
-export type NameValidation =
-  | { ok: true; name: string }
-  | { ok: false; reason: 'letters-only' | 'too-long' | 'empty' };
+export type NameValidation = { ok: true; name: string } | { ok: false; reason: 'letters-only' | 'too-long' | 'empty' };
 
 export type ExitChoice = 'continue' | 'new' | 'quit';

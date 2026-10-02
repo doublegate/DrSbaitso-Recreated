@@ -17,10 +17,7 @@ export interface AccessibilityPanelProps {
   isOpen: boolean;
   settings: AccessibilitySettings;
   onClose: () => void;
-  onUpdateSetting: <K extends keyof AccessibilitySettings>(
-    key: K,
-    value: AccessibilitySettings[K]
-  ) => void;
+  onUpdateSetting: <K extends keyof AccessibilitySettings>(key: K, value: AccessibilitySettings[K]) => void;
   onResetSettings: () => void;
 }
 
@@ -29,7 +26,7 @@ export default function AccessibilityPanel({
   settings,
   onClose,
   onUpdateSetting,
-  onResetSettings
+  onResetSettings,
 }: AccessibilityPanelProps) {
   const containerRef = useFocusTrap(isOpen);
 
@@ -57,7 +54,7 @@ export default function AccessibilityPanel({
         onClick={(e) => e.stopPropagation()}
         style={{
           fontFamily: 'monospace',
-          color: '#ffffff'
+          color: '#ffffff',
         }}
       >
         {/* Header */}
@@ -82,10 +79,7 @@ export default function AccessibilityPanel({
         <div className="space-y-6">
           {/* High Contrast Mode */}
           <div className="border-2 border-gray-400 p-4">
-            <label
-              htmlFor="high-contrast-toggle"
-              className="flex items-center justify-between cursor-pointer"
-            >
+            <label htmlFor="high-contrast-toggle" className="flex items-center justify-between cursor-pointer">
               <div>
                 <div className="font-bold text-lg">HIGH CONTRAST MODE</div>
                 <div className="text-sm text-gray-300 mt-1">
@@ -110,10 +104,7 @@ export default function AccessibilityPanel({
 
           {/* Reduced Motion */}
           <div className="border-2 border-gray-400 p-4">
-            <label
-              htmlFor="reduced-motion-toggle"
-              className="flex items-center justify-between cursor-pointer"
-            >
+            <label htmlFor="reduced-motion-toggle" className="flex items-center justify-between cursor-pointer">
               <div>
                 <div className="font-bold text-lg">REDUCED MOTION</div>
                 <div className="text-sm text-gray-300 mt-1">
@@ -140,15 +131,11 @@ export default function AccessibilityPanel({
           <div className="border-2 border-gray-400 p-4">
             <label htmlFor="font-size-select">
               <div className="font-bold text-lg mb-2">FONT SIZE</div>
-              <div className="text-sm text-gray-300 mb-3">
-                Adjust text size for better readability
-              </div>
+              <div className="text-sm text-gray-300 mb-3">Adjust text size for better readability</div>
               <select
                 id="font-size-select"
                 value={settings.fontSize}
-                onChange={(e) =>
-                  onUpdateSetting('fontSize', e.target.value as AccessibilitySettings['fontSize'])
-                }
+                onChange={(e) => onUpdateSetting('fontSize', e.target.value as AccessibilitySettings['fontSize'])}
                 className="w-full bg-blue-800 border-2 border-gray-400 text-white px-4 py-2 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
               >
                 <option value="small">SMALL (12px)</option>
@@ -163,17 +150,12 @@ export default function AccessibilityPanel({
           <div className="border-2 border-gray-400 p-4">
             <label htmlFor="focus-style-select">
               <div className="font-bold text-lg mb-2">FOCUS INDICATOR STYLE</div>
-              <div className="text-sm text-gray-300 mb-3">
-                Change how focused elements are highlighted
-              </div>
+              <div className="text-sm text-gray-300 mb-3">Change how focused elements are highlighted</div>
               <select
                 id="focus-style-select"
                 value={settings.focusIndicatorStyle}
                 onChange={(e) =>
-                  onUpdateSetting(
-                    'focusIndicatorStyle',
-                    e.target.value as AccessibilitySettings['focusIndicatorStyle']
-                  )
+                  onUpdateSetting('focusIndicatorStyle', e.target.value as AccessibilitySettings['focusIndicatorStyle'])
                 }
                 className="w-full bg-blue-800 border-2 border-gray-400 text-white px-4 py-2 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
               >
@@ -186,10 +168,7 @@ export default function AccessibilityPanel({
 
           {/* Screen Reader Optimized */}
           <div className="border-2 border-gray-400 p-4">
-            <label
-              htmlFor="screen-reader-toggle"
-              className="flex items-center justify-between cursor-pointer"
-            >
+            <label htmlFor="screen-reader-toggle" className="flex items-center justify-between cursor-pointer">
               <div>
                 <div className="font-bold text-lg">SCREEN READER OPTIMIZATION</div>
                 <div className="text-sm text-gray-300 mt-1">
@@ -200,9 +179,7 @@ export default function AccessibilityPanel({
                 id="screen-reader-toggle"
                 role="switch"
                 aria-checked={settings.screenReaderOptimized}
-                onClick={() =>
-                  onUpdateSetting('screenReaderOptimized', !settings.screenReaderOptimized)
-                }
+                onClick={() => onUpdateSetting('screenReaderOptimized', !settings.screenReaderOptimized)}
                 className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-hidden focus:ring-2 focus:ring-yellow-300 ${
                   settings.screenReaderOptimized
                     ? 'bg-green-600 border-green-400 text-white'
@@ -216,10 +193,7 @@ export default function AccessibilityPanel({
 
           {/* Message Announcements */}
           <div className="border-2 border-gray-400 p-4">
-            <label
-              htmlFor="announce-messages-toggle"
-              className="flex items-center justify-between cursor-pointer"
-            >
+            <label htmlFor="announce-messages-toggle" className="flex items-center justify-between cursor-pointer">
               <div>
                 <div className="font-bold text-lg">ANNOUNCE NEW MESSAGES</div>
                 <div className="text-sm text-gray-300 mt-1">
@@ -244,23 +218,16 @@ export default function AccessibilityPanel({
 
           {/* Keyboard Navigation Hints */}
           <div className="border-2 border-gray-400 p-4">
-            <label
-              htmlFor="keyboard-hints-toggle"
-              className="flex items-center justify-between cursor-pointer"
-            >
+            <label htmlFor="keyboard-hints-toggle" className="flex items-center justify-between cursor-pointer">
               <div>
                 <div className="font-bold text-lg">KEYBOARD NAVIGATION HINTS</div>
-                <div className="text-sm text-gray-300 mt-1">
-                  Show helpful hints when navigating with keyboard
-                </div>
+                <div className="text-sm text-gray-300 mt-1">Show helpful hints when navigating with keyboard</div>
               </div>
               <button
                 id="keyboard-hints-toggle"
                 role="switch"
                 aria-checked={settings.keyboardNavigationHints}
-                onClick={() =>
-                  onUpdateSetting('keyboardNavigationHints', !settings.keyboardNavigationHints)
-                }
+                onClick={() => onUpdateSetting('keyboardNavigationHints', !settings.keyboardNavigationHints)}
                 className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-hidden focus:ring-2 focus:ring-yellow-300 ${
                   settings.keyboardNavigationHints
                     ? 'bg-green-600 border-green-400 text-white'

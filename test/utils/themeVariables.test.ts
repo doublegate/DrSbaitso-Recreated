@@ -13,7 +13,13 @@ describe('applyThemeVariables', () => {
   });
 
   it('defaults to the document root', () => {
-    applyThemeVariables({ primary: '#111111', background: '#222222', text: '#333333', border: '#444444', accent: '#555555' });
+    applyThemeVariables({
+      primary: '#111111',
+      background: '#222222',
+      text: '#333333',
+      border: '#444444',
+      accent: '#555555',
+    });
     expect(document.documentElement.style.getPropertyValue('--color-accent')).toBe('#555555');
   });
 });

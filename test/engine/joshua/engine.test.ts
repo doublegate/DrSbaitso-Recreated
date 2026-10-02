@@ -13,7 +13,10 @@ import {
 } from '@/engine/joshua';
 
 /** Feed inputs in order; return the final state and every result. */
-function run(inputs: string[], state: JoshuaState = createJoshuaState(7)): { state: JoshuaState; results: JoshuaResult[] } {
+function run(
+  inputs: string[],
+  state: JoshuaState = createJoshuaState(7),
+): { state: JoshuaState; results: JoshuaResult[] } {
   const results: JoshuaResult[] = [];
   let current = state;
   for (const input of inputs) {
@@ -28,7 +31,10 @@ const last = (results: JoshuaResult[]): JoshuaResult => results[results.length -
 const linesOf = (result: JoshuaResult): string[] => ('lines' in result ? result.lines : []);
 
 /** Narrow a result to one kind, failing the test otherwise (keeps expects unconditional). */
-function as<K extends JoshuaResult['kind']>(result: JoshuaResult | undefined, kind: K): Extract<JoshuaResult, { kind: K }> {
+function as<K extends JoshuaResult['kind']>(
+  result: JoshuaResult | undefined,
+  kind: K,
+): Extract<JoshuaResult, { kind: K }> {
   if (result?.kind !== kind) throw new Error(`expected a '${kind}' result, got '${result?.kind}'`);
   return result as Extract<JoshuaResult, { kind: K }>;
 }
@@ -110,7 +116,11 @@ describe('global thermonuclear war', () => {
   });
 
   it('shows the side menu when the user insists', () => {
-    const { state, results } = run(['joshua', 'global thermonuclear war', "later. let's play global thermonuclear war"]);
+    const { state, results } = run([
+      'joshua',
+      'global thermonuclear war',
+      "later. let's play global thermonuclear war",
+    ]);
     const lines = linesOf(last(results));
     expect(lines[0]).toBe('FINE.');
     expect(lines).toContain('WHICH SIDE DO YOU WANT?');
@@ -254,7 +264,9 @@ describe('model hand-off', () => {
     const result = as(last(results), 'model');
     expect(result.flags).toEqual({ user: 'PROFESSOR FALKEN', learnedFutility: false, game: null, side: null });
     expect(result.modelMessage).toBe(`${joshuaSessionTag(result.flags)}\nHow are you?`);
-    expect(joshuaSessionTag(result.flags)).toBe('[SESSION: USER=PROFESSOR FALKEN; LESSON=NOT LEARNED; GAME=NONE; SIDE=NONE]');
+    expect(joshuaSessionTag(result.flags)).toBe(
+      '[SESSION: USER=PROFESSOR FALKEN; LESSON=NOT LEARNED; GAME=NONE; SIDE=NONE]',
+    );
   });
 
   it('marks the lesson in the flags once learned', () => {

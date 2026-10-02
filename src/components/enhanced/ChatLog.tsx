@@ -21,7 +21,7 @@ export default function ChatLog({ messages, personas, persona, typing }: ChatLog
 
   // Keep the newest line in view (messages changes on every typed character).
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   return (
@@ -45,7 +45,9 @@ export default function ChatLog({ messages, personas, persona, typing }: ChatLog
           {msg.author === 'user' && <span aria-hidden="true">{'> '}</span>}
           {msg.text}
           {typing && msg.author === 'dr' && index === messages.length - 1 && (
-            <span className="animate-pulse" aria-hidden="true">_</span>
+            <span className="animate-pulse" aria-hidden="true">
+              _
+            </span>
           )}
         </p>
       ))}

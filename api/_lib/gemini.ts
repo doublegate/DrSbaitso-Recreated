@@ -90,8 +90,7 @@ export function fail(status: number, code: ErrorCode, error: string): ApiResult 
 
 const badRequest = (error: string) => fail(400, 'BAD_REQUEST', error);
 
-const isObject = (v: unknown): v is Record<string, unknown> =>
-  typeof v === 'object' && v !== null && !Array.isArray(v);
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
 const nonEmptyString = (v: unknown, max: number): v is string =>
   typeof v === 'string' && v.trim().length > 0 && v.length <= max;
@@ -105,7 +104,22 @@ function findCharacter(id: unknown) {
  * reads them as letters. Acronyms said as words (NORAD, DEFCON) are left to
  * become ordinary words.
  */
-const KEEP_UPPER = new Set(['AI', 'CPU', 'RAM', 'DOS', 'PC', 'PCS', 'OK', 'TV', 'FBI', 'CIA', 'USA', 'UK', 'IBM', 'ID']);
+const KEEP_UPPER = new Set([
+  'AI',
+  'CPU',
+  'RAM',
+  'DOS',
+  'PC',
+  'PCS',
+  'OK',
+  'TV',
+  'FBI',
+  'CIA',
+  'USA',
+  'UK',
+  'IBM',
+  'ID',
+]);
 
 const isSingleLetter = (t: string | undefined) => t !== undefined && /^[A-Z][.,;:!?]*$/.test(t);
 
@@ -131,7 +145,10 @@ export function toSentenceCase(text: string): string {
   return words
     .join('')
     .replace(/\bi\b/g, 'I')
-    .replace(/(^|[.?!]\s+)([^A-Za-z]*)([a-z])/g, (_m, lead: string, gap: string, letter: string) => lead + gap + letter.toUpperCase());
+    .replace(
+      /(^|[.?!]\s+)([^A-Za-z]*)([a-z])/g,
+      (_m, lead: string, gap: string, letter: string) => lead + gap + letter.toUpperCase(),
+    );
 }
 
 /** Character-specific spelling hints so TTS pronounces names correctly. */

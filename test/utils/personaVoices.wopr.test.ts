@@ -161,7 +161,9 @@ describe('processWoprVoice', () => {
     const out = processWoprVoice(threeWords(), FS, { text: `ONE TWO THREE${punctuation}` });
     const [from, to] = words(out)[2];
     const length = to - from;
-    expect(Math.abs(pitchOf(out, from + Math.round(0.2 * length), from + Math.round(0.7 * length)).hz - hz)).toBeLessThan(3);
+    expect(
+      Math.abs(pitchOf(out, from + Math.round(0.2 * length), from + Math.round(0.7 * length)).hz - hz),
+    ).toBeLessThan(3);
   });
 
   it('splices the words with 80 ms of silence', () => {
@@ -225,7 +227,8 @@ describe('processWoprVoice', () => {
 });
 
 /** RMS of the second half (past the filter's start-up transient). */
-const tailRms = (a: Float32Array) => Math.sqrt(a.subarray(a.length >> 1).reduce((s, v) => s + v * v, 0) / (a.length >> 1));
+const tailRms = (a: Float32Array) =>
+  Math.sqrt(a.subarray(a.length >> 1).reduce((s, v) => s + v * v, 0) / (a.length >> 1));
 
 /** Gain in dB of one steady tone through the WOPR band-limit at 16 kHz. */
 function bandGain(freq: number, fs = 16000): number {

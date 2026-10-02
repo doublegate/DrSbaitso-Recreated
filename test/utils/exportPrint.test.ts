@@ -49,7 +49,7 @@ afterEach(() => {
 describe('escapeHtml', () => {
   it('escapes markup and both quote characters without a DOM', () => {
     expect(escapeHtml(`<a href="x" title='y'>&</a>`)).toBe(
-      '&lt;a href=&quot;x&quot; title=&#39;y&#39;&gt;&amp;&lt;/a&gt;'
+      '&lt;a href=&quot;x&quot; title=&#39;y&#39;&gt;&amp;&lt;/a&gt;',
     );
   });
 });
@@ -94,7 +94,7 @@ describe('formatSession (shared by both exporters)', () => {
   it('is used for batch Markdown export', async () => {
     const [result] = await BatchExporter.batchExport([session()], 'markdown');
     expect(result.content).toBe(
-      formatSession(session(), { format: 'markdown', includeMetadata: true, includeTimestamps: true })
+      formatSession(session(), { format: 'markdown', includeMetadata: true, includeTimestamps: true }),
     );
   });
 

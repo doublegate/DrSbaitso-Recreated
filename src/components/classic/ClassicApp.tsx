@@ -168,11 +168,13 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
         const offsets = cueOffsets(spokenParts);
         const timers: ReturnType<typeof setTimeout>[] = [];
         try {
-          await speech.speak(audio, spoken, { onStart: (seconds) => {
-            for (let i = shown; i < cues.length; i++) {
-              timers.push(setTimeout(() => showUpTo(i), offsets[i] * seconds * 1000));
-            }
-          } });
+          await speech.speak(audio, spoken, {
+            onStart: (seconds) => {
+              for (let i = shown; i < cues.length; i++) {
+                timers.push(setTimeout(() => showUpTo(i), offsets[i] * seconds * 1000));
+              }
+            },
+          });
         } catch (error) {
           console.warn('Speech unavailable; text kept:', error);
         }

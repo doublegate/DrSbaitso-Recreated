@@ -12,8 +12,7 @@ const pack = (name: string): SoundPack => ({
   triggers: [{ event: 'message_sent', soundId: 's', probability: 100 }],
 });
 
-const renderManager = () =>
-  render(<SoundPackManager theme={THEMES[0]} onClose={() => {}} onCreateNew={() => {}} />);
+const renderManager = () => render(<SoundPackManager theme={THEMES[0]} onClose={() => {}} onCreateNew={() => {}} />);
 
 describe('SoundPackManager', () => {
   beforeEach(() => {

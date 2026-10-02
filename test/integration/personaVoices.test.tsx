@@ -18,7 +18,9 @@ describe('persona voice routes', () => {
     speak.mockClear();
     vi.stubGlobal(
       'fetch',
-      vi.fn((url: string) => (url === '/api/tts' ? json({ audio: 'AAAAAA==' }) : json({ text: 'All systems are functioning.' }))),
+      vi.fn((url: string) =>
+        url === '/api/tts' ? json({ audio: 'AAAAAA==' }) : json({ text: 'All systems are functioning.' }),
+      ),
     );
     Element.prototype.scrollIntoView = vi.fn();
   });

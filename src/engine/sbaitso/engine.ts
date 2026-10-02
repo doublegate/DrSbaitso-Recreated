@@ -102,7 +102,11 @@ const withName = (line: string, name: string): string => line.replaceAll('~', na
 /** Remove the deliberate garbage characters before a line is spoken. */
 const speakable = (line: string): string => line.replace(GARBLE, '').replace(/\s+/g, ' ').trim();
 
-function reply(state: SbaitsoState, lines: string[], extra: { settings?: Partial<SbaitsoSettings>; stopSpeech?: boolean } = {}): EngineStep {
+function reply(
+  state: SbaitsoState,
+  lines: string[],
+  extra: { settings?: Partial<SbaitsoSettings>; stopSpeech?: boolean } = {},
+): EngineStep {
   const settings = extra.settings ? { ...state.settings, ...extra.settings } : state.settings;
   return {
     state: { ...state, settings, lastReply: lines },

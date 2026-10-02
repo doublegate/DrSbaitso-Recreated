@@ -178,7 +178,10 @@ describe('processVintageSamples', () => {
     const input = new Float32Array(FS);
     for (let i = 0; i < input.length; i++) {
       const t = i / FS;
-      input[i] = 0.3 * Math.sin(2 * Math.PI * 160 * t) + 0.2 * Math.sin(2 * Math.PI * 480 * t) + 0.1 * Math.sin(2 * Math.PI * 800 * t);
+      input[i] =
+        0.3 * Math.sin(2 * Math.PI * 160 * t) +
+        0.2 * Math.sin(2 * Math.PI * 480 * t) +
+        0.1 * Math.sin(2 * Math.PI * 800 * t);
     }
     const config = getPresetConfig(AuthenticityLevel.Authentic);
     const statement = processVintageSamples(input, FS, config, '.');
@@ -215,7 +218,6 @@ function recordingContext() {
 }
 
 describe('applyVintageProcessing', () => {
-
   it('returns the same buffer for Modern', async () => {
     const ctx = recordingContext();
     const buffer = ctx.createBuffer(1, 100, FS);

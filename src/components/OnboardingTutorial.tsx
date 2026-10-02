@@ -94,7 +94,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
         currentStep,
         completed: false,
         skipped: false,
-        startedAt: Date.now()
+        startedAt: Date.now(),
       };
       localStorage.setItem(ONBOARDING_STATE_KEY, JSON.stringify(state));
     } catch (e) {
@@ -146,21 +146,21 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
   // Keyboard navigation. An effect event always sees the latest state and
   // handlers, so the listener is attached once.
   const onKeyDown = useEffectEvent((e: KeyboardEvent) => {
-      if (celebrating) return; // Disable during celebration
+    if (celebrating) return; // Disable during celebration
 
-      if (e.key === 'Escape') {
-        if (showSkipConfirm) {
-          setShowSkipConfirm(false);
-        } else if (step.skipable) {
-          setShowSkipConfirm(true);
-        }
+    if (e.key === 'Escape') {
+      if (showSkipConfirm) {
+        setShowSkipConfirm(false);
+      } else if (step.skipable) {
+        setShowSkipConfirm(true);
       }
+    }
 
-      if (e.key === 'Enter' && !showSkipConfirm) {
-        if (actionCompleted || !step.action) {
-          handleNext();
-        }
+    if (e.key === 'Enter' && !showSkipConfirm) {
+      if (actionCompleted || !step.action) {
+        handleNext();
       }
+    }
   });
 
   useEffect(() => {
@@ -173,14 +173,14 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
     if (isLastStep) {
       handleComplete();
     } else {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
       setActionCompleted(false);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep((prev) => prev - 1);
       setActionCompleted(false);
     }
   };
@@ -196,7 +196,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
         completed: true,
         skipped: false,
         startedAt: Date.now(),
-        completedAt: Date.now()
+        completedAt: Date.now(),
       };
       localStorage.setItem(ONBOARDING_STATE_KEY, JSON.stringify(state));
       localStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
@@ -217,7 +217,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
         currentStep,
         completed: false,
         skipped: true,
-        startedAt: Date.now()
+        startedAt: Date.now(),
       };
       localStorage.setItem(ONBOARDING_STATE_KEY, JSON.stringify(state));
       localStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
@@ -275,13 +275,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
       aria-live="polite"
     >
       {/* Screen reader announcer */}
-      <div
-        ref={announcerRef}
-        className="sr-only"
-        role="status"
-        aria-live="assertive"
-        aria-atomic="true"
-      />
+      <div ref={announcerRef} className="sr-only" role="status" aria-live="assertive" aria-atomic="true" />
 
       {/* Highlight around the step's target (drawn above the dimmed backdrop) */}
       {targetRect && (
@@ -308,10 +302,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
       >
         {/* Header */}
         <div className="bg-blue-800 border-b-4 border-blue-500 p-4">
-          <h2
-            id="onboarding-title"
-            className="text-2xl font-bold text-white text-center"
-          >
+          <h2 id="onboarding-title" className="text-2xl font-bold text-white text-center">
             {step.title}
           </h2>
           <div className="mt-2 text-center text-sm text-blue-200">
@@ -334,10 +325,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
 
         {/* Content */}
         <div className="p-6">
-          <p
-            id="onboarding-content"
-            className="text-lg text-white whitespace-pre-line leading-relaxed"
-          >
+          <p id="onboarding-content" className="text-lg text-white whitespace-pre-line leading-relaxed">
             {step.content}
           </p>
 
@@ -349,9 +337,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
                 {step.action === 'type' && '⌨️ Type in the input field to continue'}
                 {step.action === 'wait' && '⏳ Wait for the action to complete'}
               </p>
-              {step.actionPlaceholder && (
-                <p className="text-yellow-300 text-sm mt-1">{step.actionPlaceholder}</p>
-              )}
+              {step.actionPlaceholder && <p className="text-yellow-300 text-sm mt-1">{step.actionPlaceholder}</p>}
             </div>
           )}
         </div>

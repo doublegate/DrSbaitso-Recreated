@@ -33,7 +33,7 @@ export default function InstallPrompt({ onInstall, onDismiss, theme }: InstallPr
         style={{
           backgroundColor: theme.colors.background,
           borderColor: theme.colors.accent,
-          boxShadow: `0 0 30px ${theme.colors.accent}33`
+          boxShadow: `0 0 30px ${theme.colors.accent}33`,
         }}
       >
         {/* Header */}
@@ -56,11 +56,7 @@ export default function InstallPrompt({ onInstall, onDismiss, theme }: InstallPr
         </div>
 
         {/* Description */}
-        <p
-          id="install-description"
-          className="text-sm mb-4"
-          style={{ color: theme.colors.text }}
-        >
+        <p id="install-description" className="text-sm mb-4" style={{ color: theme.colors.text }}>
           Get the full retro AI experience! Install for:
         </p>
 
@@ -91,7 +87,7 @@ export default function InstallPrompt({ onInstall, onDismiss, theme }: InstallPr
             className="flex-1 px-4 py-2 font-bold rounded-sm hover:opacity-90 focus:outline-hidden focus:ring-2 transition-opacity"
             style={{
               backgroundColor: theme.colors.accent,
-              color: theme.colors.background
+              color: theme.colors.background,
             }}
           >
             Install Now
@@ -101,7 +97,7 @@ export default function InstallPrompt({ onInstall, onDismiss, theme }: InstallPr
             className="px-4 py-2 font-bold rounded-sm hover:opacity-70 focus:outline-hidden focus:ring-2 transition-opacity"
             style={{
               backgroundColor: theme.colors.border,
-              color: theme.colors.text
+              color: theme.colors.text,
             }}
           >
             Maybe Later

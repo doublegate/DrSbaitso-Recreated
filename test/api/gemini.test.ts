@@ -174,10 +174,14 @@ describe('handleChat', () => {
     let call = 0;
     client = makeClient(() => {
       call += 1;
-      if (call === 1) throw Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' });
+      if (call === 1)
+        throw Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' });
       return { text: 'OK' };
     });
-    const res = await handleChat({ characterId: 'sbaitso', message: 'hi' }, client, { ...MODELS, chatFallbacks: ['b'] });
+    const res = await handleChat({ characterId: 'sbaitso', message: 'hi' }, client, {
+      ...MODELS,
+      chatFallbacks: ['b'],
+    });
     expect(res.status).toBe(200);
   });
 
@@ -185,7 +189,10 @@ describe('handleChat', () => {
     client = makeClient(() => {
       throw Object.assign(new Error('RESOURCE_EXHAUSTED'), { status: 429 });
     });
-    const res = await handleChat({ characterId: 'sbaitso', message: 'hi' }, client, { ...MODELS, chatFallbacks: ['b'] });
+    const res = await handleChat({ characterId: 'sbaitso', message: 'hi' }, client, {
+      ...MODELS,
+      chatFallbacks: ['b'],
+    });
     expect(client.calls).toHaveLength(2);
     expect(res.status).toBe(429);
     expect(res.body.code).toBe('RATE_LIMITED');
@@ -241,7 +248,9 @@ describe('handleTts', () => {
     // 4 samples at 12 kHz -> 8 samples at 24 kHz.
     const samples12k = new Uint8Array(new Int16Array([0, 1000, 2000, 3000]).buffer);
     const client = makeClient(() => ({
-      candidates: [{ content: { parts: [{ inlineData: { mimeType: 'audio/wav', data: b64(wav(samples12k, 12000)) } }] } }],
+      candidates: [
+        { content: { parts: [{ inlineData: { mimeType: 'audio/wav', data: b64(wav(samples12k, 12000)) } }] } },
+      ],
     }));
     const res = await handleTts({ characterId: 'sbaitso', text: 'HELLO' }, client, MODELS);
     expect(res.body).toMatchObject({ sampleRate: 24000, mimeType: 'audio/L16;rate=24000' });
@@ -251,7 +260,9 @@ describe('handleTts', () => {
 
   it('passes raw L16 audio through unchanged', async () => {
     const client = makeClient(() => ({
-      candidates: [{ content: { parts: [{ inlineData: { mimeType: 'audio/L16;codec=pcm;rate=24000', data: b64(pcm) } }] } }],
+      candidates: [
+        { content: { parts: [{ inlineData: { mimeType: 'audio/L16;codec=pcm;rate=24000', data: b64(pcm) } }] } },
+      ],
     }));
     const res = await handleTts({ characterId: 'sbaitso', text: 'HELLO' }, client, MODELS);
     expect(res.body.audio).toBe(b64(pcm));
@@ -306,7 +317,9 @@ describe('handleTts', () => {
   it('sends JOSHUA the list-reading direction', async () => {
     const client = makeClient(audioOk);
     await handleTts({ characterId: 'joshua', text: 'SHALL WE PLAY A GAME?' }, client, MODELS);
-    expect(client.calls[0].contents[0].parts[0].speechMetadata.style).toMatch(/reading each word separately, as if from a list/);
+    expect(client.calls[0].contents[0].parts[0].speechMetadata.style).toMatch(
+      /reading each word separately, as if from a list/,
+    );
   });
 
   it('converts all-caps replies to sentence case for sentence-case personas', async () => {
@@ -323,7 +336,11 @@ describe('handleTts', () => {
 
   it('gives custom characters their own style with the default voice', async () => {
     const client = makeClient(audioOk);
-    await handleTts({ voicePrompt: 'Say in a squeaky robot voice', text: 'BEEP BOOP', voiceProfile: 'deep' }, client, MODELS);
+    await handleTts(
+      { voicePrompt: 'Say in a squeaky robot voice', text: 'BEEP BOOP', voiceProfile: 'deep' },
+      client,
+      MODELS,
+    );
     const req = client.calls[0];
     expect(voiceOf(req)).toBe('Charon');
     expect(req.contents[0].parts[0].speechMetadata.style).toBe('a squeaky robot voice');
@@ -440,7 +457,7 @@ describe('toSentenceCase', () => {
   it.each([
     ['HELLO THERE. HOW ARE YOU?', 'Hello there. How are you?'],
     ["I'M AFRAID I CAN'T DO THAT, DAVE.", "I'm afraid I can't do that, dave."],
-    ['I THINK I WILL. I\'LL TRY!', "I think I will. I'll try!"],
+    ["I THINK I WILL. I'LL TRY!", "I think I will. I'll try!"],
     ['MY C P U AND MY CPU ARE OK.', 'My C P U and my CPU are OK.'],
     ['THE AI RUNS ON A PC AT NORAD.', 'The AI runs on a PC at norad.'],
     ['GAME 9000... READY', 'Game 9000... Ready'],

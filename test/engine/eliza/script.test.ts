@@ -1,17 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import {
-  DOCTOR_SCRIPT_1965,
-  DOCTOR_SCRIPT_1965_TEXT,
-  ELIZA_OPENER,
-  parseElizaScript,
-} from '@/engine/eliza';
+import { DOCTOR_SCRIPT_1965, DOCTOR_SCRIPT_1965_TEXT, ELIZA_OPENER, parseElizaScript } from '@/engine/eliza';
 
 const s = DOCTOR_SCRIPT_1965;
 const rank = (k: string) => s.entries.get(k)?.rank;
 const sub = (k: string) => s.entries.get(k)?.substitute;
 
 describe('DOCTOR script (.TAPE. 100, 1965, CC0)', () => {
-
   it('has the original greeting as the opener', () => {
     expect(ELIZA_OPENER).toBe(
       'HOW DO YOU DO. I AM THE DOCTOR. PLEASE SIT DOWN AT THE TYPEWRITER AND TELL ME YOUR PROBLEM.',
@@ -56,9 +50,7 @@ describe('DOCTOR script (.TAPE. 100, 1965, CC0)', () => {
   it('parses DLIST tags into tag classes', () => {
     expect(s.entries.get('MOTHER')?.tags).toEqual(['NOUN', 'FAMILY']);
     expect(s.entries.get('SISTER')?.tags).toEqual(['FAMILY']);
-    expect(s.tags.get('FAMILY')).toEqual(
-      new Set(['BROTHER', 'CHILDREN', 'FATHER', 'MOTHER', 'SISTER', 'WIFE']),
-    );
+    expect(s.tags.get('FAMILY')).toEqual(new Set(['BROTHER', 'CHILDREN', 'FATHER', 'MOTHER', 'SISTER', 'WIFE']));
     expect(s.tags.get('NOUN')).toEqual(new Set(['FATHER', 'MOTHER']));
   });
 
@@ -124,7 +116,8 @@ describe('parseElizaScript', () => {
     expect(() => parseElizaScript(`${minimal}\n(X ((0 X 0) (NEWKEY)))`)).toThrow(/NEWKEY/);
     expect(() => parseElizaScript(`${minimal}\n(X ((0 X 0) (SAY 4)))`)).toThrow(/out of range/);
     expect(() => parseElizaScript(`${minimal}\n(Y (=ZZZ))`)).toThrow(/not a keyword/);
-    expect(() => parseElizaScript('(HI)\n(NONE ((0) (GO ON)))\n(MEMORY Q (0 = A 1) (0 = B 1) (0 = C 1) (0 = D 1))'))
-      .toThrow(/MEMORY keyword Q/);
+    expect(() =>
+      parseElizaScript('(HI)\n(NONE ((0) (GO ON)))\n(MEMORY Q (0 = A 1) (0 = B 1) (0 = C 1) (0 = D 1))'),
+    ).toThrow(/MEMORY keyword Q/);
   });
 });

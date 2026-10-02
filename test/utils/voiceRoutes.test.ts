@@ -44,8 +44,11 @@ describe('decodeAudioData routes by persona', () => {
   })();
   const raw = Array.from(new Int16Array(pcm.buffer), (v) => v / 32768);
 
-  const decode = (mode: 'modern' | 'authentic' | 'ultra', processing?: 'sbaitso' | 'clean' | 'hal' | 'wopr', text?: string) =>
-    decodeAudioData(pcm, ctx, FS, 1, mode, null, { processing, text });
+  const decode = (
+    mode: 'modern' | 'authentic' | 'ultra',
+    processing?: 'sbaitso' | 'clean' | 'hal' | 'wopr',
+    text?: string,
+  ) => decodeAudioData(pcm, ctx, FS, 1, mode, null, { processing, text });
 
   it('keeps the Sbaitso chain as the default', async () => {
     const byDefault = await decodeAudioData(pcm, ctx, FS, 1, 'authentic', null);

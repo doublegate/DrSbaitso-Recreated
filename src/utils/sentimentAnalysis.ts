@@ -20,13 +20,13 @@ export function analyzeSentiment(text: string): SentimentAnalysis {
       positiveCount: 0,
       negativeCount: 0,
       neutralCount: 0,
-      totalWords: 0
+      totalWords: 0,
     };
   }
 
   // Normalize text: lowercase, remove punctuation, split into words
   const normalized = text.toLowerCase().replace(/[^\w\s]/g, ' ');
-  const words = normalized.split(/\s+/).filter(word => word.length > 0);
+  const words = normalized.split(/\s+/).filter((word) => word.length > 0);
 
   if (words.length === 0) {
     return {
@@ -34,7 +34,7 @@ export function analyzeSentiment(text: string): SentimentAnalysis {
       positiveCount: 0,
       negativeCount: 0,
       neutralCount: 0,
-      totalWords: 0
+      totalWords: 0,
     };
   }
 
@@ -42,7 +42,7 @@ export function analyzeSentiment(text: string): SentimentAnalysis {
   let positiveCount = 0;
   let negativeCount = 0;
 
-  words.forEach(word => {
+  words.forEach((word) => {
     if (POSITIVE_KEYWORDS.includes(word)) {
       positiveCount++;
     } else if (NEGATIVE_KEYWORDS.includes(word)) {
@@ -54,16 +54,14 @@ export function analyzeSentiment(text: string): SentimentAnalysis {
 
   // Calculate sentiment score: (positive - negative) / total * 100
   // Normalize to -100 to +100 scale
-  const score = words.length > 0
-    ? Math.round(((positiveCount - negativeCount) / words.length) * 100)
-    : 0;
+  const score = words.length > 0 ? Math.round(((positiveCount - negativeCount) / words.length) * 100) : 0;
 
   return {
     score: Math.max(-100, Math.min(100, score)), // Clamp to -100..+100
     positiveCount,
     negativeCount,
     neutralCount,
-    totalWords: words.length
+    totalWords: words.length,
   };
 }
 
@@ -79,11 +77,11 @@ export function analyzeMessages(messages: Message[]): SentimentAnalysis {
       positiveCount: 0,
       negativeCount: 0,
       neutralCount: 0,
-      totalWords: 0
+      totalWords: 0,
     };
   }
 
-  const combined = messages.map(m => m.text).join(' ');
+  const combined = messages.map((m) => m.text).join(' ');
   return analyzeSentiment(combined);
 }
 
@@ -93,10 +91,7 @@ export function analyzeMessages(messages: Message[]): SentimentAnalysis {
  * @param windowSize - Number of recent messages to compare (default: 10)
  * @returns Trend direction: 'up', 'down', or 'stable'
  */
-export function calculateSentimentTrend(
-  messages: Message[],
-  windowSize: number = 10
-): 'up' | 'down' | 'stable' {
+export function calculateSentimentTrend(messages: Message[], windowSize: number = 10): 'up' | 'down' | 'stable' {
   if (!messages || messages.length < windowSize * 2) {
     return 'stable'; // Not enough data
   }
@@ -137,7 +132,7 @@ export function calculateSentimentTrend(
 export function extractTopKeywords(
   messages: Message[],
   minLength: number = 4,
-  limit: number = 50
+  limit: number = 50,
 ): Array<{ word: string; count: number; sentiment: number }> {
   if (!messages || messages.length === 0) {
     return [];
@@ -145,23 +140,54 @@ export function extractTopKeywords(
 
   // Common stop words to exclude
   const stopWords = new Set([
-    'that', 'this', 'with', 'have', 'from', 'they', 'been', 'were',
-    'what', 'when', 'where', 'which', 'while', 'their', 'there',
-    'these', 'those', 'about', 'would', 'could', 'should', 'your',
-    'just', 'like', 'some', 'than', 'into', 'very', 'more', 'most',
-    'also', 'only', 'even', 'well', 'much', 'such', 'here', 'them'
+    'that',
+    'this',
+    'with',
+    'have',
+    'from',
+    'they',
+    'been',
+    'were',
+    'what',
+    'when',
+    'where',
+    'which',
+    'while',
+    'their',
+    'there',
+    'these',
+    'those',
+    'about',
+    'would',
+    'could',
+    'should',
+    'your',
+    'just',
+    'like',
+    'some',
+    'than',
+    'into',
+    'very',
+    'more',
+    'most',
+    'also',
+    'only',
+    'even',
+    'well',
+    'much',
+    'such',
+    'here',
+    'them',
   ]);
 
   // Count word frequencies
   const wordCounts = new Map<string, number>();
 
-  messages.forEach(message => {
+  messages.forEach((message) => {
     const normalized = message.text.toLowerCase().replace(/[^\w\s]/g, ' ');
-    const words = normalized.split(/\s+/).filter(word =>
-      word.length >= minLength && !stopWords.has(word)
-    );
+    const words = normalized.split(/\s+/).filter((word) => word.length >= minLength && !stopWords.has(word));
 
-    words.forEach(word => {
+    words.forEach((word) => {
       wordCounts.set(word, (wordCounts.get(word) || 0) + 1);
     });
   });
@@ -179,9 +205,7 @@ export function extractTopKeywords(
   });
 
   // Sort by frequency (descending) and limit
-  return keywords
-    .sort((a, b) => b.count - a.count)
-    .slice(0, limit);
+  return keywords.sort((a, b) => b.count - a.count).slice(0, limit);
 }
 
 /**
@@ -191,11 +215,7 @@ export function extractTopKeywords(
  * @param endDate - End timestamp (ms)
  * @returns Average sentiment score
  */
-export function getAverageSentiment(
-  messages: Message[],
-  startDate?: number,
-  endDate?: number
-): number {
+export function getAverageSentiment(messages: Message[], startDate?: number, endDate?: number): number {
   if (!messages || messages.length === 0) {
     return 0;
   }
@@ -203,7 +223,7 @@ export function getAverageSentiment(
   // Filter by date range if provided
   let filtered = messages;
   if (startDate !== undefined || endDate !== undefined) {
-    filtered = messages.filter(m => {
+    filtered = messages.filter((m) => {
       const timestamp = m.timestamp || 0;
       const afterStart = startDate === undefined || timestamp >= startDate;
       const beforeEnd = endDate === undefined || timestamp <= endDate;

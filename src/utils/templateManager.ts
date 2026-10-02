@@ -26,13 +26,7 @@ export interface TemplatePrompt {
   placeholder?: string;
 }
 
-export type TemplateCategory =
-  | 'therapy'
-  | 'casual'
-  | 'technical'
-  | 'creative'
-  | 'educational'
-  | 'custom';
+export type TemplateCategory = 'therapy' | 'casual' | 'technical' | 'creative' | 'educational' | 'custom';
 
 /**
  * Built-in conversation templates
@@ -49,31 +43,31 @@ export const BUILT_IN_TEMPLATES: ConversationTemplate[] = [
         id: 'intro',
         text: "I've been feeling stressed lately",
         order: 1,
-        isOptional: false
+        isOptional: false,
       },
       {
         id: 'source',
         text: 'It seems to come from work and personal life',
         order: 2,
-        isOptional: false
+        isOptional: false,
       },
       {
         id: 'symptoms',
         text: "I've noticed I'm sleeping poorly and feeling anxious",
         order: 3,
-        isOptional: true
+        isOptional: true,
       },
       {
         id: 'coping',
         text: "I'd like to learn better coping strategies",
         order: 4,
-        isOptional: false
-      }
+        isOptional: false,
+      },
     ],
     tags: ['stress', 'anxiety', 'mental health', 'coping'],
     isCustom: false,
     createdAt: Date.now(),
-    useCount: 0
+    useCount: 0,
   },
   {
     id: 'therapy-relationships',
@@ -86,31 +80,31 @@ export const BUILT_IN_TEMPLATES: ConversationTemplate[] = [
         id: 'intro',
         text: "I'm having trouble in my relationship",
         order: 1,
-        isOptional: false
+        isOptional: false,
       },
       {
         id: 'issue',
         text: 'We seem to argue about the same things repeatedly',
         order: 2,
-        isOptional: false
+        isOptional: false,
       },
       {
         id: 'feelings',
         text: 'It makes me feel frustrated and misunderstood',
         order: 3,
-        isOptional: true
+        isOptional: true,
       },
       {
         id: 'goal',
         text: 'I want to improve our communication',
         order: 4,
-        isOptional: false
-      }
+        isOptional: false,
+      },
     ],
     tags: ['relationships', 'communication', 'conflict', 'emotions'],
     isCustom: false,
     createdAt: Date.now(),
-    useCount: 0
+    useCount: 0,
   },
   {
     id: 'casual-checkin',
@@ -123,33 +117,33 @@ export const BUILT_IN_TEMPLATES: ConversationTemplate[] = [
         id: 'greeting',
         text: 'Hello! How are you today?',
         order: 1,
-        isOptional: false
+        isOptional: false,
       },
       {
         id: 'day',
         text: "I'd like to talk about my day",
         order: 2,
-        isOptional: false
+        isOptional: false,
       },
       {
         id: 'highlights',
         text: 'Here are some highlights from today...',
         order: 3,
         isOptional: true,
-        placeholder: 'Share what went well'
+        placeholder: 'Share what went well',
       },
       {
         id: 'challenges',
         text: 'I also faced some challenges...',
         order: 4,
         isOptional: true,
-        placeholder: 'Share any difficulties'
-      }
+        placeholder: 'Share any difficulties',
+      },
     ],
     tags: ['daily', 'casual', 'mood', 'reflection'],
     isCustom: false,
     createdAt: Date.now(),
-    useCount: 0
+    useCount: 0,
   },
   {
     id: 'technical-problem',
@@ -162,34 +156,34 @@ export const BUILT_IN_TEMPLATES: ConversationTemplate[] = [
         id: 'problem',
         text: 'I have a problem I need help thinking through',
         order: 1,
-        isOptional: false
+        isOptional: false,
       },
       {
         id: 'details',
         text: 'Here are the details...',
         order: 2,
         isOptional: false,
-        placeholder: 'Describe the problem'
+        placeholder: 'Describe the problem',
       },
       {
         id: 'constraints',
         text: 'The constraints or limitations are...',
         order: 3,
         isOptional: true,
-        placeholder: 'Any limitations?'
+        placeholder: 'Any limitations?',
       },
       {
         id: 'ideas',
         text: 'I have some initial ideas...',
         order: 4,
         isOptional: true,
-        placeholder: 'Share your thoughts'
-      }
+        placeholder: 'Share your thoughts',
+      },
     ],
     tags: ['problem-solving', 'analytical', 'brainstorming'],
     isCustom: false,
     createdAt: Date.now(),
-    useCount: 0
+    useCount: 0,
   },
   {
     id: 'creative-brainstorm',
@@ -202,34 +196,34 @@ export const BUILT_IN_TEMPLATES: ConversationTemplate[] = [
         id: 'project',
         text: "I'm working on a creative project",
         order: 1,
-        isOptional: false
+        isOptional: false,
       },
       {
         id: 'goal',
         text: 'My goal is to...',
         order: 2,
         isOptional: false,
-        placeholder: 'What do you want to create?'
+        placeholder: 'What do you want to create?',
       },
       {
         id: 'inspiration',
         text: "I'm inspired by...",
         order: 3,
         isOptional: true,
-        placeholder: 'Share your influences'
+        placeholder: 'Share your influences',
       },
       {
         id: 'blockers',
         text: "I'm stuck on...",
         order: 4,
         isOptional: true,
-        placeholder: 'Any creative blocks?'
-      }
+        placeholder: 'Any creative blocks?',
+      },
     ],
     tags: ['creativity', 'brainstorming', 'ideas', 'projects'],
     isCustom: false,
     createdAt: Date.now(),
-    useCount: 0
+    useCount: 0,
   },
   {
     id: 'educational-learning',
@@ -243,35 +237,35 @@ export const BUILT_IN_TEMPLATES: ConversationTemplate[] = [
         text: 'I want to learn about...',
         order: 1,
         isOptional: false,
-        placeholder: 'What topic interests you?'
+        placeholder: 'What topic interests you?',
       },
       {
         id: 'knowledge',
         text: 'I currently know...',
         order: 2,
         isOptional: true,
-        placeholder: 'Your current understanding'
+        placeholder: 'Your current understanding',
       },
       {
         id: 'questions',
         text: 'My main questions are...',
         order: 3,
         isOptional: false,
-        placeholder: 'What do you want to know?'
+        placeholder: 'What do you want to know?',
       },
       {
         id: 'application',
         text: 'I want to apply this knowledge to...',
         order: 4,
         isOptional: true,
-        placeholder: 'How will you use it?'
-      }
+        placeholder: 'How will you use it?',
+      },
     ],
     tags: ['learning', 'education', 'knowledge', 'questions'],
     isCustom: false,
     createdAt: Date.now(),
-    useCount: 0
-  }
+    useCount: 0,
+  },
 ];
 
 /**
@@ -289,9 +283,9 @@ export class TemplateManager {
     const usage = this.getUsageStats();
 
     // Merge and update use counts
-    return [...BUILT_IN_TEMPLATES, ...customTemplates].map(template => ({
+    return [...BUILT_IN_TEMPLATES, ...customTemplates].map((template) => ({
       ...template,
-      useCount: usage[template.id] || 0
+      useCount: usage[template.id] || 0,
     }));
   }
 
@@ -299,26 +293,28 @@ export class TemplateManager {
    * Get templates by category
    */
   static getTemplatesByCategory(category: TemplateCategory): ConversationTemplate[] {
-    return this.getAllTemplates().filter(t => t.category === category);
+    return this.getAllTemplates().filter((t) => t.category === category);
   }
 
   /**
    * Get template by ID
    */
   static getTemplate(id: string): ConversationTemplate | null {
-    return this.getAllTemplates().find(t => t.id === id) || null;
+    return this.getAllTemplates().find((t) => t.id === id) || null;
   }
 
   /**
    * Create custom template
    */
-  static createTemplate(template: Omit<ConversationTemplate, 'id' | 'isCustom' | 'createdAt' | 'useCount'>): ConversationTemplate {
+  static createTemplate(
+    template: Omit<ConversationTemplate, 'id' | 'isCustom' | 'createdAt' | 'useCount'>,
+  ): ConversationTemplate {
     const newTemplate: ConversationTemplate = {
       ...template,
       id: `custom_${Date.now()}_${Math.random().toString(36).substring(7)}`,
       isCustom: true,
       createdAt: Date.now(),
-      useCount: 0
+      useCount: 0,
     };
 
     const customTemplates = this.getCustomTemplates();
@@ -333,7 +329,7 @@ export class TemplateManager {
    */
   static updateTemplate(id: string, updates: Partial<ConversationTemplate>): boolean {
     const customTemplates = this.getCustomTemplates();
-    const index = customTemplates.findIndex(t => t.id === id);
+    const index = customTemplates.findIndex((t) => t.id === id);
 
     if (index === -1) return false;
 
@@ -341,7 +337,7 @@ export class TemplateManager {
       ...customTemplates[index],
       ...updates,
       id: customTemplates[index].id, // Prevent ID change
-      isCustom: true // Keep as custom
+      isCustom: true, // Keep as custom
     };
 
     this.saveCustomTemplates(customTemplates);
@@ -353,7 +349,7 @@ export class TemplateManager {
    */
   static deleteTemplate(id: string): boolean {
     const customTemplates = this.getCustomTemplates();
-    const filtered = customTemplates.filter(t => t.id !== id);
+    const filtered = customTemplates.filter((t) => t.id !== id);
 
     if (filtered.length === customTemplates.length) return false;
 
@@ -384,10 +380,11 @@ export class TemplateManager {
    */
   static searchTemplates(query: string): ConversationTemplate[] {
     const lowerQuery = query.toLowerCase();
-    return this.getAllTemplates().filter(template =>
-      template.name.toLowerCase().includes(lowerQuery) ||
-      template.description.toLowerCase().includes(lowerQuery) ||
-      template.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+    return this.getAllTemplates().filter(
+      (template) =>
+        template.name.toLowerCase().includes(lowerQuery) ||
+        template.description.toLowerCase().includes(lowerQuery) ||
+        template.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)),
     );
   }
 
@@ -419,7 +416,7 @@ export class TemplateManager {
         description: template.description || '',
         icon: template.icon || '📝',
         prompts: template.prompts,
-        tags: template.tags || []
+        tags: template.tags || [],
       });
     } catch (error) {
       console.error('[TemplateManager] Import failed:', error);
@@ -488,7 +485,7 @@ export function getCategoryIcon(category: TemplateCategory): string {
     technical: '⚙️',
     creative: '🎨',
     educational: '📖',
-    custom: '✨'
+    custom: '✨',
   };
 
   return icons[category] || '📝';
@@ -499,12 +496,12 @@ export function getCategoryIcon(category: TemplateCategory): string {
  */
 export function getCategoryColor(category: TemplateCategory): string {
   const colors: Record<TemplateCategory, string> = {
-    therapy: '#a855f7',    // Purple
-    casual: '#22c55e',     // Green
-    technical: '#3b82f6',  // Blue
-    creative: '#f59e0b',   // Amber
+    therapy: '#a855f7', // Purple
+    casual: '#22c55e', // Green
+    technical: '#3b82f6', // Blue
+    creative: '#f59e0b', // Amber
     educational: '#06b6d4', // Cyan
-    custom: '#ec4899'      // Pink
+    custom: '#ec4899', // Pink
   };
 
   return colors[category] || '#6b7280';

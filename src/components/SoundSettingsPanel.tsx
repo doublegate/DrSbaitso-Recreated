@@ -197,17 +197,15 @@ export default function SoundSettingsPanel({ isOpen, onClose }: SoundSettingsPan
                   min="0"
                   max="100"
                   value={settings.ambienceVolume * 100}
-                  onChange={(e) =>
-                    handleSettingChange('ambienceVolume', parseInt(e.target.value) / 100)
-                  }
+                  onChange={(e) => handleSettingChange('ambienceVolume', parseInt(e.target.value) / 100)}
                   disabled={!settings.ambienceEnabled}
                   className="w-full"
                 />
               </div>
 
               <p className="text-xs text-gray-300">
-                Ambient background sounds simulate a 1980s computer room atmosphere with low hum,
-                fan noise, and occasional disk access sounds.
+                Ambient background sounds simulate a 1980s computer room atmosphere with low hum, fan noise, and
+                occasional disk access sounds.
               </p>
             </div>
           </div>
@@ -242,9 +240,7 @@ export default function SoundSettingsPanel({ isOpen, onClose }: SoundSettingsPan
                 <label
                   key={pack.id}
                   className={`flex items-center p-2 border ${
-                    settings.selectedSoundPack === pack.id
-                      ? 'border-yellow-300 bg-blue-800'
-                      : 'border-gray-400'
+                    settings.selectedSoundPack === pack.id ? 'border-yellow-300 bg-blue-800' : 'border-gray-400'
                   } cursor-pointer hover:border-yellow-300`}
                 >
                   <input

@@ -91,11 +91,9 @@ export const MAX_IMPORT_BYTES = 8 * 1024 * 1024;
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const isNonEmptyString = (value: unknown): value is string =>
-  typeof value === 'string' && value.trim().length > 0;
+const isNonEmptyString = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
 
-const isFiniteNumber = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value);
+const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 
 // ---------------------------------------------------------------------------
 // Binary helpers
@@ -141,7 +139,7 @@ export interface PcmSource {
  */
 export function audioBufferToPcm16(
   buffer: PcmSource,
-  targetRate: number = SOUND_PACK_SAMPLE_RATE
+  targetRate: number = SOUND_PACK_SAMPLE_RATE,
 ): { pcm: Uint8Array; sampleRate: number; durationMs: number } {
   const channels: Float32Array[] = [];
   for (let c = 0; c < buffer.numberOfChannels; c++) channels.push(buffer.getChannelData(c));
@@ -189,7 +187,7 @@ export function isEncodedAudioContainer(bytes: Uint8Array): boolean {
  */
 export async function decodeAudioFileForPack(
   file: ArrayBuffer,
-  ctx: BaseAudioContext
+  ctx: BaseAudioContext,
 ): Promise<{ audioData: string; duration: number; sampleRate: number }> {
   let decoded: AudioBuffer;
   try {
@@ -394,7 +392,7 @@ export function validateSoundPack(pack: unknown): SoundPackValidationResult {
   return {
     valid: errors.length === 0,
     errors,
-    warnings
+    warnings,
   };
 }
 
@@ -443,10 +441,10 @@ export function createEmptySoundPack(author: string): SoundPack {
       description: '',
       created: Date.now(),
       updated: Date.now(),
-      tags: []
+      tags: [],
     },
     sounds: [],
-    triggers: []
+    triggers: [],
   };
 }
 
@@ -535,10 +533,10 @@ export function cloneSoundPack(pack: SoundPack, newAuthor: string): SoundPack {
       name: `${pack.metadata.name} (Copy)`,
       author: newAuthor,
       created: Date.now(),
-      updated: Date.now()
+      updated: Date.now(),
     },
     sounds: [...pack.sounds],
-    triggers: [...pack.triggers]
+    triggers: [...pack.triggers],
   };
 }
 
@@ -552,11 +550,11 @@ export function mergeSoundPacks(packs: SoundPack[], author: string): SoundPack {
 
   // Collect all sounds, resolving ID conflicts
   packs.forEach((pack, packIndex) => {
-    pack.sounds.forEach(sound => {
+    pack.sounds.forEach((sound) => {
       let newId = sound.id;
 
       // If ID already exists, append pack index
-      if (mergedSounds.find(s => s.id === newId)) {
+      if (mergedSounds.find((s) => s.id === newId)) {
         newId = `${sound.id}_p${packIndex}`;
       }
 
@@ -564,20 +562,20 @@ export function mergeSoundPacks(packs: SoundPack[], author: string): SoundPack {
 
       mergedSounds.push({
         ...sound,
-        id: newId
+        id: newId,
       });
     });
   });
 
   // Collect all triggers, updating sound IDs
   packs.forEach((pack, packIndex) => {
-    pack.triggers.forEach(trigger => {
+    pack.triggers.forEach((trigger) => {
       const newSoundId = soundIdMap.get(`${packIndex}-${trigger.soundId}`);
 
       if (newSoundId) {
         mergedTriggers.push({
           ...trigger,
-          soundId: newSoundId
+          soundId: newSoundId,
         });
       }
     });
@@ -591,9 +589,9 @@ export function mergeSoundPacks(packs: SoundPack[], author: string): SoundPack {
       description: `Merged from ${packs.length} packs`,
       created: Date.now(),
       updated: Date.now(),
-      tags: ['merged']
+      tags: ['merged'],
     },
     sounds: mergedSounds,
-    triggers: mergedTriggers
+    triggers: mergedTriggers,
   };
 }

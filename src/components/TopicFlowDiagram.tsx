@@ -12,7 +12,7 @@ import {
   getTopicColor,
   formatTopicName,
   type ConversationAnalysis,
-  type Topic
+  type Topic,
 } from '@/utils/topicAnalysis';
 
 interface TopicFlowDiagramProps {
@@ -29,10 +29,7 @@ interface TopicFlowDiagramProps {
 
 const ANALYSIS_DEBOUNCE_MS = 400;
 
-export function TopicFlowDiagram({
-  messages,
-  theme
-}: TopicFlowDiagramProps): React.JSX.Element {
+export function TopicFlowDiagram({ messages, theme }: TopicFlowDiagramProps): React.JSX.Element {
   const svgRef = useRef<SVGSVGElement>(null);
   const [analysis, setAnalysis] = useState<ConversationAnalysis | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
@@ -57,33 +54,44 @@ export function TopicFlowDiagram({
     svg.selectAll('*').remove();
 
     // Create force simulation
-    const nodes = analysis.topics.map(topic => ({
+    const nodes = analysis.topics.map((topic) => ({
       id: topic.id,
       name: formatTopicName(topic.id),
       frequency: topic.frequency,
       sentiment: topic.sentiment,
-      radius: Math.sqrt(topic.frequency) * 8 + 10
+      radius: Math.sqrt(topic.frequency) * 8 + 10,
     }));
 
-    const links = analysis.transitions.map(t => ({
+    const links = analysis.transitions.map((t) => ({
       source: t.from,
       target: t.to,
-      count: t.count
+      count: t.count,
     }));
 
-    const simulation = d3.forceSimulation(nodes as any)
-      .force('link', d3.forceLink(links)
-        .id((d: any) => d.id)
-        .distance(80)
-        .strength(0.5))
+    const simulation = d3
+      .forceSimulation(nodes as any)
+      .force(
+        'link',
+        d3
+          .forceLink(links)
+          .id((d: any) => d.id)
+          .distance(80)
+          .strength(0.5),
+      )
       .force('charge', d3.forceManyBody().strength(-200))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius((d: any) => d.radius + 5));
+      .force(
+        'collision',
+        d3.forceCollide().radius((d: any) => d.radius + 5),
+      );
 
     // Create arrow markers
-    svg.append('defs').selectAll('marker')
+    svg
+      .append('defs')
+      .selectAll('marker')
       .data(['arrow'])
-      .enter().append('marker')
+      .enter()
+      .append('marker')
       .attr('id', 'arrow')
       .attr('viewBox', '0 -5 10 10')
       .attr('refX', 20)
@@ -96,59 +104,67 @@ export function TopicFlowDiagram({
       .attr('fill', theme?.colors.border || '#666');
 
     // Draw links
-    const link = svg.append('g')
+    const link = svg
+      .append('g')
       .selectAll('line')
       .data(links)
-      .enter().append('line')
+      .enter()
+      .append('line')
       .attr('stroke', theme?.colors.border || '#666')
       .attr('stroke-width', (d: any) => Math.sqrt(d.count) * 0.5 + 1)
       .attr('stroke-opacity', 0.4)
       .attr('marker-end', 'url(#arrow)');
 
     // Draw nodes
-    const node = svg.append('g')
+    const node = svg
+      .append('g')
       .selectAll('g')
       .data(nodes)
-      .enter().append('g')
+      .enter()
+      .append('g')
       .attr('cursor', 'pointer')
       .on('click', (event, d: any) => {
-        const topic = analysis.topics.find(t => t.id === d.id);
+        const topic = analysis.topics.find((t) => t.id === d.id);
         setSelectedTopic(topic || null);
       })
-      .call(d3.drag<any, any>()
-        .on('start', (event, d: any) => {
-          if (!event.active) simulation.alphaTarget(0.3).restart();
-          d.fx = d.x;
-          d.fy = d.y;
-        })
-        .on('drag', (event, d: any) => {
-          d.fx = event.x;
-          d.fy = event.y;
-        })
-        .on('end', (event, d: any) => {
-          if (!event.active) simulation.alphaTarget(0);
-          d.fx = null;
-          d.fy = null;
-        })
+      .call(
+        d3
+          .drag<any, any>()
+          .on('start', (event, d: any) => {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on('drag', (event, d: any) => {
+            d.fx = event.x;
+            d.fy = event.y;
+          })
+          .on('end', (event, d: any) => {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          }),
       );
 
     // Add circles
-    node.append('circle')
+    node
+      .append('circle')
       .attr('r', (d: any) => d.radius)
       .attr('fill', (d: any) => getTopicColor(d.id, d.sentiment))
       .attr('stroke', theme?.colors.text || '#fff')
       .attr('stroke-width', 2)
       .attr('opacity', 0.8)
-      .on('mouseover', function() {
+      .on('mouseover', function () {
         d3.select(this).attr('opacity', 1).attr('stroke-width', 3);
       })
-      .on('mouseout', function() {
+      .on('mouseout', function () {
         d3.select(this).attr('opacity', 0.8).attr('stroke-width', 2);
       });
 
     // Add labels
-    node.append('text')
-      .text((d: any) => d.name.length > 12 ? d.name.substring(0, 10) + '...' : d.name)
+    node
+      .append('text')
+      .text((d: any) => (d.name.length > 12 ? d.name.substring(0, 10) + '...' : d.name))
       .attr('text-anchor', 'middle')
       .attr('dy', '.35em')
       .attr('fill', theme?.colors.text || '#fff')
@@ -157,7 +173,8 @@ export function TopicFlowDiagram({
       .attr('pointer-events', 'none');
 
     // Add frequency badge
-    node.append('circle')
+    node
+      .append('circle')
       .attr('cx', (d: any) => d.radius * 0.6)
       .attr('cy', (d: any) => -d.radius * 0.6)
       .attr('r', 10)
@@ -165,7 +182,8 @@ export function TopicFlowDiagram({
       .attr('stroke', theme?.colors.background || '#1e3a8a')
       .attr('stroke-width', 2);
 
-    node.append('text')
+    node
+      .append('text')
       .attr('x', (d: any) => d.radius * 0.6)
       .attr('y', (d: any) => -d.radius * 0.6)
       .attr('text-anchor', 'middle')
@@ -199,7 +217,7 @@ export function TopicFlowDiagram({
         className="p-4 border-2 rounded-sm"
         style={{
           borderColor: theme?.colors.border || '#4b5563',
-          backgroundColor: theme?.colors.background || '#1e3a8a'
+          backgroundColor: theme?.colors.background || '#1e3a8a',
         }}
       >
         <p className="text-sm" style={{ color: theme?.colors.text || '#ffffff' }}>
@@ -214,7 +232,7 @@ export function TopicFlowDiagram({
       className="topic-flow-diagram p-4 border-2 rounded-sm"
       style={{
         borderColor: theme?.colors.border || '#4b5563',
-        backgroundColor: theme?.colors.background || '#1e3a8a'
+        backgroundColor: theme?.colors.background || '#1e3a8a',
       }}
     >
       <h3 className="text-lg font-bold mb-3" style={{ color: theme?.colors.text || '#ffffff' }}>
@@ -244,11 +262,14 @@ export function TopicFlowDiagram({
       </div>
 
       {/* D3 Visualization */}
-      <div className="border rounded-sm p-2 mb-4" style={{
-        borderColor: theme?.colors.border,
-        backgroundColor: theme?.colors.background,
-        overflow: 'hidden'
-      }}>
+      <div
+        className="border rounded-sm p-2 mb-4"
+        style={{
+          borderColor: theme?.colors.border,
+          backgroundColor: theme?.colors.background,
+          overflow: 'hidden',
+        }}
+      >
         <svg
           ref={svgRef}
           width="100%"
@@ -286,7 +307,7 @@ export function TopicFlowDiagram({
           className="p-3 border rounded-sm"
           style={{
             borderColor: getTopicColor(selectedTopic.id, selectedTopic.sentiment),
-            backgroundColor: `${getTopicColor(selectedTopic.id, selectedTopic.sentiment)}22`
+            backgroundColor: `${getTopicColor(selectedTopic.id, selectedTopic.sentiment)}22`,
           }}
         >
           <div className="flex justify-between items-start mb-2">
@@ -303,7 +324,9 @@ export function TopicFlowDiagram({
           </div>
           <div className="space-y-1 text-xs" style={{ color: theme?.colors.text }}>
             <p>Frequency: {selectedTopic.frequency} mentions</p>
-            <p>Sentiment: <span className="capitalize">{selectedTopic.sentiment}</span></p>
+            <p>
+              Sentiment: <span className="capitalize">{selectedTopic.sentiment}</span>
+            </p>
             <p>Keywords: {selectedTopic.keywords.slice(0, 5).join(', ')}</p>
             <p>First mentioned: Message #{selectedTopic.firstMention + 1}</p>
             <p>Last mentioned: Message #{selectedTopic.lastMention + 1}</p>

@@ -23,12 +23,10 @@ export default function VoiceHelpDialog({ commands, containerRef, onClose }: Voi
         className="bg-blue-900 border-4 border-gray-400 p-6 max-w-3xl max-h-[80vh] overflow-y-auto"
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 id="voice-help-title" className="text-2xl font-bold text-white">VOICE CONTROL COMMANDS</h2>
-          <button
-            onClick={onClose}
-            className="text-white hover:text-yellow-300 text-2xl"
-            aria-label="Close help"
-          >
+          <h2 id="voice-help-title" className="text-2xl font-bold text-white">
+            VOICE CONTROL COMMANDS
+          </h2>
+          <button onClick={onClose} className="text-white hover:text-yellow-300 text-2xl" aria-label="Close help">
             ✕
           </button>
         </div>
@@ -45,17 +43,17 @@ export default function VoiceHelpDialog({ commands, containerRef, onClose }: Voi
 
           {commands.length > 0 && (
             <>
-              {['conversation', 'character', 'audio', 'navigation', 'settings'].map(category => {
-                const categoryCommands = commands.filter(c => c.category === category);
+              {['conversation', 'character', 'audio', 'navigation', 'settings'].map((category) => {
+                const categoryCommands = commands.filter((c) => c.category === category);
                 if (categoryCommands.length === 0) return null;
 
                 return (
                   <div key={category}>
                     <h3 className="text-yellow-300 font-bold mb-2">{category.toUpperCase()}:</h3>
                     <ul className="space-y-2">
-                      {categoryCommands.map(cmd => (
+                      {categoryCommands.map((cmd) => (
                         <li key={cmd.id} className="text-white">
-                          <span className="text-green-400">"{ cmd.phrases[0]}"</span>
+                          <span className="text-green-400">"{cmd.phrases[0]}"</span>
                           <span className="text-gray-400"> - {cmd.description}</span>
                           {cmd.phrases.length > 1 && (
                             <div className="ml-4 text-xs text-gray-400">
@@ -75,7 +73,8 @@ export default function VoiceHelpDialog({ commands, containerRef, onClose }: Voi
           <div className="pt-4 border-t-2 border-gray-600">
             <h3 className="text-yellow-300 font-bold mb-2">WAKE WORDS:</h3>
             <p className="text-white text-xs">
-              Say any of these to activate voice control: "Hey Doctor", "Hey Sbaitso", "Doctor Sbaitso", "Okay Doctor", "Listen Doctor"
+              Say any of these to activate voice control: "Hey Doctor", "Hey Sbaitso", "Doctor Sbaitso", "Okay Doctor",
+              "Listen Doctor"
             </p>
           </div>
 

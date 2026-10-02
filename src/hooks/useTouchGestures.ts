@@ -39,9 +39,7 @@ interface TouchState {
  * @param options - Gesture handlers and configuration
  * @returns ref - Ref to attach to target element
  */
-export function useTouchGestures<T extends HTMLElement = HTMLElement>(
-  options: TouchGestureOptions
-) {
+export function useTouchGestures<T extends HTMLElement = HTMLElement>(options: TouchGestureOptions) {
   const elementRef = useRef<T>(null);
   const touchState = useRef<TouchState | null>(null);
 
@@ -76,7 +74,7 @@ export function useTouchGestures<T extends HTMLElement = HTMLElement>(
         }, longPressDelay);
       }
     },
-    [onLongPress, longPressDelay]
+    [onLongPress, longPressDelay],
   );
 
   const handleTouchMove = useCallback(() => {
@@ -142,7 +140,7 @@ export function useTouchGestures<T extends HTMLElement = HTMLElement>(
 
       touchState.current = null;
     },
-    [onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onTap, swipeThreshold, tapMaxDuration]
+    [onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onTap, swipeThreshold, tapMaxDuration],
   );
 
   const handleTouchCancel = useCallback(() => {
@@ -176,10 +174,7 @@ export function useTouchGestures<T extends HTMLElement = HTMLElement>(
  * Hook to detect swipe gestures on entire screen
  * @param options - Gesture handlers
  */
-export function useGlobalSwipe(options: {
-  onSwipeLeft?: () => void;
-  onSwipeRight?: () => void;
-}) {
+export function useGlobalSwipe(options: { onSwipeLeft?: () => void; onSwipeRight?: () => void }) {
   // Latest handlers without re-subscribing on every render.
   const swipeLeft = useEffectEvent(() => options.onSwipeLeft?.());
   const swipeRight = useEffectEvent(() => options.onSwipeRight?.());

@@ -26,7 +26,16 @@ import {
   WHATS_THE_DIFFERENCE,
   YOUR_MOVE,
 } from './phrases';
-import { EMPTY_BOARD, chooseMove, outcome, play, renderBoard, selfPlay, type Board, type SelfPlayGame } from './tictactoe';
+import {
+  EMPTY_BOARD,
+  chooseMove,
+  outcome,
+  play,
+  renderBoard,
+  selfPlay,
+  type Board,
+  type SelfPlayGame,
+} from './tictactoe';
 import type { JoshuaFlags, JoshuaState, JoshuaStep, WarSide } from './types';
 
 const NONE = { kind: 'none' } as const;
@@ -153,7 +162,13 @@ function startTicTacToe(state: JoshuaState): JoshuaStep {
   const next = { ...state, game: TIC_TAC_TOE, pending: { kind: 'ttt', board: EMPTY_BOARD } as const };
   return {
     state: next,
-    result: { kind: 'board', board: EMPTY_BOARD, outcome: null, lines: [...renderBoard(EMPTY_BOARD), '', YOUR_MOVE], speak: ['YOUR MOVE.'] },
+    result: {
+      kind: 'board',
+      board: EMPTY_BOARD,
+      outcome: null,
+      lines: [...renderBoard(EMPTY_BOARD), '', YOUR_MOVE],
+      speak: ['YOUR MOVE.'],
+    },
   };
 }
 
@@ -179,12 +194,27 @@ function ticTacToeMove(state: JoshuaState, board: Board, text: string): JoshuaSt
   if (result !== null) {
     const done = finishLines(state, current);
     const next = { ...state, seed, pending: NONE, game: null };
-    return { state: next, result: { kind: 'board', board: current, outcome: result, lines: [...lines, ...done], speak: spoken(done.slice(-2)) } };
+    return {
+      state: next,
+      result: {
+        kind: 'board',
+        board: current,
+        outcome: result,
+        lines: [...lines, ...done],
+        speak: spoken(done.slice(-2)),
+      },
+    };
   }
   const next = { ...state, seed, pending: { kind: 'ttt', board: current } as const };
   return {
     state: next,
-    result: { kind: 'board', board: current, outcome: null, lines: [...lines, ...renderBoard(current), '', YOUR_MOVE], speak: [...lines, 'YOUR MOVE.'] },
+    result: {
+      kind: 'board',
+      board: current,
+      outcome: null,
+      lines: [...lines, ...renderBoard(current), '', YOUR_MOVE],
+      speak: [...lines, 'YOUR MOVE.'],
+    },
   };
 }
 
@@ -212,7 +242,8 @@ function pendingStep(state: JoshuaState, text: string): JoshuaStep | null {
   const pending = state.pending;
   switch (pending.kind) {
     case 'chess-offer':
-      if (YES.test(text)) return reply({ ...state, pending: NONE, game: 'CHESS' }, ['FINE. CHESS.', `YOUR MOVE, ${state.user}.`]);
+      if (YES.test(text))
+        return reply({ ...state, pending: NONE, game: 'CHESS' }, ['FINE. CHESS.', `YOUR MOVE, ${state.user}.`]);
       // Anything else, including insisting on the war, gets the side menu (the film's "FINE.").
       return sideMenu({ ...state, pending: NONE }, ['FINE.']);
     case 'side': {

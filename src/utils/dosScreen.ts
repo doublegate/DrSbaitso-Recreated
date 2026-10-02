@@ -8,8 +8,22 @@
 
 /** Standard CGA/EGA/VGA text-mode palette, indexed by DOS colour number. */
 export const DOS_PALETTE = [
-  '#000000', '#0000AA', '#00AA00', '#00AAAA', '#AA0000', '#AA00AA', '#AA5500', '#AAAAAA',
-  '#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55', '#FFFFFF',
+  '#000000',
+  '#0000AA',
+  '#00AA00',
+  '#00AAAA',
+  '#AA0000',
+  '#AA00AA',
+  '#AA5500',
+  '#AAAAAA',
+  '#555555',
+  '#5555FF',
+  '#55FF55',
+  '#55FFFF',
+  '#FF5555',
+  '#FF55FF',
+  '#FFFF55',
+  '#FFFFFF',
 ] as const;
 
 export const SCREEN_ROWS = 25;
@@ -83,9 +97,17 @@ export function bannerRows(version = '2.20', year = 1992, cols = SCREEN_COLS): R
     };
     return [
       [{ text: ' ╔' + '═'.repeat(inner) + '╗ ', fg: W }],
-      [{ text: ' ║', fg: W }, { text: center('DR S B A I T S O'), fg: DOS.yellow }, { text: '║ ', fg: W }],
+      [
+        { text: ' ║', fg: W },
+        { text: center('DR S B A I T S O'), fg: DOS.yellow },
+        { text: '║ ', fg: W },
+      ],
       [{ text: ' ╟' + '─'.repeat(inner) + '╢ ', fg: W }],
-      [{ text: ' ║', fg: W }, { text: center(`(c)Copyright Creative Labs,Inc.${year}`), fg: DOS.lightGreen }, { text: '║ ', fg: W }],
+      [
+        { text: ' ║', fg: W },
+        { text: center(`(c)Copyright Creative Labs,Inc.${year}`), fg: DOS.lightGreen },
+        { text: '║ ', fg: W },
+      ],
       [{ text: ' ╚' + '═'.repeat(inner) + '╝ ', fg: W }],
     ];
   }

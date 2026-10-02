@@ -56,10 +56,7 @@ export default function MusicPlayer({ theme, audioContext }: MusicPlayerProps) {
   };
 
   return (
-    <div
-      className="border-2 rounded-sm p-4"
-      style={{ borderColor: theme.colors.border }}
-    >
+    <div className="border-2 rounded-sm p-4" style={{ borderColor: theme.colors.border }}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold" style={{ color: theme.colors.text }}>
           🎵 Background Music
@@ -69,7 +66,7 @@ export default function MusicPlayer({ theme, audioContext }: MusicPlayerProps) {
           className={`px-4 py-1 rounded-sm font-bold transition ${enabled ? 'opacity-100' : 'opacity-60'}`}
           style={{
             backgroundColor: enabled ? theme.colors.accent : theme.colors.border,
-            color: enabled ? theme.colors.background : theme.colors.text
+            color: enabled ? theme.colors.background : theme.colors.text,
           }}
         >
           {enabled ? 'ON' : 'OFF'}
@@ -99,7 +96,7 @@ export default function MusicPlayer({ theme, audioContext }: MusicPlayerProps) {
           Mood:
         </label>
         <div className="grid grid-cols-3 gap-2">
-          {(['auto', 'happy', 'neutral', 'sad', 'tense'] as MusicMood[]).map(m => (
+          {(['auto', 'happy', 'neutral', 'sad', 'tense'] as MusicMood[]).map((m) => (
             <button
               key={m}
               onClick={() => handleMoodChange(m)}
@@ -107,7 +104,7 @@ export default function MusicPlayer({ theme, audioContext }: MusicPlayerProps) {
               className={`px-2 py-1 text-sm rounded-sm font-semibold ${mood === m ? 'opacity-100' : 'opacity-50'} disabled:opacity-30`}
               style={{
                 backgroundColor: mood === m ? theme.colors.accent : theme.colors.border,
-                color: mood === m ? theme.colors.background : theme.colors.text
+                color: mood === m ? theme.colors.background : theme.colors.text,
               }}
             >
               {m.charAt(0).toUpperCase() + m.slice(1)}
@@ -122,7 +119,7 @@ export default function MusicPlayer({ theme, audioContext }: MusicPlayerProps) {
           Tempo:
         </label>
         <div className="grid grid-cols-3 gap-2">
-          {(['slow', 'normal', 'fast'] as MusicTempo[]).map(t => (
+          {(['slow', 'normal', 'fast'] as MusicTempo[]).map((t) => (
             <button
               key={t}
               onClick={() => handleTempoChange(t)}
@@ -130,7 +127,7 @@ export default function MusicPlayer({ theme, audioContext }: MusicPlayerProps) {
               className={`px-2 py-1 text-sm rounded-sm font-semibold ${tempo === t ? 'opacity-100' : 'opacity-50'} disabled:opacity-30`}
               style={{
                 backgroundColor: tempo === t ? theme.colors.accent : theme.colors.border,
-                color: tempo === t ? theme.colors.background : theme.colors.text
+                color: tempo === t ? theme.colors.background : theme.colors.text,
               }}
             >
               {t.charAt(0).toUpperCase() + t.slice(1)}

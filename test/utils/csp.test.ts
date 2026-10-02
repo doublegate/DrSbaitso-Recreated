@@ -7,9 +7,7 @@ interface VercelConfig {
   headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
 }
 
-const vercel: VercelConfig = JSON.parse(
-  readFileSync(path.resolve(import.meta.dirname, '../../vercel.json'), 'utf8'),
-);
+const vercel: VercelConfig = JSON.parse(readFileSync(path.resolve(import.meta.dirname, '../../vercel.json'), 'utf8'));
 const deployedCsp = vercel.headers
   .find((h) => h.source === '/(.*)')
   ?.headers.find((h) => h.key === 'Content-Security-Policy')?.value;

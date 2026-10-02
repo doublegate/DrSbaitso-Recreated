@@ -6,7 +6,11 @@ const decodeAudioData = vi.fn(async (..._args: unknown[]) => ({ duration: 1 }) a
 
 vi.mock('@/utils/audio', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/utils/audio')>();
-  return { ...actual, playAudio: (...args: unknown[]) => playAudio(...args), decodeAudioData: (...a: unknown[]) => decodeAudioData(...a) };
+  return {
+    ...actual,
+    playAudio: (...args: unknown[]) => playAudio(...args),
+    decodeAudioData: (...a: unknown[]) => decodeAudioData(...a),
+  };
 });
 
 const { useSpeechPlayer } = await import('@/hooks/useSpeechPlayer');
@@ -27,7 +31,7 @@ describe('useSpeechPlayer', () => {
     expect(decodeAudioData.mock.calls[0][4]).toBe('modern');
   });
 
-  it('passes the spoken text\'s end punctuation to the decoder', async () => {
+  it("passes the spoken text's end punctuation to the decoder", async () => {
     playAudio.mockResolvedValue(undefined);
     const { result } = renderHook(() => useSpeechPlayer('authentic'));
     await act(() => result.current.speak('AAAA', 'WHY DO YOU SAY THAT?'));

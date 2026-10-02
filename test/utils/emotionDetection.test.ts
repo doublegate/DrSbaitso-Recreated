@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  detectEmotions,
-  getEmotionEmoji,
-  getEmotionColor
-} from '@/utils/emotionDetection';
+import { detectEmotions, getEmotionEmoji, getEmotionColor } from '@/utils/emotionDetection';
 
 describe('emotionDetection', () => {
   describe('detectEmotions', () => {

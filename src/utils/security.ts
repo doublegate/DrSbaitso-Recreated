@@ -53,7 +53,27 @@ export function sanitizeHtml(html: string): string {
   sanitized = sanitized.replace(/(<(?!img\s)[^>]+\s+(?:href|src)\s*=\s*["']?)data:/gi, '$1');
 
   // Allowed tags: p, br, strong, em, u, a, ul, ol, li, h1-h6
-  const allowedTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div'];
+  const allowedTags = [
+    'p',
+    'br',
+    'strong',
+    'b',
+    'em',
+    'i',
+    'u',
+    'a',
+    'ul',
+    'ol',
+    'li',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'span',
+    'div',
+  ];
   const tagPattern = new RegExp(`</?(?!(?:${allowedTags.join('|')})\\b)[^>]+>`, 'gi');
   sanitized = sanitized.replace(tagPattern, '');
 
@@ -81,15 +101,9 @@ export function isValidUrl(url: string): boolean {
     }
 
     // Block common malicious patterns
-    const maliciousPatterns = [
-      /javascript:/i,
-      /data:/i,
-      /vbscript:/i,
-      /file:/i,
-      /about:/i
-    ];
+    const maliciousPatterns = [/javascript:/i, /data:/i, /vbscript:/i, /file:/i, /about:/i];
 
-    return !maliciousPatterns.some(pattern => pattern.test(url));
+    return !maliciousPatterns.some((pattern) => pattern.test(url));
   } catch {
     return false;
   }
@@ -129,7 +143,7 @@ export class RateLimiter {
     const userRequests = this.requests.get(identifier) || [];
 
     // Remove requests outside the time window
-    const recentRequests = userRequests.filter(time => now - time < this.windowMs);
+    const recentRequests = userRequests.filter((time) => now - time < this.windowMs);
 
     // Check if limit exceeded
     if (recentRequests.length >= this.maxRequests) {
@@ -150,7 +164,7 @@ export class RateLimiter {
   getRemaining(identifier: string): number {
     const now = Date.now();
     const userRequests = this.requests.get(identifier) || [];
-    const recentRequests = userRequests.filter(time => now - time < this.windowMs);
+    const recentRequests = userRequests.filter((time) => now - time < this.windowMs);
 
     return Math.max(0, this.maxRequests - recentRequests.length);
   }
@@ -273,7 +287,7 @@ export function generateSecureToken(length: number = 32): string {
   crypto.getRandomValues(array);
 
   return Array.from(array)
-    .map(byte => byte.toString(16).padStart(2, '0'))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');
 }
 
@@ -286,7 +300,7 @@ export async function hashString(input: string): Promise<string> {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
 
-  return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -322,7 +336,7 @@ export function validateCSPCompliance(content: string): {
 
   return {
     isCompliant: violations.length === 0,
-    violations
+    violations,
   };
 }
 
@@ -378,5 +392,5 @@ export default {
   validateCSPCompliance,
   escapeRegex,
   removeNullBytes,
-  sanitizeFileName
+  sanitizeFileName,
 };

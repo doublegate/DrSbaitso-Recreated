@@ -148,8 +148,7 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
               </div>
             )}
             <div>
-              <strong>Sync Status:</strong>{' '}
-              {status.isSyncing ? 'SYNCING...' : 'IDLE'}
+              <strong>Sync Status:</strong> {status.isSyncing ? 'SYNCING...' : 'IDLE'}
             </div>
             <div>
               <strong>Last Synced:</strong> {formatTimestamp(status.lastSyncedAt)}
@@ -171,9 +170,9 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
             <h3 style={{ fontSize: '18px', marginBottom: '12px' }}>FIREBASE PROJECT</h3>
             <div style={{ paddingLeft: '20px' }}>
               <p style={{ marginBottom: '8px' }}>
-                Cloud sync stores data in your own Firebase project. Paste its web app config
-                (Firebase console, Project settings, Your apps). It needs apiKey, authDomain,
-                projectId and appId, with Anonymous sign-in and Firestore enabled.
+                Cloud sync stores data in your own Firebase project. Paste its web app config (Firebase console, Project
+                settings, Your apps). It needs apiKey, authDomain, projectId and appId, with Anonymous sign-in and
+                Firestore enabled.
               </p>
               <label htmlFor="cloud-sync-config" style={{ display: 'block', marginBottom: '4px' }}>
                 Firebase web config:
@@ -184,7 +183,9 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
                 onChange={(e) => setConfigText(e.target.value)}
                 rows={7}
                 spellCheck={false}
-                placeholder={'{\n  apiKey: "your-web-api-key",\n  authDomain: "my-app.firebaseapp.com",\n  projectId: "my-app",\n  appId: "1:123:web:abc"\n}'}
+                placeholder={
+                  '{\n  apiKey: "your-web-api-key",\n  authDomain: "my-app.firebaseapp.com",\n  projectId: "my-app",\n  appId: "1:123:web:abc"\n}'
+                }
                 style={{
                   width: '100%',
                   backgroundColor: '#FFFFFF',
@@ -223,56 +224,54 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
 
         {/* Authentication Section */}
         {isConfigured && (
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '18px', marginBottom: '12px' }}>🔐 AUTHENTICATION</h3>
-          <div style={{ paddingLeft: '20px' }}>
-            {!isAuthenticated ? (
-              <div>
-                <p style={{ marginBottom: '12px' }}>
-                  Sign in to enable cloud synchronization across devices.
-                </p>
-                <button
-                  onClick={onSignIn}
-                  style={{
-                    backgroundColor: '#00FF00',
-                    color: '#000000',
-                    border: 'none',
-                    padding: '12px 24px',
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    marginBottom: '8px',
-                  }}
-                >
-                  SIGN IN ANONYMOUSLY
-                </button>
-                <p style={{ fontSize: '12px', color: '#CCCCCC', marginTop: '8px' }}>
-                  Anonymous sign-in needs no email, but the account belongs to this browser
-                  profile: clearing site data or using another device starts a new, empty account.
-                </p>
-              </div>
-            ) : (
-              <div>
-                <button
-                  onClick={onSignOut}
-                  style={{
-                    backgroundColor: '#CC0000',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    padding: '12px 24px',
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                  }}
-                >
-                  SIGN OUT
-                </button>
-              </div>
-            )}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '18px', marginBottom: '12px' }}>🔐 AUTHENTICATION</h3>
+            <div style={{ paddingLeft: '20px' }}>
+              {!isAuthenticated ? (
+                <div>
+                  <p style={{ marginBottom: '12px' }}>Sign in to enable cloud synchronization across devices.</p>
+                  <button
+                    onClick={onSignIn}
+                    style={{
+                      backgroundColor: '#00FF00',
+                      color: '#000000',
+                      border: 'none',
+                      padding: '12px 24px',
+                      fontFamily: "'Courier New', monospace",
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    SIGN IN ANONYMOUSLY
+                  </button>
+                  <p style={{ fontSize: '12px', color: '#CCCCCC', marginTop: '8px' }}>
+                    Anonymous sign-in needs no email, but the account belongs to this browser profile: clearing site
+                    data or using another device starts a new, empty account.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <button
+                    onClick={onSignOut}
+                    style={{
+                      backgroundColor: '#CC0000',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      padding: '12px 24px',
+                      fontFamily: "'Courier New', monospace",
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    SIGN OUT
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
         )}
 
         {/* Sync Options */}
@@ -307,18 +306,14 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
                   </div>
 
                   <div style={{ marginBottom: '12px' }}>
-                    <label style={{ display: 'block', marginBottom: '4px' }}>
-                      Sync Interval (seconds):
-                    </label>
+                    <label style={{ display: 'block', marginBottom: '4px' }}>Sync Interval (seconds):</label>
                     <input
                       type="number"
                       min="10"
                       max="300"
                       step="10"
                       value={options.syncInterval / 1000}
-                      onChange={(e) =>
-                        onUpdateOptions({ syncInterval: parseInt(e.target.value) * 1000 })
-                      }
+                      onChange={(e) => onUpdateOptions({ syncInterval: parseInt(e.target.value) * 1000 })}
                       style={{
                         backgroundColor: '#FFFFFF',
                         color: '#000000',
@@ -366,18 +361,17 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
               <strong>What is Cloud Sync?</strong>
             </p>
             <p>
-              Cloud Sync allows you to save your conversations, settings, and custom characters to
-              the cloud. Access your data from any device by signing in.
+              Cloud Sync allows you to save your conversations, settings, and custom characters to the cloud. Access
+              your data from any device by signing in.
             </p>
             <p style={{ marginTop: '12px' }}>
-              <strong>Privacy:</strong> Data travels over HTTPS and is stored at users/&#123;uid&#125;
-              in your own Firestore. Who can read it is decided by that project&apos;s security
-              rules, which must limit each document to its owner (request.auth.uid == uid).
+              <strong>Privacy:</strong> Data travels over HTTPS and is stored at users/&#123;uid&#125; in your own
+              Firestore. Who can read it is decided by that project&apos;s security rules, which must limit each
+              document to its owner (request.auth.uid == uid).
             </p>
             <p style={{ marginTop: '12px' }}>
-              <strong>Note:</strong> The Firebase config is saved in this browser so sync can
-              reconnect on your next visit. Web API keys are not secrets; the security rules are
-              what protect the data.
+              <strong>Note:</strong> The Firebase config is saved in this browser so sync can reconnect on your next
+              visit. Web API keys are not secrets; the security rules are what protect the data.
             </p>
           </div>
         </div>

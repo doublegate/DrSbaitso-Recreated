@@ -90,7 +90,8 @@ describe('processHalVoice', () => {
   it('cuts rumble below 50 Hz and warms the low end around 150 Hz', () => {
     const input = tones([20, 120, 2000], 2);
     const out = processHalVoice(input, FS, { tempo: 1, breathGate: false });
-    const relative = (f: number) => dB(toneLevel(out, f) / toneLevel(out, 2000)) - dB(toneLevel(input, f) / toneLevel(input, 2000));
+    const relative = (f: number) =>
+      dB(toneLevel(out, f) / toneLevel(out, 2000)) - dB(toneLevel(input, f) / toneLevel(input, 2000));
     expect(relative(20)).toBeLessThan(-12);
     expect(relative(120)).toBeGreaterThan(0.8);
     expect(relative(120)).toBeLessThan(2.5);

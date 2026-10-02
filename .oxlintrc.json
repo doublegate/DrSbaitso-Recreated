@@ -1,14 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "react",
-    "jsx-a11y",
-    "typescript",
-    "unicorn",
-    "oxc",
-    "import",
-    "vitest"
-  ],
+  "plugins": ["react", "jsx-a11y", "typescript", "unicorn", "oxc", "import", "vitest"],
   "categories": {
     "correctness": "error",
     "suspicious": "warn"
@@ -54,34 +46,16 @@
       }
     ]
   },
-  "ignorePatterns": [
-    "dist",
-    "coverage",
-    "reports",
-    "node_modules",
-    "public/**/*.js",
-    "docs",
-    ".claude/**"
-  ],
+  "ignorePatterns": ["dist", "coverage", "reports", "node_modules", "public/**/*.js", "docs", ".claude/**"],
   "overrides": [
     {
-      "files": [
-        "api/**",
-        "vite.config.ts",
-        "vitest.config.ts",
-        "playwright.config.ts"
-      ],
+      "files": ["api/**", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
       "env": {
         "node": true
       }
     },
     {
-      "files": [
-        "test/**",
-        "**/*.test.ts",
-        "**/*.test.tsx",
-        "e2e/**"
-      ],
+      "files": ["test/**", "**/*.test.ts", "**/*.test.tsx", "e2e/**"],
       "env": {
         "node": true
       }

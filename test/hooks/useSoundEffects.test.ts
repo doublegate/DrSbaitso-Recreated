@@ -42,7 +42,7 @@ describe('useSoundEffects', () => {
       });
 
       // Wait a bit for initialization
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // If initialization succeeded, playSound should work
       await act(async () => {
@@ -61,7 +61,7 @@ describe('useSoundEffects', () => {
       });
 
       // Wait a bit for initialization
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // If initialization succeeded, playSound should work
       await act(async () => {
@@ -79,14 +79,14 @@ describe('useSoundEffects', () => {
         document.dispatchEvent(new Event('click'));
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Second interaction (should not re-initialize, no error should occur)
       act(() => {
         document.dispatchEvent(new Event('click'));
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should still work
       await act(async () => {
@@ -382,7 +382,7 @@ describe('useSoundEffects', () => {
         document.dispatchEvent(new Event('click'));
       });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Update settings
       act(() => {

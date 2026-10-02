@@ -20,7 +20,7 @@ export function VoiceInput({
   onError,
   isEnabled = true,
   language = 'en-US',
-  continuous = false
+  continuous = false,
 }: VoiceInputProps): React.JSX.Element {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -30,9 +30,7 @@ export function VoiceInput({
 
   // Check browser support
   useEffect(() => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (SpeechRecognition) {
       setIsSupported(true);
@@ -69,7 +67,7 @@ export function VoiceInput({
         }
 
         if (finalText) {
-          setTranscript(prev => prev + finalText + ' ');
+          setTranscript((prev) => prev + finalText + ' ');
           onTranscript(finalText);
           console.log('[VoiceInput] Final transcript:', finalText);
         }
@@ -149,10 +147,7 @@ export function VoiceInput({
   if (!isSupported) {
     return (
       <div className="p-3 bg-red-900 border-2 border-red-400 rounded-sm">
-        <p className="text-sm text-white">
-          ⚠️ Voice input not supported in this browser.
-          Try Chrome, Edge, or Safari.
-        </p>
+        <p className="text-sm text-white">⚠️ Voice input not supported in this browser. Try Chrome, Edge, or Safari.</p>
       </div>
     );
   }
@@ -160,9 +155,7 @@ export function VoiceInput({
   if (!isEnabled) {
     return (
       <div className="p-3 bg-gray-700 border-2 border-gray-500 rounded-sm">
-        <p className="text-sm text-gray-300">
-          Voice input disabled. Enable in settings.
-        </p>
+        <p className="text-sm text-gray-300">Voice input disabled. Enable in settings.</p>
       </div>
     );
   }
@@ -205,11 +198,7 @@ export function VoiceInput({
           <p className="text-sm text-gray-400 mb-1">Transcript:</p>
           <p className="text-white">
             {transcript}
-            {interimTranscript && (
-              <span className="text-gray-400 italic">
-                {interimTranscript}
-              </span>
-            )}
+            {interimTranscript && <span className="text-gray-400 italic">{interimTranscript}</span>}
             {isListening && <span className="animate-pulse">_</span>}
           </p>
         </div>
@@ -259,9 +248,7 @@ export function useVoiceInput(options: {
   const { language = 'en-US', continuous = false } = options;
 
   useEffect(() => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (SpeechRecognition) {
       setIsSupported(true);
@@ -327,7 +314,7 @@ export function useVoiceInput(options: {
     isSupported,
     start,
     stop,
-    toggle
+    toggle,
   };
 }
 

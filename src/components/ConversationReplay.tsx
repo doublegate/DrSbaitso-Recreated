@@ -99,45 +99,45 @@ export function ConversationReplay({ isOpen, onClose, session }: ConversationRep
   // Keyboard shortcuts. The effect event always calls the latest controls,
   // so the listener only depends on whether the replay is open.
   const onReplayKey = useEffectEvent((e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return; // Don't handle shortcuts when typing
-      }
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return; // Don't handle shortcuts when typing
+    }
 
-      switch (e.key) {
-        case ' ':
-          e.preventDefault();
-          togglePlayPause();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          previousMessage();
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          nextMessage();
-          break;
-        case 'Home':
-          e.preventDefault();
-          jumpToStart();
-          break;
-        case 'End':
-          e.preventDefault();
-          jumpToEnd();
-          break;
-        case '[':
-          e.preventDefault();
-          decreaseSpeed();
-          break;
-        case ']':
-          e.preventDefault();
-          increaseSpeed();
-          break;
-        case 'l':
-        case 'L':
-          e.preventDefault();
-          toggleLoop();
-          break;
-      }
+    switch (e.key) {
+      case ' ':
+        e.preventDefault();
+        togglePlayPause();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        previousMessage();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        nextMessage();
+        break;
+      case 'Home':
+        e.preventDefault();
+        jumpToStart();
+        break;
+      case 'End':
+        e.preventDefault();
+        jumpToEnd();
+        break;
+      case '[':
+        e.preventDefault();
+        decreaseSpeed();
+        break;
+      case ']':
+        e.preventDefault();
+        increaseSpeed();
+        break;
+      case 'l':
+      case 'L':
+        e.preventDefault();
+        toggleLoop();
+        break;
+    }
   });
 
   useEffect(() => {
@@ -261,12 +261,8 @@ export function ConversationReplay({ isOpen, onClose, session }: ConversationRep
           }}
         >
           <div>
-            <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--color-primary)' }}>
-              🎬 CONVERSATION REPLAY
-            </h2>
-            <p style={{ margin: '5px 0 0 0', fontSize: '14px', opacity: 0.8 }}>
-              {session.name}
-            </p>
+            <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--color-primary)' }}>🎬 CONVERSATION REPLAY</h2>
+            <p style={{ margin: '5px 0 0 0', fontSize: '14px', opacity: 0.8 }}>{session.name}</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -450,9 +446,8 @@ export function ConversationReplay({ isOpen, onClose, session }: ConversationRep
                 wordWrap: 'break-word',
                 minHeight: '100px',
                 padding: '20px',
-                backgroundColor: currentMessage?.author === 'user'
-                  ? 'rgba(59, 130, 246, 0.1)'
-                  : 'rgba(251, 191, 36, 0.1)',
+                backgroundColor:
+                  currentMessage?.author === 'user' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(251, 191, 36, 0.1)',
                 border: `2px solid ${currentMessage?.author === 'user' ? 'var(--color-primary)' : 'var(--color-accent)'}`,
               }}
             >
@@ -469,9 +464,7 @@ export function ConversationReplay({ isOpen, onClose, session }: ConversationRep
               }}
             >
               Message {currentIndex + 1} / {messages.length}
-              {currentMessage?.timestamp && (
-                <> · {new Date(currentMessage.timestamp).toLocaleTimeString()}</>
-              )}
+              {currentMessage?.timestamp && <> · {new Date(currentMessage.timestamp).toLocaleTimeString()}</>}
             </div>
           </div>
         </div>

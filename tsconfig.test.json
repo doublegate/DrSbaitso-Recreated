@@ -1,24 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": [
-      "vite/client",
-      "node",
-      "vitest/globals",
-      "@testing-library/jest-dom",
-      "vite-plugin-pwa/react"
-    ]
+    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom", "vite-plugin-pwa/react"]
   },
-  "include": [
-    "src",
-    "test",
-    "api",
-    "e2e",
-    "playwright.config.ts"
-  ],
-  "exclude": [
-    "src/sw.ts",
-    "vite.config.ts",
-    "vitest.config.ts"
-  ]
+  "include": ["src", "test", "api", "e2e", "playwright.config.ts"],
+  "exclude": ["src/sw.ts", "vite.config.ts", "vitest.config.ts"]
 }

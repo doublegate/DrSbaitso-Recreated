@@ -9,9 +9,17 @@ const noTags = new Map<string, ReadonlySet<string>>();
 
 describe('tokenise', () => {
   it('upper-cases and splits period and comma into their own tokens', () => {
-    expect(tokenise('Well, my boyfriend made me come here.')).toEqual(
-      ['WELL', ',', 'MY', 'BOYFRIEND', 'MADE', 'ME', 'COME', 'HERE', '.'],
-    );
+    expect(tokenise('Well, my boyfriend made me come here.')).toEqual([
+      'WELL',
+      ',',
+      'MY',
+      'BOYFRIEND',
+      'MADE',
+      'ME',
+      'COME',
+      'HERE',
+      '.',
+    ]);
   });
 
   it('keeps apostrophes inside words', () => {
@@ -21,9 +29,7 @@ describe('tokenise', () => {
 
   it('maps ? and ! to a period, and ; : and dashes to a comma (Hay)', () => {
     expect(tokenise('Why? No!')).toEqual(['WHY', '.', 'NO', '.']);
-    expect(tokenise('one; two: three — four')).toEqual(
-      ['ONE', ',', 'TWO', ',', 'THREE', ',', 'FOUR'],
-    );
+    expect(tokenise('one; two: three — four')).toEqual(['ONE', ',', 'TWO', ',', 'THREE', ',', 'FOUR']);
   });
 
   it('strips accents and drops characters ELIZA could not print', () => {
@@ -55,17 +61,18 @@ describe('matchPattern', () => {
   });
 
   it('binds the earliest occurrence for an inner 0', () => {
-    expect(
-      matchPattern([any, w('YOU'), any, w('ME')], words('YOU AND YOU LIKE ME'), noTags),
-    ).toEqual(['', 'YOU', 'AND YOU LIKE', 'ME']);
+    expect(matchPattern([any, w('YOU'), any, w('ME')], words('YOU AND YOU LIKE ME'), noTags)).toEqual([
+      '',
+      'YOU',
+      'AND YOU LIKE',
+      'ME',
+    ]);
   });
 
   it('matches DLIST tag classes and (* ...) alternatives', () => {
     const tags = new Map([['FAMILY', new Set(['MOTHER', 'FATHER'])]]);
     const pattern: PatternElem[] = [any, w('YOUR'), any, { kind: 'tag', tags: ['FAMILY'] }, any];
-    expect(matchPattern(pattern, words('YOUR OLD MOTHER CALLS'), tags)).toEqual(
-      ['', 'YOUR', 'OLD', 'MOTHER', 'CALLS'],
-    );
+    expect(matchPattern(pattern, words('YOUR OLD MOTHER CALLS'), tags)).toEqual(['', 'YOUR', 'OLD', 'MOTHER', 'CALLS']);
     expect(matchPattern(pattern, words('YOUR DOG'), tags)).toBeNull();
     const alt: PatternElem[] = [any, { kind: 'oneOf', words: ['SAD', 'HAPPY'] }, any];
     expect(matchPattern(alt, words('I AM HAPPY TODAY'), noTags)).toEqual(['I AM', 'HAPPY', 'TODAY']);
@@ -80,9 +87,7 @@ describe('reassemble', () => {
   const parts = ['MARY', 'HAD A', 'LITTLE LAMB', 'ITS', 'PROBABILITY', 'WAS ZERO'];
 
   it('inserts numbered components (SLIP ASSMBL example)', () => {
-    expect(reassemble(['DID', 1, 'HAVE', 'A', 3], parts)).toEqual(
-      ['DID', 'MARY', 'HAVE', 'A', 'LITTLE', 'LAMB'],
-    );
+    expect(reassemble(['DID', 1, 'HAVE', 'A', 3], parts)).toEqual(['DID', 'MARY', 'HAVE', 'A', 'LITTLE', 'LAMB']);
   });
 
   it('drops empty components', () => {

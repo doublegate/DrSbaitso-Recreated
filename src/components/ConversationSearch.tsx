@@ -43,7 +43,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
     const query = searchQuery.toLowerCase();
     const results: SearchResult[] = [];
 
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       // Filter by character if specified
       if (filterCharacter !== 'all' && session.characterId !== filterCharacter) {
         return;
@@ -71,7 +71,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
             messageIndex: index,
             message,
             matchedText: query,
-            context: (start > 0 ? '...' : '') + context + (end < text.length ? '...' : '')
+            context: (start > 0 ? '...' : '') + context + (end < text.length ? '...' : ''),
           });
         }
       });
@@ -88,16 +88,17 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
     const wordFrequency: Record<string, number> = {};
     let totalWords = 0;
 
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       // Character usage
       characterCounts[session.characterId] = (characterCounts[session.characterId] || 0) + 1;
 
       // Word frequency
-      session.messages.forEach(msg => {
+      session.messages.forEach((msg) => {
         if (msg.author === 'user') {
           const words = msg.text.toLowerCase().match(/\b\w+\b/g) || [];
-          words.forEach(word => {
-            if (word.length > 3) { // Filter short words
+          words.forEach((word) => {
+            if (word.length > 3) {
+              // Filter short words
               wordFrequency[word] = (wordFrequency[word] || 0) + 1;
               totalWords++;
             }
@@ -121,7 +122,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
       topWords,
       avgMessagesPerSession,
       avgWordsPerMessage,
-      totalWords
+      totalWords,
     };
   }, [sessions]);
 
@@ -133,10 +134,12 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
     const parts = text.split(new RegExp(`(${query})`, 'gi'));
     return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase() ? (
-        <mark key={i} className="bg-yellow-400 text-black px-1 rounded-sm">{part}</mark>
+        <mark key={i} className="bg-yellow-400 text-black px-1 rounded-sm">
+          {part}
+        </mark>
       ) : (
         part
-      )
+      ),
     );
   };
 
@@ -264,9 +267,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
                             {result.message.author === 'user' ? 'You' : 'AI'}
                           </span>
                         </div>
-                        <p className="text-sm">
-                          {highlightMatch(result.context, searchQuery)}
-                        </p>
+                        <p className="text-sm">{highlightMatch(result.context, searchQuery)}</p>
                       </div>
                     ))}
                   </div>
@@ -274,15 +275,13 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
 
                 {sessions.length === 0 && (
                   <p className="text-gray-400 text-center py-8">
-                    Search covers saved conversations. Tick SAVE HISTORY (under the input
-                    line) to keep them in this browser; history is off by default.
+                    Search covers saved conversations. Tick SAVE HISTORY (under the input line) to keep them in this
+                    browser; history is off by default.
                   </p>
                 )}
 
                 {sessions.length > 0 && searchQuery && searchResults.length === 0 && (
-                  <p className="text-gray-400 text-center py-8">
-                    No results found for "{searchQuery}"
-                  </p>
+                  <p className="text-gray-400 text-center py-8">No results found for "{searchQuery}"</p>
                 )}
               </div>
             </div>
@@ -319,13 +318,12 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
                       <div key={character}>
                         <div className="flex justify-between text-sm mb-1">
                           <span className="capitalize">{character}</span>
-                          <span>{count} sessions ({percentage}%)</span>
+                          <span>
+                            {count} sessions ({percentage}%)
+                          </span>
                         </div>
                         <div className="w-full bg-gray-700 rounded-full h-2">
-                          <div
-                            className="bg-blue-500 h-2 rounded-full"
-                            style={{ width: `${percentage}%` }}
-                          />
+                          <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${percentage}%` }} />
                         </div>
                       </div>
                     );
@@ -353,13 +351,22 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
               <div className="bg-gray-800 p-6 rounded-sm border border-gray-700">
                 <h3 className="text-xl font-semibold mb-4">Conversation Insights</h3>
                 <div className="space-y-2 text-sm">
-                  <p>• Average words per message: <strong>{analytics.avgWordsPerMessage}</strong></p>
-                  <p>• Most used character: <strong className="capitalize">
-                    {Object.entries(analytics.characterCounts).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] || 'N/A'}
-                  </strong></p>
-                  <p>• Vocabulary richness: <strong>
-                    {Math.round((analytics.topWords.length / analytics.totalWords) * 100)}% unique words
-                  </strong></p>
+                  <p>
+                    • Average words per message: <strong>{analytics.avgWordsPerMessage}</strong>
+                  </p>
+                  <p>
+                    • Most used character:{' '}
+                    <strong className="capitalize">
+                      {Object.entries(analytics.characterCounts).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] ||
+                        'N/A'}
+                    </strong>
+                  </p>
+                  <p>
+                    • Vocabulary richness:{' '}
+                    <strong>
+                      {Math.round((analytics.topWords.length / analytics.totalWords) * 100)}% unique words
+                    </strong>
+                  </p>
                 </div>
               </div>
             </div>
@@ -368,10 +375,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-gray-800 px-6 py-4 border-t border-gray-700 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-sm"
-          >
+          <button onClick={onClose} className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-sm">
             Close
           </button>
         </div>

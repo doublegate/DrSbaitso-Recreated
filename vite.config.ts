@@ -36,10 +36,9 @@ function securityHeadersPlugin(): Plugin {
 
         next();
       });
-    }
+    },
   };
 }
-
 
 /**
  * Serves the Vercel Functions in `api/` from the dev server, so `npm run dev`
@@ -90,64 +89,64 @@ function devApiPlugin(env: Record<string, string>): Plugin {
 }
 
 export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      server: {
-        port: 3000,
-        // Loopback only by default; use `npm run dev -- --host` to expose it.
-        host: 'localhost',
+  const env = loadEnv(mode, '.', '');
+  return {
+    server: {
+      port: 3000,
+      // Loopback only by default; use `npm run dev -- --host` to expose it.
+      host: 'localhost',
+    },
+    plugins: [
+      react(),
+      tailwindcss(),
+      securityHeadersPlugin(), // v1.11.0: Security headers
+      devApiPlugin(env),
+      // Service worker built from src/sw.ts with a precache manifest of the
+      // hashed build output. The web manifest stays in public/manifest.json,
+      // and registration happens in hooks/useServiceWorker.ts.
+      VitePWA({
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.ts',
+        registerType: 'prompt',
+        injectRegister: false,
+        manifest: false,
+        injectManifest: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,json}'],
+          // The retired worker is a kill switch and must not be precached.
+          globIgnores: ['service-worker.js'],
+        },
+        devOptions: { enabled: false },
+      }),
+      // Bundle report on demand only (`npm run analyze`); never into dist/,
+      // which would publish it, and never opening a browser in CI.
+      process.env.ANALYZE
+        ? visualizer({ filename: './reports/bundle-stats.html', gzipSize: true, brotliSize: true })
+        : null,
+    ],
+    resolve: {
+      alias: {
+        '@': path.resolve(import.meta.dirname, 'src'),
       },
-      plugins: [
-        react(),
-        tailwindcss(),
-        securityHeadersPlugin(), // v1.11.0: Security headers
-        devApiPlugin(env),
-        // Service worker built from src/sw.ts with a precache manifest of the
-        // hashed build output. The web manifest stays in public/manifest.json,
-        // and registration happens in hooks/useServiceWorker.ts.
-        VitePWA({
-          strategies: 'injectManifest',
-          srcDir: 'src',
-          filename: 'sw.ts',
-          registerType: 'prompt',
-          injectRegister: false,
-          manifest: false,
-          injectManifest: {
-            globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,json}'],
-            // The retired worker is a kill switch and must not be precached.
-            globIgnores: ['service-worker.js'],
-          },
-          devOptions: { enabled: false },
-        }),
-        // Bundle report on demand only (`npm run analyze`); never into dist/,
-        // which would publish it, and never opening a browser in CI.
-        process.env.ANALYZE
-          ? visualizer({ filename: './reports/bundle-stats.html', gzipSize: true, brotliSize: true })
-          : null,
-      ],
-      resolve: {
-        alias: {
-          '@': path.resolve(import.meta.dirname, 'src'),
-        }
-      },
-      build: {
-        // Vite 8 bundles with Rolldown: the object form of `manualChunks` was
-        // removed, so vendor splitting is expressed as `codeSplitting.groups`.
-        rolldownOptions: {
-          output: {
-            codeSplitting: {
-              groups: [
-                // React ecosystem (usually 130-150 KB)
-                {
-                  name: 'react-vendor',
-                  test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-                },
-              ],
-            },
+    },
+    build: {
+      // Vite 8 bundles with Rolldown: the object form of `manualChunks` was
+      // removed, so vendor splitting is expressed as `codeSplitting.groups`.
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              // React ecosystem (usually 130-150 KB)
+              {
+                name: 'react-vendor',
+                test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+              },
+            ],
           },
         },
-        // Set warning limit to 300 KB (stricter than 500 KB)
-        chunkSizeWarningLimit: 300,
-      }
-    };
+      },
+      // Set warning limit to 300 KB (stricter than 500 KB)
+      chunkSizeWarningLimit: 300,
+    },
+  };
 });

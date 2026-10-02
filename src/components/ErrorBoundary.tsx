@@ -31,7 +31,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       hasError: false,
       error: null,
       errorInfo: null,
-      errorCount: 0
+      errorCount: 0,
     };
   }
 
@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return {
       hasError: true,
-      error
+      error,
     };
   }
 
@@ -54,7 +54,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     this.setState((prevState) => ({
       errorInfo,
-      errorCount: prevState.errorCount + 1
+      errorCount: prevState.errorCount + 1,
     }));
 
     // Call optional error handler
@@ -74,7 +74,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     });
   };
 
@@ -106,11 +106,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     if (this.state.hasError && this.state.error) {
       // Use custom fallback if provided
       if (this.props.fallback) {
-        return this.props.fallback(
-          this.state.error,
-          this.state.errorInfo!,
-          this.resetError
-        );
+        return this.props.fallback(this.state.error, this.state.errorInfo!, this.resetError);
       }
 
       // Default retro error UI
@@ -139,12 +135,7 @@ interface DefaultErrorUIProps {
   onReset: () => void;
 }
 
-function DefaultErrorUI({
-  error,
-  errorInfo,
-  errorCount,
-  onReset
-}: DefaultErrorUIProps): React.JSX.Element {
+function DefaultErrorUI({ error, errorInfo, errorCount, onReset }: DefaultErrorUIProps): React.JSX.Element {
   const [showDetails, setShowDetails] = React.useState(false);
 
   const handleReload = (): void => {
@@ -154,11 +145,11 @@ function DefaultErrorUI({
   const handleReportIssue = (): void => {
     const issueBody = encodeURIComponent(
       `## Error Report\n\n` +
-      `**Error Message:** ${error.message}\n\n` +
-      `**Stack Trace:**\n\`\`\`\n${error.stack}\n\`\`\`\n\n` +
-      `**Component Stack:**\n\`\`\`\n${errorInfo?.componentStack || 'N/A'}\n\`\`\`\n\n` +
-      `**Browser:** ${navigator.userAgent}\n` +
-      `**Error Count:** ${errorCount}`
+        `**Error Message:** ${error.message}\n\n` +
+        `**Stack Trace:**\n\`\`\`\n${error.stack}\n\`\`\`\n\n` +
+        `**Component Stack:**\n\`\`\`\n${errorInfo?.componentStack || 'N/A'}\n\`\`\`\n\n` +
+        `**Browser:** ${navigator.userAgent}\n` +
+        `**Error Count:** ${errorCount}`,
     );
 
     const issueUrl = `https://github.com/doublegate/DrSbaitso-Recreated/issues/new?title=${encodeURIComponent('Runtime Error: ' + error.message)}&body=${issueBody}`;
@@ -182,9 +173,7 @@ function DefaultErrorUI({
         {/* Error Message */}
         <div className="border-2 border-gray-400 bg-black/50 p-4 mb-4">
           <h2 className="text-yellow-300 font-bold mb-2">ERROR MESSAGE:</h2>
-          <p className="text-white mb-4 wrap-break-word">
-            {error.message || 'Unknown error occurred'}
-          </p>
+          <p className="text-white mb-4 wrap-break-word">{error.message || 'Unknown error occurred'}</p>
 
           {errorCount > 1 && (
             <div className="bg-red-900 border-2 border-red-400 p-2 mb-4">
@@ -249,9 +238,7 @@ function DefaultErrorUI({
               <span className="text-2xl">↻</span>
               <div>
                 <div className="font-bold">RELOAD PAGE</div>
-                <div className="text-xs text-blue-200">
-                  Refresh the entire application (recommended)
-                </div>
+                <div className="text-xs text-blue-200">Refresh the entire application (recommended)</div>
               </div>
             </button>
 
@@ -262,9 +249,7 @@ function DefaultErrorUI({
               <span className="text-2xl">🐛</span>
               <div>
                 <div className="font-bold">REPORT ISSUE</div>
-                <div className="text-xs text-yellow-200">
-                  Open GitHub issue with error details (opens in new tab)
-                </div>
+                <div className="text-xs text-yellow-200">Open GitHub issue with error details (opens in new tab)</div>
               </div>
             </button>
           </div>

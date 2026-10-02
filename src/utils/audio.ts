@@ -2,7 +2,7 @@ import {
   AuthenticityLevel,
   getPresetConfig,
   applyVintageProcessing,
-  type EndPunctuation
+  type EndPunctuation,
 } from './vintageAudioProcessing';
 
 import type { VoiceProcessing } from '../constants';
@@ -59,7 +59,7 @@ export async function decodeAudioData(
   numChannels: number,
   audioMode?: AudioModeId,
   endPunctuation: EndPunctuation = null,
-  options: DecodeOptions = {}
+  options: DecodeOptions = {},
 ): Promise<AudioBuffer> {
   const pcm = stripWavHeader(data);
   // DataView respects byteOffset and avoids Int16Array's even-length and
@@ -153,11 +153,11 @@ export function playAudio(
   bitDepth: number = 0,
   playbackRate: number = 1,
   useWorklet: boolean = true,
-  onStart?: (source: AudioBufferSourceNode) => void
+  onStart?: (source: AudioBufferSourceNode) => void,
 ): Promise<void> {
   return new Promise((resolve) => {
     if (ctx.state === 'suspended') {
-        ctx.resume();
+      ctx.resume();
     }
     const source = ctx.createBufferSource();
     source.buffer = buffer;
@@ -180,7 +180,7 @@ export function playAudio(
       try {
         // Try to create AudioWorkletNode
         const bitCrusher = new AudioWorkletNode(ctx, 'bit-crusher-processor', {
-          processorOptions: { bitDepth }
+          processorOptions: { bitDepth },
         });
 
         source.connect(bitCrusher);
@@ -207,7 +207,7 @@ export function playAudio(
     const numLevels = bitDepth;
     const step = 2.0 / (numLevels - 1);
 
-    bitCrusher.onaudioprocess = function(e) {
+    bitCrusher.onaudioprocess = function (e) {
       const input = e.inputBuffer.getChannelData(0);
       const output = e.outputBuffer.getChannelData(0);
       for (let i = 0; i < input.length; i++) {
@@ -244,7 +244,7 @@ export function playGlitchSound(ctx: AudioContext): void {
 
   const source = ctx.createBufferSource();
   source.buffer = buffer;
-  
+
   const gainNode = ctx.createGain();
   gainNode.gain.setValueAtTime(0.3, ctx.currentTime); // Start at lower volume
   gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2); // Fade out quickly
@@ -291,21 +291,21 @@ export function playParityTone(ctx: AudioContext, seconds: number = 4): void {
 }
 
 export function playErrorBeep(ctx: AudioContext): void {
-    if (ctx.state === 'suspended') {
-        ctx.resume();
-    }
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
+  if (ctx.state === 'suspended') {
+    ctx.resume();
+  }
+  const oscillator = ctx.createOscillator();
+  const gainNode = ctx.createGain();
 
-    oscillator.type = 'square'; // A square wave sounds more retro/8-bit
-    oscillator.frequency.setValueAtTime(300, ctx.currentTime); // A low, jarring frequency
+  oscillator.type = 'square'; // A square wave sounds more retro/8-bit
+  oscillator.frequency.setValueAtTime(300, ctx.currentTime); // A low, jarring frequency
 
-    gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3); // Quick fade out
+  gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3); // Quick fade out
 
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
+  oscillator.connect(gainNode);
+  gainNode.connect(ctx.destination);
 
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.3); // Play for 0.3 seconds
+  oscillator.start();
+  oscillator.stop(ctx.currentTime + 0.3); // Play for 0.3 seconds
 }

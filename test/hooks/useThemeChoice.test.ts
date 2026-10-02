@@ -21,7 +21,9 @@ describe('useThemeChoice', () => {
   it('defaults to DOS Blue and applies its colours', () => {
     const { result } = renderHook(() => useThemeChoice());
     expect(result.current.theme.id).toBe('dos-blue');
-    expect(document.documentElement.style.getPropertyValue('--color-background')).toBe(result.current.theme.colors.background);
+    expect(document.documentElement.style.getPropertyValue('--color-background')).toBe(
+      result.current.theme.colors.background,
+    );
   });
 
   it('selects, applies and remembers a theme', () => {

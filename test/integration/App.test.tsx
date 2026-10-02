@@ -212,7 +212,9 @@ describe('Enhanced mode personas', () => {
     expect(screen.getByText('--- NOW TALKING TO HAL 9000 ---')).toBeInTheDocument();
     await user.type(input, 'how is the mission going{Enter}');
     await screen.findByText('I AM AFRAID I CANNOT DO THAT.', { selector: 'p' }, { timeout: 10_000 });
-    const chatCall = fetchMock.mock.calls.find(([url, init]) => url === '/api/chat' && init.body.includes('how is the mission going'));
+    const chatCall = fetchMock.mock.calls.find(
+      ([url, init]) => url === '/api/chat' && init.body.includes('how is the mission going'),
+    );
     const body = JSON.parse(chatCall![1].body);
     expect(body.characterId).toBe('hal9000');
     expect(body.message).toContain("CREW MEMBER'S NAME=Dave");
@@ -226,7 +228,9 @@ describe('Enhanced mode personas', () => {
     await user.selectOptions(screen.getByLabelText('PERSONA:'), 'hal9000');
     await user.type(input, 'how is the mission going{Enter}');
     await screen.findByText('I AM AFRAID I CANNOT DO THAT.', { selector: 'p' }, { timeout: 10_000 });
-    await waitFor(() => expect(played.mock.calls.map(([e]) => e)).toEqual(['character-switch', 'message-send', 'message-receive']));
+    await waitFor(() =>
+      expect(played.mock.calls.map(([e]) => e)).toEqual(['character-switch', 'message-send', 'message-receive']),
+    );
   }, 40_000);
 
   it("sends Dr. Sbaitso's chosen voice profile with his speech", async () => {

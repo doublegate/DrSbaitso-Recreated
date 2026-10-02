@@ -63,7 +63,9 @@ export default function MenuGroup({ label, items }: { label: string; items: Menu
         className="enh-menu-trigger"
       >
         {label}
-        <span aria-hidden="true" className="ml-1 text-xs">{open ? '▲' : '▼'}</span>
+        <span aria-hidden="true" className="ml-1 text-xs">
+          {open ? '▲' : '▼'}
+        </span>
       </button>
       {open && (
         <div id={menuId} className="enh-menu" role="group" aria-label={label}>
@@ -82,7 +84,11 @@ export default function MenuGroup({ label, items }: { label: string; items: Menu
               }}
               className="enh-menu-item"
             >
-              {item.icon && <span aria-hidden="true" className="w-5 inline-block">{item.icon}</span>}
+              {item.icon && (
+                <span aria-hidden="true" className="w-5 inline-block">
+                  {item.icon}
+                </span>
+              )}
               <span className="grow text-left">{item.label}</span>
               {item.shortcut && <kbd className="enh-kbd">{item.shortcut}</kbd>}
             </button>

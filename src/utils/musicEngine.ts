@@ -39,7 +39,7 @@ export class MusicEngine {
     enabled: false,
     volume: 50,
     mood: 'auto',
-    tempo: 'normal'
+    tempo: 'normal',
   };
 
   // Musical scales (MIDI note numbers relative to C)
@@ -57,11 +57,12 @@ export class MusicEngine {
     if (this.audioContext) return;
 
     // Prefer the app's shared context; browsers cap how many may exist.
-    this.audioContext = context ?? getSharedAudioContext() ?? new (window.AudioContext || (window as any).webkitAudioContext)();
+    this.audioContext =
+      context ?? getSharedAudioContext() ?? new (window.AudioContext || (window as any).webkitAudioContext)();
 
     // Master gain
     this.masterGain = this.audioContext.createGain();
-    this.masterGain.gain.value = this.settings.volume / 100 * 0.3; // Keep music quieter than TTS
+    this.masterGain.gain.value = (this.settings.volume / 100) * 0.3; // Keep music quieter than TTS
     this.masterGain.connect(this.audioContext.destination);
 
     // Individual channel gains
@@ -125,7 +126,7 @@ export class MusicEngine {
     this.settings = { ...this.settings, ...settings };
 
     if (this.masterGain) {
-      this.masterGain.gain.value = this.settings.volume / 100 * 0.3;
+      this.masterGain.gain.value = (this.settings.volume / 100) * 0.3;
     }
 
     if (settings.enabled !== undefined) {
@@ -195,10 +196,10 @@ export class MusicEngine {
 
     // Melodic patterns for each bar
     const patterns = [
-      [0, 2, 4, 2],  // Bar 1: ascending
-      [4, 2, 0, 1],  // Bar 2: descending
-      [0, 4, 2, 4],  // Bar 3: skip pattern
-      [4, 3, 2, 0],  // Bar 4: resolution
+      [0, 2, 4, 2], // Bar 1: ascending
+      [4, 2, 0, 1], // Bar 2: descending
+      [0, 4, 2, 4], // Bar 3: skip pattern
+      [4, 3, 2, 0], // Bar 4: resolution
     ];
 
     const noteIndex = patterns[bar][beat];
@@ -226,12 +227,7 @@ export class MusicEngine {
   /**
    * Play a single note
    */
-  private playNote(
-    frequency: number,
-    duration: number,
-    waveform: OscillatorType,
-    destination: AudioNode
-  ): void {
+  private playNote(frequency: number, duration: number, waveform: OscillatorType, destination: AudioNode): void {
     if (!this.audioContext) return;
 
     const now = this.audioContext.currentTime;
@@ -276,10 +272,13 @@ export class MusicEngine {
    */
   private getBPM(): number {
     switch (this.settings.tempo) {
-      case 'slow': return 100;
-      case 'fast': return 150;
+      case 'slow':
+        return 100;
+      case 'fast':
+        return 150;
       case 'normal':
-      default: return 120;
+      default:
+        return 120;
     }
   }
 
@@ -287,7 +286,7 @@ export class MusicEngine {
    * Convert MIDI note and octave to frequency
    */
   private getFrequency(midiNote: number, octave: number): number {
-    return this.BASE_FREQ * Math.pow(2, (midiNote / 12) + octave);
+    return this.BASE_FREQ * Math.pow(2, midiNote / 12 + octave);
   }
 
   /**

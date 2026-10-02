@@ -44,10 +44,12 @@ export default function StatusBar({
           onChange={(e) => onAudioModeChange(e.target.value as AudioModeId)}
           className="enh-select"
           aria-label="Audio quality mode"
-          title={AUDIO_MODES.find(m => m.id === audioMode)?.description || ''}
+          title={AUDIO_MODES.find((m) => m.id === audioMode)?.description || ''}
         >
           {AUDIO_MODES.map((mode) => (
-            <option key={mode.id} value={mode.id}>{mode.name}</option>
+            <option key={mode.id} value={mode.id}>
+              {mode.name}
+            </option>
           ))}
         </select>
       </label>
@@ -62,7 +64,9 @@ export default function StatusBar({
             aria-label="Voice profile"
           >
             {Object.values(VOICE_PROFILES).map((profile) => (
-              <option key={profile.id} value={profile.id}>{profile.label}</option>
+              <option key={profile.id} value={profile.id}>
+                {profile.label}
+              </option>
             ))}
           </select>
         </label>
@@ -77,7 +81,9 @@ export default function StatusBar({
           aria-label="Colour theme"
         >
           {themes.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
           ))}
         </select>
       </label>
@@ -99,9 +105,7 @@ export default function StatusBar({
           OFFLINE
         </span>
       )}
-      <span className="ml-auto opacity-60 hidden sm:inline">
-        {shortcutLabel('switchMode')} classic screen
-      </span>
+      <span className="ml-auto opacity-60 hidden sm:inline">{shortcutLabel('switchMode')} classic screen</span>
     </footer>
   );
 }

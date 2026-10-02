@@ -57,10 +57,10 @@ class MockSpeechRecognition {
           {
             0: { transcript },
             isFinal,
-            length: 1
-          }
+            length: 1,
+          },
         ],
-        length: 1
+        length: 1,
       };
       this.onresult(event);
     }
@@ -82,10 +82,10 @@ describe('VoiceInput Component', () => {
     mockRecognitionInstance = new MockSpeechRecognition();
 
     // Use proper constructor function to avoid Vitest warnings
-    (window as any).SpeechRecognition = function() {
+    (window as any).SpeechRecognition = function () {
       return mockRecognitionInstance;
     };
-    (window as any).webkitSpeechRecognition = function() {
+    (window as any).webkitSpeechRecognition = function () {
       return mockRecognitionInstance;
     };
   });
@@ -164,13 +164,7 @@ describe('VoiceInput Component', () => {
 
     it('should configure recognition with correct settings', () => {
       const mockTranscript = vi.fn();
-      render(
-        <VoiceInput
-          onTranscript={mockTranscript}
-          language="es-ES"
-          continuous={true}
-        />
-      );
+      render(<VoiceInput onTranscript={mockTranscript} language="es-ES" continuous={true} />);
 
       expect(mockRecognitionInstance.lang).toBe('es-ES');
       expect(mockRecognitionInstance.continuous).toBe(true);
@@ -420,7 +414,7 @@ describe('useVoiceInput Hook', () => {
   beforeEach(() => {
     mockRecognitionInstance = new MockSpeechRecognition();
     // Use proper constructor function to avoid Vitest warnings
-    (window as any).SpeechRecognition = function() {
+    (window as any).SpeechRecognition = function () {
       return mockRecognitionInstance;
     };
   });
@@ -432,9 +426,7 @@ describe('useVoiceInput Hook', () => {
 
   it('should return isSupported as true when speech recognition is available', () => {
     const mockTranscript = vi.fn();
-    const { result } = renderHook(() =>
-      useVoiceInput({ onTranscript: mockTranscript })
-    );
+    const { result } = renderHook(() => useVoiceInput({ onTranscript: mockTranscript }));
 
     expect(result.current.isSupported).toBe(true);
   });
@@ -443,18 +435,14 @@ describe('useVoiceInput Hook', () => {
     (window as any).SpeechRecognition = undefined;
 
     const mockTranscript = vi.fn();
-    const { result } = renderHook(() =>
-      useVoiceInput({ onTranscript: mockTranscript })
-    );
+    const { result } = renderHook(() => useVoiceInput({ onTranscript: mockTranscript }));
 
     expect(result.current.isSupported).toBe(false);
   });
 
   it('should start listening when start() is called', () => {
     const mockTranscript = vi.fn();
-    const { result } = renderHook(() =>
-      useVoiceInput({ onTranscript: mockTranscript })
-    );
+    const { result } = renderHook(() => useVoiceInput({ onTranscript: mockTranscript }));
 
     act(() => {
       result.current.start();
@@ -465,9 +453,7 @@ describe('useVoiceInput Hook', () => {
 
   it('should stop listening when stop() is called', () => {
     const mockTranscript = vi.fn();
-    const { result } = renderHook(() =>
-      useVoiceInput({ onTranscript: mockTranscript })
-    );
+    const { result } = renderHook(() => useVoiceInput({ onTranscript: mockTranscript }));
 
     act(() => {
       result.current.start();
@@ -484,9 +470,7 @@ describe('useVoiceInput Hook', () => {
 
   it('should toggle listening state when toggle() is called', () => {
     const mockTranscript = vi.fn();
-    const { result } = renderHook(() =>
-      useVoiceInput({ onTranscript: mockTranscript })
-    );
+    const { result } = renderHook(() => useVoiceInput({ onTranscript: mockTranscript }));
 
     // Toggle on
     act(() => {
@@ -505,9 +489,7 @@ describe('useVoiceInput Hook', () => {
 
   it('should call onTranscript with final results', () => {
     const mockTranscript = vi.fn();
-    const { result } = renderHook(() =>
-      useVoiceInput({ onTranscript: mockTranscript })
-    );
+    const { result } = renderHook(() => useVoiceInput({ onTranscript: mockTranscript }));
 
     act(() => {
       result.current.start();
@@ -521,9 +503,7 @@ describe('useVoiceInput Hook', () => {
   it('should call onError when error occurs', () => {
     const mockTranscript = vi.fn();
     const mockError = vi.fn();
-    const { result } = renderHook(() =>
-      useVoiceInput({ onTranscript: mockTranscript, onError: mockError })
-    );
+    const { result } = renderHook(() => useVoiceInput({ onTranscript: mockTranscript, onError: mockError }));
 
     act(() => {
       result.current.start();
@@ -536,18 +516,14 @@ describe('useVoiceInput Hook', () => {
 
   it('should auto-start if autoStart option is true', () => {
     const mockTranscript = vi.fn();
-    const { result } = renderHook(() =>
-      useVoiceInput({ onTranscript: mockTranscript, autoStart: true })
-    );
+    const { result } = renderHook(() => useVoiceInput({ onTranscript: mockTranscript, autoStart: true }));
 
     expect(result.current.isListening).toBe(true);
   });
 
   it('should configure language correctly', () => {
     const mockTranscript = vi.fn();
-    renderHook(() =>
-      useVoiceInput({ onTranscript: mockTranscript, language: 'fr-FR' })
-    );
+    renderHook(() => useVoiceInput({ onTranscript: mockTranscript, language: 'fr-FR' }));
 
     expect(mockRecognitionInstance.lang).toBe('fr-FR');
   });
@@ -556,9 +532,7 @@ describe('useVoiceInput Hook', () => {
     const mockTranscript = vi.fn();
     const stopSpy = vi.spyOn(mockRecognitionInstance, 'stop');
 
-    const { unmount } = renderHook(() =>
-      useVoiceInput({ onTranscript: mockTranscript })
-    );
+    const { unmount } = renderHook(() => useVoiceInput({ onTranscript: mockTranscript }));
 
     unmount();
 
