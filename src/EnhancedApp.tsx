@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { getSharedAudioContext } from './utils/sharedAudio';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSpeechPlayer } from './hooks/useSpeechPlayer';
 import { AUDIO_MODES } from './constants';
 import { useAccessibility } from './hooks/useAccessibility';
@@ -9,7 +8,6 @@ import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useFocusTrap } from './hooks/useFocusTrap';
 import MenuGroup from './components/enhanced/MenuGroup';
 import { playSoundPackEvent } from './utils/soundPackPlayer';
-import { saveSoundPack } from './utils/soundPackStore';
 import { useSessionHistory } from './hooks/useSessionHistory';
 import { useThemeChoice } from './hooks/useThemeChoice';
 import { usePersona } from './hooks/usePersona';
@@ -19,32 +17,7 @@ import { usePanels } from './hooks/usePanels';
 import { useChatPipeline } from './hooks/useChatPipeline';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import SkipNav from './components/SkipNav';
-
-// Lazy-loaded components (only load when needed)
-const AccessibilityPanel = lazy(() => import('./components/AccessibilityPanel'));
-const ThemeCustomizer = lazy(() => import('./components/ThemeCustomizer').then(module => ({ default: module.ThemeCustomizer })));
-const ConversationSearch = lazy(() => import('./components/ConversationSearch').then(module => ({ default: module.ConversationSearch })));
-const AudioVisualizer = lazy(() => import('./components/AudioVisualizer').then(module => ({ default: module.AudioVisualizer })));
-// v1.6.0 Components (lazy-loaded)
-const AdvancedExporter = lazy(() => import('./components/AdvancedExporter').then(module => ({ default: module.AdvancedExporter })));
-const CharacterCreator = lazy(() => import('./components/CharacterCreator').then(module => ({ default: module.CharacterCreator })));
-const ConversationReplay = lazy(() => import('./components/ConversationReplay').then(module => ({ default: module.ConversationReplay })));
-// v1.8.0 Components (lazy-loaded)
-const OnboardingTutorial = lazy(() => import('./components/OnboardingTutorial'));
-const ConversationInsights = lazy(() => import('./components/ConversationInsights'));
-// v1.9.0 Components (lazy-loaded)
-const SoundSettingsPanel = lazy(() => import('./components/SoundSettingsPanel'));
-// v1.10.0 Components (lazy-loaded)
-const MusicPlayer = lazy(() => import('./components/MusicPlayer'));
-const InstallPrompt = lazy(() => import('./components/InstallPrompt'));
-const SoundPackManager = lazy(() => import('./components/SoundPackManager'));
-const SoundPackCreator = lazy(() => import('./components/SoundPackCreator'));
-const CloudSyncPanel = lazy(() => import('./components/CloudSyncPanel'));
-// v1.11.0 Components (lazy-loaded - Option C)
-const VoiceInput = lazy(() => import('./components/VoiceInput'));
-const EmotionVisualizer = lazy(() => import('./components/EmotionVisualizer'));
-const TopicFlowDiagram = lazy(() => import('./components/TopicFlowDiagram'));
-const ConversationTemplates = lazy(() => import('./components/ConversationTemplates'));
+import EnhancedPanels from './components/enhanced/EnhancedPanels';
 
 /** The modern UI: toolbar, panels, personas and extras ("Enhanced" mode). */
 export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => void } = {}) {
@@ -70,7 +43,6 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   // Selected colour theme (built-in or custom), persisted and applied.
   const themeChoice = useThemeChoice();
   const currentTheme = themeChoice.theme.id;
-  const activeTheme = themeChoice.theme;
 
   // Sound Effects (v1.9.0)
   const soundEffects = useSoundEffects();
@@ -544,345 +516,21 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
         </div>
       </main>
 
-      {/* Accessibility Panel (v1.4.0) */}
-      {panelOpen.accessibility && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
-          <AccessibilityPanel
-            isOpen={panelOpen.accessibility}
-            settings={accessibilitySettings}
-            onClose={() => setPanel('accessibility', false)}
-            onUpdateSetting={updateSetting}
-            onResetSettings={resetSettings}
-          />
-        </Suspense>
-      )}
-
-      {/* Theme Customizer (v1.5.0) */}
-      {panelOpen.themeCustomizer && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
-          <ThemeCustomizer
-            isOpen={panelOpen.themeCustomizer}
-            onClose={() => setPanel('themeCustomizer', false)}
-            onSave={(theme) => {
-              themeChoice.addCustomTheme(theme);
-              setPanel('themeCustomizer', false);
-            }}
-          />
-        </Suspense>
-      )}
-
-      {/* Conversation Search (v1.5.0) */}
-      {panelOpen.conversationSearch && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
-          <ConversationSearch
-            isOpen={panelOpen.conversationSearch}
-            onClose={() => setPanel('conversationSearch', false)}
-            sessions={savedSessions}
-            onOpenSession={(sessionId) => {
-              console.log('Opening session:', sessionId);
-              // Find the session and trigger replay
-              const session = savedSessions.find(s => s.id === sessionId);
-              if (session) panels.openReplay(session);
-            }}
-          />
-        </Suspense>
-      )}
-
-      {/* Audio Visualizer (v1.5.0) */}
-      {panelOpen.audioVisualizer && (
-        <Suspense fallback={<div className="fixed bottom-4 right-4 z-40 text-white">Loading...</div>}>
-          <div className="fixed bottom-4 right-4 z-40">
-            <AudioVisualizer
-              audioContext={getSharedAudioContext()}
-              audioSource={speech.currentSource}
-              isPlaying={speech.isPlaying}
-            />
-          </div>
-        </Suspense>
-      )}
-
-      {/* Advanced Exporter (v1.6.0) */}
-      {panelOpen.advancedExport && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
-          <AdvancedExporter
-            isOpen={panelOpen.advancedExport}
-            onClose={() => setPanel('advancedExport', false)}
-            sessions={savedSessions}
-            themes={themeChoice.customThemes}
-            currentSession={currentSession ?? undefined}
-          />
-        </Suspense>
-      )}
-
-      {/* Character Creator (v1.6.0) */}
-      {panelOpen.characterCreator && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
-          <CharacterCreator
-            isOpen={panelOpen.characterCreator}
-            onClose={() => setPanel('characterCreator', false)}
-            onSave={(character) => personaState.saveCustomCharacter(character)}
-            onDelete={(id) => personaState.deleteCustomCharacter(id)}
-            existingCharacters={personaState.customCharacters}
-          />
-        </Suspense>
-      )}
-
-      {/* Conversation Replay (v1.6.0) */}
-      {panelOpen.conversationReplay && panels.replaySession && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
-          <ConversationReplay
-            isOpen={panelOpen.conversationReplay}
-            onClose={panels.closeReplay}
-            session={panels.replaySession}
-          />
-        </Suspense>
-      )}
-
-      {/* Onboarding Tutorial (v1.8.0) */}
-      {panelOpen.onboarding && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading tutorial...</div></div>}>
-          <OnboardingTutorial
-            onComplete={() => setPanel('onboarding', false)}
-            onSkip={() => setPanel('onboarding', false)}
-          />
-        </Suspense>
-      )}
-
-      {/* Conversation Insights (v1.8.0) */}
-      {panelOpen.insights && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading insights...</div></div>}>
-          <ConversationInsights
-            onClose={() => setPanel('insights', false)}
-            currentTheme={currentTheme}
-          />
-        </Suspense>
-      )}
-
-      {/* Sound Settings Panel (v1.9.0) */}
-      {panelOpen.soundSettings && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound settings...</div></div>}>
-          <SoundSettingsPanel
-            isOpen={panelOpen.soundSettings}
-            onClose={() => setPanel('soundSettings', false)}
-          />
-        </Suspense>
-      )}
-
-      {/* Music Player (v1.10.0) */}
-      {panelOpen.musicPlayer && userName && (
-        <Suspense fallback={<div className="fixed bottom-4 left-4 z-40 text-white text-sm">Loading music player...</div>}>
-          <div className="fixed bottom-4 left-4 z-40">
-            <MusicPlayer
-              theme={activeTheme}
-              audioContext={getSharedAudioContext()}
-            />
-          </div>
-        </Suspense>
-      )}
-
-      {/* PWA Install Prompt (v1.10.0) */}
-      {installPrompt.canInstall && (
-        <Suspense fallback={null}>
-          <InstallPrompt
-            onInstall={installPrompt.install}
-            onDismiss={installPrompt.dismiss}
-            theme={activeTheme}
-          />
-        </Suspense>
-      )}
-
-      {/* Sound Pack Manager (v1.10.0) */}
-      {panelOpen.soundPackManager && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack manager...</div></div>}>
-          <SoundPackManager
-            theme={activeTheme}
-            onClose={() => setPanel('soundPackManager', false)}
-            onCreateNew={() => {
-              setPanel('soundPackManager', false);
-              setPanel('soundPackCreator', true);
-            }}
-          />
-        </Suspense>
-      )}
-
-      {/* Sound Pack Creator (v1.10.0) */}
-      {panelOpen.soundPackCreator && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack creator...</div></div>}>
-          <SoundPackCreator
-            theme={activeTheme}
-            onClose={() => setPanel('soundPackCreator', false)}
-            onSave={async (pack) => {
-              // Packs live in IndexedDB (decoded audio can exceed localStorage
-              // quota). A failure propagates: the creator shows it and stays open.
-              await saveSoundPack(pack);
-              announce(`Sound pack "${pack.metadata.name}" created successfully`);
-            }}
-          />
-        </Suspense>
-      )}
-
-      {/* Cloud sync: uploads only saved history, so nothing leaves the browser while SAVE HISTORY is off. */}
-      {panelOpen.cloudSync && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading cloud sync...</div></div>}>
-          <CloudSyncPanel
-            onClose={() => setPanel('cloudSync', false)}
-            getLocalData={() => ({
-              sessions: savedSessions,
-              updatedAt: savedSessions.reduce((latest, s) => Math.max(latest, s.updatedAt), 0),
-            })}
-            onRemoteData={(data) => {
-              const merged = mergeSessions(data.sessions ?? []);
-              if (merged > 0) announce(`${merged} conversation${merged === 1 ? '' : 's'} restored from the cloud`);
-            }}
-          />
-        </Suspense>
-      )}
-
-      {/* Voice Control Help Modal (v1.6.0) */}
-      {panelOpen.voiceControlHelp && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div
-            ref={voiceHelpRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="voice-help-title"
-            onKeyDown={(e) => e.key === 'Escape' && setPanel('voiceControlHelp', false)}
-            className="bg-blue-900 border-4 border-gray-400 p-6 max-w-3xl max-h-[80vh] overflow-y-auto"
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h2 id="voice-help-title" className="text-2xl font-bold text-white">VOICE CONTROL COMMANDS</h2>
-              <button
-                onClick={() => setPanel('voiceControlHelp', false)}
-                className="text-white hover:text-yellow-300 text-2xl"
-                aria-label="Close help"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4 text-sm">
-              <div>
-                <h3 className="text-yellow-300 font-bold mb-2">HOW TO USE:</h3>
-                <ol className="list-decimal list-inside space-y-1 text-white">
-                  <li>Click the 🎤 button to enable hands-free mode</li>
-                  <li>Say "Hey Doctor" followed by any command</li>
-                  <li>Or click the button again to speak a command directly</li>
-                </ol>
-              </div>
-
-              {voiceControl.commands.length > 0 && (
-                <>
-                  {['conversation', 'character', 'audio', 'navigation', 'settings'].map(category => {
-                    const categoryCommands = voiceControl.commands.filter(c => c.category === category);
-                    if (categoryCommands.length === 0) return null;
-
-                    return (
-                      <div key={category}>
-                        <h3 className="text-yellow-300 font-bold mb-2">{category.toUpperCase()}:</h3>
-                        <ul className="space-y-2">
-                          {categoryCommands.map(cmd => (
-                            <li key={cmd.id} className="text-white">
-                              <span className="text-green-400">"{ cmd.phrases[0]}"</span>
-                              <span className="text-gray-400"> - {cmd.description}</span>
-                              {cmd.phrases.length > 1 && (
-                                <div className="ml-4 text-xs text-gray-400">
-                                  Also: {cmd.phrases.slice(1, 3).join(', ')}
-                                  {cmd.phrases.length > 3 && '...'}
-                                </div>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
-
-              <div className="pt-4 border-t-2 border-gray-600">
-                <h3 className="text-yellow-300 font-bold mb-2">WAKE WORDS:</h3>
-                <p className="text-white text-xs">
-                  Say any of these to activate voice control: "Hey Doctor", "Hey Sbaitso", "Doctor Sbaitso", "Okay Doctor", "Listen Doctor"
-                </p>
-              </div>
-
-              <div className="pt-4 border-t-2 border-gray-600">
-                <h3 className="text-yellow-300 font-bold mb-2">TIPS:</h3>
-                <ul className="list-disc list-inside space-y-1 text-white text-xs">
-                  <li>Speak clearly and wait for the command to be recognized</li>
-                  <li>Destructive commands (like "clear") require confirmation</li>
-                  <li>Voice control works best in quiet environments</li>
-                  <li>Not supported in Firefox (use Chrome, Edge, or Safari)</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setPanel('voiceControlHelp', false)}
-                className="px-4 py-2 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
-              >
-                CLOSE
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Voice Input Panel (v1.11.0 - Option C1) */}
-      {panelOpen.voiceInput && userName && (
-        <Suspense fallback={<div className="fixed bottom-20 left-4 z-40 text-white text-sm">Loading voice input...</div>}>
-          <div className="fixed bottom-20 left-4 z-40 max-w-md">
-            <VoiceInput
-              onTranscript={handleVoiceTranscript}
-              onError={(error) => {
-                console.error('[VoiceInput Error]', error);
-                announce(`Voice input error: ${error}`);
-              }}
-              isEnabled={true}
-              language="en-US"
-              continuous={false}
-            />
-          </div>
-        </Suspense>
-      )}
-
-      {/* Emotion Visualizer (v1.11.0 - Option C2) */}
-      {panelOpen.emotionViz && userName && (
-        <Suspense fallback={<div className="fixed bottom-20 right-4 z-40 text-white text-sm">Loading emotion visualizer...</div>}>
-          <div className="fixed bottom-20 right-4 z-40 max-w-sm">
-            <EmotionVisualizer
-              messages={messages}
-              theme={activeTheme}
-              maxHistory={10}
-            />
-          </div>
-        </Suspense>
-      )}
-
-      {/* Topic Flow Diagram (v1.11.0 - Option C3) */}
-      {panelOpen.topicDiagram && userName && (
-        <Suspense fallback={<div className="fixed top-20 left-4 z-40 text-white text-sm">Loading topic diagram...</div>}>
-          <div className="fixed top-20 left-4 z-40 max-w-2xl">
-            <TopicFlowDiagram
-              messages={messages}
-              theme={activeTheme}
-            />
-          </div>
-        </Suspense>
-      )}
-
-      {/* Conversation Templates (v1.11.0 - Option C4) */}
-      {panelOpen.templates && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading templates...</div></div>}>
-          <ConversationTemplates
-            isOpen={panelOpen.templates}
-            onClose={() => setPanel('templates', false)}
-            onSelectTemplate={handleSelectTemplate}
-            theme={activeTheme}
-          />
-        </Suspense>
-      )}
+      <EnhancedPanels
+        panels={panels}
+        accessibility={{ settings: accessibilitySettings, updateSetting, resetSettings }}
+        themeChoice={themeChoice}
+        history={{ savedSessions, currentSession, mergeSessions }}
+        personaState={personaState}
+        speech={speech}
+        installPrompt={installPrompt}
+        voiceCommands={voiceControl.commands}
+        voiceHelpRef={voiceHelpRef}
+        messages={messages}
+        announce={announce}
+        onVoiceTranscript={handleVoiceTranscript}
+        onSelectTemplate={handleSelectTemplate}
+      />
     </>
   );
 }
