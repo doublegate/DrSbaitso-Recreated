@@ -24,10 +24,12 @@ import {
   CRAZY_REPLIES,
   EMPTY_INPUT,
   GARBAGE_INPUT,
-  GARBLE_A,
-  GARBLE_B,
+  AGE_NONSENSE,
+  AGE_QUESTIONS,
+  GARBLE,
   GOOD_BYE,
-  PROFANITY_STRIKES,
+  PARITY_MARKER,
+  PROFANITY_GROUP,
   PROFANITY_WORDS,
   REPEAT_TIER_1,
   REPEAT_TIER_2,
@@ -108,8 +110,7 @@ function pick(state: SbaitsoState, pool: readonly string[]): [string, SbaitsoSta
 const withName = (line: string, name: string): string => line.replaceAll('~', name);
 
 /** Remove the deliberate garbage characters before a line is spoken. */
-const speakable = (line: string): string =>
-  line.replace(GARBLE_A, '').replace(GARBLE_B, '').replace(/\s+/g, ' ').trim();
+const speakable = (line: string): string => line.replace(GARBLE, '').replace(/\s+/g, ' ').trim();
 
 function reply(state: SbaitsoState, lines: string[], extra: { settings?: Partial<SbaitsoSettings>; stopSpeech?: boolean } = {}): EngineStep {
   const settings = extra.settings ? { ...state.settings, ...extra.settings } : state.settings;
@@ -122,7 +123,7 @@ function reply(state: SbaitsoState, lines: string[], extra: { settings?: Partial
 function parity(state: SbaitsoState, lead: string[] = []): EngineStep {
   const lines = [...lead, ...paritySequence(state.name)];
   return {
-    state: { ...state, profanityStrikes: 0, lastReply: lines },
+    state: { ...state, lastReply: lines },
     result: { kind: 'parity', lines, speak: [...lead.map(speakable), ...paritySpeech(state.name)] },
   };
 }
@@ -190,11 +191,14 @@ function ageReply(state: SbaitsoState, age: number): EngineStep {
   return reply(next, [line]);
 }
 
+/** The next line of the profanity group (CONFIRMED (DOSBox) order). */
 function profanity(state: SbaitsoState): EngineStep {
-  const strikes = state.profanityStrikes + 1;
-  // The strike after the last warning is the parity error; the count then starts again.
-  if (strikes > PROFANITY_STRIKES.length) return parity(state);
-  return reply({ ...state, profanityStrikes: strikes }, [PROFANITY_STRIKES[strikes - 1]]);
+  const index = state.profanityStrikes % PROFANITY_GROUP.length;
+  const next = { ...state, profanityStrikes: (index + 1) % PROFANITY_GROUP.length };
+  const line = PROFANITY_GROUP[index];
+  if (line === PARITY_MARKER) return parity(next);
+  const asksAge = AGE_QUESTIONS.some((question) => line.endsWith(question));
+  return reply(asksAge ? { ...next, pending: { kind: 'age' } } : next, [line]);
 }
 
 function goodbye(state: SbaitsoState): EngineStep {
@@ -235,7 +239,13 @@ function answerPending(state: SbaitsoState, raw: string, text: string): EngineSt
       return text ? applyParam(cleared, text) : noop(cleared);
     case 'age': {
       const age = /\d+/.exec(text);
-      return age ? ageReply(cleared, Number(age[0])) : processInput(cleared, raw);
+      if (age) return ageReply(cleared, Number(age[0]));
+      // More bad language instead of an age: an age reply, not the next warning (CONFIRMED (DOSBox)).
+      if (matchesWordList(normalise(text).split(' '), PROFANITY_WORDS)) {
+        const [line, next] = rotate(cleared, 'ageNonsense', AGE_NONSENSE);
+        return reply(next, [line]);
+      }
+      return processInput(cleared, raw);
     }
     default:
       return null;

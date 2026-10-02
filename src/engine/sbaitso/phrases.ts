@@ -53,23 +53,43 @@ export const REPEAT_TIER_1 = ["PLEASE DON'T REPEAT", 'AGAIN?', 'HAVE YOU RUN OUT
 export const REPEAT_TIER_2 = ['THIS IS STALE STUFF', "I DON'T LIKE PEOPLE REPEATING"] as const;
 
 /**
- * Garbled characters that appear inside the original's parity lines. The
- * exact bytes are in the binary; these two runs are the ones ref-docs/03 quotes.
+ * Garbled characters the original prints inside its parity warning
+ * (CONFIRMED (DOSBox): `... IN THIS FZA!$[{? WAY.`). Printed, never spoken.
  */
-export const GARBLE_A = 'SHZSHI!${~?';
-export const GARBLE_B = 'FZA!$[{?';
+export const GARBLE = 'FZA!$[{?';
 
-/** Profanity, one line per strike; the next strike after these is the parity error. */
-export const PROFANITY_STRIKES = [
-  "PLEASE DON'T USE SUCH LANGUAGE",
-  'INPUT REJECTED - BAD LANGUAGE ERROR',
+/** Marks the place in a response group where the original prints `PARITY` and runs the parity routine. */
+export const PARITY_MARKER = 'PARITY';
+
+/**
+ * The profanity group in the order the original answered eleven swears in a
+ * row (CONFIRMED (DOSBox), ref-docs/04 section 4). Lines ending in an age
+ * question start the age prompt; `PARITY_MARKER` is the parity flood. After
+ * the last line the group starts again (LIKELY).
+ */
+export const PROFANITY_GROUP = [
+  'YOU MUST NOT TALK IN THIS WAY, HOW OLD ARE YOU?',
+  "DON'T GET FRESH",
+  'SHAME ON YOU',
   'I REFUSE TO COMPUTE THIS FILTH',
-  `I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS ${GARBLE_A} WAY.`,
+  `I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS ${GARBLE} WAY.`,
+  PARITY_MARKER,
+  'GIVE ME YOUR AGE?',
 ] as const;
+
+/** Lines that ask for the patient's age; the next input is read as the answer. */
+export const AGE_QUESTIONS = ['HOW OLD ARE YOU?', 'GIVE ME YOUR AGE?'] as const;
+
+/**
+ * Replies when the age question is answered with more bad language instead of
+ * a number (CONFIRMED (DOSBox) text, sic "PROOF IT"; which answers reach them
+ * is LIKELY).
+ */
+export const AGE_NONSENSE = ['SO YOU THINK YOU ARE BIG ENOUGH, PROOF IT', 'NO NONSENSE, DEAR'] as const;
 
 /** Lectures for sexual or anatomical words; each is followed by the age question. */
 export const ANATOMY_LECTURES = ['THIS IS NOT AN ANATOMY CLASS', 'GO TO A BIOLOGY CLASS'] as const;
-export const AGE_QUESTION = 'HOW OLD ARE YOU?';
+export const AGE_QUESTION = AGE_QUESTIONS[0];
 /** Age replies. Which line follows which age is not in the binary (LIKELY split at 18). */
 export const AGE_TOO_YOUNG = 'WAIT A FEW MORE YEARS, KID';
 export const AGE_TOO_OLD = ['I THINK YOU ARE TOO OLD FOR THIS', 'I PREFER SOMEONE YOUNGER'] as const;
@@ -121,8 +141,8 @@ export function isParityText(text: string): boolean {
  */
 export function paritySequence(name: string): string[] {
   return [
-    `${GARBLE_A} PARITY WARNING....`,
-    `PARITY ERR ... ${GARBLE_B} ???`,
+    `${GARBLE} PARITY WARNING....`,
+    `PARITY ERR ... ${GARBLE} ???`,
     'PARITY ERR ... RECOVERED',
     'PHEW!   THAT WAS CLOSE!',
     `YOU ARE BAD ${name.toUpperCase()}. DON'T TRY IT NEXT TIME.`,

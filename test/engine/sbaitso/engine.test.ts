@@ -401,15 +401,34 @@ describe('repeated input', () => {
 });
 
 describe('profanity', () => {
-  it('escalates strike by strike and ends in the parity sequence', () => {
-    const { results, state } = run(['damn', 'this is crap', 'DAMN IT', 'damn you', 'damn']);
-    expect(linesOf(results[0])).toEqual(["PLEASE DON'T USE SUCH LANGUAGE"]);
-    expect(linesOf(results[1])).toEqual(['INPUT REJECTED - BAD LANGUAGE ERROR']);
-    expect(linesOf(results[2])).toEqual(['I REFUSE TO COMPUTE THIS FILTH']);
-    expect(linesOf(results[3])[0]).toMatch(/^I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS .+ WAY\.$/);
-    expect(results[4].kind).toBe('parity');
-    expect(linesOf(results[4])).toEqual(paritySequence('JOHN'));
-    expect(state.profanityStrikes).toBe(0);
+  it('follows the order observed in DOSBox, ending in the garbled warning and then the parity flood', () => {
+    const swears = Array.from({ length: 9 }, () => 'damn');
+    const { results } = run(swears);
+    expect(linesOf(results[0])).toEqual(['YOU MUST NOT TALK IN THIS WAY, HOW OLD ARE YOU?']);
+    // Swearing again instead of giving an age gets an age reply, not the next warning.
+    expect(linesOf(results[1])).toEqual(['SO YOU THINK YOU ARE BIG ENOUGH, PROOF IT']);
+    expect(linesOf(results[2])).toEqual(["DON'T GET FRESH"]);
+    expect(linesOf(results[3])).toEqual(['SHAME ON YOU']);
+    expect(linesOf(results[4])).toEqual(['I REFUSE TO COMPUTE THIS FILTH']);
+    expect(linesOf(results[5])).toEqual(['I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS FZA!$[{? WAY.']);
+    expect(results[6].kind).toBe('parity');
+    // Afterwards the group carries on.
+    expect(linesOf(results[7])).toEqual(['GIVE ME YOUR AGE?']);
+    expect(linesOf(results[8])).toEqual(['NO NONSENSE, DEAR']);
+  });
+
+  it('prints the garbage characters of the warning but does not speak them', () => {
+    const { results } = run(['damn', 'damn', 'damn', 'damn', 'damn', 'damn']);
+    const warning = results[5];
+    expect(warning.kind).toBe('reply');
+    expect((warning as Extract<EngineResult, { kind: 'reply' }>).speak).toEqual([
+      'I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS WAY.',
+    ]);
+  });
+
+  it('still takes a real age after the profanity age question', () => {
+    const { results } = run(['damn', '12']);
+    expect(linesOf(results[1])).toEqual(['WAIT A FEW MORE YEARS, KID']);
   });
 
   it('does not flag innocent words that contain a bad one', () => {

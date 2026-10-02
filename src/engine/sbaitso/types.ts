@@ -59,7 +59,7 @@ export interface SbaitsoState {
   readonly repeatCount: number;
   /** Consecutive empty Enters. */
   readonly emptyCount: number;
-  /** Profanity offences since the last parity error. */
+  /** Position in the profanity response group (the next line to use). */
   readonly profanityStrikes: number;
   /** Rotation position of each response pool. */
   readonly cursors: Readonly<Record<string, number>>;
