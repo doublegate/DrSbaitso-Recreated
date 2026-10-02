@@ -372,10 +372,12 @@ export default function App() {
       const typingSpeed = 40;
       for (let i = 0; i < drResponseText.length; i++) {
           await new Promise(resolve => setTimeout(resolve, typingSpeed));
+          // Set the visible prefix rather than appending: the updater must be
+          // pure, because React StrictMode invokes it twice.
+          const visible = drResponseText.slice(0, i + 1);
           setMessages(prev => {
-              const newMessages = [...prev];
-              newMessages[newMessages.length - 1].text += drResponseText[i];
-              return newMessages;
+              const last = prev[prev.length - 1];
+              return [...prev.slice(0, -1), { ...last, text: visible }];
           });
       }
 

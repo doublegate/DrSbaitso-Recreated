@@ -2,6 +2,7 @@
  * App-level regression tests for the user path that was broken in
  * production: enter a name, hear the greeting, reach the chat prompt.
  */
+import { StrictMode } from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -64,6 +65,29 @@ describe('App', () => {
     expect(document.getElementById('chat-input')).not.toBeNull();
     expect(fetchMock).toHaveBeenCalledWith('/api/tts', expect.objectContaining({ method: 'POST' }));
   });
+
+  it('types the reply exactly once under StrictMode (no doubled characters)', async () => {
+    const user = userEvent.setup();
+    render(
+      <StrictMode>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </StrictMode>,
+    );
+    await user.type(await screen.findByPlaceholderText('TYPE NAME AND PRESS ENTER'), 'BOB{Enter}');
+    const input = await waitFor(
+      () => {
+        const el = document.getElementById('chat-input') as HTMLInputElement | null;
+        expect(el && !el.disabled).toBe(true);
+        return el!;
+      },
+      { timeout: 15_000 },
+    );
+    await user.type(input, 'I feel sad{Enter}');
+    await screen.findByText('TELL ME MORE ABOUT YOUR PROBLEMS.', undefined, { timeout: 10_000 });
+    expect(screen.queryByText(/TTEELLLL/)).toBeNull();
+  }, 30_000);
 
   it('does not re-render in a loop while idle', async () => {
     renderApp();
