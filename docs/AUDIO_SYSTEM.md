@@ -2,310 +2,135 @@
 
 ## Overview
 
-The audio system recreates the authentic 8-bit Sound Blaster audio experience of the original 1991 Dr. Sbaitso through a sophisticated Web Audio API processing pipeline. It transforms modern high-quality TTS audio into characteristic low-fidelity retro sound.
+Speech comes from Gemini TTS as 24 kHz mono PCM16. In the vintage modes it is then reshaped
+into the sound of the original Dr. Sbaitso voice: First Byte SmoothTalker 3.5 rendering 8-bit
+unsigned audio at 8475 Hz through a Sound Blaster. Every value below comes from measuring the
+original engine; the evidence and confidence for each is in
+[`ref-docs/02-voice-and-audio.md`](../ref-docs/02-voice-and-audio.md) (sections 3 and 7).
 
-**Version 1.1.0** introduces configurable audio quality with 4 presets ranging from extreme lo-fi (4-bit) to modern clarity (no bit-crushing). Users can adjust both the bit depth (quantization levels) and playback rate (speed) to customize the retro audio experience.
+| Mode | What it does |
+|---|---|
+| `modern` | The TTS audio as delivered. |
+| `subtle` | Light compression and a 200 Hz-8 kHz band. A retro feel, not period-accurate. |
+| `authentic` (default) | The measured original chain, below, through the SB 1.x's ~3.8 kHz output filter. |
+| `ultra` | The same chain through the darker SB Pro 3.2 kHz filter. |
 
-## Audio Processing Pipeline (v1.1.0)
+Every mode plays at 1.0x with no extra bit-crush (`getPlaybackSettings`). A `playbackRate`
+above 1 resamples and so also raises the pitch; the original's pitch was fixed by the DSP time
+constant, not by CPU speed.
+
+## Processing pipeline
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                     TTS API (Gemini)                           │
-│           Base64-encoded PCM Audio (24kHz, mono)               │
-│          (Character-specific voice prompts v1.1.0)             │
-└────────────────────┬───────────────────────────────────────────┘
-                     │
-                     ↓
-          ┌──────────────────────┐
-          │   decode()           │
-          │  Base64 → Uint8Array │
-          └──────────┬───────────┘
-                     │
-                     ↓
-          ┌──────────────────────┐
-          │ decodeAudioData()    │
-          │ Int16 → Float32      │
-          │ Create AudioBuffer   │
-          └──────────┬───────────┘
-                     │
-                     ↓
-          ┌──────────────────────────────────────────────┐
-          │   playAudio(buffer, ctx, bitDepth, rate)     │
-          │  ┌────────────────────────────────────────┐  │
-          │  │  BufferSourceNode                      │  │
-          │  │  playbackRate: 1.0/1.1/1.2 (v1.1.0)    │  │
-          │  └───────────────┬────────────────────────┘  │
-          │                  │                           │
-          │        ┌─────────┴──────────┐               │
-          │        │   bitDepth > 0?    │               │
-          │        └─────┬──────────┬───┘               │
-          │         YES  │          │  NO                │
-          │              ↓          │                    │
-          │  ┌──────────────────┐  │                    │
-          │  │ScriptProcessor   │  │                    │
-          │  │Bit-Crusher       │  │                    │
-          │  │16/64/256 levels  │  │                    │
-          │  │(v1.1.0 Config)   │  │                    │
-          │  └─────────┬────────┘  │                    │
-          │            │           │                     │
-          │            └───────────┼────────→            │
-          │                        ↓                     │
-          │           ┌───────────────────────────────┐  │
-          │           │   AudioDestination            │  │
-          │           └───────────────────────────────┘  │
-          └──────────────────────────────────────────────┘
-                                   │
-                                   ↓
-                      ┌─────────────────────────┐
-                      │  Speakers               │
-                      │  4/6/8-bit or Modern    │
-                      │  (v1.1.0 Configurable)  │
-                      └─────────────────────────┘
+Gemini TTS: base64 PCM16, 24 kHz mono
+  -> decode()                     base64 -> bytes
+  -> decodeAudioData()            PCM16 -> Float32 AudioBuffer (WAV header stripped if present)
+  -> applyVintageProcessing()     per channel, pure Float32Array stages (vintage modes only):
+       1. level compressor        50 ms local RMS pulled towards the overall RMS
+       2. anti-alias + resample   8th-order Butterworth at 0.45 x 8475 Hz, then to 8475 Hz
+       3. LPC pitch flattening    Authentic/Ultra only (see below)
+       4. high shelf              -8 dB from 1.2 kHz: the original's dark "Bass" tone
+       5. normalise               RMS ~-17 dBFS, peak at most 0.75 FS, as the original used ~150-180 codes
+       6. quantise                unsigned 8-bit: clamp(round(x * 128), -128, 127) / 128
+       7. sample-and-hold         back to 24 kHz by repeating samples, like the DAC (no interpolation)
+       8. analog stage            80 Hz high-pass, 2nd-order low-pass at 3.8 kHz (Ultra 3.2 kHz)
+  -> playAudio(buffer, ctx, 0, 1) BufferSource -> destination
 ```
+
+The sample-and-hold step deliberately keeps the spectral images at 8475 Hz +/- f, which the
+analog low-pass only partly removes. That residue is the plausible physical source of the
+"metallic" edge people remember. The old random-noise "aliasing" and one-sample "pre-echo"
+effects were removed: neither is something the hardware did.
+
+The pitch stage runs at the engine rate (8475 Hz) rather than before resampling. The result is
+the same and it costs about a third as much.
+
+Configuration lives in `AUTHENTICITY_PRESETS` (`src/utils/vintageAudioProcessing.ts`):
+`targetSampleRate`, `quantizationLevels`, `lowCutoff`, `highCutoff`, `highShelfGainDb`,
+`highShelfFrequency`, `normalizePeak`, `normalizeRms`, `sampleAndHold`,
+`volumeVarianceReduction` and `pitchFlattening`.
+
+### LPC pitch flattening (`src/utils/lpcMonotone.ts`)
+
+The original stores one pitch period per phoneme and repeats it, so its pitch is held flat on
+each syllable and moves only by rule. Gemini's natural intonation is replaced by source-filter
+resynthesis:
+
+1. Analyse 30 ms Hann frames with 50% overlap: autocorrelation, a lag window, Levinson-Durbin
+   (order 12) and slight bandwidth expansion, giving one all-pole vocal-tract filter per frame.
+2. Decide voicing from frame energy, zero-crossing rate and normalised autocorrelation (60-400 Hz).
+3. Build the target contour (`buildPitchContour`): split voiced runs into syllables at energy
+   dips, hold each at about 92 Hz with small fixed steps between syllables, then glide over the
+   last word to the punctuation target.
+4. Excite voiced frames with one continuous pulse train at the target pitch and unvoiced frames
+   with seeded noise, filter each frame, match its energy to the input frame and overlap-add.
+
+| Utterance end | Target F0 |
+|---|---|
+| body (plateau) | ~92 Hz |
+| `.` | ~75 Hz |
+| `?` | ~150 Hz |
+| `!` | ~125 Hz |
+| none or `,` | ~97 Hz (level, slight rise) |
+
+The ending comes from the spoken text: `useSpeechPlayer().speak(audio, text)` passes
+`endPunctuationOf(text)` to `decodeAudioData(..., mode, endPunctuation)`. Without text the ending
+is level. One contour covers one TTS call; the original restarted its intonation at every call of
+at most 255 characters.
+
+The output keeps the input length, silence stays silent, and a fixed seed makes it
+deterministic. Five seconds of speech take about 20 ms for the whole Authentic chain in Node.
+
+How close this sounds to the original has not been verified by listening against the real
+engine; see `ref-docs/02-voice-and-audio.md` section 7.6 for the validation checklist.
 
 ## Core Audio Functions
 
 ### decode(base64: string): Uint8Array
 
-Converts base64-encoded audio data to raw bytes.
-
-```typescript
-export function decode(base64: string): Uint8Array {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}
-```
-
-**Input Format:**
-- Base64 ASCII string (e.g., "//uQRAAA...")
-
-**Output Format:**
-- Uint8Array of raw bytes
-
-**Performance:**
-- O(n) time complexity
-- No external dependencies (uses native atob())
-- Typical 1-2 second audio: ~48KB → ~72KB base64
+Converts base64-encoded audio data to raw bytes with `atob()`.
 
 ### decodeAudioData(): AudioBuffer
-
-Converts raw PCM bytes to Web Audio API AudioBuffer.
 
 ```typescript
 export async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
   sampleRate: number,
-  numChannels: number
+  numChannels: number,
+  audioMode?: 'modern' | 'subtle' | 'authentic' | 'ultra',
+  endPunctuation: '.' | '?' | '!' | null = null
 ): Promise<AudioBuffer>
 ```
 
-**Parameters:**
-- `data` - Uint8Array of raw PCM bytes
-- `ctx` - AudioContext instance
-- `sampleRate` - 24000 (24 kHz)
-- `numChannels` - 1 (mono)
+Strips a RIFF/WAVE header if present, converts little-endian PCM16 to Float32
+(`int16 / 32768`), and applies the vintage chain for any mode other than `modern`.
 
-**Process:**
-1. Reinterpret Uint8Array as Int16Array (little-endian)
-2. Calculate frame count: `dataInt16.length / numChannels`
-3. Create AudioBuffer with specified parameters
-4. Convert Int16 samples [-32768, 32767] to Float32 [-1.0, 1.0]
-
-**Conversion Formula:**
-```typescript
-float32Value = int16Value / 32768.0
-```
-
-**Why 32768?**
-- Int16 range: -32,768 to 32,767
-- Division by 32,768 normalizes to [-1.0, 1.0]
-- Web Audio API expects Float32 samples in this range
-
-**Output:**
-- AudioBuffer ready for playback or processing
-
-### playAudio(): Promise<void> (v1.1.0 Enhanced)
-
-Main audio playback function with configurable 8-bit effects.
+### playAudio(): Promise<void>
 
 ```typescript
 export function playAudio(
   buffer: AudioBuffer,
   ctx: AudioContext,
-  bitDepth: number = 64,      // NEW v1.1.0: Quantization levels (0 = disabled)
-  playbackRate: number = 1.1  // NEW v1.1.0: Speed adjustment
+  bitDepth: number = 0,      // quantisation levels; 0 disables the crusher
+  playbackRate: number = 1,  // above 1 raises pitch as well as speed
+  useWorklet: boolean = true,
+  onStart?: (source: AudioBufferSourceNode) => void
 ): Promise<void>
 ```
 
-**Parameters:**
-- `buffer` - AudioBuffer to play
-- `ctx` - AudioContext instance
-- `bitDepth` (v1.1.0) - Number of quantization levels (0, 16, 64, or 256)
-  - `0` = No bit-crushing (modern quality)
-  - `16` = 4-bit audio (extreme lo-fi)
-  - `64` = 6-bit audio (authentic 8-bit, default)
-  - `256` = 8-bit audio (high quality retro)
-- `playbackRate` (v1.1.0) - Speed multiplier (1.0 = normal, 1.1 = 10% faster, 1.2 = 20% faster)
-
-**Returns:**
-- Promise that resolves when audio finishes playing
-
-**Audio Quality Presets (v1.1.0):**
-
-| Preset | bitDepth | playbackRate | Character |
-|--------|----------|--------------|-----------|
-| Extreme Lo-Fi | 16 | 1.2 | Most distorted, fastest |
-| Authentic 8-bit | 64 | 1.1 | Original 1991 quality (default) |
-| High Quality | 256 | 1.0 | Clearer retro sound |
-| Modern | 0 | 1.0 | No bit-crushing |
-
-**Audio Effects Chain:**
-
-#### 1. BufferSourceNode
-- **Purpose:** Audio source with configurable playback rate
-- **Configuration:**
-  - `source.buffer = buffer` (AudioBuffer)
-  - `source.playbackRate.value = playbackRate` (v1.1.0 configurable)
-
-**Playback Rate Effect:**
-- `1.0` = Normal speed and pitch
-- `1.1` = 10% faster, slightly deeper (default)
-- `1.2` = 20% faster, deeper voice
-- Mimics CPU speed variations in old systems
-
-#### 2. ScriptProcessorNode (Configurable Bit-Crusher, v1.1.0)
-
-**Conditional Application:**
-```typescript
-if (bitDepth > 0) {
-  // Apply bit-crushing
-  const bitCrusher = ctx.createScriptProcessor(2048, 1, 1);
-  const numLevels = bitDepth;
-  const step = 2.0 / (numLevels - 1);
-
-  bitCrusher.onaudioprocess = function(e) {
-    const input = e.inputBuffer.getChannelData(0);
-    const output = e.outputBuffer.getChannelData(0);
-    for (let i = 0; i < input.length; i++) {
-      output[i] = Math.round(input[i] / step) * step;
-    }
-  };
-
-  source.connect(bitCrusher);
-  bitCrusher.connect(ctx.destination);
-} else {
-  // No bit-crushing, direct connection
-  source.connect(ctx.destination);
-}
-```
-
-**Configuration:**
-```typescript
-const bufferSize = 2048;  // Process 2048 samples at a time
-const numLevels = bitDepth;  // 16, 64, or 256 (configurable v1.1.0)
-const step = 2.0 / (numLevels - 1);
-```
-
-**Quantization Examples:**
-
-**4-bit (16 levels):**
-```
-step = 2.0 / 15 = 0.133
-Quantization: Very coarse, extreme artifacts
-```
-
-**6-bit (64 levels, default):**
-```
-step = 2.0 / 63 = 0.031746
-Quantization: Authentic 1991 Sound Blaster quality
-```
-
-**8-bit (256 levels):**
-```
-step = 2.0 / 255 = 0.00784
-Quantization: Subtle retro character, clearer
-```
-
-**Quantization Algorithm:**
-```typescript
-bitCrusher.onaudioprocess = function(e) {
-  const input = e.inputBuffer.getChannelData(0);
-  const output = e.outputBuffer.getChannelData(0);
-  for (let i = 0; i < input.length; i++) {
-    const val = input[i];  // Float32 sample [-1.0, 1.0]
-    output[i] = Math.round(val / step) * step;  // Quantize to numLevels
-  }
-};
-```
-
-**How Quantization Works:**
-
-| Input (Float32) | val / step | Round | * step | Output |
-|----------------|------------|-------|--------|--------|
-| 0.5000 | 15.746 | 16 | 0.031746 | 0.5079 |
-| 0.2500 | 7.873 | 8 | 0.031746 | 0.2540 |
-| 0.1234 | 3.887 | 4 | 0.031746 | 0.1270 |
-| -0.7500 | -23.620 | -24 | 0.031746 | -0.7619 |
-
-**Visual Effect:**
-
-```
-Original (Float32):     Quantized (6-bit):
-     1.0 ┤───────          1.0 ┤━━━━━━━
-         │                     │
-     0.5 │   ╱╲            0.5 │  ┌┐┌┐
-         │  ╱  ╲               │  ││││
-     0.0 │─╱────╲──        0.0 │──┘└┘└──
-         │       ╲             │
-    -0.5 │        ╲       -0.5 │  ┌┐
-         │         ╲           │  ││
-    -1.0 ┤──────────      -1.0 ┤──┘└────
-
-    (Smooth waveform)    (Staircase waveform)
-```
-
-**Why 6-bit?**
-- Original Sound Blaster: 8-bit audio
-- Dr. Sbaitso used compressed voice synthesis
-- 6-bit (64 levels) creates more aggressive artifact
-- Matches subjective quality of 1991 speech synthesis
-
-#### 3. Node Connections
-
-```typescript
-source.connect(bitCrusher);
-bitCrusher.connect(ctx.destination);
-```
-
-**Signal Flow:**
-1. Audio data → BufferSource (playback rate applied)
-2. BufferSource → ScriptProcessor (quantization applied)
-3. ScriptProcessor → Destination (speakers)
-
-#### 4. Cleanup
-
-```typescript
-source.onended = () => {
-  source.disconnect();
-  bitCrusher.disconnect();
-  resolve();
-};
-```
-
-**Memory Management:**
-- Disconnects nodes after playback
-- Allows garbage collection
-- Prevents memory leaks on long sessions
+Plays the buffer through a `BufferSourceNode`. With `bitDepth > 0` it inserts a bit-crusher
+(AudioWorklet `bit-crusher-processor`, or a `ScriptProcessorNode` fallback) that rounds each
+sample to `bitDepth` levels. No speech mode uses it any more: the vintage chain already
+quantises to the original's full 8 bits. Nodes are disconnected when playback ends, and the
+promise resolves then.
 
 ## Sound Effects
 
 ### playGlitchSound(): White Noise
+
+Not authentic: the original's "parity error" glitch was spoken text, with no noise burst
+(`ref-docs/02-voice-and-audio.md` section 5).
 
 Triggered when response contains "PARITY CHECKING" or "IRQ CONFLICT".
 
@@ -475,7 +300,12 @@ Audio plays successfully
 
 ### CPU Usage
 
-**ScriptProcessorNode Processing:**
+**Vintage processing (offline, before playback):**
+- Runs once per utterance on the decoded buffer, O(n) per stage
+- About 20 ms for 5 s of speech in the Authentic chain (Node, desktop CPU), most of it in the
+  LPC stage
+
+**Bit-crusher (only when `bitDepth > 0`; no speech mode uses it):**
 - 2048 samples per callback
 - At 24 kHz: 2048/24000 = 85ms interval
 - ~12 callbacks per second
@@ -580,11 +410,11 @@ playErrorBeep(ctx); // Should hear 300ms square wave beep
 
 ### Expected Audio Quality
 
-✅ **Correct Behavior:**
-- Voice sounds robotic and slightly distorted
-- Audible quantization "staircase" effect
-- Deeper/faster than original TTS
-- Clear retro 8-bit character
+✅ **Correct Behavior (Authentic):**
+- Dark, band-limited voice with a faint metallic edge (sample-and-hold images)
+- Pitch held flat on each syllable, stepping between syllables
+- Falls at the end of a statement, rises at the end of a question
+- Same speed as the TTS (no 1.1x speed-up)
 
 ❌ **Incorrect Behavior:**
 - Audio sounds identical to source
@@ -600,38 +430,21 @@ playErrorBeep(ctx); // Should hear 300ms square wave beep
 |-----------|--------|-----------|----------|
 | 1-bit | 2 | 1.0 | Extreme lo-fi |
 | 4-bit | 16 | 0.125 | Heavy distortion |
-| **6-bit** | **64** | **0.031746** | **Dr. Sbaitso** |
-| 8-bit | 256 | 0.0078125 | Original Sound Blaster |
+| 6-bit | 64 | 0.031746 | Former (unsupported) "authentic" setting |
+| **8-bit** | **256** | **0.0078125** | **Dr. Sbaitso: unsigned 8-bit at 8475 Hz** |
 | 16-bit | 65,536 | 0.000015 | CD quality |
 
-### Alternative Effect Algorithms
+### Effects now implemented
 
-**Sample Rate Reduction (not implemented):**
-```typescript
-// Reduce effective sample rate to 8 kHz
-const downsampleFactor = 3; // 24kHz / 3 = 8kHz
-let lastSample = 0;
-for (let i = 0; i < input.length; i++) {
-  if (i % downsampleFactor === 0) {
-    lastSample = input[i];
-  }
-  output[i] = lastSample;
-}
-```
-
-**Lo-fi Filter (not implemented):**
-```typescript
-// Low-pass filter to remove high frequencies
-const biquadFilter = ctx.createBiquadFilter();
-biquadFilter.type = 'lowpass';
-biquadFilter.frequency.value = 3000; // 3 kHz cutoff
-```
+Sample-rate reduction with sample-and-hold, the low-pass output filter and pitch flattening are
+now part of the vintage chain (see "Processing pipeline" above).
 
 ## Future Enhancements
 
-1. **AudioWorklet Migration:** Replace ScriptProcessorNode
-2. **Adjustable Bit Depth:** UI control for 4-bit, 6-bit, 8-bit
-3. **Additional Effects:** Sample rate reduction, low-pass filter
+1. **Validation:** Compare rendered F0 and band levels with `ref-docs/02-voice-and-audio.md`
+   sections 3.2-3.3 (checklist in section 7.6)
+2. **Per-sentence intonation:** one contour per sentence rather than per TTS call
+3. **Original-engine mode:** optional, bring-your-own `SBTALKER.EXE` emulation
 4. **Audio Caching:** Store generated audio in IndexedDB
 5. **Streaming Support:** Real-time audio processing for longer responses
 6. **Visualization:** Waveform display with quantization levels

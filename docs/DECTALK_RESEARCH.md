@@ -4,6 +4,15 @@
 **Research Date:** October 30, 2025
 **Purpose:** To accurately recreate the original 1991 Dr. Sbaitso voice synthesis technology
 
+> **Corrected 2026-10-02.** The engine description, sample rate, frequency response and voice
+> parameters in this document have been corrected against measurements of the original engine
+> and First Byte's patents. The authoritative, sourced reference is
+> [`ref-docs/02-voice-and-audio.md`](../ref-docs/02-voice-and-audio.md); where the two disagree,
+> it wins. In short: the engine is First Byte **SmoothTalker 3.5** (male voice), a
+> **concatenative** synthesizer built from stored single pitch periods of a real voice; it
+> outputs **8-bit unsigned mono at 8475 Hz**; the default voice is dark (about 20% of its power
+> below 300 Hz) with a median F0 of about **90-95 Hz** and a stepped, rule-driven contour.
+
 ---
 
 ## Executive Summary
@@ -11,8 +20,9 @@
 **CRITICAL DISCOVERY:** Dr. Sbaitso did **NOT** use DECtalk technology. This is a common misconception in the retro computing community.
 
 **Actual Technology Used:**
-- **Speech Engine:** First Byte Monologue (evolved from SmoothTalker 1984)
-- **Driver:** SBTalker (BLASTER.DRV) - Creative Labs implementation
+- **Speech Engine:** First Byte SmoothTalker 3.5, male voice, inside `SBTALKER.EXE` (Monologue was
+  First Byte's retail successor; "a version of Monologue" is a loose label)
+- **Driver:** `BLASTER.DRV`, Creative's 9.9 KB output driver only (it programs the DSP and DMA)
 - **Hardware:** Sound Blaster 8-bit ISA sound cards (1989-1991)
 - **Release Date:** Late 1991 (distributed with Sound Blaster cards)
 
@@ -22,47 +32,50 @@
 
 ### 1.1 Speech Synthesis Engine
 
-**First Byte Monologue**
-- **Developer:** First Byte Software, Santa Ana, California
-- **Origin:** Evolution of SmoothTalker (1984)
-- **Cost:** $149 standalone product (1991)
-- **Implementation:** Rule-based text-to-speech synthesis
+**First Byte SmoothTalker 3.5 (male voice)**
+- **Developer:** First Byte, Santa Ana, California
+- **Identification:** `SBTALKER.EXE` names itself "SmoothTalker (R), Version 3.5, male voice",
+  (c) 1983-1990, and cites U.S. patents 4,692,941 and 4,617,645
+- **Relation to Monologue:** Monologue ($149, 1991) was First Byte's retail successor; Dr. Sbaitso
+  ships the SmoothTalker 3.5 engine
 
 **Key Characteristics:**
 ```
-Synthesis Method: Rule-based phonetic synthesis
-Rule Set: ~1,200 pronunciation rules
-Voice Adaptation: Pitch, stress, inflection based on punctuation
-Memory: <200KB total footprint (remarkably compact for era)
-Pronunciation: Any pronounceable combination of letters/numbers
+Synthesis Method: Concatenative waveform segments (US 4,692,941)
+Front end: Letter-to-sound rules -> about 50 phonemes (rule count unknown; no source for "1,200")
+Voice data: One digitized pitch period of a real voice per voiced phoneme, about 40-50 KB,
+            stored with about 2:1 predictive compression (US 4,617,645)
+Pitch: Raised by truncating each period, lowered by padding it (formants stay put)
+Intonation: Rule-driven; rises before "?", falls before "."
+Size: SBTALKER.EXE is 178 KB (engine plus voice data)
 ```
 
 **Technical Approach:**
-- NOT digitized/sampled speech (unlike concatenative synthesis)
-- NOT formant synthesis (unlike DECtalk/Klatt method)
-- Rule-based phonetic synthesis with pronunciation tables
-- Software-based synthesis (no hardware DSP required initially)
+- It IS built from digitized speech: single stored pitch periods, repeated to sustain a sound
+  and interpolated between phonemes for transitions
+- NOT formant synthesis in the Klatt/DECtalk sense (no resonators excited by a source)
+- Software synthesis, streamed to the DSP by DMA in real time
 
 ### 1.2 SBTalker Implementation
 
 **SBTALKER.EXE - Memory Resident Module**
 ```
 Component: SBTALKER.EXE (TSR - Terminate and Stay Resident)
-Driver: BLASTER.DRV (actual synthesis engine)
+Driver: BLASTER.DRV (Creative's output driver; the engine is in SBTALKER.EXE)
 Loader: SBTALK.BAT (batch file for installation)
 Utilities:
   - REMOVE.EXE (unload from memory)
   - SAY.EXE (command-line text reading)
-Version: 3.5 (documented in driver listings)
+Version: 3.5 is the SmoothTalker engine version string
 ```
 
 **Integration Architecture:**
 ```
 Dr. Sbaitso Application
         ↓
-SBTALKER.EXE (TSR Module)
+SBTALKER.EXE (TSR: SmoothTalker 3.5 engine + voice data)
         ↓
-BLASTER.DRV (Monologue Engine)
+BLASTER.DRV (Creative output driver: DSP time constant, DMA)
         ↓
 Sound Blaster Hardware (DAC)
         ↓
@@ -77,8 +90,8 @@ Bus: 8-bit ISA
 Playback: 8-bit mono, up to 23 kHz sampling (AM radio quality)
 Recording: 8-bit mono, up to 12 kHz (telephone+ quality)
 FM Synthesizer: Yamaha YM3812 (OPL2) - 9 voices
-DAC: Basic, likely no anti-aliasing filter
-Characteristic Sound: "Metal junk" quality from aliasing
+DAC: Zero-order hold, then a ~4 kHz Sallen-Key low-pass on the output (LIKELY)
+Characteristic Sound: "Metallic" edge, plausibly the hold's spectral images leaking past that filter
 DSP Features: ADPCM compression/decompression only
 ```
 
@@ -111,19 +124,16 @@ Mixer: Crude master volume control
 
 **Likely Dr. Sbaitso Configuration (1991):**
 ```
-Sample Rate: 11.025 kHz (quarter of CD quality)
-Bit Depth: 8-bit (256 quantization levels)
+Sample Rate: 8475 Hz (DSP time constant 138; measured, not 11.025 kHz)
+Bit Depth: 8-bit unsigned (256 levels, centre code 128)
 Channels: Mono
-Frequency Response: ~300 Hz - 5 kHz effective
-Noise Floor: ~-48 dB (8-bit quantization noise)
+Frequency Response: below 100 Hz up to the 4237 Hz Nyquist limit, rolling off heavily
+                    above 1 kHz; about 20% of the power lies below 300 Hz
+Level: peaks about -2 dBFS, RMS about -17.5 dBFS (about 150-180 codes used)
 ```
 
-**Rationale:**
-- 11.025 kHz was standard for speech synthesis in early 1990s
-- Low bandwidth requirements (important for era)
-- Adequate for intelligible speech (telephone quality ~8 kHz)
-- Compatible with all Sound Blaster 1.x/2.0 cards
-- Speech doesn't require high frequencies (unlike music)
+**Correction:** the earlier 11.025 kHz and 300 Hz-5 kHz figures were inferred, not measured.
+11025 Hz belongs to Monologue '97 and 22 kHz to SmoothTalker 4; neither applies here.
 
 ### 2.2 Audio Artifacts and Limitations
 
@@ -208,10 +218,10 @@ Output Quality: Superior to rule-based synthesis
 **Key Differences from Monologue:**
 | Feature | DECtalk | First Byte Monologue |
 |---------|---------|----------------------|
-| **Method** | Formant synthesis | Rule-based phonetic |
+| **Method** | Formant synthesis | Concatenated stored pitch periods |
 | **Quality** | More natural | More robotic |
 | **Hardware** | Dedicated DSP | Software-only possible |
-| **Parameters** | 39 per 5ms frame | ~1,200 pronunciation rules |
+| **Parameters** | 39 per 5ms frame | Letter-to-sound rules, ~50 phonemes |
 | **Voices** | 9 professional voices | Single voice, adjustable |
 | **Cost** | $395+ (hardware) | $149 (software) |
 | **Phoneme Control** | Full phoneme syntax | Limited |
@@ -224,10 +234,10 @@ Output Quality: Superior to rule-based synthesis
 **SmoothTalker (1984):**
 ```
 Platform: Originally Mac (128K/512K), later Apple IIgs
-Method: Rule-based text-to-speech synthesis
-Rules: ~1,200 pronunciation rules
+Method: Letter-to-sound rules + concatenated single pitch periods (US 4,692,941)
+Rules: count unknown (no source found for "~1,200")
 Adaptation: Pitch, stress, inflection from punctuation
-Size: <200KB (incredibly compact)
+Voice data: about 40-50 KB of waveform data
 Hardware: No sound card required (software-based)
 ```
 
@@ -236,7 +246,7 @@ Hardware: No sound card required (software-based)
 Platform: MS-DOS (PC), Windows later
 Relationship: "Upgrade" of SmoothTalker
 Cost: $149 (commercial product)
-Features:
+Features (retail Monologue; Dr. Sbaitso's SmoothTalker 3.5 is male-only):
   - Male/female voice options
   - Speed control
   - Pitch adjustment
@@ -250,13 +260,13 @@ Input: Text string with punctuation
   ↓
 Lexical Analysis (word tokenization)
   ↓
-Pronunciation Rules (~1,200 rules applied)
+Letter-to-sound rules
   ↓
 Phonetic Representation
   ↓
 Prosody Generation (pitch, stress, timing)
   ↓
-Waveform Synthesis (likely table-based)
+Waveform Synthesis (stored pitch periods, repeated and interpolated)
   ↓
 8-bit Audio Output
 ```
@@ -330,10 +340,10 @@ Note: POST-dates Dr. Sbaitso
 ```
 Release Date: Late 1991
 Developer: Creative Labs, Singapore
-Speech Engine: First Byte Monologue (licensed)
-Driver: SBTalker (BLASTER.DRV)
+Speech Engine: First Byte SmoothTalker 3.5, male voice (licensed)
+Driver: SBTALKER.EXE (engine TSR) + BLASTER.DRV (Creative output driver)
 Hardware: Sound Blaster 1.x/2.0/Pro cards
-Audio Format: 8-bit mono (confirmed)
+Audio Format: 8-bit unsigned mono at 8475 Hz (measured)
 Quality: "Far from lifelike" (Wikipedia)
 Characteristic: Robotic, mechanical voice
 Purpose: Showcase Sound Blaster TTS capabilities
@@ -341,30 +351,24 @@ Purpose: Showcase Sound Blaster TTS capabilities
 
 ### 5.2 Probable Specifications (High Confidence)
 
-**Audio Specifications (90%+ confidence):**
+**Audio Specifications (corrected 2026-10-02; see ref-docs/02):**
 ```
-Sample Rate: 11.025 kHz
-  - Standard for speech synthesis in 1991
-  - Quarter of CD quality (44.1 kHz)
-  - Supported by all Sound Blaster cards
-  - Adequate for telephone-quality speech
+Sample Rate: 8475 Hz (measured; the earlier 11.025 kHz estimate was wrong)
 
 Bit Depth: 8-bit (100% confirmed)
   - Hardware limitation of Sound Blaster 1.x
   - 256 quantization levels
   - ~-48 dB noise floor
 
-Frequency Response: ~300 Hz - 5 kHz
-  - Limited by sample rate (Nyquist limit ~5.5 kHz)
-  - Additional roll-off from primitive DAC
-  - Adequate for speech intelligibility
+Frequency Response: <100 Hz - 4237 Hz (Nyquist limit at 8475 Hz)
+  - Dark default ("Bass") tone: bands above 2 kHz are 24-31 dB below the 300-500 Hz peak
+  - Card output filter: about 4 kHz (SB 1.x) or 3.2 kHz (SB Pro)
 
 Dynamic Range: ~48 dB (8-bit limitation)
 
 Noise Characteristics:
   - Quantization noise (8-bit)
-  - Aliasing artifacts (poor anti-aliasing)
-  - "Metal junk" sound (hardware characteristic)
+  - Zero-order-hold images partly passed by the output filter (not random noise)
 ```
 
 ### 5.3 Voice Characteristics (from user descriptions)
@@ -381,12 +385,13 @@ Stress: Punctuation-driven emphasis
 Pauses: Sentence/clause boundaries marked
 ```
 
-**Estimated Voice Parameters (requires audio analysis):**
+**Measured Voice Parameters (original engine, default settings; ref-docs/02 section 3.2):**
 ```
-Fundamental Frequency (F0): ~110-130 Hz (male voice range)
-Speech Rate: ~120-150 WPM (typical TTS rate)
-Pitch Variation: ±10-20% (minimal prosody)
-Voice Character: Neutral male, mechanical
+Fundamental Frequency (F0): median about 90-95 Hz, held flat per syllable, stepping between
+                            syllables; falls to about 62-80 Hz at ".", rises to about
+                            120-156 Hz at "?" and 110-134 Hz at "!"
+Speech Rate: about 3.6-4.7 syllables per second (about 150-210 WPM); pauses 55-185 ms
+Voice Character: Ordinary low male, mechanical; stepped, not monotone; no jitter
 ```
 
 ---
@@ -498,16 +503,19 @@ Add character voice variations
 
 **Authentic 1991 Dr. Sbaitso Sound Profile:**
 ```
-Sample Rate: 11.025 kHz (downsample from Gemini 24 kHz)
-Bit Depth: 8-bit (256 levels, quantize from 16-bit)
+Sample Rate: 8475 Hz (resample from Gemini 24 kHz; sample-and-hold back up)
+Bit Depth: 8-bit unsigned (256 levels)
 Channels: Mono
-Frequency Response: 300 Hz - 5 kHz (bandpass filter)
-Noise Floor: -48 dB (8-bit quantization noise)
-Pitch: Male voice, ~110-130 Hz fundamental
-Cadence: Mechanical, ~120-150 WPM
-Prosody: Minimal variation, rule-based stress
-Artifacts: Aliasing, quantization, DAC limitations
+Frequency Response: 80 Hz high-pass, -8 dB shelf from 1.2 kHz, 3.8 kHz (SB 1.x) or
+                    3.2 kHz (SB Pro) 2nd-order low-pass
+Pitch: ~92 Hz plateaus per syllable; ~75 Hz at ".", ~150 Hz at "?", ~125 Hz at "!"
+Cadence: Medium-fast, ~150-210 WPM, short pauses
+Artifacts: Quantization and zero-order-hold images only
 ```
+
+As implemented in `src/utils/vintageAudioProcessing.ts` and `src/utils/lpcMonotone.ts` (see
+`docs/AUDIO_SYSTEM.md`). The rest of Part 7 below is the original 2025 design and is superseded
+where it differs.
 
 ### 7.2 Processing Chain
 
@@ -1056,8 +1064,7 @@ Late 1991: DR. SBAITSO RELEASED
 ```
 1984: SmoothTalker v1.0
       - Macintosh (128K, 512K)
-      - ~1,200 pronunciation rules
-      - <200KB size
+      - Letter-to-sound rules + stored pitch periods (rule count unsourced)
       - Revolutionary for era
 
 1987: SmoothTalker for Apple IIgs
@@ -1087,6 +1094,11 @@ Late 1991: Monologue licensed to Creative Labs
 ## Document Revision History
 
 ```
+v1.1 - October 2, 2026 - Corrected against ref-docs/02-voice-and-audio.md
+  - Engine: SmoothTalker 3.5, concatenative (stored pitch periods), not rule-only
+  - BLASTER.DRV is the output driver, not the engine
+  - 8475 Hz (not 11.025 kHz); frequency response and voice parameters measured
+
 v1.0 - October 30, 2025 - Initial research compilation
   - Comprehensive web search results
   - Technology stack identification
@@ -1101,18 +1113,18 @@ v1.0 - October 30, 2025 - Initial research compilation
 
 This research establishes that:
 
-1. **Dr. Sbaitso used First Byte Monologue** (NOT DECtalk)
-2. **Audio specifications:** Likely 11.025 kHz, 8-bit mono
+1. **Dr. Sbaitso used First Byte SmoothTalker 3.5** (NOT DECtalk)
+2. **Audio specifications:** 8475 Hz, 8-bit unsigned mono (measured)
 3. **Hardware platform:** Sound Blaster 8-bit ISA cards (1989-1991)
-4. **Synthesis method:** Rule-based phonetic (not formant synthesis)
+4. **Synthesis method:** Concatenative, from stored pitch periods (not formant synthesis)
 5. **Implementation strategy:** Gemini TTS + vintage post-processing recommended
 
 The recreation will focus on capturing the signature audio characteristics:
 - 8-bit quantization (inherent noise/grit)
-- Low sample rate (11.025 kHz, "telephone quality")
+- Low sample rate (8475 Hz), played back through sample-and-hold
 - Robotic, mechanical voice quality
-- Minimal prosody (monotone emphasis)
-- Period-appropriate audio artifacts
+- Stepped, rule-driven pitch (flat per syllable, punctuation-driven endings)
+- Zero-order-hold images, not random noise
 
 Target: 85-95% perceptual authenticity to 1991 Dr. Sbaitso voice.
 

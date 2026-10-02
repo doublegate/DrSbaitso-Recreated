@@ -9,7 +9,7 @@ else is a factual correction to make either way.
 
 - [ ] Dates: the program shipped in 1990 (v1.01) and 1992 (v2.20). Fix "1991" in the
       README, the persona prompt and the docs. ([ref-docs/01](../ref-docs/01-history-and-behavior.md))
-- [ ] Speech engine: First Byte **SmoothTalker 3.5**, which stores single pitch periods
+- [x] Speech engine: First Byte **SmoothTalker 3.5**, which stores single pitch periods
       of a real voice. `docs/DECTALK_RESEARCH.md` calls it rule-based and sample-free.
       ([ref-docs/02](../ref-docs/02-voice-and-audio.md))
 - [x] Pronunciation: "SBAYT-so", not "SUH-BAIT-SO" (`api/_lib/gemini.ts`). Spell out

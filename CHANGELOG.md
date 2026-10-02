@@ -123,6 +123,10 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   `pitchVarianceReduction` setting, which no code ever read; presets toggle it
   with `pitchFlattening`. Subtle stays a light, non-authentic filter, and Modern
   is unchanged.
+- `docs/AUDIO_SYSTEM.md` describes the new chain, and `docs/DECTALK_RESEARCH.md`
+  is corrected: the engine is First Byte SmoothTalker 3.5, built from stored
+  pitch periods of a real voice (not rule-only, sample-free synthesis);
+  `BLASTER.DRV` is only Creative's output driver; the rate is 8475 Hz.
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
   workers (`service-worker.js`, the registered one, and the unused `sw.js`). The
   new worker precaches the real hashed build output, so every deploy refreshes
