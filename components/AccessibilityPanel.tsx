@@ -47,7 +47,7 @@ export default function AccessibilityPanel({
       aria-modal="true"
       aria-labelledby="a11y-panel-title"
       aria-describedby="a11y-panel-description"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75"
       onClick={onClose}
       onKeyDown={handleKeyDown}
     >
@@ -68,7 +68,7 @@ export default function AccessibilityPanel({
           <button
             onClick={onClose}
             aria-label="Close accessibility settings"
-            className="text-yellow-300 hover:text-yellow-100 text-2xl font-bold px-3 py-1 border-2 border-yellow-300 hover:border-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className="text-yellow-300 hover:text-yellow-100 text-2xl font-bold px-3 py-1 border-2 border-yellow-300 hover:border-yellow-100 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
           >
             X
           </button>
@@ -97,7 +97,7 @@ export default function AccessibilityPanel({
                 role="switch"
                 aria-checked={settings.highContrast}
                 onClick={() => onUpdateSetting('highContrast', !settings.highContrast)}
-                className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-none focus:ring-2 focus:ring-yellow-300 ${
+                className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-hidden focus:ring-2 focus:ring-yellow-300 ${
                   settings.highContrast
                     ? 'bg-green-600 border-green-400 text-white'
                     : 'bg-gray-700 border-gray-500 text-gray-300'
@@ -125,7 +125,7 @@ export default function AccessibilityPanel({
                 role="switch"
                 aria-checked={settings.reducedMotion}
                 onClick={() => onUpdateSetting('reducedMotion', !settings.reducedMotion)}
-                className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-none focus:ring-2 focus:ring-yellow-300 ${
+                className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-hidden focus:ring-2 focus:ring-yellow-300 ${
                   settings.reducedMotion
                     ? 'bg-green-600 border-green-400 text-white'
                     : 'bg-gray-700 border-gray-500 text-gray-300'
@@ -149,7 +149,7 @@ export default function AccessibilityPanel({
                 onChange={(e) =>
                   onUpdateSetting('fontSize', e.target.value as AccessibilitySettings['fontSize'])
                 }
-                className="w-full bg-blue-800 border-2 border-gray-400 text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="w-full bg-blue-800 border-2 border-gray-400 text-white px-4 py-2 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
               >
                 <option value="small">SMALL (12px)</option>
                 <option value="medium">MEDIUM (16px) - Default</option>
@@ -175,7 +175,7 @@ export default function AccessibilityPanel({
                     e.target.value as AccessibilitySettings['focusIndicatorStyle']
                   )
                 }
-                className="w-full bg-blue-800 border-2 border-gray-400 text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="w-full bg-blue-800 border-2 border-gray-400 text-white px-4 py-2 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
               >
                 <option value="default">DEFAULT (3px outline)</option>
                 <option value="thick">THICK (5px outline)</option>
@@ -203,7 +203,7 @@ export default function AccessibilityPanel({
                 onClick={() =>
                   onUpdateSetting('screenReaderOptimized', !settings.screenReaderOptimized)
                 }
-                className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-none focus:ring-2 focus:ring-yellow-300 ${
+                className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-hidden focus:ring-2 focus:ring-yellow-300 ${
                   settings.screenReaderOptimized
                     ? 'bg-green-600 border-green-400 text-white'
                     : 'bg-gray-700 border-gray-500 text-gray-300'
@@ -231,7 +231,7 @@ export default function AccessibilityPanel({
                 role="switch"
                 aria-checked={settings.announceMessages}
                 onClick={() => onUpdateSetting('announceMessages', !settings.announceMessages)}
-                className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-none focus:ring-2 focus:ring-yellow-300 ${
+                className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-hidden focus:ring-2 focus:ring-yellow-300 ${
                   settings.announceMessages
                     ? 'bg-green-600 border-green-400 text-white'
                     : 'bg-gray-700 border-gray-500 text-gray-300'
@@ -261,7 +261,7 @@ export default function AccessibilityPanel({
                 onClick={() =>
                   onUpdateSetting('keyboardNavigationHints', !settings.keyboardNavigationHints)
                 }
-                className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-none focus:ring-2 focus:ring-yellow-300 ${
+                className={`ml-4 px-6 py-2 border-2 font-bold focus:outline-hidden focus:ring-2 focus:ring-yellow-300 ${
                   settings.keyboardNavigationHints
                     ? 'bg-green-600 border-green-400 text-white'
                     : 'bg-gray-700 border-gray-500 text-gray-300'
@@ -277,13 +277,13 @@ export default function AccessibilityPanel({
         <div className="flex justify-between mt-8 pt-4 border-t-2 border-gray-400">
           <button
             onClick={onResetSettings}
-            className="px-6 py-2 bg-red-600 border-2 border-red-400 text-white font-bold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className="px-6 py-2 bg-red-600 border-2 border-red-400 text-white font-bold hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
           >
             RESET TO DEFAULTS
           </button>
           <button
             onClick={onClose}
-            className="px-8 py-2 bg-green-600 border-2 border-green-400 text-white font-bold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className="px-8 py-2 bg-green-600 border-2 border-green-400 text-white font-bold hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
           >
             CLOSE
           </button>

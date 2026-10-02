@@ -344,7 +344,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
   if (loading) {
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
         style={{ backgroundColor: `${theme.colors.background}cc` }}
       >
         <div className="text-center">
@@ -362,7 +362,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
   if (!insightsData || insightsData.timeline.length === 0) {
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
         style={{ backgroundColor: `${theme.colors.background}cc` }}
       >
         <div
@@ -380,7 +380,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           </p>
           <button
             onClick={onClose}
-            className="px-6 py-2 font-bold rounded hover:opacity-80 focus:outline-none focus:ring-2"
+            className="px-6 py-2 font-bold rounded-sm hover:opacity-80 focus:outline-hidden focus:ring-2"
             style={{
               backgroundColor: theme.colors.accent,
               color: theme.colors.background
@@ -395,7 +395,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-80 p-4"
+      className="fixed inset-0 z-50 overflow-auto bg-black/80 p-4"
       style={{ backgroundColor: `${theme.colors.background}cc` }}
       role="dialog"
       aria-labelledby="insights-title"
@@ -421,7 +421,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           </h1>
           <button
             onClick={onClose}
-            className="px-4 py-2 font-bold rounded hover:opacity-80 focus:outline-none focus:ring-2"
+            className="px-4 py-2 font-bold rounded-sm hover:opacity-80 focus:outline-hidden focus:ring-2"
             style={{
               backgroundColor: theme.colors.accent,
               color: theme.colors.background
@@ -448,7 +448,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
                     onClick={() => handleDateRangeChange(range)}
                     className={`px-3 py-1 text-sm font-semibold rounded ${
                       filter.dateRange === range ? 'opacity-100' : 'opacity-60'
-                    } hover:opacity-100 focus:outline-none focus:ring-2`}
+                    } hover:opacity-100 focus:outline-hidden focus:ring-2`}
                     style={{
                       backgroundColor: filter.dateRange === range ? theme.colors.accent : theme.colors.border,
                       color: theme.colors.background
@@ -473,7 +473,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
                     onClick={() => handleCharacterFilterChange(char.id)}
                     className={`px-2 py-1 text-xs font-semibold rounded ${
                       filter.characterIds?.includes(char.id) ? 'opacity-100' : 'opacity-40'
-                    } hover:opacity-100 focus:outline-none focus:ring-1`}
+                    } hover:opacity-100 focus:outline-hidden focus:ring-1`}
                     style={{
                       backgroundColor: theme.colors.border,
                       color: theme.colors.text
@@ -488,7 +488,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
             {/* Clear filters */}
             <button
               onClick={handleClearFilters}
-              className="ml-auto px-3 py-1 text-sm font-semibold rounded hover:opacity-80 focus:outline-none focus:ring-2"
+              className="ml-auto px-3 py-1 text-sm font-semibold rounded-sm hover:opacity-80 focus:outline-hidden focus:ring-2"
               style={{
                 backgroundColor: theme.colors.border,
                 color: theme.colors.text
@@ -502,7 +502,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
               <button
                 onClick={exportToPNG}
                 disabled={exporting}
-                className="px-3 py-1 text-sm font-semibold rounded hover:opacity-80 focus:outline-none focus:ring-2 disabled:opacity-50"
+                className="px-3 py-1 text-sm font-semibold rounded-sm hover:opacity-80 focus:outline-hidden focus:ring-2 disabled:opacity-50"
                 style={{
                   backgroundColor: theme.colors.accent,
                   color: theme.colors.background
@@ -512,7 +512,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
               </button>
               <button
                 onClick={exportToCSV}
-                className="px-3 py-1 text-sm font-semibold rounded hover:opacity-80 focus:outline-none focus:ring-2"
+                className="px-3 py-1 text-sm font-semibold rounded-sm hover:opacity-80 focus:outline-hidden focus:ring-2"
                 style={{
                   backgroundColor: theme.colors.accent,
                   color: theme.colors.background
@@ -528,7 +528,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
         <div className="px-4 pt-4 flex gap-2">
           <button
             onClick={() => setShowAdvanced(false)}
-            className={`px-4 py-2 font-semibold rounded ${!showAdvanced ? 'opacity-100' : 'opacity-60'} hover:opacity-100 focus:outline-none focus:ring-2`}
+            className={`px-4 py-2 font-semibold rounded-sm ${!showAdvanced ? 'opacity-100' : 'opacity-60'} hover:opacity-100 focus:outline-hidden focus:ring-2`}
             style={{
               backgroundColor: !showAdvanced ? theme.colors.accent : theme.colors.border,
               color: !showAdvanced ? theme.colors.background : theme.colors.text
@@ -538,7 +538,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           </button>
           <button
             onClick={() => setShowAdvanced(true)}
-            className={`px-4 py-2 font-semibold rounded ${showAdvanced ? 'opacity-100' : 'opacity-60'} hover:opacity-100 focus:outline-none focus:ring-2`}
+            className={`px-4 py-2 font-semibold rounded-sm ${showAdvanced ? 'opacity-100' : 'opacity-60'} hover:opacity-100 focus:outline-hidden focus:ring-2`}
             style={{
               backgroundColor: showAdvanced ? theme.colors.accent : theme.colors.border,
               color: showAdvanced ? theme.colors.background : theme.colors.text
@@ -553,7 +553,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
         <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Timeline Chart */}
           <div
-            className="border-2 rounded p-4"
+            className="border-2 rounded-sm p-4"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-xl font-bold mb-3" style={{ color: theme.colors.text }}>
@@ -566,7 +566,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
 
           {/* Sentiment Gauge */}
           <div
-            className="border-2 rounded p-4"
+            className="border-2 rounded-sm p-4"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-xl font-bold mb-3" style={{ color: theme.colors.text }}>
@@ -582,7 +582,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
 
           {/* Word Cloud */}
           <div
-            className="border-2 rounded p-4"
+            className="border-2 rounded-sm p-4"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-xl font-bold mb-3" style={{ color: theme.colors.text }}>
@@ -595,7 +595,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
 
           {/* Pie Chart */}
           <div
-            className="border-2 rounded p-4"
+            className="border-2 rounded-sm p-4"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-xl font-bold mb-3" style={{ color: theme.colors.text }}>
@@ -613,7 +613,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
         <div className="p-4 space-y-6">
           {/* Health Score */}
           <div
-            className="border-2 rounded p-6"
+            className="border-2 rounded-sm p-6"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
@@ -699,7 +699,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
                   </div>
                 </div>
                 {advancedInsights.health.concerns.length > 0 && (
-                  <div className="mt-4 p-3 rounded" style={{ backgroundColor: '#ff444422', borderLeft: `4px solid #ff4444` }}>
+                  <div className="mt-4 p-3 rounded-sm" style={{ backgroundColor: '#ff444422', borderLeft: `4px solid #ff4444` }}>
                     <p className="font-bold text-sm mb-2" style={{ color: '#ff4444' }}>⚠️ Concerns:</p>
                     {advancedInsights.health.concerns.map((concern, i) => (
                       <p key={i} className="text-sm" style={{ color: theme.colors.text }}>{concern}</p>
@@ -712,7 +712,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
 
           {/* Topic Clusters */}
           <div
-            className="border-2 rounded p-6"
+            className="border-2 rounded-sm p-6"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
@@ -723,7 +723,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
                 {advancedInsights.topTopics.slice(0, 12).map((topic, idx) => (
                   <div
                     key={idx}
-                    className="border rounded p-3"
+                    className="border rounded-sm p-3"
                     style={{
                       borderColor: theme.colors.border,
                       backgroundColor: `${theme.colors.accent}11`
@@ -753,7 +753,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
 
           {/* Sentiment Trajectory */}
           <div
-            className="border-2 rounded p-6"
+            className="border-2 rounded-sm p-6"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
@@ -776,7 +776,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
               </div>
             </div>
             {advancedInsights.sentimentTrend.timeline.length > 0 && (
-              <div className="relative h-32 border rounded p-2" style={{ borderColor: theme.colors.border }}>
+              <div className="relative h-32 border rounded-sm p-2" style={{ borderColor: theme.colors.border }}>
                 {/* Simple sentiment timeline visualization */}
                 <div className="flex items-end justify-around h-full">
                   {advancedInsights.sentimentTrend.timeline.slice(-15).map((point, idx) => (
@@ -797,7 +797,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
 
           {/* Character Effectiveness */}
           <div
-            className="border-2 rounded p-6"
+            className="border-2 rounded-sm p-6"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
@@ -812,7 +812,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
                     return (
                       <div
                         key={idx}
-                        className="border rounded p-3"
+                        className="border rounded-sm p-3"
                         style={{ borderColor: theme.colors.border }}
                       >
                         <div className="flex justify-between items-center mb-2">
@@ -844,7 +844,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           {/* Conversation Loops */}
           {advancedInsights.detectedLoops.length > 0 && (
           <div
-            className="border-2 rounded p-6"
+            className="border-2 rounded-sm p-6"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
@@ -854,7 +854,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
               {advancedInsights.detectedLoops.map((loop, idx) => (
                 <div
                   key={idx}
-                  className="border rounded p-3"
+                  className="border rounded-sm p-3"
                   style={{
                     borderColor: theme.colors.border,
                     backgroundColor: `${theme.colors.accent}08`
@@ -874,32 +874,32 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
 
           {/* Engagement Metrics */}
           <div
-            className="border-2 rounded p-6"
+            className="border-2 rounded-sm p-6"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
               ⚡ Engagement Metrics
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <div className="text-center p-3 border rounded" style={{ borderColor: theme.colors.border }}>
+              <div className="text-center p-3 border rounded-sm" style={{ borderColor: theme.colors.border }}>
                 <div className="text-2xl font-bold" style={{ color: theme.colors.accent }}>
                   {Math.round(advancedInsights.engagement.avgMessageLength)}
                 </div>
                 <div className="text-xs" style={{ color: theme.colors.text }}>Avg Chars/Message</div>
               </div>
-              <div className="text-center p-3 border rounded" style={{ borderColor: theme.colors.border }}>
+              <div className="text-center p-3 border rounded-sm" style={{ borderColor: theme.colors.border }}>
                 <div className="text-2xl font-bold" style={{ color: theme.colors.accent }}>
                   {Math.round(advancedInsights.engagement.avgResponseTime / 1000)}s
                 </div>
                 <div className="text-xs" style={{ color: theme.colors.text }}>Avg Response Time</div>
               </div>
-              <div className="text-center p-3 border rounded" style={{ borderColor: theme.colors.border }}>
+              <div className="text-center p-3 border rounded-sm" style={{ borderColor: theme.colors.border }}>
                 <div className="text-2xl font-bold" style={{ color: theme.colors.accent }}>
                   {Math.round(advancedInsights.engagement.avgSessionDuration / 60000)}m
                 </div>
                 <div className="text-xs" style={{ color: theme.colors.text }}>Avg Session</div>
               </div>
-              <div className="text-center p-3 border rounded" style={{ borderColor: theme.colors.border }}>
+              <div className="text-center p-3 border rounded-sm" style={{ borderColor: theme.colors.border }}>
                 <div className="text-2xl font-bold" style={{ color: theme.colors.accent }}>
                   {advancedInsights.engagement.peakEngagementTime !== null ?
                     `${advancedInsights.engagement.peakEngagementTime}:00` : 'N/A'}
@@ -912,11 +912,11 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
                 <p className="text-sm mb-2" style={{ color: theme.colors.text }}>
                   Consistency Score: {Math.round(advancedInsights.engagement.consistencyScore)}/100
                 </p>
-                <div className="flex items-end justify-around h-24 border rounded p-2" style={{ borderColor: theme.colors.border }}>
+                <div className="flex items-end justify-around h-24 border rounded-sm p-2" style={{ borderColor: theme.colors.border }}>
                   {advancedInsights.engagement.messageFrequency.map((freq, idx) => (
                     <div
                       key={idx}
-                      className="w-1 bg-opacity-60 rounded-t"
+                      className="w-1 rounded-t"
                       style={{
                         height: `${(freq.count / Math.max(...advancedInsights.engagement.messageFrequency.map(f => f.count))) * 100}%`,
                         backgroundColor: freq.hour === advancedInsights.engagement.peakEngagementTime ? theme.colors.accent : theme.colors.border
@@ -932,7 +932,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           {/* Emotion Distribution (v1.10.0) */}
           {emotionData && (
           <div
-            className="border-2 rounded p-6"
+            className="border-2 rounded-sm p-6"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
@@ -945,7 +945,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
                 return (
                   <div
                     key={emotion}
-                    className="text-center p-3 border rounded"
+                    className="text-center p-3 border rounded-sm"
                     style={{ borderColor: theme.colors.border }}
                   >
                     <div className="text-3xl mb-2">
@@ -977,7 +977,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           {/* Topic Evolution (v1.10.0) */}
           {topicEvolution && topicEvolution.timelines.length > 0 && (
           <div
-            className="border-2 rounded p-6"
+            className="border-2 rounded-sm p-6"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
@@ -987,7 +987,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
               {topicEvolution.timelines.slice(0, 8).map((timeline: any, idx: number) => (
                 <div
                   key={idx}
-                  className="border rounded p-3"
+                  className="border rounded-sm p-3"
                   style={{ borderColor: theme.colors.border }}
                 >
                   <div className="flex justify-between items-center mb-2">
@@ -1027,7 +1027,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           {/* Conversation Clusters (v1.10.0) */}
           {similarityClusters && similarityClusters.length > 0 && (
           <div
-            className="border-2 rounded p-6"
+            className="border-2 rounded-sm p-6"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
@@ -1037,7 +1037,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
               {similarityClusters.slice(0, 6).map((cluster: any, idx: number) => (
                 <div
                   key={idx}
-                  className="border rounded p-3"
+                  className="border rounded-sm p-3"
                   style={{
                     borderColor: theme.colors.border,
                     backgroundColor: `${theme.colors.accent}11`
@@ -1070,7 +1070,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           {/* Recurring Patterns (v1.10.0) */}
           {recurringPatterns && recurringPatterns.length > 0 && (
           <div
-            className="border-2 rounded p-6"
+            className="border-2 rounded-sm p-6"
             style={{ borderColor: theme.colors.border }}
           >
             <h2 className="text-2xl font-bold mb-4" style={{ color: theme.colors.text }}>
@@ -1103,7 +1103,7 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
           className="border-t-4 p-3 text-center text-sm"
           style={{ borderColor: theme.colors.border, color: theme.colors.text }}
         >
-          Press <kbd className="px-2 py-1 bg-opacity-20 bg-white rounded">Esc</kbd> to close
+          Press <kbd className="px-2 py-1 bg-white/20 rounded-sm">Esc</kbd> to close
         </div>
       </div>
     </div>

@@ -1,0 +1,216 @@
+@import 'tailwindcss' source(none);
+
+/* Scan only application sources (not docs/, which would add stray classes). */
+@source './index.html';
+@source './App.tsx';
+@source './components';
+@source './hooks';
+@source './utils';
+@source './constants.ts';
+
+@theme {
+  --animate-slide-up: slide-up 0.3s ease-out;
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(1rem);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+/*
+  Active retro theme. Defaults are the DOS Blue theme; App writes the selected
+  theme's colours onto <html> at runtime (see applyThemeVariables in App.tsx).
+*/
+:root {
+  --color-primary: #3b82f6;
+  --color-background: #1e3a8a;
+  --color-text: #ffffff;
+  --color-border: #60a5fa;
+  --color-accent: #fbbf24;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+body {
+  font-family: 'Courier New', Courier, monospace;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior: none;
+  /* Disable tap highlight on mobile */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Controls should not be selected by accidental long-presses. */
+button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Custom scrollbar for desktop */
+::-webkit-scrollbar {
+  width: 12px;
+}
+::-webkit-scrollbar-track {
+  background: #1e3a8a;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 6px;
+  border: 3px solid #1e3a8a;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 767px) {
+  body {
+    font-size: 14px;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  /* Hide scrollbar on mobile for cleaner look */
+  * {
+    scrollbar-width: thin;
+  }
+}
+
+/* Touch-friendly button minimum size */
+button, input[type="button"], .touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Prevent iOS zoom on input focus */
+@media (max-width: 767px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* Accessibility Enhancements (v1.4.0) */
+
+/* Font Size Controls */
+:root[data-font-size="small"] {
+  font-size: 12px;
+}
+:root[data-font-size="medium"] {
+  font-size: 16px;
+}
+:root[data-font-size="large"] {
+  font-size: 20px;
+}
+:root[data-font-size="x-large"] {
+  font-size: 24px;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --text-primary: #ffffff;
+  --text-secondary: #ffff00;
+  --bg-primary: #000000;
+  --bg-secondary: #1a1a1a;
+  --border-color: #ffffff;
+}
+.high-contrast body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+.high-contrast button,
+.high-contrast input,
+.high-contrast select {
+  border-width: 3px !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Reduced Motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Focus Indicators - Default (3px outline) */
+.user-is-tabbing *:focus {
+  outline: 3px solid #fbbf24 !important;
+  outline-offset: 2px !important;
+}
+
+/* Focus Indicators - Thick (5px outline) */
+:root[data-focus-style="thick"] .user-is-tabbing *:focus {
+  outline-width: 5px !important;
+  outline-offset: 3px !important;
+}
+
+/* Focus Indicators - Underline */
+:root[data-focus-style="underline"] .user-is-tabbing *:focus {
+  outline: none !important;
+  border-bottom: 4px solid #fbbf24 !important;
+  padding-bottom: 2px;
+}
+
+/* Keyboard Navigation Hints */
+.show-keyboard-hints button::after,
+.show-keyboard-hints a::after {
+  content: attr(data-keyboard-hint);
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e3a8a;
+  color: #fbbf24;
+  padding: 2px 6px;
+  font-size: 10px;
+  border: 1px solid #fbbf24;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.show-keyboard-hints button:focus::after,
+.show-keyboard-hints a:focus::after {
+  opacity: 1;
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip Navigation Links */
+.skip-nav a:focus {
+  clip: auto;
+  height: auto;
+  width: auto;
+  overflow: visible;
+}

@@ -52,7 +52,7 @@ export default function MusicPlayer({ theme }: MusicPlayerProps) {
 
   return (
     <div
-      className="border-2 rounded p-4"
+      className="border-2 rounded-sm p-4"
       style={{ borderColor: theme.colors.border }}
     >
       <div className="flex items-center justify-between mb-4">
@@ -61,7 +61,7 @@ export default function MusicPlayer({ theme }: MusicPlayerProps) {
         </h3>
         <button
           onClick={handleToggle}
-          className={`px-4 py-1 rounded font-bold transition ${enabled ? 'opacity-100' : 'opacity-60'}`}
+          className={`px-4 py-1 rounded-sm font-bold transition ${enabled ? 'opacity-100' : 'opacity-60'}`}
           style={{
             backgroundColor: enabled ? theme.colors.accent : theme.colors.border,
             color: enabled ? theme.colors.background : theme.colors.text
@@ -99,7 +99,7 @@ export default function MusicPlayer({ theme }: MusicPlayerProps) {
               key={m}
               onClick={() => handleMoodChange(m)}
               disabled={!enabled}
-              className={`px-2 py-1 text-sm rounded font-semibold ${mood === m ? 'opacity-100' : 'opacity-50'} disabled:opacity-30`}
+              className={`px-2 py-1 text-sm rounded-sm font-semibold ${mood === m ? 'opacity-100' : 'opacity-50'} disabled:opacity-30`}
               style={{
                 backgroundColor: mood === m ? theme.colors.accent : theme.colors.border,
                 color: mood === m ? theme.colors.background : theme.colors.text
@@ -122,7 +122,7 @@ export default function MusicPlayer({ theme }: MusicPlayerProps) {
               key={t}
               onClick={() => handleTempoChange(t)}
               disabled={!enabled}
-              className={`px-2 py-1 text-sm rounded font-semibold ${tempo === t ? 'opacity-100' : 'opacity-50'} disabled:opacity-30`}
+              className={`px-2 py-1 text-sm rounded-sm font-semibold ${tempo === t ? 'opacity-100' : 'opacity-50'} disabled:opacity-30`}
               style={{
                 backgroundColor: tempo === t ? theme.colors.accent : theme.colors.border,
                 color: tempo === t ? theme.colors.background : theme.colors.text

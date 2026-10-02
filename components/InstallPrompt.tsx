@@ -47,7 +47,7 @@ export default function InstallPrompt({ onInstall, onDismiss, theme }: InstallPr
           </h3>
           <button
             onClick={onDismiss}
-            className="text-2xl hover:opacity-70 focus:outline-none focus:ring-2 rounded"
+            className="text-2xl hover:opacity-70 focus:outline-hidden focus:ring-2 rounded-sm"
             style={{ color: theme.colors.text }}
             aria-label="Dismiss install prompt"
           >
@@ -88,7 +88,7 @@ export default function InstallPrompt({ onInstall, onDismiss, theme }: InstallPr
         <div className="flex gap-2">
           <button
             onClick={onInstall}
-            className="flex-1 px-4 py-2 font-bold rounded hover:opacity-90 focus:outline-none focus:ring-2 transition-opacity"
+            className="flex-1 px-4 py-2 font-bold rounded-sm hover:opacity-90 focus:outline-hidden focus:ring-2 transition-opacity"
             style={{
               backgroundColor: theme.colors.accent,
               color: theme.colors.background
@@ -98,7 +98,7 @@ export default function InstallPrompt({ onInstall, onDismiss, theme }: InstallPr
           </button>
           <button
             onClick={onDismiss}
-            className="px-4 py-2 font-bold rounded hover:opacity-70 focus:outline-none focus:ring-2 transition-opacity"
+            className="px-4 py-2 font-bold rounded-sm hover:opacity-70 focus:outline-hidden focus:ring-2 transition-opacity"
             style={{
               backgroundColor: theme.colors.border,
               color: theme.colors.text

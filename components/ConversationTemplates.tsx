@@ -84,7 +84,7 @@ export function ConversationTemplates({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div
         className="max-w-4xl w-full max-h-[90vh] overflow-y-auto border-4 p-6"
         style={{
@@ -104,7 +104,7 @@ export function ConversationTemplates({
           </div>
           <button
             onClick={onClose}
-            className="text-2xl px-3 py-1 border-2 hover:bg-opacity-20"
+            className="text-2xl px-3 py-1 border-2 hover:bg-white/10"
             style={{ borderColor: theme?.colors.border, color: theme?.colors.text }}
           >
             ✕
@@ -119,7 +119,7 @@ export function ConversationTemplates({
             placeholder="Search templates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border-2 bg-black bg-opacity-30"
+            className="w-full px-4 py-2 border-2 bg-black/30"
             style={{
               borderColor: theme?.colors.border,
               color: theme?.colors.text
@@ -132,9 +132,7 @@ export function ConversationTemplates({
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-3 py-1 border-2 text-sm font-bold ${
-                  selectedCategory === category ? 'bg-opacity-50' : ''
-                }`}
+                className="px-3 py-1 border-2 text-sm font-bold"
                 style={{
                   borderColor: category === 'all' ? theme?.colors.border : getCategoryColor(category as TemplateCategory),
                   backgroundColor: selectedCategory === category
@@ -162,9 +160,7 @@ export function ConversationTemplates({
               <div
                 key={template.id}
                 onClick={() => handleSelectTemplate(template)}
-                className={`p-4 border-2 cursor-pointer transition-all ${
-                  selectedTemplate?.id === template.id ? 'border-opacity-100' : 'border-opacity-40'
-                }`}
+                className="p-4 border-2 cursor-pointer transition-all"
                 style={{
                   borderColor: getCategoryColor(template.category),
                   backgroundColor: selectedTemplate?.id === template.id
@@ -185,7 +181,7 @@ export function ConversationTemplates({
                     </div>
                   </div>
                   {template.useCount > 0 && (
-                    <span className="text-xs px-2 py-1 rounded" style={{
+                    <span className="text-xs px-2 py-1 rounded-sm" style={{
                       backgroundColor: `${theme?.colors.accent}33`,
                       color: theme?.colors.text
                     }}>
@@ -200,7 +196,7 @@ export function ConversationTemplates({
                   {template.tags.slice(0, 3).map(tag => (
                     <span
                       key={tag}
-                      className="text-xs px-2 py-0.5 rounded"
+                      className="text-xs px-2 py-0.5 rounded-sm"
                       style={{
                         backgroundColor: `${getCategoryColor(template.category)}33`,
                         color: theme?.colors.text
@@ -239,7 +235,7 @@ export function ConversationTemplates({
                     {selectedTemplate.prompts.map((prompt, index) => (
                       <div key={prompt.id}>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-mono px-2 py-0.5 rounded" style={{
+                          <span className="text-xs font-mono px-2 py-0.5 rounded-sm" style={{
                             backgroundColor: theme?.colors.accent,
                             color: theme?.colors.background
                           }}>
@@ -259,7 +255,7 @@ export function ConversationTemplates({
                               ...prev,
                               [prompt.id]: e.target.value
                             }))}
-                            className="w-full px-3 py-2 text-sm border bg-black bg-opacity-30 resize-none"
+                            className="w-full px-3 py-2 text-sm border bg-black/30 resize-none"
                             rows={2}
                             style={{
                               borderColor: theme?.colors.border,
@@ -267,7 +263,7 @@ export function ConversationTemplates({
                             }}
                           />
                         ) : (
-                          <p className="text-sm px-3 py-2 border bg-black bg-opacity-20" style={{
+                          <p className="text-sm px-3 py-2 border bg-black/20" style={{
                             borderColor: theme?.colors.border,
                             color: theme?.colors.text
                           }}>
@@ -282,7 +278,7 @@ export function ConversationTemplates({
                 <div className="pt-4 border-t" style={{ borderColor: theme?.colors.border }}>
                   <button
                     onClick={handleApplyTemplate}
-                    className="w-full px-4 py-3 border-2 font-bold hover:bg-opacity-20 transition-colors"
+                    className="w-full px-4 py-3 border-2 font-bold hover:bg-white/10 transition-colors"
                     style={{
                       borderColor: theme?.colors.accent,
                       backgroundColor: `${theme?.colors.accent}33`,

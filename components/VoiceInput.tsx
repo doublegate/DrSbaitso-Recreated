@@ -148,7 +148,7 @@ export function VoiceInput({
 
   if (!isSupported) {
     return (
-      <div className="p-3 bg-red-900 border-2 border-red-400 rounded">
+      <div className="p-3 bg-red-900 border-2 border-red-400 rounded-sm">
         <p className="text-sm text-white">
           ⚠️ Voice input not supported in this browser.
           Try Chrome, Edge, or Safari.
@@ -159,7 +159,7 @@ export function VoiceInput({
 
   if (!isEnabled) {
     return (
-      <div className="p-3 bg-gray-700 border-2 border-gray-500 rounded">
+      <div className="p-3 bg-gray-700 border-2 border-gray-500 rounded-sm">
         <p className="text-sm text-gray-300">
           Voice input disabled. Enable in settings.
         </p>
@@ -169,7 +169,7 @@ export function VoiceInput({
 
   return (
     <div className="voice-input-container">
-      <div className="flex items-center gap-3 p-3 bg-blue-900 border-2 border-blue-400 rounded">
+      <div className="flex items-center gap-3 p-3 bg-blue-900 border-2 border-blue-400 rounded-sm">
         <button
           onClick={isListening ? stopListening : startListening}
           className={`px-4 py-2 font-bold rounded transition-colors ${
@@ -192,7 +192,7 @@ export function VoiceInput({
         {transcript && !isListening && (
           <button
             onClick={clearTranscript}
-            className="px-3 py-1 text-sm border-2 border-gray-400 hover:border-gray-200 rounded"
+            className="px-3 py-1 text-sm border-2 border-gray-400 hover:border-gray-200 rounded-sm"
             aria-label="Clear transcript"
           >
             🗑️ Clear
@@ -201,7 +201,7 @@ export function VoiceInput({
       </div>
 
       {(transcript || interimTranscript) && (
-        <div className="mt-2 p-3 bg-black bg-opacity-50 border-2 border-gray-600 rounded">
+        <div className="mt-2 p-3 bg-black/50 border-2 border-gray-600 rounded-sm">
           <p className="text-sm text-gray-400 mb-1">Transcript:</p>
           <p className="text-white">
             {transcript}

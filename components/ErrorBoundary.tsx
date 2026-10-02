@@ -180,9 +180,9 @@ function DefaultErrorUI({
         </div>
 
         {/* Error Message */}
-        <div className="border-2 border-gray-400 bg-black bg-opacity-50 p-4 mb-4">
+        <div className="border-2 border-gray-400 bg-black/50 p-4 mb-4">
           <h2 className="text-yellow-300 font-bold mb-2">ERROR MESSAGE:</h2>
-          <p className="text-white mb-4 break-words">
+          <p className="text-white mb-4 wrap-break-word">
             {error.message || 'Unknown error occurred'}
           </p>
 
@@ -197,7 +197,7 @@ function DefaultErrorUI({
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setShowDetails(!showDetails)}
-              className="px-3 py-2 border-2 border-gray-400 hover:border-yellow-300 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="px-3 py-2 border-2 border-gray-400 hover:border-yellow-300 text-sm focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
               aria-expanded={showDetails}
             >
               {showDetails ? '▼' : '▶'} {showDetails ? 'Hide' : 'Show'} Technical Details
@@ -225,13 +225,13 @@ function DefaultErrorUI({
         </div>
 
         {/* Recovery Options */}
-        <div className="border-2 border-gray-400 bg-black bg-opacity-50 p-4 mb-4">
+        <div className="border-2 border-gray-400 bg-black/50 p-4 mb-4">
           <h2 className="text-yellow-300 font-bold mb-3">RECOVERY OPTIONS:</h2>
 
           <div className="space-y-3">
             <button
               onClick={onReset}
-              className="w-full px-4 py-3 bg-green-700 border-2 border-green-400 hover:bg-green-600 text-white font-bold text-left flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="w-full px-4 py-3 bg-green-700 border-2 border-green-400 hover:bg-green-600 text-white font-bold text-left flex items-center gap-3 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
             >
               <span className="text-2xl">🔄</span>
               <div>
@@ -244,7 +244,7 @@ function DefaultErrorUI({
 
             <button
               onClick={handleReload}
-              className="w-full px-4 py-3 bg-blue-700 border-2 border-blue-400 hover:bg-blue-600 text-white font-bold text-left flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="w-full px-4 py-3 bg-blue-700 border-2 border-blue-400 hover:bg-blue-600 text-white font-bold text-left flex items-center gap-3 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
             >
               <span className="text-2xl">↻</span>
               <div>
@@ -257,7 +257,7 @@ function DefaultErrorUI({
 
             <button
               onClick={handleReportIssue}
-              className="w-full px-4 py-3 bg-yellow-700 border-2 border-yellow-400 hover:bg-yellow-600 text-white font-bold text-left flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="w-full px-4 py-3 bg-yellow-700 border-2 border-yellow-400 hover:bg-yellow-600 text-white font-bold text-left flex items-center gap-3 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
             >
               <span className="text-2xl">🐛</span>
               <div>

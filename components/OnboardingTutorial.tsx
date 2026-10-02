@@ -191,7 +191,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
   if (celebrating) {
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
         role="dialog"
         aria-label="Tutorial completed"
       >
@@ -211,7 +211,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
       role="dialog"
       aria-labelledby="onboarding-title"
       aria-describedby="onboarding-content"
@@ -265,7 +265,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
 
           {/* Action indicator */}
           {step.action && !actionCompleted && (
-            <div className="mt-4 p-3 bg-yellow-900 border-2 border-yellow-500 rounded">
+            <div className="mt-4 p-3 bg-yellow-900 border-2 border-yellow-500 rounded-sm">
               <p className="text-yellow-200 font-semibold">
                 {step.action === 'click' && '👆 Click the highlighted element to continue'}
                 {step.action === 'type' && '⌨️ Type in the input field to continue'}
@@ -291,7 +291,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
           <button
             onClick={handlePrevious}
             disabled={currentStep === 0}
-            className="px-4 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-hidden focus:ring-2 focus:ring-yellow-400"
             aria-label="Previous step"
           >
             ← Previous
@@ -303,7 +303,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
             {step.skipable && !showSkipConfirm && (
               <button
                 onClick={() => setShowSkipConfirm(true)}
-                className="px-4 py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="px-4 py-2 bg-red-600 text-white font-semibold rounded-sm hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-yellow-400"
                 aria-label="Skip tutorial"
               >
                 Skip Tutorial
@@ -315,14 +315,14 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
               <div className="flex gap-2">
                 <button
                   onClick={handleSkip}
-                  className="px-4 py-2 bg-red-700 text-white font-semibold rounded hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="px-4 py-2 bg-red-700 text-white font-semibold rounded-sm hover:bg-red-800 focus:outline-hidden focus:ring-2 focus:ring-yellow-400"
                   aria-label="Confirm skip tutorial"
                 >
                   Yes, Skip
                 </button>
                 <button
                   onClick={() => setShowSkipConfirm(false)}
-                  className="px-4 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-sm hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-yellow-400"
                   aria-label="Cancel skip"
                 >
                   Cancel
@@ -335,7 +335,7 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
               <button
                 onClick={handleNext}
                 disabled={step.action !== undefined && !actionCompleted}
-                className="px-4 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="px-4 py-2 bg-green-600 text-white font-semibold rounded-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-hidden focus:ring-2 focus:ring-yellow-400"
                 aria-label={isLastStep ? 'Complete tutorial' : 'Next step'}
               >
                 {isLastStep ? 'Complete ✓' : 'Next →'}
@@ -347,11 +347,11 @@ export default function OnboardingTutorial({ onComplete, onSkip, onAction }: Onb
         {/* Keyboard hints */}
         <div className="bg-blue-950 p-2 text-center text-xs text-blue-400 border-t border-blue-700">
           <span className="hidden sm:inline">
-            Press <kbd className="px-1 py-0.5 bg-blue-800 rounded">Enter</kbd> to continue •{' '}
+            Press <kbd className="px-1 py-0.5 bg-blue-800 rounded-sm">Enter</kbd> to continue •{' '}
           </span>
           {step.skipable && (
             <span>
-              Press <kbd className="px-1 py-0.5 bg-blue-800 rounded">Esc</kbd> to skip
+              Press <kbd className="px-1 py-0.5 bg-blue-800 rounded-sm">Esc</kbd> to skip
             </span>
           )}
         </div>

@@ -188,7 +188,7 @@ export default function SoundPackManager({
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
     >
       <div
-        className="w-full max-w-5xl max-h-[90vh] overflow-auto border-4 rounded p-6"
+        className="w-full max-w-5xl max-h-[90vh] overflow-auto border-4 rounded-sm p-6"
         style={{
           backgroundColor: theme.colors.background,
           color: theme.colors.text,
@@ -199,7 +199,7 @@ export default function SoundPackManager({
           <h2 className="text-2xl font-bold">🎵 Sound Pack Manager</h2>
           <button
             onClick={onClose}
-            className="px-4 py-2 border-2 rounded hover:opacity-80"
+            className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.background
@@ -213,7 +213,7 @@ export default function SoundPackManager({
         <div className="flex gap-3 mb-6">
           <button
             onClick={onCreateNew}
-            className="px-4 py-2 border-2 rounded hover:opacity-80"
+            className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.primary,
@@ -225,7 +225,7 @@ export default function SoundPackManager({
 
           <button
             onClick={handleInstallFromShareCode}
-            className="px-4 py-2 border-2 rounded hover:opacity-80"
+            className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.background
@@ -237,7 +237,7 @@ export default function SoundPackManager({
           {currentPackId && (
             <button
               onClick={unloadCurrentPack}
-              className="px-4 py-2 border-2 rounded hover:opacity-80"
+              className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
               style={{
                 borderColor: theme.colors.primary,
                 backgroundColor: theme.colors.background
@@ -251,7 +251,7 @@ export default function SoundPackManager({
         {/* Current Pack Status */}
         {currentPackId && (
           <div
-            className="mb-6 p-4 border-2 rounded"
+            className="mb-6 p-4 border-2 rounded-sm"
             style={{ borderColor: '#00FF00', backgroundColor: 'rgba(0, 255, 0, 0.1)' }}
           >
             <div className="font-bold text-green-400 mb-1">✓ Active Sound Pack:</div>
@@ -276,7 +276,7 @@ export default function SoundPackManager({
               {installedPacks.map((pack) => (
                 <div
                   key={pack.metadata.name}
-                  className="p-4 border-2 rounded cursor-pointer hover:opacity-80"
+                  className="p-4 border-2 rounded-sm cursor-pointer hover:opacity-80"
                   style={{
                     borderColor: selectedPack?.metadata.name === pack.metadata.name
                       ? theme.colors.primary
@@ -300,7 +300,7 @@ export default function SoundPackManager({
                       {pack.metadata.tags.map((tag, i) => (
                         <span
                           key={i}
-                          className="text-xs px-2 py-1 rounded"
+                          className="text-xs px-2 py-1 rounded-sm"
                           style={{ backgroundColor: theme.colors.border }}
                         >
                           {tag}
@@ -314,7 +314,7 @@ export default function SoundPackManager({
                         e.stopPropagation();
                         loadPack(pack);
                       }}
-                      className="flex-1 px-3 py-1 border rounded text-sm hover:opacity-80"
+                      className="flex-1 px-3 py-1 border rounded-sm text-sm hover:opacity-80"
                       style={{
                         borderColor: theme.colors.primary,
                         backgroundColor: currentPackId === pack.metadata.name
@@ -333,7 +333,7 @@ export default function SoundPackManager({
                         e.stopPropagation();
                         uninstallPack(pack.metadata.name);
                       }}
-                      className="px-3 py-1 border rounded text-sm hover:opacity-80"
+                      className="px-3 py-1 border rounded-sm text-sm hover:opacity-80"
                       style={{ borderColor: theme.colors.primary }}
                     >
                       🗑️
@@ -347,7 +347,7 @@ export default function SoundPackManager({
 
         {/* Pack Details & Sharing */}
         {selectedPack && (
-          <div className="p-4 border-2 rounded" style={{ borderColor: theme.colors.primary }}>
+          <div className="p-4 border-2 rounded-sm" style={{ borderColor: theme.colors.primary }}>
             <h3 className="text-xl mb-4">📋 Pack Details</h3>
 
             <div className="space-y-3 mb-4">
@@ -389,7 +389,7 @@ export default function SoundPackManager({
             <div>
               <button
                 onClick={handleGenerateShareCode}
-                className="w-full px-4 py-2 border-2 rounded hover:opacity-80 mb-2"
+                className="w-full px-4 py-2 border-2 rounded-sm hover:opacity-80 mb-2"
                 style={{
                   borderColor: theme.colors.primary,
                   backgroundColor: theme.colors.background
@@ -405,7 +405,7 @@ export default function SoundPackManager({
                     <textarea
                       value={shareCode}
                       readOnly
-                      className="flex-1 p-2 border rounded text-xs font-mono"
+                      className="flex-1 p-2 border rounded-sm text-xs font-mono"
                       style={{
                         backgroundColor: theme.colors.background,
                         color: theme.colors.text,
@@ -416,7 +416,7 @@ export default function SoundPackManager({
                     />
                     <button
                       onClick={copyShareCode}
-                      className="px-3 py-1 border rounded hover:opacity-80"
+                      className="px-3 py-1 border rounded-sm hover:opacity-80"
                       style={{ borderColor: theme.colors.primary }}
                     >
                       📋 Copy

@@ -173,7 +173,7 @@ export function AudioVisualizer({ audioContext, audioSource, isPlaying, mode = '
   }, [isPlaying, visualMode]);
 
   return (
-    <div className="bg-black rounded border-2 border-current p-2">
+    <div className="bg-black rounded-sm border-2 border-current p-2">
       <div className="flex justify-between items-center mb-2">
         <span className="text-xs font-bold">AUDIO VISUALIZER</span>
         <div className="flex gap-1">
@@ -210,7 +210,7 @@ export function AudioVisualizer({ audioContext, audioSource, isPlaying, mode = '
         ref={canvasRef}
         width={600}
         height={150}
-        className="w-full h-auto border border-current rounded"
+        className="w-full h-auto border border-current rounded-sm"
         style={{ backgroundColor: '#000' }}
       />
       {!isPlaying && (

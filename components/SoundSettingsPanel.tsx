@@ -48,7 +48,7 @@ export default function SoundSettingsPanel({ isOpen, onClose }: SoundSettingsPan
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div
         className="bg-blue-900 border-4 border-gray-400 p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
         role="dialog"
@@ -61,7 +61,7 @@ export default function SoundSettingsPanel({ isOpen, onClose }: SoundSettingsPan
           </h2>
           <button
             onClick={onClose}
-            className="text-white hover:text-yellow-300 text-2xl focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className="text-white hover:text-yellow-300 text-2xl focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
             aria-label="Close sound settings"
           >
             ✕
@@ -325,7 +325,7 @@ export default function SoundSettingsPanel({ isOpen, onClose }: SoundSettingsPan
         <div className="mt-6 flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className="px-4 py-2 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
           >
             CLOSE
           </button>

@@ -224,7 +224,7 @@ export default function SoundPackCreator({
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
     >
       <div
-        className="w-full max-w-6xl max-h-[90vh] overflow-auto border-4 rounded p-6"
+        className="w-full max-w-6xl max-h-[90vh] overflow-auto border-4 rounded-sm p-6"
         style={{
           backgroundColor: theme.colors.background,
           color: theme.colors.text,
@@ -235,7 +235,7 @@ export default function SoundPackCreator({
           <h2 className="text-2xl font-bold">🎵 Sound Pack Creator</h2>
           <button
             onClick={onClose}
-            className="px-4 py-2 border-2 rounded hover:opacity-80"
+            className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.background
@@ -246,7 +246,7 @@ export default function SoundPackCreator({
         </div>
 
         {/* Metadata Section */}
-        <div className="mb-6 p-4 border-2 rounded" style={{ borderColor: theme.colors.border }}>
+        <div className="mb-6 p-4 border-2 rounded-sm" style={{ borderColor: theme.colors.border }}>
           <h3 className="text-xl mb-4">📝 Metadata</h3>
 
           <div className="space-y-3">
@@ -256,7 +256,7 @@ export default function SoundPackCreator({
                 type="text"
                 value={pack.metadata.name}
                 onChange={(e) => updateMetadata('name', e.target.value)}
-                className="w-full p-2 border-2 rounded"
+                className="w-full p-2 border-2 rounded-sm"
                 style={{
                   backgroundColor: theme.colors.background,
                   color: theme.colors.text,
@@ -272,7 +272,7 @@ export default function SoundPackCreator({
                 type="text"
                 value={pack.metadata.author}
                 onChange={(e) => updateMetadata('author', e.target.value)}
-                className="w-full p-2 border-2 rounded"
+                className="w-full p-2 border-2 rounded-sm"
                 style={{
                   backgroundColor: theme.colors.background,
                   color: theme.colors.text,
@@ -288,7 +288,7 @@ export default function SoundPackCreator({
                 type="text"
                 value={pack.metadata.version}
                 onChange={(e) => updateMetadata('version', e.target.value)}
-                className="w-full p-2 border-2 rounded"
+                className="w-full p-2 border-2 rounded-sm"
                 style={{
                   backgroundColor: theme.colors.background,
                   color: theme.colors.text,
@@ -303,7 +303,7 @@ export default function SoundPackCreator({
               <textarea
                 value={pack.metadata.description}
                 onChange={(e) => updateMetadata('description', e.target.value)}
-                className="w-full p-2 border-2 rounded"
+                className="w-full p-2 border-2 rounded-sm"
                 style={{
                   backgroundColor: theme.colors.background,
                   color: theme.colors.text,
@@ -321,12 +321,12 @@ export default function SoundPackCreator({
         </div>
 
         {/* Sounds Section */}
-        <div className="mb-6 p-4 border-2 rounded" style={{ borderColor: theme.colors.border }}>
+        <div className="mb-6 p-4 border-2 rounded-sm" style={{ borderColor: theme.colors.border }}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl">🔊 Sounds ({pack.sounds.length})</h3>
             <button
               onClick={addSound}
-              className="px-3 py-1 border-2 rounded hover:opacity-80"
+              className="px-3 py-1 border-2 rounded-sm hover:opacity-80"
               style={{
                 borderColor: theme.colors.primary,
                 backgroundColor: theme.colors.background
@@ -340,7 +340,7 @@ export default function SoundPackCreator({
             {pack.sounds.map((sound, index) => (
               <div
                 key={sound.id}
-                className="p-3 border rounded cursor-pointer hover:opacity-80"
+                className="p-3 border rounded-sm cursor-pointer hover:opacity-80"
                 style={{
                   borderColor: selectedSoundIndex === index ? theme.colors.primary : theme.colors.border,
                   backgroundColor: selectedSoundIndex === index ? theme.colors.border : 'transparent'
@@ -359,7 +359,7 @@ export default function SoundPackCreator({
                       e.stopPropagation();
                       deleteSound(index);
                     }}
-                    className="px-2 py-1 text-sm border rounded hover:opacity-80"
+                    className="px-2 py-1 text-sm border rounded-sm hover:opacity-80"
                     style={{ borderColor: theme.colors.primary }}
                   >
                     🗑️
@@ -371,7 +371,7 @@ export default function SoundPackCreator({
 
           {/* Sound Editor */}
           {selectedSoundIndex !== null && pack.sounds[selectedSoundIndex] && (
-            <div className="mt-4 p-3 border-2 rounded" style={{ borderColor: theme.colors.primary }}>
+            <div className="mt-4 p-3 border-2 rounded-sm" style={{ borderColor: theme.colors.primary }}>
               <h4 className="font-bold mb-3">Edit Sound</h4>
 
               <div className="space-y-2">
@@ -381,7 +381,7 @@ export default function SoundPackCreator({
                     type="text"
                     value={pack.sounds[selectedSoundIndex].name}
                     onChange={(e) => updateSound(selectedSoundIndex, 'name', e.target.value)}
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded-sm"
                     style={{
                       backgroundColor: theme.colors.background,
                       color: theme.colors.text,
@@ -405,7 +405,7 @@ export default function SoundPackCreator({
 
                 <button
                   onClick={() => handleAudioImport(selectedSoundIndex)}
-                  className="w-full px-3 py-2 border-2 rounded hover:opacity-80"
+                  className="w-full px-3 py-2 border-2 rounded-sm hover:opacity-80"
                   style={{
                     borderColor: theme.colors.primary,
                     backgroundColor: theme.colors.background
@@ -419,12 +419,12 @@ export default function SoundPackCreator({
         </div>
 
         {/* Triggers Section */}
-        <div className="mb-6 p-4 border-2 rounded" style={{ borderColor: theme.colors.border }}>
+        <div className="mb-6 p-4 border-2 rounded-sm" style={{ borderColor: theme.colors.border }}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl">⚡ Triggers ({pack.triggers.length})</h3>
             <button
               onClick={addTrigger}
-              className="px-3 py-1 border-2 rounded hover:opacity-80"
+              className="px-3 py-1 border-2 rounded-sm hover:opacity-80"
               style={{
                 borderColor: theme.colors.primary,
                 backgroundColor: theme.colors.background
@@ -439,13 +439,13 @@ export default function SoundPackCreator({
             {pack.triggers.map((trigger, index) => (
               <div
                 key={index}
-                className="p-2 border rounded flex items-center gap-2"
+                className="p-2 border rounded-sm flex items-center gap-2"
                 style={{ borderColor: theme.colors.border }}
               >
                 <select
                   value={trigger.event}
                   onChange={(e) => updateTrigger(index, 'event', e.target.value)}
-                  className="flex-1 p-1 border rounded"
+                  className="flex-1 p-1 border rounded-sm"
                   style={{
                     backgroundColor: theme.colors.background,
                     color: theme.colors.text,
@@ -463,7 +463,7 @@ export default function SoundPackCreator({
                 <select
                   value={trigger.soundId}
                   onChange={(e) => updateTrigger(index, 'soundId', e.target.value)}
-                  className="flex-1 p-1 border rounded"
+                  className="flex-1 p-1 border rounded-sm"
                   style={{
                     backgroundColor: theme.colors.background,
                     color: theme.colors.text,
@@ -481,7 +481,7 @@ export default function SoundPackCreator({
                   max="100"
                   value={trigger.probability}
                   onChange={(e) => updateTrigger(index, 'probability', parseInt(e.target.value))}
-                  className="w-16 p-1 border rounded"
+                  className="w-16 p-1 border rounded-sm"
                   style={{
                     backgroundColor: theme.colors.background,
                     color: theme.colors.text,
@@ -492,7 +492,7 @@ export default function SoundPackCreator({
 
                 <button
                   onClick={() => deleteTrigger(index)}
-                  className="px-2 py-1 text-sm border rounded hover:opacity-80"
+                  className="px-2 py-1 text-sm border rounded-sm hover:opacity-80"
                   style={{ borderColor: theme.colors.primary }}
                 >
                   🗑️
@@ -506,7 +506,7 @@ export default function SoundPackCreator({
         {(errors.length > 0 || warnings.length > 0) && (
           <div className="mb-6">
             {errors.length > 0 && (
-              <div className="mb-2 p-3 border-2 rounded" style={{ borderColor: '#FF0000' }}>
+              <div className="mb-2 p-3 border-2 rounded-sm" style={{ borderColor: '#FF0000' }}>
                 <div className="font-bold text-red-500 mb-1">❌ Errors:</div>
                 <ul className="text-sm list-disc list-inside">
                   {errors.map((error, i) => (
@@ -517,7 +517,7 @@ export default function SoundPackCreator({
             )}
 
             {warnings.length > 0 && (
-              <div className="p-3 border-2 rounded" style={{ borderColor: '#FFA500' }}>
+              <div className="p-3 border-2 rounded-sm" style={{ borderColor: '#FFA500' }}>
                 <div className="font-bold text-orange-500 mb-1">⚠️ Warnings:</div>
                 <ul className="text-sm list-disc list-inside">
                   {warnings.map((warning, i) => (
@@ -533,7 +533,7 @@ export default function SoundPackCreator({
         <div className="flex gap-3">
           <button
             onClick={validatePack}
-            className="px-4 py-2 border-2 rounded hover:opacity-80"
+            className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.background
@@ -544,7 +544,7 @@ export default function SoundPackCreator({
 
           <button
             onClick={handleExport}
-            className="px-4 py-2 border-2 rounded hover:opacity-80"
+            className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.background
@@ -555,7 +555,7 @@ export default function SoundPackCreator({
 
           <button
             onClick={handleImport}
-            className="px-4 py-2 border-2 rounded hover:opacity-80"
+            className="px-4 py-2 border-2 rounded-sm hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.background
@@ -568,7 +568,7 @@ export default function SoundPackCreator({
 
           <button
             onClick={handleSave}
-            className="px-6 py-2 border-2 rounded font-bold hover:opacity-80"
+            className="px-6 py-2 border-2 rounded-sm font-bold hover:opacity-80"
             style={{
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.primary,

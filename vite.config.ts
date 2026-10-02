@@ -1,6 +1,7 @@
 import path from 'path';
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 /**
@@ -105,6 +106,7 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [
         react(),
+        tailwindcss(),
         securityHeadersPlugin(), // v1.11.0: Security headers
         devApiPlugin(env),
         // Bundle report on demand only (`npm run analyze`); never into dist/,

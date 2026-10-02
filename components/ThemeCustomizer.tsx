@@ -171,7 +171,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75"
       onClick={onClose}
       role="dialog"
       aria-labelledby="theme-customizer-title"
@@ -206,7 +206,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                 type="text"
                 value={themeName}
                 onChange={(e) => setThemeName(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="My Custom Theme"
               />
             </div>
@@ -216,7 +216,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                 type="text"
                 value={themeDescription}
                 onChange={(e) => setThemeDescription(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="A beautiful custom theme"
               />
             </div>
@@ -226,7 +226,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                 type="text"
                 value={themeAuthor}
                 onChange={(e) => setThemeAuthor(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="Your name"
               />
             </div>
@@ -238,7 +238,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
               <h3 className="text-xl font-semibold">Colors</h3>
               <button
                 onClick={() => generateHarmoniousTheme(primaryColor)}
-                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm"
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-sm text-sm"
               >
                 Auto-Generate Harmonious
               </button>
@@ -253,13 +253,13 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                     type="color"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="w-16 h-10 rounded border border-gray-700 cursor-pointer"
+                    className="w-16 h-10 rounded-sm border border-gray-700 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded font-mono text-sm"
+                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm font-mono text-sm"
                     placeholder="#3b82f6"
                   />
                 </div>
@@ -273,13 +273,13 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                     type="color"
                     value={backgroundColor}
                     onChange={(e) => setBackgroundColor(e.target.value)}
-                    className="w-16 h-10 rounded border border-gray-700 cursor-pointer"
+                    className="w-16 h-10 rounded-sm border border-gray-700 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={backgroundColor}
                     onChange={(e) => setBackgroundColor(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded font-mono text-sm"
+                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm font-mono text-sm"
                     placeholder="#1e3a8a"
                   />
                 </div>
@@ -293,13 +293,13 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                     type="color"
                     value={textColor}
                     onChange={(e) => setTextColor(e.target.value)}
-                    className="w-16 h-10 rounded border border-gray-700 cursor-pointer"
+                    className="w-16 h-10 rounded-sm border border-gray-700 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={textColor}
                     onChange={(e) => setTextColor(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded font-mono text-sm"
+                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm font-mono text-sm"
                     placeholder="#ffffff"
                   />
                 </div>
@@ -313,13 +313,13 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                     type="color"
                     value={borderColor}
                     onChange={(e) => setBorderColor(e.target.value)}
-                    className="w-16 h-10 rounded border border-gray-700 cursor-pointer"
+                    className="w-16 h-10 rounded-sm border border-gray-700 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={borderColor}
                     onChange={(e) => setBorderColor(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded font-mono text-sm"
+                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm font-mono text-sm"
                     placeholder="#60a5fa"
                   />
                 </div>
@@ -333,13 +333,13 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                     type="color"
                     value={accentColor}
                     onChange={(e) => setAccentColor(e.target.value)}
-                    className="w-16 h-10 rounded border border-gray-700 cursor-pointer"
+                    className="w-16 h-10 rounded-sm border border-gray-700 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={accentColor}
                     onChange={(e) => setAccentColor(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded font-mono text-sm"
+                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm font-mono text-sm"
                     placeholder="#fbbf24"
                   />
                 </div>
@@ -351,7 +351,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
           {validationResult && (
             <div className="space-y-3">
               <h3 className="text-xl font-semibold">Accessibility Check</h3>
-              <div className="bg-gray-800 p-4 rounded border border-gray-700">
+              <div className="bg-gray-800 p-4 rounded-sm border border-gray-700">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-lg font-semibold">Score:</span>
                   <span className={`text-2xl font-bold ${
@@ -406,7 +406,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
 
             {showPreview && (
               <div
-                className="p-6 rounded border-4"
+                className="p-6 rounded-sm border-4"
                 style={{
                   backgroundColor: backgroundColor,
                   borderColor: borderColor,
@@ -425,7 +425,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                   </p>
                   <div className="flex gap-2">
                     <button
-                      className="px-4 py-2 rounded font-medium"
+                      className="px-4 py-2 rounded-sm font-medium"
                       style={{
                         backgroundColor: primaryColor,
                         color: backgroundColor
@@ -434,7 +434,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                       Primary Button
                     </button>
                     <button
-                      className="px-4 py-2 rounded font-medium border-2"
+                      className="px-4 py-2 rounded-sm font-medium border-2"
                       style={{
                         borderColor: accentColor,
                         color: accentColor,
@@ -458,7 +458,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
               <div className="flex gap-2 mb-2">
                 <button
                   onClick={handleExport}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-sm"
                 >
                   Export JSON
                 </button>
@@ -468,7 +468,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                       navigator.clipboard.writeText(exportedJSON);
                       alert('Copied to clipboard!');
                     }}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded"
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-sm"
                   >
                     Copy JSON
                   </button>
@@ -478,7 +478,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                 <textarea
                   value={exportedJSON}
                   readOnly
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded font-mono text-xs h-32"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm font-mono text-xs h-32"
                 />
               )}
             </div>
@@ -489,12 +489,12 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
               <textarea
                 value={importCode}
                 onChange={(e) => setImportCode(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded font-mono text-xs h-32 mb-2"
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm font-mono text-xs h-32 mb-2"
                 placeholder="Paste theme JSON here..."
               />
               <button
                 onClick={handleImport}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded"
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-sm"
               >
                 Import JSON
               </button>
@@ -505,7 +505,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
               <div className="flex gap-2 mb-2">
                 <button
                   onClick={handleGenerateShareCode}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-sm"
                 >
                   Generate Share Code
                 </button>
@@ -515,7 +515,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                       navigator.clipboard.writeText(shareCode);
                       alert('Share code copied to clipboard!');
                     }}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded"
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-sm"
                   >
                     Copy Share Code
                   </button>
@@ -526,7 +526,7 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                   type="text"
                   value={shareCode}
                   readOnly
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded font-mono text-xs"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm font-mono text-xs"
                 />
               )}
 
@@ -537,12 +537,12 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
                     type="text"
                     value={shareCode}
                     onChange={(e) => setShareCode(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded font-mono text-xs"
+                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm font-mono text-xs"
                     placeholder="Paste share code here..."
                   />
                   <button
                     onClick={handleImportShareCode}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded"
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-sm"
                   >
                     Import
                   </button>
@@ -556,13 +556,13 @@ export function ThemeCustomizer({ isOpen, onClose, onSave, currentTheme }: Theme
         <div className="sticky bottom-0 bg-gray-800 px-6 py-4 border-t border-gray-700 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-sm"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-sm font-semibold"
           >
             Save Theme
           </button>

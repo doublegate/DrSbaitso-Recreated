@@ -192,7 +192,7 @@ export function TopicFlowDiagram({
   if (!analysis || analysis.topics.length === 0) {
     return (
       <div
-        className="p-4 border-2 rounded"
+        className="p-4 border-2 rounded-sm"
         style={{
           borderColor: theme?.colors.border || '#4b5563',
           backgroundColor: theme?.colors.background || '#1e3a8a'
@@ -207,7 +207,7 @@ export function TopicFlowDiagram({
 
   return (
     <div
-      className="topic-flow-diagram p-4 border-2 rounded"
+      className="topic-flow-diagram p-4 border-2 rounded-sm"
       style={{
         borderColor: theme?.colors.border || '#4b5563',
         backgroundColor: theme?.colors.background || '#1e3a8a'
@@ -219,19 +219,19 @@ export function TopicFlowDiagram({
 
       {/* Statistics */}
       <div className="mb-4 grid grid-cols-3 gap-2 text-xs">
-        <div className="p-2 border rounded" style={{ borderColor: theme?.colors.border }}>
+        <div className="p-2 border rounded-sm" style={{ borderColor: theme?.colors.border }}>
           <p className="text-gray-400">Topics</p>
           <p className="text-xl font-bold" style={{ color: theme?.colors.text }}>
             {analysis.topics.length}
           </p>
         </div>
-        <div className="p-2 border rounded" style={{ borderColor: theme?.colors.border }}>
+        <div className="p-2 border rounded-sm" style={{ borderColor: theme?.colors.border }}>
           <p className="text-gray-400">Transitions</p>
           <p className="text-xl font-bold" style={{ color: theme?.colors.text }}>
             {analysis.transitions.length}
           </p>
         </div>
-        <div className="p-2 border rounded" style={{ borderColor: theme?.colors.border }}>
+        <div className="p-2 border rounded-sm" style={{ borderColor: theme?.colors.border }}>
           <p className="text-gray-400">Diversity</p>
           <p className="text-xl font-bold" style={{ color: theme?.colors.text }}>
             {(analysis.topicDiversity * 100).toFixed(0)}%
@@ -240,7 +240,7 @@ export function TopicFlowDiagram({
       </div>
 
       {/* D3 Visualization */}
-      <div className="border rounded p-2 mb-4" style={{
+      <div className="border rounded-sm p-2 mb-4" style={{
         borderColor: theme?.colors.border,
         backgroundColor: theme?.colors.background,
         overflow: 'hidden'
@@ -279,7 +279,7 @@ export function TopicFlowDiagram({
       {/* Topic Details */}
       {selectedTopic && (
         <div
-          className="p-3 border rounded"
+          className="p-3 border rounded-sm"
           style={{
             borderColor: getTopicColor(selectedTopic.id, selectedTopic.sentiment),
             backgroundColor: `${getTopicColor(selectedTopic.id, selectedTopic.sentiment)}22`
@@ -291,7 +291,7 @@ export function TopicFlowDiagram({
             </h4>
             <button
               onClick={() => setSelectedTopic(null)}
-              className="text-sm px-2 py-1 border rounded hover:bg-opacity-20"
+              className="text-sm px-2 py-1 border rounded-sm hover:bg-white/10"
               style={{ borderColor: theme?.colors.border, color: theme?.colors.text }}
             >
               ✕

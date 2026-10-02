@@ -7,6 +7,7 @@ import { useAccessibility } from './hooks/useAccessibility';
 import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
+import { applyThemeVariables } from './utils/themeVariables';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import SkipNav from './components/SkipNav';
 import { CustomTheme } from './utils/themeValidator';
@@ -87,6 +88,11 @@ export default function App() {
   });
   const [showInsights, setShowInsights] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('dos-blue');
+
+  // Keep the --color-* CSS variables in step with the active theme.
+  useEffect(() => {
+    applyThemeVariables((THEMES.find(t => t.id === currentTheme) || THEMES[0]).colors);
+  }, [currentTheme]);
 
   // v1.9.0 Feature states
   const [showSoundSettings, setShowSoundSettings] = useState(false);
@@ -607,7 +613,7 @@ export default function App() {
                         handleNameSubmit();
                       }
                     }}
-                    className="bg-transparent border-none text-yellow-300 w-3/4 focus:outline-none placeholder-gray-500 text-center"
+                    className="bg-transparent border-none text-yellow-300 w-3/4 focus:outline-hidden placeholder-gray-500 text-center"
                     placeholder="TYPE NAME AND PRESS ENTER"
                     disabled={isPreparingGreeting}
                     aria-label="Enter your name"
@@ -633,9 +639,9 @@ export default function App() {
         className="bg-blue-800 text-white font-mono w-screen h-screen flex flex-col p-2 sm:p-4 overflow-hidden"
         role="main"
       >
-        <div className="w-full max-w-4xl mx-auto flex flex-col flex-grow border-2 border-gray-400 p-4 min-h-0">
+        <div className="w-full max-w-4xl mx-auto flex flex-col grow border-2 border-gray-400 p-4 min-h-0">
           {/* Header with settings (v1.3.0 + v1.4.0) */}
-          <div className="flex-shrink-0 flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-400">
+          <div className="shrink-0 flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-400">
             {/* Audio Mode Selector */}
             <div className="flex items-center gap-2" data-tour-id="audio-settings">
               <label htmlFor="audio-mode-select" className="text-sm font-bold">
@@ -645,7 +651,7 @@ export default function App() {
                 id="audio-mode-select"
                 value={audioMode}
                 onChange={(e) => setAudioMode(e.target.value as typeof audioMode)}
-                className="bg-blue-900 border-2 border-gray-400 text-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="bg-blue-900 border-2 border-gray-400 text-white px-2 py-1 text-sm focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
                 aria-label="Select audio quality mode"
                 title={AUDIO_MODES.find(m => m.id === audioMode)?.description || ''}
               >
@@ -661,7 +667,7 @@ export default function App() {
             <div className="flex gap-2" data-tour-id="settings-panel">
               <button
                 onClick={() => setShowThemeCustomizer(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Open theme customizer"
                 title="Theme Customizer"
                 data-tour-id="theme-button"
@@ -670,7 +676,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setShowConversationSearch(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Search conversations"
                 title="Search & Analytics"
                 data-tour-id="session-panel"
@@ -679,7 +685,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setShowAudioVisualizer(!showAudioVisualizer)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Toggle audio visualizer"
                 title="Audio Visualizer"
               >
@@ -687,7 +693,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setShowAdvancedExport(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Advanced export options"
                 title="Advanced Export"
                 data-tour-id="export-button"
@@ -696,7 +702,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setShowCharacterCreator(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Character creator"
                 title="Character Creator"
                 data-tour-id="character-selection"
@@ -705,7 +711,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setShowAccessibilityPanel(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Open accessibility settings (Ctrl+A)"
                 title="Accessibility Settings (Ctrl+A)"
                 data-tour-id="shortcuts-help"
@@ -717,7 +723,7 @@ export default function App() {
                 onClick={() => voiceControl.toggleHandsFreeMode()}
                 className={`px-3 py-1 border-2 ${
                   voiceControl.isHandsFreeMode ? 'border-green-400 bg-green-900' : 'border-gray-400'
-                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
                 aria-label={`Voice control: ${voiceControl.isHandsFreeMode ? 'ON' : 'OFF'}`}
                 title={`Voice Control (Hands-Free Mode)\n${voiceControl.isHandsFreeMode ? 'Click to disable' : 'Click to enable'}\nSay "Hey Doctor" followed by a command`}
                 disabled={!voiceControl.isSupported}
@@ -729,7 +735,7 @@ export default function App() {
                 onClick={() => setShowMusicPlayer(prev => !prev)}
                 className={`px-3 py-1 border-2 ${
                   showMusicPlayer ? 'border-green-400 bg-green-900' : 'border-gray-400'
-                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
                 aria-label="Toggle music player (Ctrl+M)"
                 title="Music Player (Ctrl+M)"
               >
@@ -738,7 +744,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setShowSoundPackManager(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Sound pack manager (Ctrl+Shift+P)"
                 title="Sound Pack Manager (Ctrl+Shift+P)"
               >
@@ -748,7 +754,7 @@ export default function App() {
                 onClick={() => setShowVoiceInput(prev => !prev)}
                 className={`px-3 py-1 border-2 ${
                   showVoiceInput ? 'border-green-400 bg-green-900' : 'border-gray-400'
-                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
                 aria-label="Toggle voice input (Ctrl+Shift+V)"
                 title="Voice Input (Ctrl+Shift+V)"
               >
@@ -759,7 +765,7 @@ export default function App() {
                 onClick={() => setShowEmotionViz(prev => !prev)}
                 className={`px-3 py-1 border-2 ${
                   showEmotionViz ? 'border-green-400 bg-green-900' : 'border-gray-400'
-                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
                 aria-label="Toggle emotion visualizer (Ctrl+E)"
                 title="Emotion Visualizer (Ctrl+E)"
               >
@@ -770,7 +776,7 @@ export default function App() {
                 onClick={() => setShowTopicDiagram(prev => !prev)}
                 className={`px-3 py-1 border-2 ${
                   showTopicDiagram ? 'border-green-400 bg-green-900' : 'border-gray-400'
-                } hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm`}
+                } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
                 aria-label="Toggle topic diagram (Ctrl+Shift+T)"
                 title="Topic Diagram (Ctrl+Shift+T)"
               >
@@ -779,7 +785,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setShowTemplates(true)}
-                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 text-sm"
+                className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
                 aria-label="Conversation templates (Ctrl+Shift+L)"
                 title="Templates (Ctrl+Shift+L)"
               >
@@ -790,7 +796,7 @@ export default function App() {
 
           {/* Voice Control Indicator (v1.6.0) */}
           {voiceControl.isHandsFreeMode && (
-            <div className="mt-2 p-2 border-2 border-green-400 bg-green-900 bg-opacity-30">
+            <div className="mt-2 p-2 border-2 border-green-400 bg-green-900/30">
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <span className={`${voiceControl.isListeningForWakeWord ? 'animate-pulse' : ''}`}>
@@ -818,7 +824,7 @@ export default function App() {
                 </div>
               )}
               {voiceControl.pendingConfirmation && (
-                <div className="mt-2 p-2 bg-yellow-900 bg-opacity-50 border border-yellow-400">
+                <div className="mt-2 p-2 bg-yellow-900/50 border border-yellow-400">
                   <div className="text-yellow-300 text-xs mb-2">
                     Confirm: {voiceControl.pendingConfirmation.name}?
                   </div>
@@ -844,7 +850,7 @@ export default function App() {
           {/* Messages area */}
           <div
             id="main-content"
-            className="flex-grow overflow-y-auto pr-2 min-h-0"
+            className="grow overflow-y-auto pr-2 min-h-0"
             role="log"
             aria-live="polite"
             aria-label="Conversation messages"
@@ -867,7 +873,7 @@ export default function App() {
           </div>
 
           {/* Chat input */}
-          <div className="flex-shrink-0 flex items-center mt-4" data-tour-id="chat-input">
+          <div className="shrink-0 flex items-center mt-4" data-tour-id="chat-input">
             <span className="text-yellow-300 mr-2" aria-hidden="true">{'>'}</span>
             <input
               id="chat-input"
@@ -877,7 +883,7 @@ export default function App() {
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
-              className="bg-transparent border-none text-yellow-300 w-full focus:outline-none placeholder-gray-500"
+              className="bg-transparent border-none text-yellow-300 w-full focus:outline-hidden placeholder-gray-500"
               placeholder={isLoading ? '' : 'TYPE HERE AND PRESS ENTER...'}
               aria-label="Enter your message"
               aria-describedby="chat-input-help"
@@ -888,7 +894,7 @@ export default function App() {
           </div>
 
           {/* Audio mode indicator */}
-          <div className="flex-shrink-0 mt-2 text-xs opacity-50 text-center">
+          <div className="shrink-0 mt-2 text-xs opacity-50 text-center">
             <span aria-live="polite" aria-atomic="true">
               {AUDIO_MODES.find(m => m.id === audioMode)?.name} | Ctrl+Shift+V to cycle | Ctrl+A for accessibility
             </span>
@@ -898,7 +904,7 @@ export default function App() {
 
       {/* Accessibility Panel (v1.4.0) */}
       {showAccessibilityPanel && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <AccessibilityPanel
             isOpen={showAccessibilityPanel}
             settings={accessibilitySettings}
@@ -911,7 +917,7 @@ export default function App() {
 
       {/* Theme Customizer (v1.5.0) */}
       {showThemeCustomizer && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <ThemeCustomizer
             isOpen={showThemeCustomizer}
             onClose={() => setShowThemeCustomizer(false)}
@@ -926,7 +932,7 @@ export default function App() {
 
       {/* Conversation Search (v1.5.0) */}
       {showConversationSearch && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <ConversationSearch
             isOpen={showConversationSearch}
             onClose={() => setShowConversationSearch(false)}
@@ -960,7 +966,7 @@ export default function App() {
 
       {/* Advanced Exporter (v1.6.0) */}
       {showAdvancedExport && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <AdvancedExporter
             isOpen={showAdvancedExport}
             onClose={() => setShowAdvancedExport(false)}
@@ -973,7 +979,7 @@ export default function App() {
 
       {/* Character Creator (v1.6.0) */}
       {showCharacterCreator && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <CharacterCreator
             isOpen={showCharacterCreator}
             onClose={() => setShowCharacterCreator(false)}
@@ -994,7 +1000,7 @@ export default function App() {
 
       {/* Conversation Replay (v1.6.0) */}
       {showConversationReplay && replaySession && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading...</div></div>}>
           <ConversationReplay
             isOpen={showConversationReplay}
             onClose={() => {
@@ -1008,7 +1014,7 @@ export default function App() {
 
       {/* Onboarding Tutorial (v1.8.0) */}
       {showOnboarding && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading tutorial...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading tutorial...</div></div>}>
           <OnboardingTutorial
             onComplete={() => setShowOnboarding(false)}
             onSkip={() => setShowOnboarding(false)}
@@ -1018,7 +1024,7 @@ export default function App() {
 
       {/* Conversation Insights (v1.8.0) */}
       {showInsights && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading insights...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading insights...</div></div>}>
           <ConversationInsights
             onClose={() => setShowInsights(false)}
             currentTheme={currentTheme}
@@ -1028,7 +1034,7 @@ export default function App() {
 
       {/* Sound Settings Panel (v1.9.0) */}
       {showSoundSettings && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading sound settings...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound settings...</div></div>}>
           <SoundSettingsPanel
             isOpen={showSoundSettings}
             onClose={() => setShowSoundSettings(false)}
@@ -1061,7 +1067,7 @@ export default function App() {
 
       {/* Sound Pack Manager (v1.10.0) */}
       {showSoundPackManager && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack manager...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack manager...</div></div>}>
           <SoundPackManager
             theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
             audioContext={audioContextRef.current}
@@ -1076,7 +1082,7 @@ export default function App() {
 
       {/* Sound Pack Creator (v1.10.0) */}
       {showSoundPackCreator && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack creator...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack creator...</div></div>}>
           <SoundPackCreator
             theme={THEMES.find(t => t.id === currentTheme) || THEMES[0]}
             onClose={() => setShowSoundPackCreator(false)}
@@ -1100,7 +1106,7 @@ export default function App() {
 
       {/* Voice Control Help Modal (v1.6.0) */}
       {showVoiceControlHelp && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-blue-900 border-4 border-gray-400 p-6 max-w-3xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-white">VOICE CONTROL COMMANDS</h2>
@@ -1173,7 +1179,7 @@ export default function App() {
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setShowVoiceControlHelp(false)}
-                className="px-4 py-2 border-2 border-gray-400 hover:border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="px-4 py-2 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300"
               >
                 CLOSE
               </button>
@@ -1227,7 +1233,7 @@ export default function App() {
 
       {/* Conversation Templates (v1.11.0 - Option C4) */}
       {showTemplates && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="text-white">Loading templates...</div></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading templates...</div></div>}>
           <ConversationTemplates
             isOpen={showTemplates}
             onClose={() => setShowTemplates(false)}

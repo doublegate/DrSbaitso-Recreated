@@ -133,7 +133,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
     const parts = text.split(new RegExp(`(${query})`, 'gi'));
     return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase() ? (
-        <mark key={i} className="bg-yellow-400 text-black px-1 rounded">{part}</mark>
+        <mark key={i} className="bg-yellow-400 text-black px-1 rounded-sm">{part}</mark>
       ) : (
         part
       )
@@ -142,7 +142,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75"
       onClick={onClose}
       role="dialog"
       aria-labelledby="search-title"
@@ -211,7 +211,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
                   <select
                     value={filterCharacter}
                     onChange={(e) => setFilterCharacter(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="all">All Characters</option>
                     <option value="sbaitso">Dr. Sbaitso</option>
@@ -227,7 +227,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
                   <select
                     value={filterAuthor}
                     onChange={(e) => setFilterAuthor(e.target.value as 'all' | 'user' | 'dr')}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-sm focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="all">All Messages</option>
                     <option value="user">User Only</option>
@@ -247,7 +247,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
                     {searchResults.map((result, index) => (
                       <div
                         key={`${result.sessionId}-${index}`}
-                        className="bg-gray-800 p-4 rounded border border-gray-700 hover:border-blue-500 cursor-pointer"
+                        className="bg-gray-800 p-4 rounded-sm border border-gray-700 hover:border-blue-500 cursor-pointer"
                         onClick={() => {
                           onOpenSession(result.sessionId);
                           onClose();
@@ -284,26 +284,26 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
             <div className="space-y-6">
               {/* Overview Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gray-800 p-4 rounded border border-gray-700">
+                <div className="bg-gray-800 p-4 rounded-sm border border-gray-700">
                   <p className="text-sm text-gray-400">Total Sessions</p>
                   <p className="text-3xl font-bold text-blue-400">{analytics.totalSessions}</p>
                 </div>
-                <div className="bg-gray-800 p-4 rounded border border-gray-700">
+                <div className="bg-gray-800 p-4 rounded-sm border border-gray-700">
                   <p className="text-sm text-gray-400">Total Messages</p>
                   <p className="text-3xl font-bold text-green-400">{analytics.totalMessages}</p>
                 </div>
-                <div className="bg-gray-800 p-4 rounded border border-gray-700">
+                <div className="bg-gray-800 p-4 rounded-sm border border-gray-700">
                   <p className="text-sm text-gray-400">Avg Msg/Session</p>
                   <p className="text-3xl font-bold text-purple-400">{analytics.avgMessagesPerSession}</p>
                 </div>
-                <div className="bg-gray-800 p-4 rounded border border-gray-700">
+                <div className="bg-gray-800 p-4 rounded-sm border border-gray-700">
                   <p className="text-sm text-gray-400">Total Words</p>
                   <p className="text-3xl font-bold text-yellow-400">{analytics.totalWords}</p>
                 </div>
               </div>
 
               {/* Character Usage */}
-              <div className="bg-gray-800 p-6 rounded border border-gray-700">
+              <div className="bg-gray-800 p-6 rounded-sm border border-gray-700">
                 <h3 className="text-xl font-semibold mb-4">Character Usage</h3>
                 <div className="space-y-3">
                   {Object.entries(analytics.characterCounts).map(([character, count]) => {
@@ -327,7 +327,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
               </div>
 
               {/* Top Words */}
-              <div className="bg-gray-800 p-6 rounded border border-gray-700">
+              <div className="bg-gray-800 p-6 rounded-sm border border-gray-700">
                 <h3 className="text-xl font-semibold mb-4">Most Common Words</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {analytics.topWords.map(([word, count], index) => (
@@ -343,7 +343,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
               </div>
 
               {/* Insights */}
-              <div className="bg-gray-800 p-6 rounded border border-gray-700">
+              <div className="bg-gray-800 p-6 rounded-sm border border-gray-700">
                 <h3 className="text-xl font-semibold mb-4">Conversation Insights</h3>
                 <div className="space-y-2 text-sm">
                   <p>• Average words per message: <strong>{analytics.avgWordsPerMessage}</strong></p>
@@ -363,7 +363,7 @@ export function ConversationSearch({ isOpen, onClose, sessions, onOpenSession }:
         <div className="sticky bottom-0 bg-gray-800 px-6 py-4 border-t border-gray-700 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-sm"
           >
             Close
           </button>

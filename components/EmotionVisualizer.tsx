@@ -113,7 +113,7 @@ export function EmotionVisualizer({
 
   if (!currentEmotion) {
     return (
-      <div className="p-4 border-2 rounded" style={{
+      <div className="p-4 border-2 rounded-sm" style={{
         borderColor: theme?.colors.border || '#4b5563',
         backgroundColor: theme?.colors.background || '#1e3a8a'
       }}>
@@ -125,7 +125,7 @@ export function EmotionVisualizer({
   }
 
   return (
-    <div className="emotion-visualizer p-4 border-2 rounded" style={{
+    <div className="emotion-visualizer p-4 border-2 rounded-sm" style={{
       borderColor: theme?.colors.border || '#4b5563',
       backgroundColor: theme?.colors.background || '#1e3a8a'
     }}>
@@ -134,7 +134,7 @@ export function EmotionVisualizer({
       </h3>
 
       {/* Current Emotion */}
-      <div className="mb-4 p-3 border rounded" style={{
+      <div className="mb-4 p-3 border rounded-sm" style={{
         borderColor: getEmotionColor(currentEmotion.dominant),
         backgroundColor: `${getEmotionColor(currentEmotion.dominant)}22`
       }}>
@@ -194,7 +194,7 @@ export function EmotionVisualizer({
             ref={canvasRef}
             width={300}
             height={120}
-            className="w-full border rounded"
+            className="w-full border rounded-sm"
             style={{ borderColor: theme?.colors.border }}
           />
         </div>
@@ -237,7 +237,7 @@ export function EmotionBadge({ text }: { text: string }): JSX.Element {
 
   return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs"
+      className="inline-flex items-center gap-1 px-2 py-1 rounded-sm text-xs"
       style={{
         backgroundColor: `${getEmotionColor(analysis.dominant)}33`,
         color: getEmotionColor(analysis.dominant)
