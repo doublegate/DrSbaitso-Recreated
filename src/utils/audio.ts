@@ -2,7 +2,7 @@ import {
   AuthenticityLevel,
   getPresetConfig,
   applyVintageProcessing,
-  type VintageProcessingConfig
+  type EndPunctuation
 } from './vintageAudioProcessing';
 
 // Re-export for convenience
@@ -43,7 +43,8 @@ export async function decodeAudioData(
   ctx: AudioContext,
   sampleRate: number,
   numChannels: number,
-  audioMode?: 'modern' | 'subtle' | 'authentic' | 'ultra'
+  audioMode?: 'modern' | 'subtle' | 'authentic' | 'ultra',
+  endPunctuation: EndPunctuation = null
 ): Promise<AudioBuffer> {
   const pcm = stripWavHeader(data);
   // DataView respects byteOffset and avoids Int16Array's even-length and
@@ -64,7 +65,7 @@ export async function decodeAudioData(
   if (audioMode && audioMode !== 'modern') {
     const authenticityLevel = mapAudioModeToAuthenticityLevel(audioMode);
     const config = getPresetConfig(authenticityLevel);
-    buffer = await applyVintageProcessing(buffer, ctx, config);
+    buffer = await applyVintageProcessing(buffer, ctx, config, endPunctuation);
   }
 
   return buffer;

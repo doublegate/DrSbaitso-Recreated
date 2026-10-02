@@ -111,6 +111,27 @@ describe('Audio Utilities', () => {
       expect(Array.from(channel.data!)).toEqual([0.5, -0.5]);
     });
 
+    it('passes the end punctuation to the pitch contour of the vintage modes', async () => {
+      const samples = Array.from({ length: 24000 }, (_, i) =>
+        Math.round(8000 * Math.sin((2 * Math.PI * 160 * i) / 24000) + 4000 * Math.sin((2 * Math.PI * 480 * i) / 24000)),
+      );
+      // Each buffer keeps its own data: processing reads one and writes another.
+      const ctx = {
+        createBuffer: (_c: number, length: number, sampleRate: number) => {
+          const data = new Float32Array(length);
+          return { length, sampleRate, numberOfChannels: 1, getChannelData: () => data };
+        },
+      } as unknown as AudioContext;
+      const render = async (punctuation?: '.' | '?' | null) =>
+        Array.from((await decodeAudioData(pcm16(...samples), ctx, 24000, 1, 'authentic', punctuation)).getChannelData(0));
+      const question = await render('?');
+      const statement = await render('.');
+      expect(question.length).toBe(24000);
+      expect(question.some((v) => v !== 0)).toBe(true);
+      expect(question).not.toEqual(statement);
+      expect(await render()).toEqual(await render(null));
+    });
+
     it('tolerates an odd byte length instead of throwing a RangeError', async () => {
       const { ctx } = recordingContext();
       const buffer = await decodeAudioData(new Uint8Array([0, 64, 7]), ctx, 24000, 1);

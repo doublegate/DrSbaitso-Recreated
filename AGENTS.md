@@ -78,7 +78,10 @@ npm run analyze        # bundle report -> reports/ (gitignored)
   state/handlers. A new inline-callback dependency in an effect is how production broke (render
   loop in `useVoiceControl`).
 - **Audio modes:**
-  - `decodeAudioData` applies the vintage processing.
+  - `decodeAudioData` applies the vintage processing (`src/utils/vintageAudioProcessing.ts`):
+    8475 Hz unsigned 8-bit, sample-and-hold, and LPC pitch flattening (`src/utils/lpcMonotone.ts`)
+    in Authentic/Ultra. Values come from `ref-docs/02-voice-and-audio.md`; change them only
+    against that.
   - `getPlaybackSettings` is 1.0x with no extra crush in every mode: a rate above 1 raises the
     pitch, and the original is full 8-bit.
   - Never re-add a global 64-level crush.

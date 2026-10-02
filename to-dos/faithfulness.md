@@ -16,9 +16,9 @@ else is a factual correction to make either way.
       "DOCTOR", not "DR.".
 - [x] `playbackRate` 1.1 raises pitch by 10%; it does not deepen the voice. Use 1.0 for
       the authentic modes (`src/utils/audio.ts`).
-- [ ] The Authentic preset's 5 kHz high cut has no effect; the original sits under a
+- [x] The Authentic preset's 5 kHz high cut has no effect; the original sits under a
       roughly 4 kHz ceiling at 8,475 Hz (`src/utils/vintageAudioProcessing.ts`).
-- [ ] `pitchVarianceReduction` is never read by any code: implement or remove it.
+- [x] `pitchVarianceReduction` is never read by any code: implement or remove it.
 - [ ] "PARITY CHECKING" and "IRQ CONFLICT AT ADDRESS 220H" never appear in the original.
       The real glitch is "PARITY ERR ... RECOVERED / PHEW! THAT WAS CLOSE!", triggered
       by swearing. Fix in `src/constants.ts`, `src/App.tsx` (`GLITCH_PHRASES`) and
@@ -52,9 +52,9 @@ else is a factual correction to make either way.
 
 ## Voice [decision]
 
-- [ ] Vintage pipeline at 8,475 Hz unsigned 8-bit, 80 Hz-3.8 kHz band, a -8 dB high
+- [x] Vintage pipeline at 8,475 Hz unsigned 8-bit, 80 Hz-3.8 kHz band, a -8 dB high
       shelf, and sample-and-hold resampling.
-- [ ] Flattening pitch per syllable (LPC resynthesis): the biggest remaining gap, and
+- [x] Flattening pitch per syllable (LPC resynthesis): the biggest remaining gap, and
       the largest piece of work.
 - [ ] Optional "bring your own `SBTALKER.EXE`" emulation mode. The original engine
       remains First Byte copyright, so it could never be bundled.

@@ -102,8 +102,27 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **The Authentic and Ultra voices are no longer pitched up 10%.** They played at
   1.1x, and `playbackRate` raises pitch as well as speed. Every mode now plays at
   1.0x. Ultra no longer adds a 6-bit crush on top: the original was full 8-bit.
+- **The vintage audio chain models the measured original instead of guesses.**
+  Authentic and Ultra resample to 8475 Hz (not 11.025 kHz), normalise to the
+  original's level, quantise as unsigned 8-bit, and play back through
+  sample-and-hold, as the Sound Blaster DAC did, rather than smooth
+  interpolation. The band is now 80 Hz to 3.8 kHz (Ultra: the SB Pro's 3.2 kHz),
+  with a -8 dB high shelf from 1.2 kHz for the original's dark "Bass" tone. The
+  old 300 Hz high-pass cut the low end the original had, and its 5 kHz low-pass
+  sat above the Nyquist limit and did nothing. The random-noise "aliasing" and
+  one-sample "pre-echo" effects are gone: neither is something the hardware did.
+  The chain no longer needs `OfflineAudioContext` and is deterministic.
 
 ### Changed
+- **Authentic and Ultra flatten the pitch like the original engine.** A new LPC
+  resynthesis stage (`src/utils/lpcMonotone.ts`) replaces Gemini's intonation
+  with the original's: about 92 Hz held per syllable with small steps between
+  syllables, a fall to about 75 Hz at a period, and a rise to about 150 Hz at a
+  question mark or 125 Hz at an exclamation mark. `useSpeechPlayer().speak(audio,
+  text)` takes the spoken text to choose the ending. It replaces the
+  `pitchVarianceReduction` setting, which no code ever read; presets toggle it
+  with `pitchFlattening`. Subtle stays a light, non-authentic filter, and Modern
+  is unchanged.
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
   workers (`service-worker.js`, the registered one, and the unused `sw.js`). The
   new worker precaches the real hashed build output, so every deploy refreshes
