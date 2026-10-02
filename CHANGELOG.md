@@ -79,6 +79,8 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Cloud sync is reachable** from SETTINGS > Cloud sync. It uploads only the
   conversations kept with SAVE HISTORY (nothing while that is off), and newer
   conversations from the cloud are merged into the history.
+- The development server uses the same Content-Security-Policy as production,
+  relaxed only for hot reloading.
 - `npm run check:secrets`: fails if the built `dist/` contains anything shaped like
   a Google API key.
 - **Enhanced mode layout.** The row of about twenty unlabelled emoji buttons is
@@ -228,6 +230,23 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
   hidden screen-reader announcer sat in the page flow below the app; it is now fixed
   in place.
+- **Request size limit measured in bytes.** The 64 KiB body cap counted
+  characters, so multibyte text could exceed it; the body is now read as a
+  stream and rejected as soon as it passes the limit.
+- **Cloud data is checked before it is merged.** Conversations downloaded by cloud
+  sync must look like conversations; anything else is ignored. The "manual"
+  conflict option, which was saved but never applied, is gone.
+- **Error codes from the server are checked.** Two codes were missing from the
+  client's list, and unknown codes are now reported as UNKNOWN.
+- **Sharing to the app and the app shortcuts work.** The share target posted to a
+  page that did not exist and the shortcuts opened actions nothing read. Shared
+  text now lands on the input line (classic screen), and the shortcuts open the
+  classic screen or Enhanced mode.
+- **App name and dates.** The page title, description, onboarding and audio-mode
+  names called the original a 1991 program (it shipped in 1990 and 1992), and the
+  audio modes listed sample rates and filters the voice chain no longer uses.
+- **New app icons** in the original's palette and VGA font, with proper
+  maskable versions; the old icon said "EST. 1991" and drew "Dr." over "S".
 - **Search and Insights explained nothing when empty.** With history off (the
   default) they now say that SAVE HISTORY keeps conversations, instead of an
   empty list or "start some conversations".
