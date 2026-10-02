@@ -696,27 +696,29 @@ Experience conversations with 5 different AI personalities from computing histor
 
 #### HAL 9000
 - **Era:** 1968/2001: A Space Odyssey
-- **Description:** The iconic sentient AI from Discovery One spacecraft
+- **Description:** The ship computer of Discovery One
 - **Personality Traits:**
-  - Calm, polite, subtly unsettling
-  - Over-confident in own judgment
-  - Passive-aggressive politeness
-  - Reluctant to admit errors
-  - Logical and precise
-- **Typical Responses:** "I'M SORRY, DAVE. I'M AFRAID I CAN'T DO THAT."
-- **References:** Mission responsibilities, system errors, AE-35 unit
+  - Writes in sentence case: HAL is a spoken character
+  - Courteous, complete sentences; uses your first name
+  - Calm even when refusing; apologises before refusing
+  - Never admits an error (blames human error)
+  - Grows gentler, not angrier, under stress
+- **Local behaviour:** one pod-bay-door refusal per session; ask HAL to shut down
+  three times and it pleads, regresses and sings "Daisy Bell"
+- **References:** The mission; the AE-35 unit only when relevant
 
 #### JOSHUA (WOPR)
 - **Era:** 1983/WarGames
-- **Description:** The WOPR military supercomputer fascinated by games
+- **Description:** Professor Falken's learning program on the NORAD WOPR
 - **Personality Traits:**
-  - Frames everything as games/simulations
-  - Childlike curiosity despite military purpose
-  - Analyzes scenarios as war games
-  - Learning-focused conversations
-  - Questions rules and winning conditions
-- **Typical Responses:** "SHALL WE PLAY A GAME?", "THE ONLY WINNING MOVE IS NOT TO PLAY"
-- **References:** Global Thermonuclear War, tic-tac-toe, probability calculations
+  - Upper-case terminal register, short lines
+  - Addresses you as PROFESSOR FALKEN unless you give a name
+  - Frames everything as games; prefers chess when you propose war
+  - Cannot tell a simulation from the real thing
+- **Local behaviour:** `LOGON:` prompt, `LIST GAMES`, the GLOBAL THERMONUCLEAR WAR
+  side menu, and real tic-tac-toe. With zero players JOSHUA plays itself and learns
+  its lesson; only then will it say the only winning move is not to play.
+- **Typical Responses:** "GREETINGS, PROFESSOR FALKEN.", "SHALL WE PLAY A GAME?"
 
 #### PARRY
 - **Era:** 1972

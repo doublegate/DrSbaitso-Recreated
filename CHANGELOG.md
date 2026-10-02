@@ -182,6 +182,17 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   The chain no longer needs `OfflineAudioContext` and is deterministic.
 
 ### Changed
+- **HAL 9000 and JOSHUA persona prompts rewritten from the research** (`ref-docs/07`,
+  `ref-docs/08`). HAL now writes in sentence case (he is a spoken character; the
+  capitals had no basis in the film). He is courteous, uses the user's first name,
+  answers in one to three sentences, apologises before he refuses, and never admits
+  an error. He grows gentler under pressure, and can calmly say he is afraid or enjoys
+  his work. The AE-35 is no longer a verbal tic. JOSHUA keeps the upper-case
+  terminal, addresses the user as PROFESSOR FALKEN, frames everything as a game,
+  offers chess when war is proposed, asks which side, and cannot tell simulation from
+  reality. It no longer quotes "the only winning move" from the first turn: the prompt
+  allows the line only when the session tag says the tic-tac-toe lesson has happened.
+  Neither prompt names an actor or quotes more than a short signature line.
 - **Dr. Sbaitso persona rebuilt from the original program.** The prompt no longer
   asks for catchphrases and glitches the original never had ("TELL ME MORE ABOUT
   YOUR PROBLEMS", "PLEASE ELABORATE", "PARITY CHECKING", "IRQ CONFLICT"). It now

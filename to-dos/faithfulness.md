@@ -86,6 +86,15 @@ that module; wiring it into `src/App.tsx` is still pending.
 Enhanced-mode personas, from `ref-docs/07-hal-9000.md` and `ref-docs/08-joshua-wopr.md`.
 Voices and audio for HAL and JOSHUA are tracked separately (`ref-docs/09`).
 
+- [x] HAL prompt: sentence case, courteous, first name, 1-3 sentences, never admits
+      error, apologises before refusing, gentler under stress (ref-docs/07 8.1).
+- [x] JOSHUA prompt: caps terminal register, PROFESSOR FALKEN, games, chess over
+      war, which side, "WHAT'S THE DIFFERENCE?"; the conclusion gated on
+      `LESSON=LEARNED` (ref-docs/08 8.1).
+- [ ] Confirm in the running app that HAL's replies show in sentence case. A grep finds
+      no `toUpperCase` or `text-transform` on message text in `EnhancedApp.tsx` or
+      `index.css`, but nobody has looked at it on screen yet.
+
 - [x] JOSHUA local engine (`src/engine/joshua/`): `LOGON:`, greeting as PROFESSOR
       FALKEN, `LIST GAMES` / `HELP GAMES`, GLOBAL THERMONUCLEAR WAR to chess offer to
       side menu, tic-tac-toe against the user, zero-player self-play lesson that sets

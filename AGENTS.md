@@ -103,13 +103,19 @@ npm run analyze        # bundle report -> reports/ (gitignored)
   local engine in `src/engine/sbaitso/` (hybrid design). "PARITY CHECKING" and "IRQ CONFLICT"
   were invented and must not come back.
 - **ELIZA (1966):** Rogerian pattern-matching; reflects questions back; mechanical and repetitive.
-- **HAL 9000:** calm, polite, subtly unsettling; over-confident; references the mission and the
-  AE-35 unit.
-- **JOSHUA/WOPR (1983):** frames everything as games/simulations; childlike curiosity; Global
-  Thermonuclear War, tic-tac-toe.
+- **HAL 9000 (ref-docs/07):** sentence case, NOT caps (HAL is spoken); courteous, uses the
+  user's first name, 1-3 sentences, never admits error, apologises before refusing, gentler
+  under stress. Pod-bay refusal and the shutdown/"Daisy Bell" ending are local
+  (`src/engine/hal/`).
+- **JOSHUA/WOPR (1983, ref-docs/08):** ALL CAPS terminal; calls the user PROFESSOR FALKEN;
+  games, chess over war, which side, simulation = real. Logon, game list, war menu,
+  tic-tac-toe and the lesson are local (`src/engine/joshua/`). "The only winning move" is
+  allowed only once the session tag says `LESSON=LEARNED`.
 - **PARRY (1972):** suspicious, hostile when questioned, conspiracy thinking, bookies/mafia
   backstory.
-- All personas answer in ALL CAPS by design (the retro terminal look).
+- All personas except HAL answer in ALL CAPS by design (the retro terminal look).
+- Engines prepend a `[SESSION: ...]` line to the model message (`modelMessage`); the HAL and
+  JOSHUA prompts read its field names, and tests pin the two together.
 
 ### Docs
 
