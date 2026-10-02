@@ -31,15 +31,17 @@ export function isConversationSession(value: unknown): value is ConversationSess
 export class SessionManager {
   // Session management
   static createSession(characterId: string, themeId: string, audioQualityId: string): ConversationSession {
+    // One clock reading, so a new session's createdAt and updatedAt are equal.
+    const now = Date.now();
     return {
-      id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: `Session ${new Date().toLocaleString()}`,
+      id: `session_${now}_${Math.random().toString(36).slice(2, 11)}`,
+      name: `Session ${new Date(now).toLocaleString()}`,
       characterId,
       themeId,
       audioQualityId,
       messages: [],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: now,
+      updatedAt: now,
       messageCount: 0,
       glitchCount: 0
     };
