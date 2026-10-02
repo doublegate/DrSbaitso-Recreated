@@ -25,10 +25,9 @@ Web recreation of the 1991 Sound Blaster "Dr. Sbaitso" AI therapist: React 19 + 
 Vercel project `dr-sbaitso-recreated`, team `doublegate-projects`. Five personas (Dr. Sbaitso,
 ELIZA, HAL 9000, JOSHUA/WOPR, PARRY) plus user-created custom characters.
 
-**Status:** v2.0.0 remediation in progress on `fix/v2-audit-remediation`.
-- Plan: `~/.claude/plans/ethereal-popping-beaver.md`.
-- Done: Phases 0-2, plus the audio/chat part of Phase 3.
-- Run `git log fab0992..HEAD` for the detail.
+**Status:** v2.0.0 on `fix/v2-audit-remediation` (PR to `main`, merged only with owner approval).
+- Plan: `~/.claude/plans/ethereal-popping-beaver.md`; Phases 0-8 done, Phase 9 (PR, Preview) open.
+- Open work: `to-dos/v2.0-remediation.md` and `to-dos/faithfulness.md`. Decisions: `docs/adr/`.
 
 ### Commands
 
@@ -52,9 +51,13 @@ npm run analyze        # bundle report -> reports/ (gitignored)
   - Personas are resolved server-side.
   - Inputs are validated and capped.
   - Model fallback on 503/429/timeout within a 50 s budget.
-  - TTS WAV is converted to raw PCM16.
+  - TTS is always raw PCM16 at 24 kHz (WAV stripped, other rates resampled).
 - `src/services/geminiService.ts`: browser fetch client. It keeps per-character history, because the
   proxy is stateless.
+- `src/engine/`: pure, seeded engines per persona (`sbaitso`, `eliza`, `parry`, `hal`, `joshua`).
+  `src/engine/personaTurn.ts` turns each Enhanced-mode turn into a plan (local / model / ignore);
+  the classic screen (`src/components/classic/`) drives the `sbaitso` engine directly.
+- `src/utils/security.ts`: the single CSP definition; `vercel.json` must match it (test pinned).
 - `src/App.tsx`: the app shell (classic or enhanced mode). `src/EnhancedApp.tsx` composes the
   enhanced UI from hooks and `src/components/enhanced/`.
   - `src/hooks/useChatPipeline.ts`: `sendMessage()` is the single turn pipeline (engines,
