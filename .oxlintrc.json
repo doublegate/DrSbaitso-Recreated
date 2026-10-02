@@ -27,6 +27,7 @@
     "react/exhaustive-deps": "error",
     "react/react-in-jsx-scope": "off",
     "vitest/require-mock-type-parameters": "off",
+    "vitest/no-standalone-expect": ["error", { "additionalTestBlockFunctions": ["perfIt"] }],
     "no-unused-vars": [
       "warn",
       {
