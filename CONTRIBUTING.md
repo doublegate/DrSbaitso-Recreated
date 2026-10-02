@@ -48,8 +48,8 @@ If you experience or witness unacceptable behavior, please report it by opening 
 
 ### Prerequisites
 
-- **Node.js**: Version 18 or higher
-- **npm**: Version 9 or higher
+- **Node.js**: 22.12 or higher (24 recommended; CI uses 24)
+- **npm**: the version bundled with Node
 - **Git**: Version 2.x or higher
 - **Gemini API Key**: Get one free at [Google AI Studio](https://aistudio.google.com/apikey)
 
@@ -73,30 +73,32 @@ git clone https://github.com/YOUR_USERNAME/DrSbaitso-Recreated.git
 cd DrSbaitso-Recreated
 
 # Add the original repository as upstream
-git remote add upstream https://github.com/ORIGINAL_OWNER/DrSbaitso-Recreated.git
+git remote add upstream https://github.com/doublegate/DrSbaitso-Recreated.git
 ```
 
 ### 2. Install Dependencies
 
 ```bash
-# Install all npm dependencies
-npm install
+# Install dependencies exactly as locked
+npm ci
 ```
 
 ### 3. Environment Setup
 
 ```bash
-# Create .env.local file
+# Create .env.local file (read only by the server-side /api functions;
+# the key never reaches the browser bundle)
 echo "GEMINI_API_KEY=your_api_key_here" > .env.local
 
 # Verify the setup
 npm run typecheck
+npm run lint
 ```
 
 ### 4. Start Development Server
 
 ```bash
-# Start Vite dev server (port 3000)
+# Start Vite dev server (port 3000; also serves /api/chat and /api/tts)
 npm run dev
 
 # In another terminal, run tests in watch mode
@@ -223,38 +225,38 @@ const processedData = useMemo(() => {
 ### Code Organization
 
 ```
+api/                      # Vercel Functions (Gemini proxy); the only code that holds the key
+├── chat.ts, tts.ts
+└── _lib/                 # gemini.ts, http.ts
 src/
-├── components/           # React components
-│   ├── VoiceInput.tsx           # Feature components
-│   ├── VoiceInput.test.tsx      # Component tests
-│   └── index.ts                 # Re-exports
-├── utils/                # Utility functions
-│   ├── audio.ts                 # Audio processing
-│   ├── emotionDetection.ts      # Emotion analysis
-│   └── index.ts                 # Re-exports
+├── components/           # React components (classic/, enhanced/, panels)
+├── engine/               # Local persona engines (sbaitso, eliza, parry, hal, joshua)
 ├── hooks/                # Custom React hooks
-│   ├── useKeyboardShortcuts.ts
-│   └── index.ts
-├── services/             # API and external services
-│   ├── geminiService.ts
-│   └── index.ts
+├── services/             # geminiService.ts: browser client for /api
+├── utils/                # Audio, storage, shortcuts, analysis
 ├── types.ts              # Global TypeScript types
-└── constants.ts          # App-wide constants
+└── constants.ts          # Personas, voices, themes, audio modes
+test/                     # Vitest tests, mirroring src/ and api/
+e2e/                      # Playwright tests (/api mocked)
 ```
+
+There are no `index.ts` barrel files; import modules directly. See
+[docs/DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md) for a fuller layout and
+[docs/API.md](docs/API.md) for module APIs.
 
 ### File Naming Conventions
 
 - **Components**: PascalCase (e.g., `VoiceInput.tsx`, `EmotionVisualizer.tsx`)
 - **Utilities**: camelCase (e.g., `emotionDetection.ts`, `topicAnalysis.ts`)
-- **Hooks**: camelCase with `use` prefix (e.g., `useKeyboardShortcuts.ts`)
-- **Tests**: Match source file with `.test.ts` suffix (e.g., `VoiceInput.test.tsx`)
+- **Hooks**: camelCase with `use` prefix (e.g., `useSpeechPlayer.ts`)
+- **Tests**: Match the source file name with a `.test.ts(x)` suffix, under `test/` (e.g., `test/utils/audio.test.ts`)
 - **Types**: PascalCase for interfaces/types (e.g., `Message`, `ThemeColors`)
 
 ### Code Style
 
-We use **TypeScript strict mode**. Follow these guidelines:
+We use **TypeScript strict mode** and lint with **oxlint** (`npm run lint`; React hooks rules are errors). There is no formatter configuration; follow these guidelines:
 
-- **Indentation**: 2 spaces (configured in `tsconfig.json`)
+- **Indentation**: 2 spaces
 - **Quotes**: Single quotes for strings (except JSON)
 - **Semicolons**: Always use semicolons
 - **Line length**: Aim for <100 characters, max 120
@@ -287,21 +289,25 @@ export function analyzeMessage(text: string): EmotionAnalysis {
 
 ### Test Coverage Requirements
 
-- **New features**: 80%+ coverage required
+- **Coverage thresholds** in `vitest.config.ts` are a ratchet (set just below measured coverage); `npm run test:coverage` must pass, and the thresholds are never lowered to make a change pass
+- **New features**: add tests with the change
 - **Bug fixes**: Add test case that reproduces the bug
 - **Refactoring**: Maintain or improve existing coverage
+
+See [docs/TESTING.md](docs/TESTING.md) for the setup, mocks and e2e suite.
 
 ### Writing Component Tests
 
 ```typescript
-// components/VoiceInput.test.tsx
+// test/components/VoiceInput.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
-import { VoiceInput } from './VoiceInput';
+import { VoiceInput } from '../../src/components/VoiceInput';
 
 describe('VoiceInput Component', () => {
   beforeEach(() => {
-    // Mock Web Speech API
+    // Mock Web Speech API. Assign it: it is writable but not configurable,
+    // so vi.stubGlobal does not work for it.
     (window as any).SpeechRecognition = function() {
       return mockRecognitionInstance;
     };
@@ -328,9 +334,9 @@ describe('VoiceInput Component', () => {
 ### Writing Unit Tests
 
 ```typescript
-// utils/emotionDetection.test.ts
+// test/utils/emotionDetection.test.ts
 import { describe, it, expect } from 'vitest';
-import { detectEmotions } from './emotionDetection';
+import { detectEmotions } from '../../src/utils/emotionDetection';
 
 describe('emotionDetection', () => {
   it('should detect joy from happy keywords', () => {
@@ -362,10 +368,11 @@ npm run test:run
 # Run with coverage report
 npm run test:coverage
 
-# Run specific test file
-npm test -- VoiceInput.test.tsx
+# Run one test file, or tests whose name matches
+npx vitest run test/utils/audio.test.ts
+npx vitest run -t "decode base64"
 
-# Run E2E tests
+# Run E2E tests (one-time: npx playwright install chromium)
 npm run test:e2e
 ```
 
@@ -459,7 +466,7 @@ Closes #123
 4. **Run tests**: Ensure all tests pass locally
 5. **Update docs**: Document new features or changes
 6. **Build successfully**: Verify production build works
-7. **Check TypeScript**: Run `npm run typecheck`
+7. **Check TypeScript and lint**: Run `npm run typecheck` and `npm run lint`
 
 ### Pull Request Template
 
@@ -511,7 +518,7 @@ Relates to #456
 
 ### Review Process
 
-1. **Automated checks**: CI runs tests and builds
+1. **Automated checks**: CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit tests with budgets and coverage, build, the bundle secret check, `npm audit`, and the Playwright suite
 2. **Code review**: Maintainer reviews code
 3. **Requested changes**: Address feedback and push updates
 4. **Approval**: Maintainer approves PR
@@ -615,12 +622,12 @@ git add .
 git commit -m "feat(voice-input): add interim transcript display"
 
 # 4. Run tests
-npm test
 npm run test:run
 
 # 5. Build and verify
-npm run build
+npm run lint
 npm run typecheck
+npm run build
 
 # 6. Push to your fork
 git push origin feat/voice-input-ui
