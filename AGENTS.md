@@ -58,7 +58,7 @@ npm run analyze        # bundle report -> reports/ (gitignored)
   - It is being split into hooks (Phase 7).
 - `hooks/useSpeechPlayer.ts`: plays TTS through `utils/sharedAudio.ts`, the one AudioContext for
   the page.
-- `constants.ts`: `CHARACTERS`, `VOICE_PROFILES`, `THEMES`, `AUDIO_MODES`, `KEYBOARD_SHORTCUTS`.
+- `constants.ts`: `CHARACTERS`, `VOICE_PROFILES`, `THEMES`, `AUDIO_MODES`. Shortcuts: `utils/shortcuts.ts`.
 - `public/service-worker.js`: the registered worker. It skips `/api/`. `sw.js` is legacy, and
   Phase 5 consolidates both.
 - `ref-docs/`: sourced research on the original program (history, voice, UI). Use it before

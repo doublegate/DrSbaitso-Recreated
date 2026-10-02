@@ -21,10 +21,13 @@ interface MusicPlayerProps {
 }
 
 export default function MusicPlayer({ theme, audioContext }: MusicPlayerProps) {
-  const [enabled, setEnabled] = useState(false);
-  const [volume, setVolume] = useState(50);
-  const [mood, setMood] = useState<MusicMood>('auto');
-  const [tempo, setTempo] = useState<MusicTempo>('normal');
+  // Music keeps playing after the panel closes, so start from the engine's
+  // actual state rather than defaults (which showed OFF while it played).
+  const [initial] = useState(() => musicEngine.getSettings());
+  const [enabled, setEnabled] = useState(initial.enabled);
+  const [volume, setVolume] = useState(initial.volume);
+  const [mood, setMood] = useState<MusicMood>(initial.mood);
+  const [tempo, setTempo] = useState<MusicTempo>(initial.tempo);
 
   useEffect(() => {
     musicEngine.init(audioContext);

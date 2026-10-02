@@ -120,6 +120,7 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
     interimResults: false,
     onResult: handleWakeWordResult,
     onError: handleWakeWordError,
+    onEnd: handleWakeWordEnd,
   });
 
   const commandRecognition = useVoiceRecognition({
@@ -251,6 +252,18 @@ export function useVoiceControl(options: VoiceControlOptions = {}) {
       optionsRef.current.onError?.(errorMsg);
     }
   }, []);
+
+  // Browsers end "continuous" recognition after a stretch of silence. In
+  // hands-free mode, resume listening rather than silently going deaf.
+  function handleWakeWordEnd() {
+    const current = stateRef.current;
+    if (!current.isEnabled || !current.isHandsFreeMode || !current.isListeningForWakeWord) return;
+    setTimeout(() => {
+      if (stateRef.current.isHandsFreeMode && stateRef.current.isListeningForWakeWord) {
+        wakeRef.current.startListening();
+      }
+    }, 500);
+  }
 
   // Handle wake word error
   function handleWakeWordError(error: string) {

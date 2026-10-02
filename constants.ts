@@ -293,21 +293,7 @@ export const AUDIO_MODES: AudioMode[] = [
 export const DEFAULT_AUDIO_MODE = 'authentic';
 
 // Keyboard shortcuts
-export const KEYBOARD_SHORTCUTS = {
-  NEW_MESSAGE: 'Enter',
-  CLEAR_CONVERSATION: 'Ctrl+L',
-  EXPORT_CONVERSATION: 'Ctrl+E',
-  TOGGLE_SETTINGS: 'Ctrl+,',
-  TOGGLE_STATS: 'Ctrl+S',
-  NEXT_CHARACTER: 'Ctrl+]',
-  PREV_CHARACTER: 'Ctrl+[',
-  NEXT_THEME: 'Alt+]',
-  PREV_THEME: 'Alt+[',
-  OPEN_INSIGHTS: 'Ctrl+I', // v1.8.0
-  RESTART_TUTORIAL: 'Ctrl+?', // v1.8.0
-  SOUND_SETTINGS: 'Ctrl+Shift+S', // v1.9.0
-  ADVANCED_INSIGHTS: 'Ctrl+Shift+I' // v1.9.0
-};
+// Keyboard shortcuts live in utils/shortcuts.ts (single source of truth).
 
 // Onboarding Tutorial Steps (v1.8.0)
 import type { OnboardingStep } from './types';
@@ -341,20 +327,20 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'keyboard-shortcuts',
     title: 'Master Keyboard Shortcuts',
-    content: 'Work faster with 30+ keyboard shortcuts:\n• Ctrl+S - View statistics\n• Ctrl+E - Export conversation\n• Ctrl+/ - Show all shortcuts\n• Ctrl+Shift+I - Open insights dashboard (new!)\n\nPress Ctrl+/ to see the complete list!',
+    content: 'Work faster with Alt+Shift shortcuts:\n• Alt+Shift+I - Conversation insights\n• Alt+Shift+V - Voice input\n• Alt+Shift+Q - Cycle audio quality\n• Alt+Shift+A - Accessibility settings\n• Alt+Shift+H - Show this tutorial again\n\nHover over any toolbar button to see its shortcut.',
     skipable: true
   },
   {
     id: 'voice-control',
     title: 'Voice Input Support',
-    content: 'Use your voice to chat! Click the microphone button or press Ctrl+M to activate voice input. Speak naturally and Dr. Sbaitso will respond. Note: Your browser must support Web Speech API.',
+    content: 'Use your voice to chat! Click the voice input button or press Alt+Shift+V to activate voice input. Speak naturally and Dr. Sbaitso will respond. Note: Your browser must support Web Speech API.',
     target: '#voice-button',
     skipable: true
   },
   {
     id: 'accessibility',
     title: 'Accessibility Features',
-    content: 'Dr. Sbaitso is designed for everyone:\n• Full keyboard navigation (Tab, Enter, Escape)\n• Screen reader support with ARIA labels\n• High contrast themes\n• Customizable font sizes\n• Reduced motion mode\n\nPress Ctrl+A to open the Accessibility Panel!',
+    content: 'Dr. Sbaitso is designed for everyone:\n• Full keyboard navigation (Tab, Enter, Escape)\n• Screen reader support with ARIA labels\n• High contrast themes\n• Customizable font sizes\n• Reduced motion mode\n\nPress Alt+Shift+A to open the Accessibility Panel!',
     skipable: true
   },
   {

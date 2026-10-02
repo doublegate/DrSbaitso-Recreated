@@ -79,8 +79,18 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Zoom and copy.** The page blocked zooming (WCAG 1.4.4) and prevented selecting
   or copying conversation text.
 - **Profiler.** `performanceProfiler` shadowed the global `performance` API.
+- **Hands-free voice control.** It now resumes listening after the browser ends
+  recognition because of silence. Before, it went deaf while still showing
+  "listening".
+- **Music player panel.** Reopening the panel shows the music's real state.
+  Music keeps playing after the panel closes, and the panel used to show OFF
+  while it played.
 
 ### Changed
+- **Keyboard shortcuts are now Alt+Shift+&lt;key&gt;** (Option+Shift on macOS); see
+  `docs/KEYBOARD_SHORTCUTS.md`. The old Ctrl/Cmd combinations clashed with
+  browser shortcuts: select all, paste as plain text, DevTools, reopen tab and
+  private window. Ctrl+Shift+V was also bound to two actions at once.
 - **Tailwind v4, compiled at build time.** The Tailwind v3 Play CDN (meant for
   development only) has been replaced by Tailwind v4 through `@tailwindcss/vite`.
   The leftover AI Studio import map is gone.

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useEffectEvent, useRef, useCallback, lazy, Suspense } from 'react';
 import { Message, ConversationSession, CustomCharacter } from './types';
 import { getAIResponse, resetChat, synthesizeSpeech } from './services/geminiService';
 import { playGlitchSound, playErrorBeep } from './utils/audio';
@@ -11,6 +11,7 @@ import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { applyThemeVariables } from './utils/themeVariables';
+import { matchShortcut, shortcutLabel, type ShortcutId } from './utils/shortcuts';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import SkipNav from './components/SkipNav';
 import { CustomTheme } from './utils/themeValidator';
@@ -146,13 +147,7 @@ export default function App() {
       // Cycle theme logic
       console.log('Cycle theme');
     },
-    onCycleAudioQuality: () => {
-      const modes = AUDIO_MODES.map(m => m.id);
-      const currentIndex = modes.indexOf(audioMode);
-      const nextIndex = (currentIndex + 1) % modes.length;
-      setAudioMode(modes[nextIndex] as typeof audioMode);
-      announce(`Audio mode changed to ${AUDIO_MODES[nextIndex].name}`);
-    },
+    onCycleAudioQuality: () => cycleAudioMode(),
     onOpenAccessibility: () => setShowAccessibilityPanel(true),
     onOpenSearch: () => setShowConversationSearch(true),
     onOpenVisualizer: () => setShowAudioVisualizer(!showAudioVisualizer),
@@ -383,90 +378,39 @@ export default function App() {
     }
   };
 
-  // Global keyboard shortcuts (v1.3.0 + v1.4.0 + v1.8.0)
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Ctrl/Cmd + A: Open Accessibility Panel
-      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !e.shiftKey) {
-        e.preventDefault();
-        setShowAccessibilityPanel(true);
-      }
+  const cycleAudioMode = () => {
+    const currentIndex = AUDIO_MODES.findIndex(m => m.id === audioMode);
+    const next = AUDIO_MODES[(currentIndex + 1) % AUDIO_MODES.length];
+    setAudioMode(next.id);
+    announce(`Audio mode changed to ${next.name}`);
+  };
 
-      // Ctrl/Cmd + Shift + V: Cycle audio modes
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V') {
-        e.preventDefault();
-        const currentIndex = AUDIO_MODES.findIndex(m => m.id === audioMode);
-        const nextIndex = (currentIndex + 1) % AUDIO_MODES.length;
-        setAudioMode(AUDIO_MODES[nextIndex].id);
-        if (accessibilitySettings.screenReaderOptimized) {
-          announce(`Audio mode changed to ${AUDIO_MODES[nextIndex].name}`);
-        }
-      }
-
-      // Ctrl/Cmd + I: Toggle conversation insights (v1.8.0)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'i' && !e.shiftKey) {
-        e.preventDefault();
-        setShowInsights(prev => !prev);
-      }
-
-      // Ctrl/Cmd + ?: Toggle onboarding tutorial (v1.8.0)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === '?') {
-        e.preventDefault();
-        setShowOnboarding(true);
-      }
-
-      // Ctrl/Cmd + Shift + S: Open sound settings (v1.9.0)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
-        e.preventDefault();
-        setShowSoundSettings(true);
-      }
-
-      // Ctrl/Cmd + Shift + I: Open advanced insights (v1.9.0)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
-        e.preventDefault();
-        setShowInsights(true);
-      }
-
-      // Ctrl/Cmd + M: Toggle music player (v1.10.0)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'm' && !e.shiftKey) {
-        e.preventDefault();
-        setShowMusicPlayer(prev => !prev);
-      }
-
-      // Ctrl/Cmd + Shift + P: Open sound pack manager (v1.10.0)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
-        e.preventDefault();
-        setShowSoundPackManager(true);
-      }
-
-      // Ctrl/Cmd + Shift + V: Toggle voice input (v1.11.0)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V') {
-        e.preventDefault();
-        setShowVoiceInput(prev => !prev);
-      }
-
-      // Ctrl/Cmd + E: Toggle emotion visualizer (v1.11.0)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'e' && !e.shiftKey) {
-        e.preventDefault();
-        setShowEmotionViz(prev => !prev);
-      }
-
-      // Ctrl/Cmd + Shift + T: Toggle topic diagram (v1.11.0)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
-        e.preventDefault();
-        setShowTopicDiagram(prev => !prev);
-      }
-
-      // Ctrl/Cmd + Shift + L: Open conversation templates (v1.11.0)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'L') {
-        e.preventDefault();
-        setShowTemplates(true);
-      }
+  // Global keyboard shortcuts: Alt+Shift+<key>, defined in utils/shortcuts.ts.
+  const onShortcut = useEffectEvent((e: KeyboardEvent) => {
+    const id = matchShortcut(e);
+    if (!id) return;
+    e.preventDefault();
+    const actions: Record<ShortcutId, () => void> = {
+      accessibility: () => setShowAccessibilityPanel(true),
+      cycleAudioMode,
+      insights: () => setShowInsights(prev => !prev),
+      tutorial: () => setShowOnboarding(true),
+      soundSettings: () => setShowSoundSettings(true),
+      musicPlayer: () => setShowMusicPlayer(prev => !prev),
+      soundPacks: () => setShowSoundPackManager(true),
+      voiceInput: () => setShowVoiceInput(prev => !prev),
+      emotionViz: () => setShowEmotionViz(prev => !prev),
+      topicDiagram: () => setShowTopicDiagram(prev => !prev),
+      templates: () => setShowTemplates(true),
     };
+    actions[id]();
+  });
 
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => onShortcut(e);
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [audioMode, accessibilitySettings.screenReaderOptimized, announce]);
+  }, []);
 
   if (!userName) {
     return (
@@ -604,8 +548,8 @@ export default function App() {
               <button
                 onClick={() => setShowAccessibilityPanel(true)}
                 className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label="Open accessibility settings (Ctrl+A)"
-                title="Accessibility Settings (Ctrl+A)"
+                aria-label={`Open accessibility settings (${shortcutLabel('accessibility')})`}
+                title={`Accessibility Settings (${shortcutLabel('accessibility')})`}
                 data-tour-id="shortcuts-help"
               >
                 <span aria-hidden="true">♿</span>
@@ -628,8 +572,8 @@ export default function App() {
                 className={`px-3 py-1 border-2 ${
                   showMusicPlayer ? 'border-green-400 bg-green-900' : 'border-gray-400'
                 } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
-                aria-label="Toggle music player (Ctrl+M)"
-                title="Music Player (Ctrl+M)"
+                aria-label={`Toggle music player (${shortcutLabel('musicPlayer')})`}
+                title={`Music Player (${shortcutLabel('musicPlayer')})`}
               >
                 <span aria-hidden="true">🎵</span>
                 {showMusicPlayer && <span className="ml-1 text-green-300">ON</span>}
@@ -637,8 +581,8 @@ export default function App() {
               <button
                 onClick={() => setShowSoundPackManager(true)}
                 className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label="Sound pack manager (Ctrl+Shift+P)"
-                title="Sound Pack Manager (Ctrl+Shift+P)"
+                aria-label={`Sound pack manager (${shortcutLabel('soundPacks')})`}
+                title={`Sound Pack Manager (${shortcutLabel('soundPacks')})`}
               >
                 <span aria-hidden="true">🎼</span>
               </button>
@@ -647,8 +591,8 @@ export default function App() {
                 className={`px-3 py-1 border-2 ${
                   showVoiceInput ? 'border-green-400 bg-green-900' : 'border-gray-400'
                 } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
-                aria-label="Toggle voice input (Ctrl+Shift+V)"
-                title="Voice Input (Ctrl+Shift+V)"
+                aria-label={`Toggle voice input (${shortcutLabel('voiceInput')})`}
+                title={`Voice Input (${shortcutLabel('voiceInput')})`}
               >
                 <span aria-hidden="true">🗣️</span>
                 {showVoiceInput && <span className="ml-1 text-green-300">ON</span>}
@@ -658,8 +602,8 @@ export default function App() {
                 className={`px-3 py-1 border-2 ${
                   showEmotionViz ? 'border-green-400 bg-green-900' : 'border-gray-400'
                 } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
-                aria-label="Toggle emotion visualizer (Ctrl+E)"
-                title="Emotion Visualizer (Ctrl+E)"
+                aria-label={`Toggle emotion visualizer (${shortcutLabel('emotionViz')})`}
+                title={`Emotion Visualizer (${shortcutLabel('emotionViz')})`}
               >
                 <span aria-hidden="true">😊</span>
                 {showEmotionViz && <span className="ml-1 text-green-300">ON</span>}
@@ -669,8 +613,8 @@ export default function App() {
                 className={`px-3 py-1 border-2 ${
                   showTopicDiagram ? 'border-green-400 bg-green-900' : 'border-gray-400'
                 } hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm`}
-                aria-label="Toggle topic diagram (Ctrl+Shift+T)"
-                title="Topic Diagram (Ctrl+Shift+T)"
+                aria-label={`Toggle topic diagram (${shortcutLabel('topicDiagram')})`}
+                title={`Topic Diagram (${shortcutLabel('topicDiagram')})`}
               >
                 <span aria-hidden="true">🔀</span>
                 {showTopicDiagram && <span className="ml-1 text-green-300">ON</span>}
@@ -678,8 +622,8 @@ export default function App() {
               <button
                 onClick={() => setShowTemplates(true)}
                 className="px-3 py-1 border-2 border-gray-400 hover:border-yellow-300 focus:outline-hidden focus:ring-2 focus:ring-yellow-300 text-sm"
-                aria-label="Conversation templates (Ctrl+Shift+L)"
-                title="Templates (Ctrl+Shift+L)"
+                aria-label={`Conversation templates (${shortcutLabel('templates')})`}
+                title={`Templates (${shortcutLabel('templates')})`}
               >
                 <span aria-hidden="true">📝</span>
               </button>
@@ -788,7 +732,7 @@ export default function App() {
           {/* Audio mode indicator */}
           <div className="shrink-0 mt-2 text-xs opacity-50 text-center">
             <span aria-live="polite" aria-atomic="true">
-              {AUDIO_MODES.find(m => m.id === audioMode)?.name} | Ctrl+Shift+V to cycle | Ctrl+A for accessibility
+              {AUDIO_MODES.find(m => m.id === audioMode)?.name} | {shortcutLabel('cycleAudioMode')} to cycle | {shortcutLabel('accessibility')} for accessibility
             </span>
           </div>
         </div>

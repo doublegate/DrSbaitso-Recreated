@@ -86,6 +86,29 @@ describe('voice hook stability', () => {
     expect(second).toHaveBeenCalledTimes(1);
   });
 
+  it('hands-free mode restarts wake-word listening when the browser ends it', () => {
+    vi.useFakeTimers();
+    try {
+      const { result } = renderHook(() => useVoiceControl({ onClear: () => {} }));
+      act(() => result.current.enableHandsFreeMode());
+      const wake = FakeRecognition.instances.find((r) => r.continuous)!;
+      expect(wake.start).toHaveBeenCalledTimes(1);
+
+      act(() => wake.onstart!());
+      act(() => wake.onend!()); // Chrome stops continuous recognition after silence
+      act(() => vi.advanceTimersByTime(1000));
+      expect(wake.start).toHaveBeenCalledTimes(2);
+
+      // Once hands-free is turned off, an end event must not restart it.
+      act(() => result.current.disableHandsFreeMode());
+      act(() => wake.onend!());
+      act(() => vi.advanceTimersByTime(1000));
+      expect(wake.start).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('useVoiceControl rebuilds commands when the set of handlers changes', () => {
     const { rerender, result } = renderHook(({ withExport }) =>
       useVoiceControl(withExport ? { onClear: () => {}, onExport: () => {} } : { onClear: () => {} }),
