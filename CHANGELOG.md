@@ -145,6 +145,34 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   Bell" (1892), with the index at which to start the slow-down effect. Everything
   else goes to the model with the user's name and the attempt count. Wired into
   Enhanced mode.
+- **Per-persona voices.** Each persona has its own Gemini voice, delivery
+  direction, TTS casing and playback chain (`CHARACTERS[].voiceName`, `voiceStyle`,
+  `ttsCase`, `processing`), from `ref-docs/05`, `06` and `09`:
+
+  | Persona | Voice | Text to TTS | Playback |
+  |---|---|---|---|
+  | Dr. Sbaitso | Charon (or the chosen voice profile) | as written | the measured vintage chain, per audio mode |
+  | ELIZA | Kore | sentence case | clean |
+  | HAL 9000 | Algieba | sentence case | HAL chain |
+  | JOSHUA | Iapetus | sentence case | WOPR chain |
+  | PARRY | Orus | sentence case | clean |
+
+  - **HAL chain** (`processHalVoice`): breath gate, a pitch-preserving WSOLA
+    slow-down (0.88, or measured from the text to land at 4.3-4.7 syllables per
+    second), 50 Hz high-pass, +2 dB low shelf at 150 Hz, 2.5:1 compression. No
+    crush, resampling, reverb or pitch flattening: HAL was a human voice slowed
+    on an Eltro rate changer. `halShutdown` implements the disconnection effect
+    (independent pitch and tempo ramps) for later use.
+  - **WOPR chain** (`processWoprVoice`): words split at energy dips, each
+    re-pitched by LPC to one flat pitch (90 Hz with seeded steps to 79/68 Hz; the
+    last word 128 Hz on "?", 79 on ".", 105 on "!"), even word loudness, 5 ms
+    spliced edges, 80/110/250 ms gaps at words/commas/sentence ends, band-limited
+    to 220 Hz-3.8 kHz. Fricatives keep their own LPC residual, not synthetic noise.
+  - Style prompts describe qualities only and never name a performer or film
+    character.
+  - Integration in `src/EnhancedApp.tsx` is pending: it must pass
+    `usePersona().voiceProcessing` to `speech.speak(audio, text, { processing })`.
+    Until then playback still uses the Sbaitso chain for every persona.
 
 ### Fixed
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
@@ -274,6 +302,12 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   print a console report (`window.sbaitsoProfiler.report()` on demand); in
   production, `?profile=1` enables it and adds a small on-screen vitals overlay. It
   is a separate lazy chunk, absent from normal page loads.
+- **HAL was spelled out as "H-A-L".** The film always says the name as a word;
+  TTS now gets "Hal", and "AE-35" as "A E thirty-five".
+- **Every persona sounded like Dr. Sbaitso.** All of them used the global voice
+  profile (Charon) and, once integrated, the 8475 Hz / 8-bit / LPC chain in the
+  default audio mode. Voice profiles and the audio mode now apply to Dr. Sbaitso
+  only (see "Per-persona voices").
 
 ### Changed
 - **HAL 9000 and JOSHUA persona prompts rewritten from the research** (`ref-docs/07`,
@@ -287,6 +321,10 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   reality. It no longer quotes "the only winning move" from the first turn: the prompt
   allows the line only when the session tag says the tic-tac-toe lesson has happened.
   Neither prompt names an actor or quotes more than a short signature line.
+- **Custom characters** keep their own voice prompt as the TTS style but now use
+  a fixed default voice (Charon); voice profiles no longer apply to them.
+- `CharacterPersonality.voicePrompt` is deprecated in favour of `voiceStyle` and
+  kept equal to `Say in <voiceStyle>`.
 - **Dr. Sbaitso persona rebuilt from the original program.** The prompt no longer
   asks for catchphrases and glitches the original never had ("TELL ME MORE ABOUT
   YOUR PROBLEMS", "PLEASE ELABORATE", "PARITY CHECKING", "IRQ CONFLICT"). It now

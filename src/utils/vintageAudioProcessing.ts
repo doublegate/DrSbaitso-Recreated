@@ -31,6 +31,7 @@
  * @see ref-docs/02-voice-and-audio.md section 7
  */
 
+import { applyBiquad, applyCascade, BUTTERWORTH_8_Q, designBiquad } from './biquad';
 import { lpcMonotone, type EndPunctuation } from './lpcMonotone';
 
 export type { EndPunctuation } from './lpcMonotone';
@@ -162,69 +163,9 @@ export const AUTHENTICITY_PRESETS: Record<AuthenticityLevel, VintageProcessingCo
   }
 };
 
-// ---------------------------------------------------------------------------
-// Filters (RBJ audio-EQ-cookbook biquads, transposed direct form II)
-// ---------------------------------------------------------------------------
-
-interface Biquad {
-  b0: number;
-  b1: number;
-  b2: number;
-  a1: number;
-  a2: number;
-}
-
-type BiquadType = 'lowpass' | 'highpass' | 'highshelf';
-
-function designBiquad(type: BiquadType, frequency: number, sampleRate: number, q = Math.SQRT1_2, gainDb = 0): Biquad {
-  const w0 = (2 * Math.PI * frequency) / sampleRate;
-  const cos = Math.cos(w0);
-  const sin = Math.sin(w0);
-  let b0: number, b1: number, b2: number, a0: number, a1: number, a2: number;
-  if (type === 'highshelf') {
-    const A = 10 ** (gainDb / 40);
-    const alpha = (sin / 2) * Math.SQRT2; // shelf slope S = 1
-    const root = 2 * Math.sqrt(A) * alpha;
-    b0 = A * (A + 1 + (A - 1) * cos + root);
-    b1 = -2 * A * (A - 1 + (A + 1) * cos);
-    b2 = A * (A + 1 + (A - 1) * cos - root);
-    a0 = A + 1 - (A - 1) * cos + root;
-    a1 = 2 * (A - 1 - (A + 1) * cos);
-    a2 = A + 1 - (A - 1) * cos - root;
-  } else {
-    const alpha = sin / (2 * q);
-    b1 = type === 'lowpass' ? 1 - cos : -(1 + cos);
-    b0 = type === 'lowpass' ? (1 - cos) / 2 : (1 + cos) / 2;
-    b2 = b0;
-    a0 = 1 + alpha;
-    a1 = -2 * cos;
-    a2 = 1 - alpha;
-  }
-  return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: a1 / a0, a2: a2 / a0 };
-}
-
-function applyBiquad(x: Float32Array, f: Biquad): Float32Array {
-  const y = new Float32Array(x.length);
-  let z1 = 0;
-  let z2 = 0;
-  for (let i = 0; i < x.length; i++) {
-    const input = x[i];
-    const output = f.b0 * input + z1;
-    z1 = f.b1 * input - f.a1 * output + z2;
-    z2 = f.b2 * input - f.a2 * output;
-    y[i] = output;
-  }
-  return y;
-}
-
-/** Section Qs of an 8th-order Butterworth low-pass. */
-const BUTTERWORTH_8_Q = [0.5098, 0.6013, 0.9, 2.5629];
-
 /** 8th-order Butterworth low-pass (four cascaded biquads): the resampler's anti-alias filter. */
-function antiAliasLowPass(x: Float32Array, frequency: number, sampleRate: number): Float32Array {
-  let y = x;
-  for (const q of BUTTERWORTH_8_Q) y = applyBiquad(y, designBiquad('lowpass', frequency, sampleRate, q));
-  return y;
+export function antiAliasLowPass(x: Float32Array, frequency: number, sampleRate: number): Float32Array {
+  return applyCascade(x, 'lowpass', frequency, sampleRate, BUTTERWORTH_8_Q);
 }
 
 // ---------------------------------------------------------------------------
@@ -256,7 +197,7 @@ function compressLevel(x: Float32Array, sampleRate: number, amount: number): Flo
 }
 
 /** Linear-interpolation resampler to `length` samples. */
-function resampleLinear(x: Float32Array, fromRate: number, toRate: number, length: number): Float32Array {
+export function resampleLinear(x: Float32Array, fromRate: number, toRate: number, length: number): Float32Array {
   const out = new Float32Array(length);
   const ratio = fromRate / toRate;
   const last = x.length - 1;

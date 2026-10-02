@@ -277,7 +277,7 @@ export interface LpcMonotoneOptions {
 }
 
 /** Deterministic PRNG (mulberry32) returning floats in [0, 1). */
-function mulberry32(seed: number): () => number {
+export function mulberry32(seed: number): () => number {
   let state = seed >>> 0;
   return () => {
     state = (state + 0x6d2b79f5) >>> 0;
@@ -288,12 +288,36 @@ function mulberry32(seed: number): () => number {
   };
 }
 
+/** Builds the target F0 (Hz, 0 = unvoiced) for each analysis frame. */
+export type ContourBuilder = (frames: readonly ContourFrame[], frameRate: number) => Float64Array;
+
+export interface LpcResynthesisOptions {
+  sampleRate: number;
+  /** Target pitch per frame; frame f is centred at f / frameRate seconds. */
+  contour: ContourBuilder;
+  /** LPC order (default 12, suited to about 8 kHz). */
+  order?: number;
+  /** Seed for the unvoiced-noise generator. */
+  seed?: number;
+  /**
+   * Excitation of unvoiced frames: seeded noise (default), or the frame's own
+   * LPC residual, which keeps human-sounding fricatives (ref-docs/09 6.3).
+   */
+  unvoiced?: 'noise' | 'residual';
+  /**
+   * Share of the residual mixed into voiced frames (0-1, default 0). The
+   * pulse train and the residual are both scaled to unit power first.
+   */
+  residualMix?: number;
+}
+
 /**
- * Resynthesises speech with the Sbaitso pitch contour. The output has the
- * input's length and, frame by frame, its energy; all-zero input stays zero.
+ * Source-filter resynthesis at a caller-chosen pitch contour. The output has
+ * the input's length and, frame by frame, its energy; all-zero input stays
+ * zero. Deterministic for a given input, contour and seed.
  */
-export function lpcMonotone(input: Float32Array, options: LpcMonotoneOptions): Float32Array {
-  const { sampleRate, endPunctuation = null, baseHz = PITCH_TARGETS.base, order = 12, seed = 0x5ba1750 } = options;
+export function lpcResynthesize(input: Float32Array, options: LpcResynthesisOptions): Float32Array {
+  const { sampleRate, contour: buildContour, order = 12, seed = 0x5ba1750, unvoiced = 'noise', residualMix = 0 } = options;
   const length = input.length;
   const output = new Float32Array(length);
   if (length === 0) return output;
@@ -359,16 +383,18 @@ export function lpcMonotone(input: Float32Array, options: LpcMonotoneOptions): F
     frames.push({ voiced, energy: rms });
   }
 
-  const contour = buildPitchContour(frames, sampleRate / hop, endPunctuation, baseHz);
+  const contour = buildContour(frames, sampleRate / hop);
 
   // Pass 2: one continuous excitation, so pulses line up across overlapping frames.
   const excitation = new Float64Array(padded.length);
+  const isPulse = new Uint8Array(padded.length);
   const random = mulberry32(seed);
   let phase = 0;
   for (let i = 0; i < excitation.length; i++) {
     const f = Math.max(0, Math.min(frameCount - 1, Math.round((i - hop) / hop)));
     const f0 = contour[f];
     if (frames[f].voiced && f0 > 0) {
+      isPulse[i] = 1;
       phase += f0 / sampleRate;
       if (phase >= 1) {
         phase -= 1;
@@ -380,18 +406,46 @@ export function lpcMonotone(input: Float32Array, options: LpcMonotoneOptions): F
   }
 
   // Pass 3: filter each frame through 1/A(z), match its energy, overlap-add.
+  const useResidual = unvoiced === 'residual' || residualMix > 0;
   const synthesis = new Float64Array(padded.length);
   const warmUp = hop;
   const history = new Float64Array(order);
   const frameOut = new Float64Array(frameLength);
+  const residual = new Float64Array(frameLength + warmUp);
   for (let f = 0; f < frameCount; f++) {
     if (frameEnergy[f] <= 0) continue;
     const a = coefficients[f];
     const start = f * hop;
+    const voicedFrame = frames[f].voiced && contour[f] > 0;
+    let residualScale = 0;
+    if (useResidual) {
+      // e[n] = A(z) x[n] over this frame (and its warm-up), at unit power.
+      let power = 0;
+      for (let i = start - warmUp; i < start + frameLength; i++) {
+        let e = 0;
+        for (let k = 0; k <= order; k++) {
+          const j = i - k;
+          if (j >= 0) e += a[k] * padded[j];
+        }
+        residual[i - start + warmUp] = e;
+        power += e * e;
+      }
+      residualScale = power > 0 ? 1 / Math.sqrt(power / (frameLength + warmUp)) : 0;
+    }
+    const pulseShare = voicedFrame ? 1 - residualMix : 0;
+    const residualShare = voicedFrame ? residualMix : unvoiced === 'residual' ? 1 : 0;
     history.fill(0);
     let synthEnergy = 0;
     for (let i = start - warmUp; i < start + frameLength; i++) {
-      let y = i >= 0 ? excitation[i] : 0;
+      let y = 0;
+      if (i >= 0) {
+        if (!useResidual || (voicedFrame && residualShare === 0) || (!voicedFrame && unvoiced === 'noise')) {
+          y = excitation[i];
+        } else {
+          const pulse = isPulse[i] ? excitation[i] : 0;
+          y = pulseShare * pulse + residualShare * residual[i - start + warmUp] * residualScale;
+        }
+      }
       for (let k = 1; k <= order; k++) y -= a[k] * history[k - 1];
       for (let k = order - 1; k > 0; k--) history[k] = history[k - 1];
       history[0] = y;
@@ -410,4 +464,18 @@ export function lpcMonotone(input: Float32Array, options: LpcMonotoneOptions): F
   // normalisation; analysis used the same window, hence matched energy.
   for (let i = 0; i < length; i++) output[i] = synthesis[i + hop];
   return output;
+}
+
+/**
+ * Resynthesises speech with the Sbaitso pitch contour. The output has the
+ * input's length and, frame by frame, its energy; all-zero input stays zero.
+ */
+export function lpcMonotone(input: Float32Array, options: LpcMonotoneOptions): Float32Array {
+  const { sampleRate, endPunctuation = null, baseHz = PITCH_TARGETS.base, order = 12, seed = 0x5ba1750 } = options;
+  return lpcResynthesize(input, {
+    sampleRate,
+    order,
+    seed,
+    contour: (frames, frameRate) => buildPitchContour(frames, frameRate, endPunctuation, baseHz),
+  });
 }

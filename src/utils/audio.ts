@@ -5,8 +5,22 @@ import {
   type EndPunctuation
 } from './vintageAudioProcessing';
 
+import type { VoiceProcessing } from '../constants';
+import { processPersonaSamples, resolveVoiceRoute, type AudioModeId } from './voiceRoutes';
+
 // Re-export for convenience
 export { AuthenticityLevel } from './vintageAudioProcessing';
+export type { AudioModeId } from './voiceRoutes';
+
+export interface DecodeOptions {
+  /**
+   * The persona's processing route (default 'sbaitso': the vintage chain
+   * chosen by `audioMode`). See src/utils/voiceRoutes.ts.
+   */
+  processing?: VoiceProcessing;
+  /** What the audio says; the WOPR and HAL chains use its words and punctuation. */
+  text?: string;
+}
 
 export function decode(base64: string): Uint8Array {
   const binaryString = atob(base64);
@@ -43,8 +57,9 @@ export async function decodeAudioData(
   ctx: AudioContext,
   sampleRate: number,
   numChannels: number,
-  audioMode?: 'modern' | 'subtle' | 'authentic' | 'ultra',
-  endPunctuation: EndPunctuation = null
+  audioMode?: AudioModeId,
+  endPunctuation: EndPunctuation = null,
+  options: DecodeOptions = {}
 ): Promise<AudioBuffer> {
   const pcm = stripWavHeader(data);
   // DataView respects byteOffset and avoids Int16Array's even-length and
@@ -61,17 +76,25 @@ export async function decodeAudioData(
     }
   }
 
-  // Apply vintage processing if audioMode is specified and not 'modern'
-  if (audioMode && audioMode !== 'modern') {
+  const route = resolveVoiceRoute(options.processing ?? 'sbaitso', audioMode);
+  if (route === 'vintage' && audioMode) {
     const authenticityLevel = mapAudioModeToAuthenticityLevel(audioMode);
     const config = getPresetConfig(authenticityLevel);
     buffer = await applyVintageProcessing(buffer, ctx, config, endPunctuation);
+  } else if (route === 'hal' || route === 'wopr') {
+    // These chains change the length, so the output gets a new buffer.
+    const channels: Float32Array[] = [];
+    for (let channel = 0; channel < numChannels; channel++) {
+      channels.push(processPersonaSamples(route, buffer.getChannelData(channel), sampleRate, options.text));
+    }
+    const length = Math.max(1, ...channels.map((c) => c.length));
+    const output = ctx.createBuffer(numChannels, length, sampleRate);
+    channels.forEach((samples, channel) => output.getChannelData(channel).set(samples));
+    buffer = output;
   }
 
   return buffer;
 }
-
-export type AudioModeId = 'modern' | 'subtle' | 'authentic' | 'ultra';
 
 /**
  * Playback settings applied after vintage processing. Vintage processing

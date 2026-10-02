@@ -5,7 +5,7 @@
  * their own instruction and voice prompt).
  */
 import { useState } from 'react';
-import { CHARACTERS, DEFAULT_CHARACTER } from '../constants';
+import { CHARACTERS, DEFAULT_CHARACTER, voiceProcessingFor, type VoiceProcessing } from '../constants';
 import type { CustomCharacter } from '../types';
 
 export const PERSONA_KEY = 'sbaitso_persona';
@@ -86,6 +86,8 @@ export function usePersona() {
 
   const chatOptions = custom ? { customCharacter: { name: custom.name, systemInstruction: custom.systemInstruction } } : {};
   const speechOptions = custom ? { voicePrompt: custom.voicePrompt } : {};
+  /** Playback processing route: pass to useSpeechPlayer's speak(). Custom characters keep the Sbaitso chain. */
+  const voiceProcessing: VoiceProcessing = custom ? 'sbaitso' : voiceProcessingFor(persona.id);
 
   /** Applies a custom character's chosen letter case to a reply. */
   const formatReply = (text: string) => {
@@ -103,6 +105,7 @@ export function usePersona() {
     deleteCustomCharacter,
     chatOptions,
     speechOptions,
+    voiceProcessing,
     formatReply,
   };
 }

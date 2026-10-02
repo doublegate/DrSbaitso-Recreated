@@ -84,6 +84,94 @@ deterministic. Five seconds of speech take about 20 ms for the whole Authentic c
 How close this sounds to the original has not been verified by listening against the real
 engine; see `ref-docs/02-voice-and-audio.md` section 7.6 for the validation checklist.
 
+## Persona voices and processing routes
+
+Everything above is the Dr. Sbaitso voice. The other personas were never Sound Blaster
+programs, so they get their own TTS voice and their own playback route; the audio-mode
+selector applies to the `sbaitso` route only. Sources: `ref-docs/05-eliza.md` and
+`06-parry.md` (voice sections) and `ref-docs/09-hal-and-wopr-voices.md` (sections 6 and 7).
+
+| Persona | Gemini voice | Text sent to TTS | `processing` | Route in each audio mode |
+|---|---|---|---|---|
+| Dr. Sbaitso | Charon, or the chosen `VOICE_PROFILES` voice | as written (capitals) | `sbaitso` | `modern`: none; others: vintage chain |
+| ELIZA | Kore | sentence case | `clean` | none |
+| HAL 9000 | Algieba | sentence case | `hal` | HAL chain |
+| JOSHUA / WOPR | Iapetus | sentence case | `wopr` | WOPR chain |
+| PARRY | Orus | sentence case | `clean` | none |
+| Custom characters | Charon (fixed) | as written | `sbaitso` | as Dr. Sbaitso |
+
+**Server side** (`api/_lib/gemini.ts` `handleTts`): the persona's `voiceName` and
+`voiceStyle` (sent as `speechMetadata.style`) are used. `VOICE_PROFILES` override the voice and
+add style only for Dr. Sbaitso, since that feature came from the AI Studio Sbaitso app. For
+`ttsCase: 'sentence'`, an all-caps reply is converted by `toSentenceCase` (capitals can be
+read as shouting or as letters); known initialisms (CPU, AI, OK, ...) and runs of single spelled
+letters ("C P U") stay in capitals, and text that already has lower case is left alone. Then
+`applyPronunciation`: HAL as "Hal" (one word, as in the film), AE-35 as "A E thirty-five",
+WOPR as "Whopper". Style prompts describe qualities and never name a performer or film
+character (ref-docs/09 section 5).
+
+**Client side** (`src/utils/voiceRoutes.ts`): `resolveVoiceRoute(processing, mode)` picks the
+route; `decodeAudioData(..., mode, endPunctuation, { processing, text })` applies it. The HAL
+and WOPR chains change the length, so they return a new buffer.
+
+### HAL chain (`processHalVoice`, `src/utils/personaVoices.ts`)
+
+HAL was Douglas Rain's voice with the breaths edited out, slowed 10-20% at the same pitch on an
+Eltro rate changer. There was no filtering or vocoding, so the chain only trims:
+
+1. Breath gate: 10 ms frames below -45 dBFS that are noise-like (zero-crossing rate above 0.1,
+   or below -70 dBFS) are silenced. 5 ms look-ahead, 30 ms hold, 60 ms release; pauses keep
+   their length.
+2. Tempo: WSOLA time-stretch (`src/utils/timeStretch.ts`: 40 ms frames, 50% overlap, +/-10 ms
+   coarse-to-fine search), pitch unchanged. With the spoken text, `halTempoFor` measures the
+   syllable rate and slows only above 4.7 syl/s, to 4.5 (never below 0.8); without text the
+   factor is 0.88.
+3. Tone: 50 Hz high-pass (2nd order), +2 dB low shelf at 150 Hz.
+4. Dynamics: soft-knee compressor, threshold -24 dB, ratio 2.5, knee 10 dB, attack 10 ms,
+   release 200 ms; then RMS about -16 dBFS with peaks at or below -3 dBFS.
+5. No reverb, delay, crush, resampling or LPC.
+
+Not implemented (optional in the doc): pitch-level shift toward 99 Hz, pitch-variance
+compression, de-esser, "1968 film" colour.
+
+`halShutdown(samples, sampleRate, u)` is the disconnection effect for later use: pitch
+`-12.5 u^1.8` semitones and tempo `1 - 0.75 u^1.2`, applied as WSOLA by tempo/pitch then
+resampling by pitch, so the two ramps stay independent (never one `playbackRate` ramp). At
+u = 1 a 99 Hz voice ends near 48 Hz and four times as long.
+
+### WOPR chain (`processWoprVoice`, `src/utils/personaVoices.ts`)
+
+WOPR was John Wood reading each word in isolation (in reverse order), spliced back together and
+processed. The chain works at 16 kHz:
+
+1. Words: `segmentWords` splits at energy dips at least 12 dB below the loudest frame within
+   250 ms on both sides (or below the speech floor), lasting 30 ms or more. With the text's word
+   count only the deepest dips are kept; with no dip the speech is divided evenly. Words under
+   60 ms merge into a neighbour.
+2. Pitch: `planWoprLevels` gives each word one flat F0: 90 Hz, stepping down to 79 or 68 Hz
+   every 3rd-5th word (seeded by the words, so a line always sounds the same). The last word is
+   128 Hz for "?" (sagging to 122 Hz over the last 60 ms), 79 Hz for ".", 105 Hz for "!", 90 Hz
+   otherwise. `lpcResynthesize` (order 18) applies it: voiced frames 85% pulse train and 15% of
+   the frame's own LPC residual, unvoiced frames on their residual, so fricatives stay human.
+3. Band: per word, 4th-order high-pass at 220 Hz, 4th-order low-pass at 3.8 kHz, +2 dB peak at
+   2.5 kHz (Q 1).
+4. Splicing: equal word RMS, 5 ms raised-cosine edges, 80 ms gaps; 110 ms after a comma and
+   250 ms after a sentence end when the text's words line up with the words found.
+5. Back to the input rate, peak -3 dBFS.
+
+Not implemented (optional in the doc): per-word time-stretch to 220-350 ms, the "box"
+resonance, the vocoder flavour, per-word TTS (tier B).
+
+### Performance
+
+Measured in Node (vitest, standalone) on 5 s of 24 kHz audio: HAL chain about 27 ms, WOPR chain
+about 76 ms, Sbaitso Authentic chain about 28 ms. The tests budget 150 ms of CPU time.
+
+### Integration
+
+`useSpeechPlayer(mode).speak(audio, text, { processing })` defaults to `'sbaitso'`. Enhanced
+mode should pass `usePersona().voiceProcessing`; Classic mode stays on `'sbaitso'`.
+
 ## Core Audio Functions
 
 ### decode(base64: string): Uint8Array
@@ -99,12 +187,15 @@ export async function decodeAudioData(
   sampleRate: number,
   numChannels: number,
   audioMode?: 'modern' | 'subtle' | 'authentic' | 'ultra',
-  endPunctuation: '.' | '?' | '!' | null = null
+  endPunctuation: '.' | '?' | '!' | null = null,
+  options: { processing?: 'sbaitso' | 'clean' | 'hal' | 'wopr'; text?: string } = {}
 ): Promise<AudioBuffer>
 ```
 
-Strips a RIFF/WAVE header if present, converts little-endian PCM16 to Float32
-(`int16 / 32768`), and applies the vintage chain for any mode other than `modern`.
+Strips a RIFF/WAVE header if present and converts little-endian PCM16 to Float32
+(`int16 / 32768`). Then, by route: `sbaitso` (the default) applies the vintage chain for any
+mode other than `modern`; `clean` applies nothing; `hal` and `wopr` apply their chains in every
+mode.
 
 ### playAudio(): Promise<void>
 
