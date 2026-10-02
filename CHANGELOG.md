@@ -132,6 +132,18 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   standalone HTML export left the title unescaped. The two export modules are
   consolidated: `exportConversation.ts` is now a thin adapter over
   `advancedExport.ts`.
+- **Cloud sync internals.** It could not have connected: the Firebase config was
+  built from an API key plus placeholder `messagingSenderId`/`appId` values. It now
+  takes the full web config the Firebase console shows (pasted as an object, JSON
+  or the console snippet) and validates `apiKey`, `authDomain`, `projectId` and
+  `appId`. Offline caching uses `initializeFirestore` with `persistentLocalCache`
+  instead of the deprecated `enableIndexedDbPersistence`. The auth listener,
+  timers and window listeners are released on teardown. Auto-sync used to emit an
+  `auto-sync-trigger` event nobody listened to; it now syncs data from a registered
+  provider and reports newer cloud data. Last-write-wins compared a Firestore
+  server Timestamp object with a number; both sides are now milliseconds. A new
+  `CloudSyncPanel` wraps the settings UI and hook. Firebase stays a lazily loaded
+  chunk (a test rejects static imports).
 
 ### Changed
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written

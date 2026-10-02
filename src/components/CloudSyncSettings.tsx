@@ -13,6 +13,10 @@ export interface CloudSyncSettingsProps {
   options: SyncOptions;
   isAuthenticated: boolean;
   userId: string | null;
+  /** Whether a Firebase web config has been accepted. */
+  isConfigured?: boolean;
+  /** Receives the pasted Firebase web config (object literal, JSON or console snippet); rejects with a readable error. */
+  onConfigure?: (configText: string) => Promise<void>;
   onClose: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
@@ -25,13 +29,31 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
   options,
   isAuthenticated,
   userId,
+  isConfigured = true,
+  onConfigure,
   onClose,
   onSignIn,
   onSignOut,
   onUpdateOptions,
   onManualSync,
 }) => {
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [configText, setConfigText] = useState('');
+  const [configError, setConfigError] = useState<string | null>(null);
+  const [configuring, setConfiguring] = useState(false);
+
+  const submitConfig = async () => {
+    if (!onConfigure) return;
+    setConfiguring(true);
+    setConfigError(null);
+    try {
+      await onConfigure(configText);
+      setConfigText('');
+    } catch (error) {
+      setConfigError(error instanceof Error ? error.message : 'Could not connect to Firebase');
+    } finally {
+      setConfiguring(false);
+    }
+  };
 
   const formatTimestamp = (timestamp: number | null): string => {
     if (!timestamp) return 'Never';
@@ -143,7 +165,64 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
           </div>
         </div>
 
+        {/* Firebase project configuration */}
+        {!isConfigured && (
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '18px', marginBottom: '12px' }}>FIREBASE PROJECT</h3>
+            <div style={{ paddingLeft: '20px' }}>
+              <p style={{ marginBottom: '8px' }}>
+                Cloud sync stores data in your own Firebase project. Paste its web app config
+                (Firebase console, Project settings, Your apps). It needs apiKey, authDomain,
+                projectId and appId, with Anonymous sign-in and Firestore enabled.
+              </p>
+              <label htmlFor="cloud-sync-config" style={{ display: 'block', marginBottom: '4px' }}>
+                Firebase web config:
+              </label>
+              <textarea
+                id="cloud-sync-config"
+                value={configText}
+                onChange={(e) => setConfigText(e.target.value)}
+                rows={7}
+                spellCheck={false}
+                placeholder={'{\n  apiKey: "AIza...",\n  authDomain: "my-app.firebaseapp.com",\n  projectId: "my-app",\n  appId: "1:123:web:abc"\n}'}
+                style={{
+                  width: '100%',
+                  backgroundColor: '#FFFFFF',
+                  color: '#000000',
+                  border: '2px solid #FFFF00',
+                  padding: '8px',
+                  fontFamily: "'Courier New', monospace",
+                  fontSize: '12px',
+                }}
+              />
+              {configError && (
+                <p role="alert" style={{ color: '#FF6060', marginTop: '8px' }}>
+                  {configError}
+                </p>
+              )}
+              <button
+                onClick={() => void submitConfig()}
+                disabled={configuring || !configText.trim() || !onConfigure}
+                style={{
+                  backgroundColor: configuring ? '#808080' : '#FFFF00',
+                  color: '#000080',
+                  border: 'none',
+                  padding: '12px 24px',
+                  fontFamily: "'Courier New', monospace",
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  cursor: configuring ? 'not-allowed' : 'pointer',
+                  marginTop: '8px',
+                }}
+              >
+                {configuring ? 'CONNECTING...' : 'CONNECT'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Authentication Section */}
+        {isConfigured && (
         <div style={{ marginBottom: '24px' }}>
           <h3 style={{ fontSize: '18px', marginBottom: '12px' }}>🔐 AUTHENTICATION</h3>
           <div style={{ paddingLeft: '20px' }}>
@@ -169,8 +248,8 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
                   SIGN IN ANONYMOUSLY
                 </button>
                 <p style={{ fontSize: '12px', color: '#CCCCCC', marginTop: '8px' }}>
-                  Anonymous sign-in doesn't require an email. Your data will be accessible from any
-                  device using this browser.
+                  Anonymous sign-in needs no email, but the account belongs to this browser
+                  profile: clearing site data or using another device starts a new, empty account.
                 </p>
               </div>
             ) : (
@@ -194,9 +273,10 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
             )}
           </div>
         </div>
+        )}
 
         {/* Sync Options */}
-        {isAuthenticated && (
+        {isConfigured && isAuthenticated && (
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '18px', marginBottom: '12px' }}>⚙️ SYNC OPTIONS</h3>
             <div style={{ paddingLeft: '20px' }}>
@@ -251,31 +331,9 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
                     />
                   </div>
 
-                  <div style={{ marginBottom: '12px' }}>
-                    <label style={{ display: 'block', marginBottom: '4px' }}>
-                      Conflict Resolution:
-                    </label>
-                    <select
-                      value={options.conflictResolution}
-                      onChange={(e) =>
-                        onUpdateOptions({
-                          conflictResolution: e.target.value as 'last-write-wins' | 'manual',
-                        })
-                      }
-                      style={{
-                        backgroundColor: '#FFFFFF',
-                        color: '#000000',
-                        border: '2px solid #FFFF00',
-                        padding: '8px',
-                        fontFamily: "'Courier New', monospace",
-                        fontSize: '14px',
-                        width: '200px',
-                      }}
-                    >
-                      <option value="last-write-wins">Last Write Wins</option>
-                      <option value="manual">Manual</option>
-                    </select>
-                  </div>
+                  <p style={{ marginBottom: '12px', fontSize: '12px', color: '#CCCCCC' }}>
+                    Conflicts: the most recently changed copy wins.
+                  </p>
 
                   <button
                     onClick={onManualSync}
@@ -312,12 +370,14 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
               the cloud. Access your data from any device by signing in.
             </p>
             <p style={{ marginTop: '12px' }}>
-              <strong>Privacy:</strong> Your data is encrypted in transit and stored securely. Only
-              you can access your synchronized data.
+              <strong>Privacy:</strong> Data travels over HTTPS and is stored at users/&#123;uid&#125;
+              in your own Firestore. Who can read it is decided by that project&apos;s security
+              rules, which must limit each document to its owner (request.auth.uid == uid).
             </p>
             <p style={{ marginTop: '12px' }}>
-              <strong>Note:</strong> This feature requires a Firebase project. See documentation
-              for setup instructions.
+              <strong>Note:</strong> The Firebase config is saved in this browser so sync can
+              reconnect on your next visit. Web API keys are not secrets; the security rules are
+              what protect the data.
             </p>
           </div>
         </div>
