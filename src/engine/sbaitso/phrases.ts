@@ -4,23 +4,24 @@
  * Every line here is a short quote from the v2.20 `SBAITSO2.EXE` string table
  * (ref-docs/01-history-and-behavior.md) unless its comment says otherwise.
  * Original misspellings are kept on purpose. `~` stands for the patient's name.
- * Pools rotate in order, which is one of the two orders the original may have
- * used (cycled or random; the binary does not say which). Cycling keeps the
- * engine deterministic.
+ * Most pools rotate in order. Where the original was observed to pick at
+ * random (ref-docs/04), the engine draws from its seeded generator instead.
  */
 
-/** Empty Enter, in escalating order. Text CONFIRMED; order LIKELY. */
-export const EMPTY_NAGS = [
+/**
+ * Empty Enter. Picked at random, with no escalation (CONFIRMED (DOSBox),
+ * ref-docs/04 section 6). The literal `ENTER` is the group's label leaking
+ * into the output; the original prints and speaks it. The binary also holds
+ * "ARE YOU SURE..." and "DO YOU WANT ME TO SHUT UP AND QUIT?", but seven
+ * presses never reached them, so they are left out.
+ */
+export const EMPTY_INPUT = [
   "DON'T BE SHY, TALK TO ME",
   "DON'T JUST PRESS ENTER, TALK TO ME",
   'PLEASE TYPE SOMETHING',
   'HAY, TYPE SOMETHING SENSIBLE, WILL YOU?',
-  "ARE YOU SURE, YOU DON'T WANT TO TALK TO ME?",
-  'DO YOU WANT ME TO SHUT UP AND QUIT?',
+  'ENTER',
 ] as const;
-
-/** Reply to any answer but yes after the quit offer. */
-export const QUIT_DECLINED = 'PLEASE BE SURE OF WHAT YOU WANT. GO ON.';
 
 /** SHT7CHR: very short input with no keyword. */
 export const SHORT_INPUT = [

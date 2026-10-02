@@ -307,38 +307,48 @@ describe('dot commands', () => {
 });
 
 describe('empty Enter', () => {
-  it('nags with escalating lines, then offers to quit', () => {
-    const { results, state } = run(['', '', '', '', '', '']);
-    expect(results.map((r) => linesOf(r)[0])).toEqual([
-      "DON'T BE SHY, TALK TO ME",
-      "DON'T JUST PRESS ENTER, TALK TO ME",
-      'PLEASE TYPE SOMETHING',
-      'HAY, TYPE SOMETHING SENSIBLE, WILL YOU?',
-      "ARE YOU SURE, YOU DON'T WANT TO TALK TO ME?",
-      'DO YOU WANT ME TO SHUT UP AND QUIT?',
-    ]);
-    expect(state.pending.kind).toBe('quit-confirm');
-  });
+  const EMPTY_GROUP = [
+    "DON'T BE SHY, TALK TO ME",
+    "DON'T JUST PRESS ENTER, TALK TO ME",
+    'PLEASE TYPE SOMETHING',
+    'HAY, TYPE SOMETHING SENSIBLE, WILL YOU?',
+    'ENTER',
+  ];
 
-  it('ends the session when the patient says yes', () => {
-    const { last } = run(['', '', '', '', '', '', 'yes']);
-    expect(last).toEqual({ kind: 'exit', lines: ['GOOD BYE'], showMenu: true });
-  });
-
-  it('carries on after any other answer', () => {
-    const { last, state } = run(['', '', '', '', '', '', 'no']);
-    expect(linesOf(last)).toEqual(['PLEASE BE SURE OF WHAT YOU WANT. GO ON.']);
-    expect(state.emptyCount).toBe(0);
+  it('answers from the empty-input group, including the literal ENTER, without escalating', () => {
+    const { results, state } = run(Array.from({ length: 60 }, () => ''));
+    const lines = results.map((r) => linesOf(r)[0]);
+    for (const line of lines) expect(EMPTY_GROUP).toContain(line);
+    // Random, not a fixed escalation: every reply turns up, and none of them ends the session.
+    expect(new Set(lines)).toEqual(new Set(EMPTY_GROUP));
+    expect(results.every((r) => r.kind === 'reply')).toBe(true);
     expect(state.pending.kind).toBe('none');
   });
 
-  it('resets the count once the patient types something', () => {
-    const { results } = run(['', 'I am back', '']);
-    expect(linesOf(results[2])[0]).toBe("DON'T BE SHY, TALK TO ME");
+  it('is deterministic for a given seed and differs between seeds', () => {
+    const presses = Array.from({ length: 12 }, () => '');
+    const a = run(presses, createSbaitsoState('john', 7)).results.map((r) => linesOf(r)[0]);
+    const b = run(presses, createSbaitsoState('john', 7)).results.map((r) => linesOf(r)[0]);
+    const c = run(presses, createSbaitsoState('john', 8)).results.map((r) => linesOf(r)[0]);
+    expect(a).toEqual(b);
+    expect(a).not.toEqual(c);
+  });
+
+  it('speaks ENTER as the word it prints', () => {
+    let state = createSbaitsoState('john', 1);
+    for (let i = 0; i < 50; i++) {
+      const step = processInput(state, '');
+      state = step.state;
+      if (step.result.kind === 'reply' && step.result.lines[0] === 'ENTER') {
+        expect(step.result.speak).toEqual(['ENTER']);
+        return;
+      }
+    }
+    throw new Error('ENTER never came up in 50 presses');
   });
 
   it('treats whitespace as empty', () => {
-    expect(linesOf(run(['   ']).last)[0]).toBe("DON'T BE SHY, TALK TO ME");
+    expect(EMPTY_GROUP).toContain(linesOf(run(['   ']).last)[0]);
   });
 });
 

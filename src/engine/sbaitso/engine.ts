@@ -22,14 +22,13 @@ import {
   BYE_REPLIES,
   CRAZY_PARITY_JOKE,
   CRAZY_REPLIES,
-  EMPTY_NAGS,
+  EMPTY_INPUT,
   GARBAGE_INPUT,
   GARBLE_A,
   GARBLE_B,
   GOOD_BYE,
   PROFANITY_STRIKES,
   PROFANITY_WORDS,
-  QUIT_DECLINED,
   REPEAT_TIER_1,
   REPEAT_TIER_2,
   SEXUAL_WORDS,
@@ -52,8 +51,11 @@ const NONE = { kind: 'none' } as const;
  */
 export const SHORT_INPUT_LENGTH = 7;
 
-/** Fresh state for a new patient. */
-export function createSbaitsoState(name: string): SbaitsoState {
+/** Seed used when the caller does not pass one. */
+export const DEFAULT_SEED = 0x5ba1750;
+
+/** Fresh state for a new patient. `seed` drives the random replies. */
+export function createSbaitsoState(name: string, seed: number = DEFAULT_SEED): SbaitsoState {
   return {
     name: name.trim().toUpperCase(),
     settings: { ...DEFAULT_SETTINGS },
@@ -64,6 +66,7 @@ export function createSbaitsoState(name: string): SbaitsoState {
     profanityStrikes: 0,
     cursors: {},
     pending: NONE,
+    rng: seed >>> 0,
   };
 }
 
@@ -85,6 +88,21 @@ export function recordReply(state: SbaitsoState, text: string | readonly string[
 function rotate(state: SbaitsoState, key: string, pool: readonly string[]): [string, SbaitsoState] {
   const index = state.cursors[key] ?? 0;
   return [pool[index % pool.length], { ...state, cursors: { ...state.cursors, [key]: index + 1 } }];
+}
+
+/** One step of mulberry32: a value in [0, 1) and the next generator state. */
+export function nextRandom(rng: number): [number, number] {
+  const next = (rng + 0x6d2b79f5) >>> 0;
+  let t = next;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return [((t ^ (t >>> 14)) >>> 0) / 4294967296, next];
+}
+
+/** A random line of a pool, advancing the state's generator. */
+function pick(state: SbaitsoState, pool: readonly string[]): [string, SbaitsoState] {
+  const [value, rng] = nextRandom(state.rng);
+  return [pool[Math.floor(value * pool.length)], { ...state, rng }];
 }
 
 const withName = (line: string, name: string): string => line.replaceAll('~', name);
@@ -160,12 +178,10 @@ function showHelp(state: SbaitsoState, page: 1 | 2 | 3): EngineStep {
   };
 }
 
+/** Empty Enter: a random line of the group, never escalating (CONFIRMED (DOSBox)). */
 function emptyEnter(state: SbaitsoState): EngineStep {
-  const emptyCount = state.emptyCount + 1;
-  const line = EMPTY_NAGS[Math.min(emptyCount, EMPTY_NAGS.length) - 1];
-  // After the last nag the doctor offers to quit and waits for the answer (LIKELY).
-  const pending = emptyCount >= EMPTY_NAGS.length ? ({ kind: 'quit-confirm' } as const) : NONE;
-  return reply({ ...state, emptyCount, pending }, [line]);
+  const [line, next] = pick({ ...state, emptyCount: state.emptyCount + 1 }, EMPTY_INPUT);
+  return reply(next, [line]);
 }
 
 function ageReply(state: SbaitsoState, age: number): EngineStep {
@@ -221,9 +237,6 @@ function answerPending(state: SbaitsoState, raw: string, text: string): EngineSt
       const age = /\d+/.exec(text);
       return age ? ageReply(cleared, Number(age[0])) : processInput(cleared, raw);
     }
-    case 'quit-confirm':
-      if (/^(Y|YES|YEAH|YEP|SURE|OK|OKAY)\b/i.test(text)) return exit({ ...cleared, emptyCount: 0 }, [GOOD_BYE]);
-      return reply({ ...cleared, emptyCount: 0 }, [QUIT_DECLINED]);
     default:
       return null;
   }

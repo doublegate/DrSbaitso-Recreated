@@ -23,7 +23,7 @@ export type {
   SbaitsoState,
   ValueCommand,
 } from './types';
-export { createSbaitsoState, processInput, recordReply, SHORT_INPUT_LENGTH } from './engine';
+export { DEFAULT_SEED, createSbaitsoState, nextRandom, processInput, recordReply, SHORT_INPUT_LENGTH } from './engine';
 export { DEFAULT_SETTINGS, DOT_MESSAGES } from './dotCommands';
 export { CALC_ERRORS, CALC_LABEL, calcReply, evaluateArithmetic, looksArithmetic } from './calc';
 export type { CalcOutcome } from './calc';

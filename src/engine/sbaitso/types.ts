@@ -1,10 +1,11 @@
 /**
  * Types for the local Dr. Sbaitso conversation engine.
  *
- * The engine is pure: no React, no DOM, no network, no clock and no random
- * source. Every function takes a state and returns a new one, so the caller
- * owns the state (for example in a React ref) and the engine can be tested
- * exhaustively.
+ * The engine is pure: no React, no DOM, no network, no clock and no global
+ * random source. Randomness comes from a seeded generator carried in the
+ * state (`rng`). Every function takes a state and returns a new one, so the
+ * caller owns the state (for example in a React ref) and the engine can be
+ * tested exhaustively.
  */
 
 /** The settings the original's dot commands change. */
@@ -44,9 +45,7 @@ export type Pending =
   /** `.PARAM` was typed without its four digits. */
   | { kind: 'param' }
   /** "HOW OLD ARE YOU?" was asked. */
-  | { kind: 'age' }
-  /** "DO YOU WANT ME TO SHUT UP AND QUIT?" was asked. */
-  | { kind: 'quit-confirm' };
+  | { kind: 'age' };
 
 export interface SbaitsoState {
   /** Patient name, upper case, as typed at the name prompt. */
@@ -65,6 +64,11 @@ export interface SbaitsoState {
   /** Rotation position of each response pool. */
   readonly cursors: Readonly<Record<string, number>>;
   readonly pending: Pending;
+  /**
+   * Seeded random state (32-bit). The original picks some replies at random
+   * (empty Enter, the parity flood's numbers); a seed keeps that reproducible.
+   */
+  readonly rng: number;
 }
 
 /**
