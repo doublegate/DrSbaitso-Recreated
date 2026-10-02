@@ -91,6 +91,9 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   // Audio mode state (v1.3.0)
   const [audioMode, setAudioMode] = useState<'modern' | 'subtle' | 'authentic' | 'ultra'>('authentic');
   const speech = useSpeechPlayer(audioMode);
+  // Muted: replies are shown but not synthesised (also saves TTS quota).
+  const [muted, setMuted] = useState(false);
+  const mutedRef = useRef(false);
 
   // Accessibility state (v1.4.0)
   const { settings: accessibilitySettings, updateSetting, resetSettings } = useAccessibility();
@@ -165,13 +168,13 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     onExport: () => setShowAdvancedExport(true),
     onSwitchCharacter: (id) => switchPersona(id),
     onToggleMute: () => {
-      // Toggle mute logic
-      console.log('Toggle mute');
+      const next = !mutedRef.current;
+      mutedRef.current = next;
+      setMuted(next);
+      if (next) speech.stop();
+      announce(next ? 'Speech muted' : 'Speech unmuted');
     },
-    onToggleSettings: () => {
-      // Toggle settings
-      console.log('Toggle settings');
-    },
+    onToggleSettings: () => setShowSoundSettings(prev => !prev),
     onToggleStats: () => setShowConversationSearch(true),
     onStopAudio: () => speech.stop(),
     onCycleTheme: () => themeChoice.cycleTheme(),
@@ -311,7 +314,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       }
 
       // Synthesis runs while the reply is typed out.
-      const audioPromise = synthesizeSpeech(reply, characterId, speechOptions).catch((error) => {
+      const audioPromise = (mutedRef.current ? Promise.resolve('') : synthesizeSpeech(reply, characterId, speechOptions)).catch((error) => {
         console.warn('Reply speech unavailable; continuing text-only:', error);
         return '';
       });
@@ -822,7 +825,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
           {/* Audio mode indicator */}
           <div className="shrink-0 mt-2 text-xs opacity-50 text-center">
             <span aria-live="polite" aria-atomic="true">
-              {AUDIO_MODES.find(m => m.id === audioMode)?.name} | {shortcutLabel('cycleAudioMode')} to cycle | {shortcutLabel('accessibility')} for accessibility
+              {AUDIO_MODES.find(m => m.id === audioMode)?.name}{muted ? ' (MUTED)' : ''} | {shortcutLabel('cycleAudioMode')} to cycle | {shortcutLabel('accessibility')} for accessibility
             </span>
           </div>
         </div>
