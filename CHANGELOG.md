@@ -94,6 +94,17 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   while it played.
 
 ### Changed
+- **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
+  workers (`service-worker.js`, the registered one, and the unused `sw.js`). The
+  new worker precaches the real hashed build output, so every deploy refreshes
+  it. It never caches `/api`, and it serves deep links offline. Updates now wait
+  for the user ("A NEW VERSION IS AVAILABLE": RELOAD / LATER). The old worker
+  reloaded the page by itself on first visit and on every update, which lost the
+  conversation; it also never noticed new deploys, because its cache version
+  string never changed. `/service-worker.js` is now a kill switch that cleans up
+  browsers which installed the old worker. See `docs/PWA.md`.
+- The web app manifest no longer lists two screenshots that did not exist, and its
+  icons declare `any` and `maskable` purposes separately.
 - **Keyboard shortcuts are now Alt+Shift+&lt;key&gt;** (Option+Shift on macOS); see
   `docs/KEYBOARD_SHORTCUTS.md`. The old Ctrl/Cmd combinations clashed with
   browser shortcuts: select all, paste as plain text, DevTools, reopen tab and

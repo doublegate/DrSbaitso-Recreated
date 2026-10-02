@@ -59,8 +59,11 @@ npm run analyze        # bundle report -> reports/ (gitignored)
 - `hooks/useSpeechPlayer.ts`: plays TTS through `utils/sharedAudio.ts`, the one AudioContext for
   the page.
 - `constants.ts`: `CHARACTERS`, `VOICE_PROFILES`, `THEMES`, `AUDIO_MODES`. Shortcuts: `utils/shortcuts.ts`.
-- `public/service-worker.js`: the registered worker. It skips `/api/`. `sw.js` is legacy, and
-  Phase 5 consolidates both.
+- `src/sw.ts`: the service worker (vite-plugin-pwa `injectManifest`), served as `/sw.js`.
+  - It precaches the build and never caches `/api`.
+  - `components/UpdatePrompt.tsx` offers updates; the page never reloads on its own.
+  - `public/service-worker.js` is a kill switch for browsers that installed the v1.x worker.
+  - See `docs/PWA.md`.
 - `ref-docs/`: sourced research on the original program (history, voice, UI). Use it before
   changing personas, voice or visuals.
 

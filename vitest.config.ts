@@ -33,6 +33,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './'),
+      'virtual:pwa-register/react': path.resolve(import.meta.dirname, './test/stubs/pwa-register-react.ts'),
     },
   },
 });

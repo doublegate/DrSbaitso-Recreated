@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 
-const analyzeTopics = vi.fn(() => ({ topics: [], transitions: [], dominantTopic: null }));
+const analyzeTopics = vi.fn((..._args: unknown[]) => ({ topics: [], transitions: [], dominantTopic: null }));
 vi.mock('@/utils/topicAnalysis', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/utils/topicAnalysis')>()),
-  analyzeTopics: (...args: unknown[]) => analyzeTopics(...(args as [])),
+  analyzeTopics: (...args: unknown[]) => analyzeTopics(...args),
 }));
 
 const { TopicFlowDiagram } = await import('@/components/TopicFlowDiagram');

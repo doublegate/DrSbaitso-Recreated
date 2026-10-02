@@ -980,7 +980,7 @@ componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
 
 ---
 
-### public/sw.js - Service Worker
+### src/sw.ts - Service Worker (see docs/PWA.md)
 
 Provides offline support and asset caching.
 
@@ -1074,7 +1074,7 @@ const RUNTIME_CACHE = `runtime-${CACHE_VERSION}`;
 
                                               ┌──────────────────────┐
                                               │ Service Worker       │
-                                              │ (public/sw.js)       │
+                                              │ (src/sw.ts)          │
                                               │                      │
                                               │ Cache Strategies:    │
                                               │ - Static: Cache-First│

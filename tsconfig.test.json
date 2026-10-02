@@ -5,7 +5,8 @@
       "vite/client",
       "node",
       "vitest/globals",
-      "@testing-library/jest-dom"
+      "@testing-library/jest-dom",
+      "vite-plugin-pwa/react"
     ]
   },
   "include": [
@@ -23,6 +24,7 @@
   ],
   "exclude": [
     "vite.config.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "src/sw.ts"
   ]
 }

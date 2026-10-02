@@ -52,7 +52,6 @@ describe('usePWA Hook', () => {
       expect(result.current.isInstalled).toBe(false);
       expect(result.current.isInstallable).toBe(false);
       expect(result.current.isOffline).toBe(false);
-      expect(result.current.hasUpdate).toBe(false);
       expect(result.current.installPromptEvent).toBeNull();
       expect(result.current.registration).toBeNull();
 
@@ -102,38 +101,17 @@ describe('usePWA Hook', () => {
   });
 
   describe('Service Worker Registration', () => {
-    it('should register service worker on mount', async () => {
-      const { result } = renderHook(() => usePWA());
-
-      await waitFor(() => {
-        expect(navigator.serviceWorker.register).toHaveBeenCalledWith('/sw.js', {
-          scope: '/',
-        });
-      });
+    it('does not register a worker itself (vite-plugin-pwa owns registration)', async () => {
+      renderHook(() => usePWA());
+      await act(async () => {});
+      expect(navigator.serviceWorker.register).not.toHaveBeenCalled();
     });
 
-    it('should set registration after successful registration', async () => {
+    it('exposes the existing registration once the worker is ready', async () => {
       const { result } = renderHook(() => usePWA());
-
       await waitFor(() => {
-        expect(result.current.registration).toBeDefined();
+        expect(result.current.registration).not.toBeNull();
       });
-    });
-
-    it('should handle service worker registration errors gracefully', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      (navigator.serviceWorker.register as any).mockRejectedValueOnce(
-        new Error('Registration failed')
-      );
-
-      const { result } = renderHook(() => usePWA());
-
-      await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalled();
-        expect(result.current.registration).toBeNull();
-      });
-
-      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -269,92 +247,6 @@ describe('usePWA Hook', () => {
       });
 
       expect(installResult).toBe(false);
-    });
-  });
-
-  describe('Service Worker Updates', () => {
-    it('should detect service worker updates', async () => {
-      const mockRegistration = {
-        installing: null,
-        waiting: null,
-        active: {
-          state: 'activated',
-          postMessage: vi.fn(),
-        },
-        update: vi.fn(),
-        addEventListener: vi.fn(),
-      };
-
-      (navigator.serviceWorker.register as any).mockResolvedValueOnce(mockRegistration);
-
-      const { result } = renderHook(() => usePWA());
-
-      await waitFor(() => {
-        expect(result.current.registration).toBeDefined();
-      });
-
-      // Simulate updatefound event
-      const updatefoundCallback = (mockRegistration.addEventListener as any).mock.calls.find(
-        (call: any) => call[0] === 'updatefound'
-      )?.[1];
-
-      if (updatefoundCallback) {
-        const mockNewWorker = {
-          state: 'installed',
-          addEventListener: vi.fn(),
-        };
-
-        mockRegistration.installing = mockNewWorker as any;
-
-        act(() => {
-          updatefoundCallback();
-
-          const statechangeCallback = (mockNewWorker.addEventListener as any).mock.calls.find(
-            (call: any) => call[0] === 'statechange'
-          )?.[1];
-
-          if (statechangeCallback) {
-            statechangeCallback();
-          }
-        });
-      }
-    });
-
-    it('should update service worker when requested', async () => {
-      const { result } = renderHook(() => usePWA());
-
-      // Wait for service worker registration to complete
-      await waitFor(() => {
-        expect(result.current.registration).toBeDefined();
-      });
-
-      // Manually set hasUpdate to true
-      act(() => {
-        // This would normally be set by the updatefound event
-        (result.current as any).hasUpdate = true;
-      });
-
-      act(() => {
-        result.current.updateServiceWorker();
-      });
-
-      // Verify update was called (in real implementation)
-      expect(result.current.updateServiceWorker).toBeDefined();
-    });
-
-    it('should dismiss update notification', async () => {
-      const { result } = renderHook(() => usePWA());
-
-      // Wait for service worker registration to complete
-      await waitFor(() => {
-        expect(result.current.registration).toBeDefined();
-      });
-
-      act(() => {
-        result.current.dismissUpdate();
-      });
-
-      expect(result.current.hasUpdate).toBe(false);
     });
   });
 

@@ -18,7 +18,8 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "types": [
-      "vite/client"
+      "vite/client",
+      "vite-plugin-pwa/react"
     ],
     "paths": {
       "@/*": [
@@ -39,6 +40,7 @@
     "vitest.config.ts",
     "playwright.config.ts",
     "**/*.test.ts",
-    "**/*.test.tsx"
+    "**/*.test.tsx",
+    "src/sw.ts"
   ]
 }

@@ -2,7 +2,8 @@
  * usePWA Hook - Progressive Web App Integration
  *
  * Handles:
- * - Service Worker registration and lifecycle
+ * - Access to the service worker registration (registration and updates are
+ *   owned by vite-plugin-pwa; see components/UpdatePrompt.tsx)
  * - Install prompts and PWA installation
  * - Offline detection and notifications
  * - Update notifications for new service worker versions
@@ -22,15 +23,12 @@ export interface PWAState {
   isInstalled: boolean;
   isInstallable: boolean;
   isOffline: boolean;
-  hasUpdate: boolean;
   installPromptEvent: PWAInstallPrompt | null;
   registration: ServiceWorkerRegistration | null;
 }
 
 export interface PWAActions {
   promptInstall: () => Promise<boolean>;
-  updateServiceWorker: () => void;
-  dismissUpdate: () => void;
   clearCache: () => Promise<void>;
 }
 
@@ -38,12 +36,10 @@ export function usePWA(): PWAState & PWAActions {
   const [isInstalled, setIsInstalled] = useState<boolean>(false);
   const [isInstallable, setIsInstallable] = useState<boolean>(false);
   const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
-  const [hasUpdate, setHasUpdate] = useState<boolean>(false);
   const [installPromptEvent, setInstallPromptEvent] = useState<PWAInstallPrompt | null>(null);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
   const deferredPromptRef = useRef<PWAInstallPrompt | null>(null);
-  const updateWaitingRef = useRef<ServiceWorker | null>(null);
 
   // Check if app is installed
   useEffect(() => {
@@ -95,58 +91,18 @@ export function usePWA(): PWAState & PWAActions {
     };
   }, []);
 
-  // Register service worker
+  // Read the existing registration. Registration itself is done by
+  // vite-plugin-pwa; registering here as well would race it.
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      registerServiceWorker();
-    }
+    if (!('serviceWorker' in navigator)) return;
+    let cancelled = false;
+    void navigator.serviceWorker.ready.then((reg) => {
+      if (!cancelled) setRegistration(reg);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
-
-  const registerServiceWorker = async () => {
-    try {
-      const reg = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-      });
-
-      setRegistration(reg);
-
-      // Check for updates immediately and on interval
-      reg.update();
-
-      // Check for updates every hour
-      const updateInterval = setInterval(() => {
-        reg.update();
-      }, 60 * 60 * 1000);
-
-      // Handle service worker updates
-      reg.addEventListener('updatefound', () => {
-        const newWorker = reg.installing;
-
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New service worker available
-              updateWaitingRef.current = newWorker;
-              setHasUpdate(true);
-            }
-          });
-        }
-      });
-
-      // Handle controller change (after update activation)
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        window.location.reload();
-      });
-
-      console.log('[PWA] Service worker registered successfully');
-
-      return () => {
-        clearInterval(updateInterval);
-      };
-    } catch (error) {
-      console.error('[PWA] Service worker registration failed:', error);
-    }
-  };
 
   // Prompt user to install PWA
   const promptInstall = useCallback(async (): Promise<boolean> => {
@@ -173,24 +129,6 @@ export function usePWA(): PWAState & PWAActions {
     }
   }, []);
 
-  // Update service worker
-  const updateServiceWorker = useCallback(() => {
-    if (!updateWaitingRef.current) {
-      console.warn('[PWA] No service worker update available');
-      return;
-    }
-
-    // Tell the service worker to skip waiting and activate immediately
-    updateWaitingRef.current.postMessage({ type: 'SKIP_WAITING' });
-
-    // The page will reload automatically due to controllerchange event
-  }, []);
-
-  // Dismiss update notification
-  const dismissUpdate = useCallback(() => {
-    setHasUpdate(false);
-  }, []);
-
   // Clear all caches
   const clearCache = useCallback(async (): Promise<void> => {
     if (!registration) {
@@ -199,9 +137,6 @@ export function usePWA(): PWAState & PWAActions {
     }
 
     try {
-      // Tell service worker to clear cache
-      registration.active?.postMessage({ type: 'CACHE_CLEAR' });
-
       // Clear caches from client side as well
       const cacheNames = await caches.keys();
       await Promise.all(
@@ -222,14 +157,11 @@ export function usePWA(): PWAState & PWAActions {
     isInstalled,
     isInstallable,
     isOffline,
-    hasUpdate,
     installPromptEvent,
     registration,
 
     // Actions
     promptInstall,
-    updateServiceWorker,
-    dismissUpdate,
     clearCache,
   };
 }

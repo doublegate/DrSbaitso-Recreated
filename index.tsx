@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import UpdatePrompt from './components/UpdatePrompt';
 import './index.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -23,6 +24,7 @@ root.render(
       }}
     >
       <App />
+      <UpdatePrompt />
     </ErrorBoundary>
   </React.StrictMode>
 );

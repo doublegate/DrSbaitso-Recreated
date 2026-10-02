@@ -13,20 +13,14 @@ import React from 'react';
 
 export interface PWAPromptsProps {
   isInstallable: boolean;
-  hasUpdate: boolean;
   isOffline: boolean;
   onInstall: () => void;
-  onUpdate: () => void;
-  onDismissUpdate: () => void;
 }
 
 export const PWAPrompts: React.FC<PWAPromptsProps> = ({
   isInstallable,
-  hasUpdate,
   isOffline,
   onInstall,
-  onUpdate,
-  onDismissUpdate,
 }) => {
   return (
     <>
@@ -140,77 +134,6 @@ export const PWAPrompts: React.FC<PWAPromptsProps> = ({
         </div>
       )}
 
-      {/* Update Available Notification */}
-      {hasUpdate && !isOffline && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            zIndex: 9998,
-            backgroundColor: '#008000',
-            color: '#FFFF00',
-            padding: '20px',
-            fontFamily: "'Courier New', monospace",
-            fontSize: '14px',
-            border: '3px solid #FFFF00',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-            maxWidth: '90%',
-            width: '350px',
-          }}
-          role="alert"
-          aria-live="polite"
-        >
-          <div
-            style={{
-              fontSize: '16px',
-              fontWeight: 'bold',
-              marginBottom: '12px',
-              textAlign: 'center',
-            }}
-          >
-            🔄 UPDATE AVAILABLE
-          </div>
-          <div style={{ marginBottom: '16px', textAlign: 'center', lineHeight: '1.5' }}>
-            A new version of Dr. Sbaitso is available. Update now to get the latest features and
-            improvements.
-          </div>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-            <button
-              onClick={onUpdate}
-              style={{
-                backgroundColor: '#FFFF00',
-                color: '#000080',
-                border: 'none',
-                padding: '10px 20px',
-                fontFamily: "'Courier New', monospace",
-                fontSize: '14px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-              }}
-              aria-label="Update app now"
-            >
-              UPDATE NOW
-            </button>
-            <button
-              onClick={onDismissUpdate}
-              style={{
-                backgroundColor: '#808080',
-                color: '#FFFFFF',
-                border: 'none',
-                padding: '10px 20px',
-                fontFamily: "'Courier New', monospace",
-                fontSize: '14px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-              }}
-              aria-label="Dismiss update notification"
-            >
-              LATER
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 };

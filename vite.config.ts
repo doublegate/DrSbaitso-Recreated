@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 /**
@@ -116,6 +117,23 @@ export default defineConfig(({ mode }) => {
         tailwindcss(),
         securityHeadersPlugin(), // v1.11.0: Security headers
         devApiPlugin(env),
+        // Service worker built from src/sw.ts with a precache manifest of the
+        // hashed build output. The web manifest stays in public/manifest.json,
+        // and registration happens in hooks/useServiceWorker.ts.
+        VitePWA({
+          strategies: 'injectManifest',
+          srcDir: 'src',
+          filename: 'sw.ts',
+          registerType: 'prompt',
+          injectRegister: false,
+          manifest: false,
+          injectManifest: {
+            globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,json}'],
+            // The retired worker is a kill switch and must not be precached.
+            globIgnores: ['service-worker.js'],
+          },
+          devOptions: { enabled: false },
+        }),
         // Bundle report on demand only (`npm run analyze`); never into dist/,
         // which would publish it, and never opening a browser in CI.
         process.env.ANALYZE
