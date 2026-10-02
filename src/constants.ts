@@ -452,7 +452,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     id: 'characters',
     title: 'AI Personalities',
     content:
-      'Five personalities from computing history are built in: Dr. Sbaitso (1990-1992), ELIZA (1966), HAL 9000 (1968), JOSHUA/WOPR (1983) and PARRY (1972). The highlighted character button opens the Character Creator, where you can design your own.',
+      'Five personalities from computing history are built in: Dr. Sbaitso (1990-1992), ELIZA (1966), HAL 9000 (1968), JOSHUA/WOPR (1983) and PARRY (1972). Choose one in the highlighted PERSONA selector; SETTINGS > Character creator lets you design your own.',
     target: '[data-tour-id="character-selection"]',
     skipable: true,
   },
@@ -496,7 +496,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     id: 'advanced-features',
     title: 'More to Explore',
     content:
-      '• Theme customizer - your own retro colour schemes\n• Search - find past messages (needs SAVE HISTORY)\n• Export - save the conversation as text, Markdown, JSON or HTML, or print it to PDF\n• Sound packs - your own sounds for app events\n\nSearch and Export are in the highlighted CONVERSATION menu; the rest are under VISUALS, SOUND and SETTINGS.',
+      '• Theme customizer - your own retro colour schemes\n• Search - find past messages (needs SAVE HISTORY)\n• Export - print the conversation to PDF, or save it as HTML, CSV, JSON or Markdown\n• Sound packs - your own sounds for app events\n\nSearch and Export are in the highlighted CONVERSATION menu; the rest are under VISUALS, SOUND and SETTINGS.',
     target: '[data-tour-id="session-panel"]',
     skipable: true,
   },

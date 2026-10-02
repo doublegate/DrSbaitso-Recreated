@@ -35,9 +35,9 @@ export default function VoiceHelpDialog({ commands, containerRef, onClose }: Voi
           <div>
             <h3 className="text-yellow-300 font-bold mb-2">HOW TO USE:</h3>
             <ol className="list-decimal list-inside space-y-1 text-white">
-              <li>Click the 🎤 button to enable hands-free mode</li>
-              <li>Say "Hey Doctor" followed by any command</li>
-              <li>Or click the button again to speak a command directly</li>
+              <li>Open SOUND, then Hands-free voice control</li>
+              <li>Say "Hey Doctor" (or "Hey Sbaitso") followed by a command</li>
+              <li>Choose Hands-free voice control again to stop listening</li>
             </ol>
           </div>
 
