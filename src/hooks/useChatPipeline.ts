@@ -55,6 +55,8 @@ export function personaGreeting(personaId: string, personaName: string, userName
 type PersonaState = ReturnType<typeof usePersona>;
 
 export interface ChatPipelineDeps {
+  /** Text shared to the app (Web Share Target): typed, unsent, once the greeting ends. */
+  initialInput?: string | null;
   /** The active persona and its request options (hooks/usePersona). */
   personaState: Pick<
     PersonaState,
@@ -72,6 +74,7 @@ export interface ChatPipelineDeps {
 }
 
 export function useChatPipeline({
+  initialInput,
   personaState,
   speech,
   mutedRef,
@@ -86,6 +89,8 @@ export function useChatPipeline({
   const [nameInput, setNameInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [userInput, setUserInput] = useState('');
+  // Used once, after the greeting (see ChatPipelineDeps.initialInput).
+  const pendingInputRef = useRef(initialInput ?? '');
   const [isLoading, setIsLoading] = useState(true);
   const [isGreeting, setIsGreeting] = useState(false);
   const [isPreparingGreeting, setIsPreparingGreeting] = useState(false);
@@ -143,6 +148,10 @@ export function useChatPipeline({
     if (unmountedRef.current) return;
     setIsGreeting(false);
     setIsLoading(false);
+    if (pendingInputRef.current) {
+      setUserInput(pendingInputRef.current);
+      pendingInputRef.current = '';
+    }
   };
 
   /**

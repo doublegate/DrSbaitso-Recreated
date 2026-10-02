@@ -1,3 +1,4 @@
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useState, useEffect, useRef } from 'react';
 import { useSpeechPlayer } from './hooks/useSpeechPlayer';
 import { AUDIO_MODES } from './constants';
@@ -24,8 +25,12 @@ import StatusBar from './components/enhanced/StatusBar';
 import EnhancedPanels from './components/enhanced/EnhancedPanels';
 
 /** The modern UI: toolbar, panels, personas and extras ("Enhanced" mode). */
-export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => void } = {}) {
+export default function EnhancedApp({
+  onSwitchMode,
+  initialInput,
+}: { onSwitchMode?: () => void; initialInput?: string | null } = {}) {
   // The active persona (built-in or custom), chosen in the toolbar.
+  const online = useOnlineStatus();
   const personaState = usePersona();
   const { persona } = personaState;
   const characterId = persona.id;
@@ -53,6 +58,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
 
   // Name entry, greeting and the turn pipeline (hooks/useChatPipeline).
   const chat = useChatPipeline({
+    initialInput,
     personaState,
     speech,
     mutedRef,
@@ -242,6 +248,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
             voiceProfile={personaState.voiceProfile}
             onVoiceProfileChange={personaState.setVoiceProfile}
             showVoiceProfile={personaState.voiceProfileApplies}
+            offline={!online}
           />
         </div>
       </main>

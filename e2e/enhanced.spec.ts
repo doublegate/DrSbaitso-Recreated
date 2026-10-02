@@ -99,6 +99,20 @@ test.describe('enhanced mode', () => {
     expect(calls.chat.length).toBe(before);
   });
 
+  test('text shared to the app lands on the input line, unsent', async ({ page }) => {
+    const calls = await mockApi(page);
+    await page.addInitScript(() => {
+      localStorage.setItem('sbaitso_onboarding_completed', 'true');
+      localStorage.setItem('sbaitso_ui_mode', 'enhanced');
+    });
+    await page.goto('/share?title=&text=I%20feel%20sad%20today');
+    await page.getByPlaceholder('TYPE NAME AND PRESS ENTER').fill('ALICE');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#chat-input')).toHaveValue('I feel sad today', { timeout: 30_000 });
+    expect(new URL(page.url()).pathname).toBe('/');
+    expect(calls.chat).toHaveLength(0);
+  });
+
   test('switches to the classic screen', async ({ page }) => {
     await mockApi(page);
     await startEnhanced(page);

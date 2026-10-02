@@ -308,4 +308,10 @@ describe('useChatPipeline', () => {
     expect(result.current.messages).toHaveLength(before + 1); // only the user's R
     expect(deps.speech.speak).toHaveBeenLastCalledWith('AAAA', 'TELL ME MORE.', { processing: 'sbaitso' });
   });
+
+  it('puts shared text on the input line once the greeting ends, without sending it', async () => {
+    const { result } = await startSession(makeDeps({ initialInput: 'I feel sad' }));
+    expect(result.current.userInput).toBe('I feel sad');
+    expect(getAIResponse).not.toHaveBeenCalled();
+  });
 });

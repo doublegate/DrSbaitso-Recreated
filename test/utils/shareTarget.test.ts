@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { readSharedText, SHARE_PATH } from '@/utils/shareTarget';
+import { readSharedText, SHARE_PATH, takeSharedText, __resetSharedTextForTests } from '@/utils/shareTarget';
 import { readUiMode } from '@/utils/uiMode';
 
 const manifest = JSON.parse(readFileSync(path.resolve(import.meta.dirname, '../../public/manifest.json'), 'utf8'));
@@ -46,5 +46,22 @@ describe('manifest', () => {
       expect(mode).not.toBeNull();
       expect(readUiMode(`?mode=${mode}`)).toBe(mode);
     }
+  });
+});
+
+describe('takeSharedText', () => {
+  it('reads the share once, clears the URL, and returns the same text afterwards', () => {
+    __resetSharedTextForTests();
+    history.replaceState(null, '', '/share?text=I%20feel%20sad');
+    expect(takeSharedText()).toBe('I feel sad');
+    expect(location.pathname).toBe('/');
+    expect(takeSharedText()).toBe('I feel sad');
+  });
+
+  it('is null when the app was not opened by a share', () => {
+    __resetSharedTextForTests();
+    history.replaceState(null, '', '/?mode=classic');
+    expect(takeSharedText()).toBeNull();
+    expect(location.search).toBe('?mode=classic');
   });
 });

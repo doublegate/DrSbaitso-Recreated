@@ -28,3 +28,21 @@ export function clearSharePath(): void {
     history.replaceState(null, '', '/');
   }
 }
+
+let taken: { text: string | null } | null = null;
+
+/**
+ * The text this page was opened to share, read once: the URL is cleared so a
+ * reload does not share again, and later calls return the same value.
+ */
+export function takeSharedText(): string | null {
+  if (!taken) {
+    taken = { text: typeof location === 'undefined' ? null : readSharedText(location) };
+    if (taken.text !== null) clearSharePath();
+  }
+  return taken.text;
+}
+
+export function __resetSharedTextForTests(): void {
+  taken = null;
+}
