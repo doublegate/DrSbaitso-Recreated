@@ -52,6 +52,31 @@ describe('serve', () => {
     expect(ok).not.toHaveBeenCalled();
   });
 
+  /** A streamed body with no Content-Length, as a chunked upload arrives. */
+  function streamed(text: string) {
+    const bytes = new TextEncoder().encode(text);
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (let i = 0; i < bytes.length; i += 8192) controller.enqueue(bytes.slice(i, i + 8192));
+        controller.close();
+      },
+    });
+    return new Request('https://example.test/api/chat', { method: 'POST', body: stream, duplex: 'half' } as RequestInit);
+  }
+
+  it('measures the body cap in bytes, not characters', async () => {
+    // 40,000 two-byte characters: under 64 KiB as a string length, 80 KB on the wire.
+    const res = await serve(streamed(JSON.stringify({ message: 'é'.repeat(40_000) })), ok, { env, createClient });
+    expect(res.status).toBe(413);
+    expect(ok).not.toHaveBeenCalled();
+  });
+
+  it('still accepts multibyte bodies under the cap', async () => {
+    const res = await serve(streamed(JSON.stringify({ message: 'é'.repeat(1000) })), ok, { env, createClient });
+    expect(res.status).toBe(200);
+    expect(ok).toHaveBeenCalledWith({ message: 'é'.repeat(1000) }, expect.anything(), expect.anything());
+  });
+
   it('rate limits per client', async () => {
     const limiter = { check: vi.fn().mockReturnValueOnce(true).mockReturnValueOnce(false) };
     expect((await serve(post({}), ok, { env, limiter, createClient })).status).toBe(200);
