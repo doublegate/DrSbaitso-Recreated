@@ -75,6 +75,15 @@ describe('geminiService (proxy client)', () => {
       expect(err.status).toBe(429);
     });
 
+    it('keeps every code the server sends, and maps unknown ones to UNKNOWN', async () => {
+      fetchMock.mockReturnValueOnce(reply(413, { code: 'PAYLOAD_TOO_LARGE', error: 'big' }));
+      expect((await getAIResponse('Hi', 'sbaitso').catch((e) => e)).code).toBe('PAYLOAD_TOO_LARGE');
+      fetchMock.mockReturnValueOnce(reply(500, { code: 'SOMETHING_NEW', error: '?' }));
+      expect((await getAIResponse('Hi', 'sbaitso').catch((e) => e)).code).toBe('UNKNOWN');
+      fetchMock.mockReturnValueOnce(Promise.resolve(new Response('<html>', { status: 504 })));
+      expect((await getAIResponse('Hi', 'sbaitso').catch((e) => e)).code).toBe('UNKNOWN');
+    });
+
     it('maps network failures to NETWORK_ERROR', async () => {
       fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
       const err = await getAIResponse('Hi', 'sbaitso').catch((e) => e);

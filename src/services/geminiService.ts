@@ -7,15 +7,23 @@
  */
 import type { VoiceProfileId } from '../constants';
 
-export type ServiceErrorCode =
-  | 'BAD_REQUEST'
-  | 'RATE_LIMITED'
-  | 'EMPTY_RESPONSE'
-  | 'UPSTREAM_ERROR'
-  | 'UNAVAILABLE'
-  | 'NOT_CONFIGURED'
-  | 'NETWORK_ERROR'
-  | 'UNKNOWN';
+/** Codes the proxy sends (api/_lib), plus the two this client adds. */
+const SERVER_CODES = [
+  'BAD_REQUEST',
+  'METHOD_NOT_ALLOWED',
+  'PAYLOAD_TOO_LARGE',
+  'RATE_LIMITED',
+  'EMPTY_RESPONSE',
+  'UPSTREAM_ERROR',
+  'UNAVAILABLE',
+  'NOT_CONFIGURED',
+] as const;
+
+export type ServiceErrorCode = (typeof SERVER_CODES)[number] | 'NETWORK_ERROR' | 'UNKNOWN';
+
+function toErrorCode(value: unknown): ServiceErrorCode {
+  return (SERVER_CODES as readonly unknown[]).includes(value) ? (value as ServiceErrorCode) : 'UNKNOWN';
+}
 
 export class GeminiServiceError extends Error {
   constructor(
@@ -60,7 +68,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   }
 
   if (!response.ok) {
-    const code: ServiceErrorCode = data?.code ?? 'UNKNOWN';
+    const code = toErrorCode(data?.code);
     const detail = data?.error ?? response.statusText;
     // Keep the status and Google's quota wording in the message: older
     // callers detect rate limiting by matching these strings.
