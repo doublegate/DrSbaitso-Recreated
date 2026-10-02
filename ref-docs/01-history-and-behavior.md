@@ -11,6 +11,8 @@ Confidence labels:
 - **LIKELY**: one credible source, or a direct inference from primary data that has not been
   observed running.
 - **UNVERIFIED/FOLKLORE**: repeated online without a traceable primary source.
+- **CONFIRMED (DOSBox)**: observed by running the original v2.20 inside DOSBox-X; method and
+  evidence in `04-dosbox-verification.md`, cited as [04].
 
 Primary-source method: the original executables were downloaded from two Internet Archive
 items and their printable strings extracted (a Python equivalent of `strings -n 4`). Source [S1]
@@ -143,17 +145,18 @@ They are reconstructed from string-table data, not from a disassembly, so contro
     FEW MORE YEARS, KID".
 
   A response consisting of the word `PARITY` triggers the parity-error routine.
-- **All caps.** Every response is upper case. User input is shown on a `User>` prompt line, and
-  CALC output is labeled `Computer:` [S1][S2].
+- **All caps.** Every response is upper case. By default the prompt is a bare yellow `>` and
+  replies are unlabeled. Only after `.PROMPT ON` is user input shown on a `User>` line and each
+  reply (CALC included) prefixed `Computer:` [S1][S2]. Labels: CONFIRMED (DOSBox) [04].
 
 ### Special input handling
 
 | Situation | Behavior | Confidence | Source |
 |---|---|---|---|
-| Empty input (just Enter) | Escalating nags: "DON'T BE SHY, TALK TO ME", "DON'T JUST PRESS ENTER, TALK TO ME", "PLEASE TYPE SOMETHING", "HAY, TYPE SOMETHING SENSIBLE, WILL YOU?" (sic, "HAY"). Repeated, it asks "ARE YOU SURE, YOU DON'T WANT TO TALK TO ME?" and "DO YOU WANT ME TO SHUT UP AND QUIT?". It then reacts to the answer, e.g. "PLEASE BE SURE OF WHAT YOU WANT. GO ON." | CONFIRMED text; LIKELY order | [S1][S2] |
+| Empty input (just Enter) | Escalating nags: "DON'T BE SHY, TALK TO ME", "DON'T JUST PRESS ENTER, TALK TO ME", "PLEASE TYPE SOMETHING", "HAY, TYPE SOMETHING SENSIBLE, WILL YOU?" (sic, "HAY"). Repeated, it asks "ARE YOU SURE, YOU DON'T WANT TO TALK TO ME?" and "DO YOU WANT ME TO SHUT UP AND QUIT?". It then reacts to the answer, e.g. "PLEASE BE SURE OF WHAT YOU WANT. GO ON." **Observed:** no fixed order. Seven presses gave PLEASE TYPE SOMETHING, `ENTER`, DON'T BE SHY (twice), `ENTER`, PLEASE TYPE SOMETHING, HAY..., with no escalation to the ARE YOU SURE / SHUT UP lines. The literal word `ENTER` (the group's label) is printed and spoken as a reply. | CONFIRMED text; order CONFIRMED (DOSBox) as random, not escalating | [S1][S2][04] |
 | Very short input (`SHT7CHR` group; likely under 7 characters with no keyword) | "THAT'S TOO BRIEF", "WHAT ARE YOU MUMBLING ABOUT?", "I DON'T UNDERSTAND SHORT HAND", "I NEED MORE DATA", and others. Some lines carry the 40-column or color codes | CONFIRMED text; LIKELY threshold | [S2] |
 | Garbage or non-words (`GRBGE` group) | "WHAT GIBBERISH ARE YOU TELLING ME?", "DON'T PRACTICE TYPING WITH ME", "WHAT LANGUAGE IS THIS?", "I WON'T PROCESS THIS GARBAGE", and others | CONFIRMED | [S2] |
-| Repeated input (`REPEAT#1`, then `REPEAT#2` on further repeats) | Tier 1: "PLEASE DON'T REPEAT", "AGAIN?", "HAVE YOU RUN OUT OF WORDS TO SAY?". Tier 2: "THIS IS STALE STUFF", "I DON'T LIKE PEOPLE REPEATING". v1.01 has a single pair: "PLEASE DON'T REPEAT." / "YOU'VE SAID THAT - PLEASE GIVE MORE INFORMATION." | CONFIRMED | [S1][S2] |
+| Repeated input (`REPEAT#1`, then `REPEAT#2` on further repeats) | Tier 1: "PLEASE DON'T REPEAT", "AGAIN?", "HAVE YOU RUN OUT OF WORDS TO SAY?". Tier 2: "THIS IS STALE STUFF", "I DON'T LIKE PEOPLE REPEATING". v1.01 has a single pair: "PLEASE DON'T REPEAT." / "YOU'VE SAID THAT - PLEASE GIVE MORE INFORMATION." In v2.20 a repeat gets a repeat-group line on the 2nd and 3rd entry (e.g. SAY SOMETHING ELSE, PLEASE DON'T REPEAT). By the 4th entry a keyword or topic reply can return (e.g. HOW OLD IS YOUR MOTHER?). | CONFIRMED; behavior CONFIRMED (DOSBox) | [S1][S2][04] |
 | Profanity | Per-word groups with rising severity: "PLEASE DON'T USE SUCH LANGUAGE", "INPUT REJECTED - BAD LANGUAGE ERROR", "I REFUSE TO COMPUTE THIS FILTH". Then a warning with deliberately garbled characters, "I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS ... WAY.", then `PARITY` | CONFIRMED | [S2][1] |
 | Sexual or anatomical words | Lectures plus the age prompt: "THIS IS NOT AN ANATOMY CLASS", "GO TO A BIOLOGY CLASS", "HOW OLD ARE YOU?" | CONFIRMED | [S2] |
 | Insults ("STUPID", "SILLY", "CRAZY") | Comic replies, e.g. "I'M NOT STUPID, I'M ONLY DUMB". SILLY and CRAZY produce stutter and laughter strings ("HA HA HA ...", "LALALA..."). One CRAZY reply ends in "1 + 1 = 3 ~, PARITY .. CHECKSUM ERR? .." and then triggers a parity error | CONFIRMED | [S2] |
@@ -163,7 +166,7 @@ They are reconstructed from string-table data, not from a disassembly, so contro
 | NO | "WHY DO YOU FEEL THAT WAY?", "DON'T BE SO NEGATIVE ~", "WHY NOT?" | CONFIRMED | [S2][1] |
 | "NO PROBLEM" | Comic dismissals: "I HAVE NO C P U TIME FOR PEOPLE LIKE YOU" and an F M organ joke | CONFIRMED | [S2] |
 | Self-reference ("SBAITSO") | "DON'T QUESTION MY INTELLIGENCE, IT'S FAKE", recites the acronym, or describes itself | CONFIRMED | [S2] |
-| Inactivity timeout | One fan port says the doctor gets impatient if you do not type for a while. No timer-specific string was found; the empty-Enter group may be the source of this claim | UNVERIFIED | [6] |
+| Inactivity timeout | One fan port says the doctor gets impatient if you do not type for a while. No timer-specific string was found; the empty-Enter group may be the source of this claim. In DOSBox no nag appeared during idle waits of up to 24 s at the prompt [04]; a longer timer is not ruled out | UNVERIFIED (none seen within 24 s) | [6][04] |
 
 ### Parity error sequence
 
@@ -177,6 +180,21 @@ Reconstructed from adjacent strings [S2]. Each item is a separate line or event:
 5. `YOU ARE BAD <NAME>. DON'T TRY IT NEXT TIME.`
 6. The conversation continues. Wikipedia describes this as a breakdown "before resetting itself"
    [1]. No string indicates that the program actually exits.
+
+**What the program actually did** (CONFIRMED (DOSBox), both via `SAY PARITY` and via
+escalating profanity [04]):
+
+1. Profanity route only: the warning
+   `I WILL GET PARITY ERROR IF YOU KEEP TALKING IN THIS FZA!$[{? WAY.` (garbage printed
+   literally).
+2. On the next profanity, there is no hang. The area below the pinned banner floods with
+   `PARITY ERR ...  <random number>` lines, about 250 lines in about 3.5 s. The later lines
+   end in `  ???`.
+3. `PARITY ERR ... RECOVERED`.
+4. A literal `PARITY` line (the response text itself), a blank row and the prompt.
+5. A falling buzz tone of about 4 s plays during the flood.
+6. Steps 4-5 of the reconstruction (`PHEW!...`, `YOU ARE BAD...`) did **not** appear on either
+   trigger. The conversation continues normally and the program does not exit.
 
 Triggers:
 
@@ -199,9 +217,9 @@ must be between 0 - 9") [S2].
 | HELP | `HELP` | Help page 1: what the program is, plus the dot-command list. `M` opens page 2 (hints: topics, CALC, SAY, bad language "can go haywire"). `M` again opens page 3, a list of recognized keywords. Page 1 ends: "you get more fun exploring them yourself." In 40-column mode: "NO HELP FOR 40 COLUMNS. TRY: .WIDTH 80" | CONFIRMED | [S1][S2][5] |
 | Repeat | `R` (at the prompt) | Re-speaks the last response ("Enter <R> to listen to the last response.") | CONFIRMED | [S1][S2][5] |
 | SAY | `SAY <text>` | Speaks the text verbatim instead of answering. `SAY PARITY` triggers the parity error | CONFIRMED | [S1][S2][1][5] |
-| CALC | `CALC <expression>` (also reached via `WHAT IS <expression>`) | Evaluates simple arithmetic. Output labeled `Computer:`; division is phrased "<a> divided by <b> equals to <c>". Errors: "Cannot compute, brackets are too complex for me.", "Doesn't compute, I think there is a bug in your equation." | CONFIRMED (strings); LIKELY (exact syntax) | [S1][S2] |
+| CALC | `CALC <expression>` (also reached via `WHAT IS <expression>`) | Evaluates simple arithmetic. Labeled `Computer:` only under `.PROMPT ON`. Observed output: `CALC 2+3` prints ` =  5` and `CALC 10/4` prints ` =  2.5` (the expression is not echoed); `WHAT IS 12*4` prints `12*4 =  48`. The strings also phrase division as "<a> divided by <b> equals to <c>". Errors: "Cannot compute, brackets are too complex for me.", "Doesn't compute, I think there is a bug in your equation." | CONFIRMED (strings); syntax and screen format CONFIRMED (DOSBox) | [S1][S2][04] |
 | AUTHOR | `AUTHOR` | Credits "W H SIM OF CREATIVE LABS, INC." | CONFIRMED | [S2] |
-| .QUIT | `.QUIT` | Quits the program | CONFIRMED | [S1][S2][5] |
+| .QUIT | `.QUIT` | Ends the session. It prints and speaks `GOOD BYE <NAME>`, then shows the C/N/Q menu; it does not drop to DOS directly | CONFIRMED; route CONFIRMED (DOSBox) | [S1][S2][5][04] |
 | .TONE | `.TONE t` (t = 0 or 1) | 0 = bass, 1 = treble | CONFIRMED | [S1][S2][5] |
 | .VOLUME | `.VOLUME v` (0-9) | Speech volume, 0 lowest | CONFIRMED | [S1][S2][5] |
 | .PITCH | `.PITCH p` (0-9) | Pitch, 0 lowest | CONFIRMED | [S1][S2][5] |
@@ -209,9 +227,9 @@ must be between 0 - 9") [S2].
 | .PARAM | `.PARAM tvps` (4 digits) | Sets tone, volume, pitch and speed at once. Without an argument it shows "Current Speech Parameters settings are :" and asks for 4 digits; `D` restores defaults, Enter leaves them unchanged. Error: "Need to enter 4 digits, try agian." (sic) | CONFIRMED | [S1][S2][5] |
 | .ECHO | `.ECHO ON` / `.ECHO OFF` | ECHO ON "will read out what you typed in", i.e. speaks the user's input. One fan source says the echo uses a different voice | CONFIRMED (function); UNVERIFIED (voice detail) | [S1][S2][5] |
 | .READ | `.READ filename` | Reads a text file aloud. Errors: "Must supply a filename to read.", "File not Found", "FILE TOO COMPLEX" | CONFIRMED | [S1][S2] |
-| .PROMPT | `.PROMPT ON` / `.PROMPT OFF` | Toggles the `User>` prompt display (LIKELY). Not listed in HELP | CONFIRMED (exists); LIKELY (effect) | [S1][S2] |
+| .PROMPT | `.PROMPT ON` / `.PROMPT OFF` | ON: the prompt becomes yellow `User> ` and replies are prefixed with white `Computer: `. OFF prints an empty `Computer:` line and restores `>`. Not listed in HELP | CONFIRMED (exists); effect CONFIRMED (DOSBox) | [S1][S2][04] |
 | .WIDTH | `.WIDTH 40` / `.WIDTH 80` | 40- or 80-column text mode (v2.x only) | CONFIRMED | [S2] |
-| .COLOR | `.COLOR ce` | c = background color 0-7, e = foreground (v2.x only) | CONFIRMED | [S2] |
+| .COLOR | `.COLOR ce` | c = background color 0-7, e = foreground (v2.x only). Observed: `.COLOR 4` clears the screen and redraws banner and prompt on a red background for the whole screen. Text colors are unchanged. `.COLOR` alone asks `Enter color number (0-7)` | CONFIRMED; single-digit form CONFIRMED (DOSBox) | [S2][04] |
 | .MASTER | `.MASTER m` (0-15) | Master (mixer) volume, SB Pro class (v2.x only) | CONFIRMED | [S2] |
 | STEREO / MONO | words in the v2.20 command table | Probably output mode on SB Pro; not documented in HELP | UNVERIFIED | [S2] |
 | SHUT UP | `SHUT UP` | Command-table entry. Responses include "I AM NOT THROUGH YET" and "YOU CAN TURN OFF MY POWER ANYTIME" | CONFIRMED (text) | [S2] |
@@ -261,12 +279,17 @@ worth copying.
    set or improper", "SBTALKER - text to speech synthesizer Not installed.", "This program needs
    Sound Blaster to run."
 3. Title screen: "Sound Blaster / D R   S B A I T S O / version 2.20 / (c) Copyright Creative Labs,
-   Inc. 1992, all rights reserved", with a "DOCTOR SBAITSO BY CREATIVE LABS" title bar.
+   Inc. 1992, all rights reserved". The "DOCTOR SBAITSO BY CREATIVE LABS" string is spoken,
+   not displayed (CONFIRMED (DOSBox) [04]; see step 4).
 4. Before the name prompt the program speaks its own name, "Doctor Sbaitso". The bertrandom
    recreation plays a clip recorded from the original, `sounds/drsbaitso.wav`, at this point
-   (LIKELY [13]).
+   (LIKELY [13]). CONFIRMED (DOSBox) [04]: with only the banner on screen it says "Doctor
+   Sbaitso" (0.65 s), pauses about 0.5 s, then says "by Creative Labs". This is the string
+   `" DOCTOR SBAITSO       BY CREATIVE LABS "` spoken, not shown as a title bar.
 5. Name prompt: "Please enter your name ..." [v1.01: "Please enter your name now ...."]. It is
-   both printed and spoken (LIKELY: [13] ships `pleaseenter.wav`).
+   both printed and spoken (LIKELY: [13] ships `pleaseenter.wav`). CONFIRMED (DOSBox): printed
+   at 3.31 s, then spoken [04]. It is not repeated after N (new patient); the intro is skipped
+   then.
    - **Each letter is spoken aloud as it is typed** (CONFIRMED [10][13]). The author of [10]
      recorded all 26 letters from the original running in DOSBox-X.
    - Validation: a non-letter keypress is rejected and the program says "Enter alphabets only".
@@ -281,10 +304,12 @@ worth copying.
    - "MEMORY CONTENTS WILL BE WIPED OFF AFTER YOU LEAVE,"
    - "SO, TELL ME ABOUT YOUR PROBLEMS."
    A blank line follows the first greeting line and another precedes the last one (LIKELY:
-   the layout in [13], which was built against the original).
+   the layout in [13], which was built against the original). CONFIRMED (DOSBox) [04]. Each
+   line is printed whole, then spoken, and the next line is printed when the speech ends. A
+   keypress cuts the speech short, and the remaining lines are then printed unspoken.
 7. Conversation loop. The string table has a `User>` label, which `.PROMPT ON|OFF` toggles
-   (LIKELY). The recreation in [13] shows a bare yellow `>` prompt with replies word-wrapped at
-   79 columns.
+   (CONFIRMED (DOSBox) [04]). The default is a bare yellow `>` prompt. The typed text is
+   yellow, and replies start at column 0.
 
 ### Exit
 
@@ -298,16 +323,21 @@ worth copying.
 - **End of session:** prints "GOOD BYE", then the menu
   "<C>ontinue  <N>ew patient  <Q>uit  .....". C resumes the session. N restarts at the name
   prompt, which is how "memory wiped" is honored. Q exits to DOS, where the batch file runs
-  `REMOVE` to unload SBTALKER [S1][S2]. The key mapping is CONFIRMED; the routing details are
-  LIKELY.
-- **`.QUIT`** quits directly [S1][S2][5].
+  `REMOVE` to unload SBTALKER [S1][S2]. The key mapping is CONFIRMED. Routing is CONFIRMED
+  (DOSBox) [04]:
+  - The menu appears on the row right after the goodbye line, with no prompt or cursor.
+  - C prints a blank row and a new `>`; the history stays.
+  - N clears below the banner and re-asks the name. It skips the "Doctor Sbaitso" intro.
+  - Q returns to DOS silently, leaving the banner on screen.
+- **`.QUIT`** prints and speaks `GOOD BYE <NAME>`, then shows the same C/N/Q menu. It does not
+  quit directly. CONFIRMED (DOSBox) [04].
 - The repeated-empty-Enter path ("DO YOU WANT ME TO SHUT UP AND QUIT?") is a third route to the
-  same menu (LIKELY).
-- QUIT and EXIT typed without a dot: no dedicated response group exists for either. Only `.QUIT`
-  and the BYE keyword end a session (LIKELY).
-  The bertrandom port [13] routes a bare `quit` straight to the C/N/Q menu, and `goodbye` to
-  "GOOD BYE, SO LONG!" followed by the menu. That port is a convenience reimplementation, so it
-  does not settle what the original does with a bare QUIT (UNVERIFIED).
+  same menu (LIKELY). Seven empty Enters in DOSBox never reached it [04].
+- QUIT and EXIT typed without a dot: no dedicated response group exists for either.
+  CONFIRMED (DOSBox) [04]:
+  - A bare `QUIT` goes **straight to the C/N/Q menu**, with no goodbye line. The bertrandom
+    port [13] matches the original here.
+  - A bare `EXIT` is treated as short input (`THAT'S TOO BRIEF`).
 
 ---
 
@@ -412,6 +442,8 @@ Primary (binary string tables, extracted 2026-10-02):
 - [S2] Dr. Sbaitso (VGA Machine) package, `SBAITSO2.EXE` v2.20 (1992), `SBAITSO2.BAT`,
   `SBTALKER.EXE`, `READ.EXE`, `SET-ECHO.EXE`: https://archive.org/details/SBAITSO_VGA
   (file `SBAITSO.zip`)
+- [04] `04-dosbox-verification.md`: [S2] executed inside DOSBox-X 2026.08.31 with frame-exact
+  screen OCR and audio timing (2026-10-02).
 
 Secondary:
 

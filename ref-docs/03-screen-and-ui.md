@@ -9,6 +9,8 @@ Confidence markers:
   strings of the original executable.
 - **LIKELY** - strongly implied by primary evidence, but not observed end to end.
 - **UNVERIFIED** - plausible or reported second-hand; needs a live run to confirm.
+- **CONFIRMED (DOSBox)** - observed in a frame-accurate capture of the original v2.20 running
+  in DOSBox-X; method and evidence in `04-dosbox-verification.md`, cited as [04].
 
 Primary evidence used:
 
@@ -31,10 +33,12 @@ Primary evidence used:
 3. The name prompt is **mixed case**, left-aligned on row 6: `Please enter your name ...`.
    It is not centered and has no `>` and no placeholder. CONFIRMED [3].
 4. The greeting is printed **one line at a time**, each line indented by one space, with blank
-   lines in fixed places. CONFIRMED (layout) [3]. The rate at which characters appear within a
-   line is UNVERIFIED.
+   lines in fixed places. CONFIRMED (layout) [3]. Each line appears whole in a single frame
+   and is spoken before the next one is printed: CONFIRMED (DOSBox), see
+   `04-dosbox-verification.md`.
 5. User input follows a **yellow `>`** in column 0, preceded by a blank line, with a **blinking
-   one-scanline underline cursor** in white. CONFIRMED [3][5].
+   one-scanline underline cursor** in white. CONFIRMED [3][5]. The typed input is yellow too,
+   for the whole line: CONFIRMED (DOSBox) [04].
 6. The program has **`.COLOR c`** (background 0-7) and **`.WIDTH 40|80`** dot commands, and a
    compact 40-column banner variant. Exiting goes through a
    `<C>ontinue  <N>ew patient  <Q>uit` prompt. CONFIRMED (strings) [3].
@@ -52,7 +56,7 @@ Primary evidence used:
 | Text mode | 80 columns x 25 rows. DOSBox capture is 640x400 = 80x25 cells of 8x16. Rows 0-4 are the banner, row 6 is the name prompt, dialogue starts on row 7. | CONFIRMED | [3] (pixel measurement) |
 | Real-VGA geometry | On real VGA hardware, 80x25 is 720x400 with a 9x16 cell. CP437 0xC0-0xDF repeat column 8 into column 9, so box lines stay continuous. DOSBox screenshots use 8-pixel cells. | CONFIRMED (hardware) | [12] |
 | Hercules variant | Monochrome adapter: 640x350, white on black, with the same banner and layout. | CONFIRMED | [4] |
-| 40-column mode | `.WIDTH  40 or 80 - set to 40 column screen or 80 column screen`, with a compact banner (`DR S B A I T S O`, `(c)Copyright Creative Labs,Inc.1992`). | CONFIRMED (strings) / appearance UNVERIFIED | [3] |
+| 40-column mode | `.WIDTH  40 or 80 - set to 40 column screen or 80 column screen`, with a compact banner (`DR S B A I T S O`, `(c)Copyright Creative Labs,Inc.1992`). `.WIDTH 40` clears the screen and draws a two-line double-width banner with the same colors. | CONFIRMED (strings); appearance CONFIRMED (DOSBox) | [3][04] |
 | Background change | `.COLOR c` sets the background color number, 0-7. The error message reads `Color number must be between 0 - 7`. | CONFIRMED (strings) | [3] |
 
 ### Colors actually used (pixel-sampled from the v2.20 VGA screenshots)
@@ -69,7 +73,9 @@ Primary evidence used:
 | Doctor's lines | 15 White | `#FFFFFF` | CONFIRMED | [3] |
 | Input prompt `>` | 14 Yellow | `#FFFF55` | CONFIRMED | [3] |
 | Cursor | 15 White (the cell's fg) | `#FFFFFF` | CONFIRMED | [3] |
-| User's typed text | probably White | `#FFFFFF` | UNVERIFIED (no screenshot shows typed input) | - |
+| User's typed text (conversation) | 14 Yellow, the whole `>text` line | `#FFFF55` | CONFIRMED (DOSBox) | [04] |
+| Name typed at the name prompt | 15 White, case kept as typed | `#FFFFFF` | CONFIRMED (DOSBox) | [04] |
+| `.PROMPT ON` labels | `User> ` + input yellow; `Computer: ` + reply white | - | CONFIRMED (DOSBox) | [04] |
 
 The only colors that appear in any of the VGA frames are #0000AA, #FFFFFF, #55FF55 and #FFFF55.
 No light gray (#AAAAAA) is used.
@@ -137,21 +143,21 @@ CONFIRMED [3]. Column counts in the sketch above are approximate; use the measur
 
 | Step | What appears | Status | Source |
 |---|---|---|---|
-| 0 | Launched by `SBAITSO2.BAT`, which loads the `SBTALKER` TSR, then runs `SBAITSO2`, then `REMOVE`. There is no splash or logo screen beyond the banner. | CONFIRMED (bat); "no splash" LIKELY | [3] |
+| 0 | Launched by `SBAITSO2.BAT`, which loads the `SBTALKER` TSR, then runs `SBAITSO2`, then `REMOVE`. There is no splash or logo screen beyond the banner. The banner is drawn at once; with only the banner showing, the program says "Doctor Sbaitso" and then "by Creative Labs". | CONFIRMED (bat); no splash and startup speech CONFIRMED (DOSBox) | [3][04] |
 | 1 | The screen clears to blue and the 5-row banner is drawn. Frame captured with only the banner showing. | CONFIRMED | [2] |
-| 2 | Row 6, column 0: `Please enter your name ...` in white. The cursor waits after the ellipsis on the same line (typing starts around column 27). | prompt CONFIRMED; inline position LIKELY | [3][5] |
+| 2 | Row 6, column 0: `Please enter your name ...` in white, printed after the startup speech and then spoken. The name is typed inline from column 26, directly after the ellipsis, in white. No cursor is shown during name entry. | prompt CONFIRMED; inline position CONFIRMED (DOSBox) | [3][5][04] |
 | 2a | The name is validated with on-screen messages `(name too long)` / `NAME TOO LONG` and `Enter alphabets only`. | CONFIRMED (strings) | [3] |
-| 2b | Each letter typed in the name is spoken individually. | LIKELY (second-hand) | [13] |
+| 2b | Each letter typed in the name is echoed, then spoken individually (about 0.2 s per letter). | CONFIRMED (DOSBox) | [13][04] |
 | 2c | Without SBTALKER, `SBTALKER - text to speech synthesizer Not installed.` is printed. In the No-Voice frame it is partly overwritten by the name prompt. | CONFIRMED | [5][3] |
 | 3 | The greeting appears line by line below the prompt. Exact layout (rows 7-14, column 1; `·` marks the indent space):<br>`·HELLO <NAME>,  MY NAME IS DOCTOR SBAITSO.`<br>(blank)<br>`·I AM HERE TO HELP YOU.`<br>`·SAY WHATEVER IS IN YOUR MIND FREELY,`<br>`·OUR CONVERSATION WILL BE KEPT IN STRICT CONFIDENCE.`<br>`·MEMORY CONTENTS WILL BE WIPED OFF AFTER YOU LEAVE,`<br>(blank)<br>`·SO, TELL ME ABOUT YOUR PROBLEMS.` | CONFIRMED | [3] |
-| 3a | Successive screenshots add one whole sentence per frame (00 to 06). This is consistent with print-a-line, speak-it, print-the-next. Whether characters within a line appear one at a time is not shown. | per-line CONFIRMED; per-char UNVERIFIED | [3] |
+| 3a | Successive screenshots add one whole sentence per frame (00 to 06). Each line appears whole in one video frame. Its speech starts about 0.1 s later, and the next line is printed about 0.1 s after that speech ends. There is no per-character reveal. A keypress cuts the speech short; the remaining lines then print unspoken. | per-line CONFIRMED; whole-line reveal CONFIRMED (DOSBox) | [3][04] |
 | 3b | Note the **two spaces after the comma** in `HELLO <NAME>,  MY NAME`. The literal strings are `" HELLO "` and `",  MY NAME IS DOCTOR SBAITSO."`. The MEMORY line ends with a comma, not a period. | CONFIRMED | [3] |
 | 4 | Blank line, then `>` in yellow at column 0 with the white underline cursor right after it (row 16). | CONFIRMED | [3] |
-| 5 | Ongoing dialogue continues downward in the same white-on-blue style. Doctor replies are uppercase. | uppercase CONFIRMED [3][7]; spacing between turns UNVERIFIED | [3][7] |
-| 6 | Scrolling: once text reaches row 24, the DOS screen scrolls up. Whether the banner stays pinned (a Turbo C `window()`-style region) or scrolls away is not shown in any capture. | UNVERIFIED | - |
-| 7 | Optional speaker labels: the strings `User> ` and `Computer: ` and the `.PROMPT ON` / `.PROMPT OFF` commands exist. A visible labeled-transcript mode is LIKELY; its exact look is UNVERIFIED. | strings CONFIRMED | [3] |
+| 5 | Ongoing dialogue continues downward in the same white-on-blue style. Doctor replies are uppercase. Each turn is: the yellow `>text` line, the reply on the next row at column 0 (no indent), a blank row, then the next `>`. Exceptions: no blank row after an age question; `R` prints nothing and the new `>` follows directly. | uppercase CONFIRMED [3][7]; spacing CONFIRMED (DOSBox) | [3][7][04] |
+| 6 | Scrolling: the banner stays pinned. Only rows 5-23 scroll, and row 24 is never written. HELP page 1 is the only screen that removes the banner. | CONFIRMED (DOSBox) | [04] |
+| 7 | Optional speaker labels: `.PROMPT ON` turns the prompt into yellow `User> ` and prefixes replies with white `Computer: `. `.PROMPT OFF` prints an empty `Computer:` line and goes back to `>`. | strings CONFIRMED; look CONFIRMED (DOSBox) | [3][04] |
 | 8 | HELP text is mixed case. It begins `Dot Commands are preceeded with a dot on the first column` (original spelling), and pages via `Hit <M> now for More HELPs`. In 40 columns: `NO HELP FOR 40 COLUMNS. TRY:  .WIDTH 80`. | CONFIRMED (strings) | [3] |
-| 9 | Exit: `GOOD BYE` / `"GOOD BYE <NAME>, AND HAVE A NICE DAY"`, then the menu `<C>ontinue  <N>ew patient  <Q>uit  .....`. | CONFIRMED (strings); on-screen position UNVERIFIED | [3] |
+| 9 | Exit: a goodbye line (`GOOD BYE, SO LONG!` for BYE, `GOOD BYE <NAME>` for `.QUIT`) is printed and spoken. On the very next row (no blank row), the white menu `<C>ontinue  <N>ew patient  <Q>uit  .....` appears at column 0, with no cursor. C: one blank row, then `>`. N: rows 5-24 are cleared and the name prompt is shown again on row 6. Q: exits to DOS with rows 5-24 cleared to black; the banner stays on screen. | CONFIRMED (strings); position and keys CONFIRMED (DOSBox) | [3][04] |
 
 ---
 
@@ -159,13 +165,13 @@ CONFIRMED [3]. Column counts in the sketch above are approximate; use the measur
 
 | Effect | Finding | Status | Source |
 |---|---|---|---|
-| Speaking indicator | No graphic or icon. The only "indicator" is that the line is on screen and no `>` prompt shows until speech ends (the prompt appears only after the greeting finished, frame 08). | LIKELY | [3] |
-| Cursor | Hardware text cursor: a 1-scanline underline on scanline 14 of the 16-line cell, white, blinking (visible in VGA frame 08, absent in No-Voice frame 03). | CONFIRMED (shape); blink LIKELY | [3][5] |
-| Cursor blink rate | VGA hardware toggles the cursor every 16 vertical frames and software cannot change it. At 70 Hz text-mode refresh that is about 229 ms on / 229 ms off. | LIKELY (rate from FreeVGA, quoted via search) | [14][12] |
+| Speaking indicator | No graphic or icon. The line is on screen, and neither the `>` prompt nor the cursor shows until the speech ends. The prompt appears within about 0.1 s of the end of the speech. | CONFIRMED (DOSBox) | [3][04] |
+| Cursor | Hardware text cursor: a 1-scanline underline on scanline 14 (0-based) of the 16-line cell, white, blinking. It is shown only while waiting at `>`; it is hidden during name entry, while the doctor speaks, and at the C/N/Q menu. | CONFIRMED (DOSBox) | [3][5][04] |
+| Cursor blink rate | Measured in DOSBox-X: 8 frames on / 8 frames off at 70.086 Hz = **114 ms on / 114 ms off** (228 ms period). The earlier figure (229 ms per phase, from FreeVGA quoted via search) was a full cycle, not a phase. Real hardware was not measured. | CONFIRMED (DOSBox) | [14][12][04] |
 | Parity glitch text | On-screen strings: `PARITY ERR ... `, `PARITY ERR ... RECOVERED`, `PHEW!   THAT WAS CLOSE!`, `YOU ARE BAD`, `DON'T TRY IT NEXT TIME.`. In-reply variants include `PARITY WARNING....` and `1 + 1 = 3 ~, PARITY .. CHECKSUM ERR? ..`, which carry garbage characters such as `SHZSHI!${~?` and `FZA!$[{?`. | CONFIRMED (strings) | [3] |
-| Parity colors/clear | No capture shows whether the glitch changes color, clears the screen or blinks. Wikipedia describes a breakdown into "PARITY ERROR" followed by a reset. | UNVERIFIED (visual) | [1] |
+| Parity colors/clear | There is no color change, screen clear or blinking. The region below the (pinned) banner floods with white `PARITY ERR ...  <random number>` lines: about 250 lines in about 3.5 s, the later ones ending in `  ???`. Then `PARITY ERR ... RECOVERED`, a literal `PARITY` line, a blank row and `>`. About 4 s of falling tone plays throughout. `PHEW!` / `YOU ARE BAD` were not shown. Seen with both `SAY PARITY` and repeated profanity. | CONFIRMED (DOSBox) | [1][04] |
 | `PARITY CHECKING` / `IRQ CONFLICT` | Neither string appears in v2.10 or v2.20 `SBAITSO2.EXE`. | CONFIRMED absent | [3][6] |
-| ASCII art / logo | None beyond the box-drawn banner. | LIKELY | [2][3] |
+| ASCII art / logo | None beyond the box-drawn banner (and the HELP page title's double underline). | CONFIRMED (DOSBox) | [2][3][04] |
 
 ---
 
@@ -232,17 +238,20 @@ Each gap lists the files involved, followed by the fix.
 8. **Prompt and user colors.**
    - `text-yellow-300` (Tailwind ~#FDE047) is not a DOS color; the `>` should be exactly
      `#FFFF55`.
-   - The user's echoed text is rendered yellow. The original most likely used white
-     (UNVERIFIED), so keep yellow only for the `>`.
-   - Add a blank line before each `>` prompt, as in frame 08.
+   - The user's echoed text is rendered yellow. That is faithful: the original prints the
+     whole `>text` line in #FFFF55. The name typed at the name prompt is white. CONFIRMED
+     (DOSBox) [04].
+   - Add a blank line before each `>` prompt, as in frame 08. Put doctor replies at column 0;
+     only the greeting lines are indented [04].
 9. **Cursor.**
    - The browser caret and the `animate-pulse` `_` (a smooth fade) are wrong.
    - Fix: hide the native caret (`caret-color: transparent`) and draw a 1-scanline-high white
      bar at the bottom of the cell (scanline 14 of 16). Blink it hard on/off with
-     `animation: blink 458ms steps(1) infinite` (about 229 ms per phase).
+     `animation: blink 228ms steps(1) infinite` (about 114 ms per phase, measured in DOSBox-X
+     [04]). Hide it while the doctor is speaking.
 10. **Text reveal speed.**
     - `TYPING_DELAY_MS = 40` per character with a smooth typewriter is not attested.
-    - The evidence shows whole lines appearing in step with speech (LIKELY), not a typewriter.
+    - Whole lines appear in step with speech, not as a typewriter. CONFIRMED (DOSBox) [04].
     - Recommended default: print each line or sentence instantly, then speak it; print the next
       after the audio ends. Keep per-character reveal as an option.
     - Per-character echo of user typing is native DOS behavior and is fine.
@@ -292,7 +301,7 @@ html, body { background:#000; }                 /* overscan */
 .dos-prompt::before { content: '>'; color: var(--dos-yellow); }
 .dos-cursor { display:inline-block; width:1ch; height:16px;
   background: linear-gradient(transparent 14px, currentColor 14px 15px, transparent 15px);
-  animation: dos-blink 458ms steps(1) infinite; }
+  animation: dos-blink 228ms steps(1) infinite; }  /* 114 ms on / 114 ms off [04] */
 @keyframes dos-blink { 50% { visibility: hidden; } }
 ```
 
@@ -316,10 +325,13 @@ html, body { background:#000; }                 /* overscan */
 14. FreeVGA, "Manipulating the Text-mode Cursor" (blink every 16 frames; page TLS certificate expired, content seen via search index) - http://www.osdever.net/FreeVGA/vga/textcur.htm
 15. deckarep, DrSbaitsoUi (Zig/Raylib recreation; notes the original was a Turbo C DOS program) - https://github.com/deckarep/DrSbaitsoUi
 
+[04] `04-dosbox-verification.md` - the original v2.20 run inside DOSBox-X 2026.08.31, with
+frame-exact OCR and audio timing (2026-10-02).
+
 ### Open items for a live run
 
-Running the original v2.20 in DOSBox would settle the remaining UNVERIFIED points: the color of
-the user's typed text, per-character versus per-line reveal, whether the banner stays pinned
-while scrolling, what the parity glitch looks like on screen, where the exit menu appears, and
-what `.PROMPT ON` and `.WIDTH 40` look like. DOSBox Staging and DOSBox-X are installed locally as
-flatpaks. Executing the archived binary was intentionally not done in this research pass.
+This has since been done. The original v2.20 was run inside DOSBox-X (only there), and the
+results are in `04-dosbox-verification.md` (referenced above as [04]). It settled all of these
+points: the color of the user's typed text, per-character versus per-line reveal, the pinned
+banner and scrolling, the parity glitch on screen, the exit menu, and the look of `.PROMPT ON`
+and `.WIDTH 40`. 04 lists what remains open.
