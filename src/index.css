@@ -288,6 +288,11 @@ input[type='button'],
 .reduce-motion .dos-cursor {
   animation: none;
 }
+@media (prefers-reduced-motion: reduce) {
+  .dos-cursor {
+    animation: none;
+  }
+}
 
 /* The real input is invisible but focused, so typing, mobile keyboards and
    screen readers work; what it holds is drawn on the DOS screen. */

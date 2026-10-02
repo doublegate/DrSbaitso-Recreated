@@ -50,6 +50,11 @@ describe('cursor blink (ref-docs/04: 114 ms on, 114 ms off)', () => {
     const rule = /\.dos-cursor\s*\{[^}]*\}/.exec(css)?.[0] ?? '';
     expect(rule).toMatch(/animation:\s*dos-blink\s+228ms\s+steps\(1,\s*end\)\s+infinite/);
   });
+
+  it('stops blinking when the system asks for reduced motion, not only via the in-app setting', () => {
+    const css = readFileSync(resolve(__dirname, '../../src/index.css'), 'utf8');
+    expect(css).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{\s*\.dos-cursor\s*\{\s*animation:\s*none/);
+  });
 });
 
 describe('integerScale', () => {
