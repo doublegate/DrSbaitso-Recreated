@@ -11,6 +11,7 @@ import { useScreenReader } from './hooks/useScreenReader';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useFocusTrap } from './hooks/useFocusTrap';
+import { useSessionHistory } from './hooks/useSessionHistory';
 import { applyThemeVariables } from './utils/themeVariables';
 import { matchShortcut, shortcutLabel, type ShortcutId } from './utils/shortcuts';
 import { useSoundEffects } from './hooks/useSoundEffects';
@@ -75,7 +76,6 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   const [showConversationSearch, setShowConversationSearch] = useState(false);
   const [showAudioVisualizer, setShowAudioVisualizer] = useState(false);
   const [customThemes, setCustomThemes] = useState<CustomTheme[]>([]);
-  const [savedSessions, setSavedSessions] = useState<ConversationSession[]>([]);
 
   // v1.6.0 Feature states
   const [showAdvancedExport, setShowAdvancedExport] = useState(false);
@@ -95,6 +95,13 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   });
   const [showInsights, setShowInsights] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('dos-blue');
+
+  // Conversation history is opt-in (the greeting promises memory is wiped).
+  const { keepHistory, setKeepHistory, currentSession, savedSessions } = useSessionHistory(messages, {
+    characterId,
+    themeId: currentTheme,
+    audioQualityId: audioMode,
+  });
 
   // Keep the --color-* CSS variables in step with the active theme.
   useEffect(() => {
@@ -505,6 +512,18 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
                   </option>
                 ))}
               </select>
+              <label
+                className="flex items-center gap-1 text-sm ml-2"
+                title="Off by default: memory contents are wiped when you leave. Turn on to keep sessions in this browser for search, replay and insights."
+              >
+                <input
+                  type="checkbox"
+                  checked={keepHistory}
+                  onChange={(e) => setKeepHistory(e.target.checked)}
+                  className="accent-yellow-300"
+                />
+                SAVE HISTORY
+              </label>
             </div>
 
             {/* v1.5.0 & v1.6.0 Feature Buttons */}
@@ -825,7 +844,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
             onClose={() => setShowAdvancedExport(false)}
             sessions={savedSessions}
             themes={customThemes}
-            currentSession={savedSessions[0]} // Use most recent session as current
+            currentSession={currentSession ?? undefined}
           />
         </Suspense>
       )}

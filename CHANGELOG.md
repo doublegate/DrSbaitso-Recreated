@@ -31,6 +31,11 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   and a hard-blinking underline cursor. The previous interface remains available
   as **Enhanced mode** (Alt+Shift+X, or `?mode=enhanced`). Screen readers get a
   transcript and a labelled input. Details: `ref-docs/03-screen-and-ui.md`.
+- **Opt-in session history** (Enhanced mode: "SAVE HISTORY"). It is off by default,
+  honouring the greeting's "MEMORY CONTENTS WILL BE WIPED OFF". When on,
+  conversations are saved in this browser, which feeds search, replay and insights;
+  turning it off erases them. Before this, nothing was ever saved, so those panels
+  were always empty. Export now always works on the current conversation.
 - `LICENSE` (MIT; the README had always claimed MIT, but there was no licence file)
   and `THIRD_PARTY_NOTICES.md` (the bundled CC BY-SA 4.0 font).
 - `ref-docs/`: sourced research on the original program.

@@ -50,7 +50,7 @@ Byte's patents). Everything else is a factual correction to make either way.
 - [ ] Name entry: letters and spaces only, a length limit, each letter spoken as it is
       typed, and "Doctor Sbaitso" spoken first.
 - [ ] Exit: `BYE` → `GOOD BYE` → `<C>ontinue <N>ew patient <Q>uit`.
-- [ ] Opt-in "Keep session history" setting (off by default).
+- [x] Opt-in "Keep session history" setting (off by default), shipped as "SAVE HISTORY" in Enhanced mode.
 
 ## Screen (decided: classic default + enhanced toggle)
 
