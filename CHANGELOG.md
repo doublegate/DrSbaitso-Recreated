@@ -58,6 +58,15 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   conversations are saved in this browser, which feeds search, replay and insights;
   turning it off erases them. Before this, nothing was ever saved, so those panels
   were always empty. Export now always works on the current conversation.
+- **Personas answer through their engines in Enhanced mode**
+  (`src/engine/personaTurn.ts`). ELIZA replies entirely offline from the 1965
+  script. JOSHUA starts at `LOGON:` and plays its games locally. HAL handles the
+  pod bay doors and the shutdown himself. PARRY's engine decides each move and
+  the model only phrases it, with a written fallback line if the call fails. Open
+  conversation goes to the model with each engine's session line. Boards and lists
+  are printed but not spoken, and long printouts scroll at terminal speed. Clear
+  conversation resets the persona's engine. Dr. Sbaitso's engine still drives only
+  the classic screen.
 - **Enhanced mode layout.** The row of about twenty unlabelled emoji buttons is
   replaced by four labelled menus (CONVERSATION, VISUALS, SOUND, SETTINGS), each item
   showing its keyboard shortcut, plus a CLASSIC button. The menus support Escape,
@@ -98,7 +107,7 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   the NONE fallback. It reproduces, line for line, the original program running this
   script on emulated CTSS. Output is ALL CAPS with no `?`. The 1966 CACM script is
   still under ACM copyright and is not shipped (`THIRD_PARTY_NOTICES.md`). Pure
-  functions; not yet wired into the UI.
+  functions; ELIZA in Enhanced mode now answers through it.
 - **Local PARRY engine** (`src/engine/parry/`), the hybrid design from
   `ref-docs/06-parry.md`: a pure engine owns Colby's Fear/Anger/Mistrust/Hurt
   state (published rise and decay equations, WEAK/MILD/STRONG versions), the
@@ -108,7 +117,7 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   `buildParryPrompt` asks Gemini to phrase exactly one line for that decision from
   a fixed persona, and a newly written line bank covers offline use. Seeded and
   deterministic; reimplemented from the papers, nothing taken from the unlicensed
-  source. Not yet wired into the UI.
+  source. Wired into Enhanced mode.
 - **Local JOSHUA/WOPR engine** (`src/engine/joshua/`), the same hybrid design for the
   Enhanced-mode persona (`ref-docs/08`): a `LOGON:` prompt that greets any logon
   (the backdoor word is `JOSHUA`) with "GREETINGS, PROFESSOR FALKEN." and "SHALL WE
@@ -118,15 +127,15 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   which JOSHUA plays itself to a draw every time, runs the war scenarios, reaches the
   film's conclusion and offers chess. That lesson sets `learnedFutility`, which is
   sent to the model with every turn so the conclusion cannot appear earlier. Pure
-  and seeded; not yet wired into the UI.
+  and seeded; wired into Enhanced mode.
 - **Local HAL 9000 layer** (`src/engine/hal/`, `ref-docs/07`): a one-per-session
   pod-bay-door refusal ("I'm sorry, <name>. I'm afraid I can't do that."),
   increasingly gentle "I'm sorry, <name>" refusals of requests to disconnect or shut
   HAL down, and on the third such request a `shutdown` ending: a calm plea, "I'm
   afraid", the regression to HAL's first-day greeting and the public-domain "Daisy
   Bell" (1892), with the index at which to start the slow-down effect. Everything
-  else goes to the model with the user's name and the attempt count. Not yet wired
-  into the UI.
+  else goes to the model with the user's name and the attempt count. Wired into
+  Enhanced mode.
 
 ### Fixed
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The

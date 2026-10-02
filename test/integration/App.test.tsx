@@ -184,15 +184,14 @@ describe('Enhanced mode personas', () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it('sends replies to the persona chosen in the selector', async () => {
-    const user = userEvent.setup();
+  async function reachChatAs(user: ReturnType<typeof userEvent.setup>, name: string) {
     render(
       <ErrorBoundary>
         <App />
       </ErrorBoundary>,
     );
-    await user.type(await screen.findByPlaceholderText('TYPE NAME AND PRESS ENTER'), 'DAVE{Enter}');
-    const input = await waitFor(
+    await user.type(await screen.findByPlaceholderText('TYPE NAME AND PRESS ENTER'), `${name}{Enter}`);
+    return waitFor(
       () => {
         const el = document.getElementById('chat-input') as HTMLInputElement | null;
         expect(el && !el.disabled).toBe(true);
@@ -200,11 +199,30 @@ describe('Enhanced mode personas', () => {
       },
       { timeout: 15_000 },
     );
+  }
+
+  it('sends open conversation to the chosen persona, with its engine session tag', async () => {
+    const user = userEvent.setup();
+    const input = await reachChatAs(user, 'DAVE');
     await user.selectOptions(screen.getByLabelText('PERSONA:'), 'hal9000');
     expect(screen.getByText('--- NOW TALKING TO HAL 9000 ---')).toBeInTheDocument();
-    await user.type(input, 'open the doors{Enter}');
+    await user.type(input, 'how is the mission going{Enter}');
     await screen.findByText('I AM AFRAID I CANNOT DO THAT.', { selector: 'p' }, { timeout: 10_000 });
-    const chatCall = fetchMock.mock.calls.find(([url, init]) => url === '/api/chat' && init.body.includes('open the doors'));
-    expect(JSON.parse(chatCall![1].body).characterId).toBe('hal9000');
+    const chatCall = fetchMock.mock.calls.find(([url, init]) => url === '/api/chat' && init.body.includes('how is the mission going'));
+    const body = JSON.parse(chatCall![1].body);
+    expect(body.characterId).toBe('hal9000');
+    expect(body.message).toContain("CREW MEMBER'S NAME=Dave");
+  }, 40_000);
+
+  it('answers ELIZA locally from the 1965 script, without calling the model', async () => {
+    const user = userEvent.setup();
+    const input = await reachChatAs(user, 'ALICE');
+    await user.selectOptions(screen.getByLabelText('PERSONA:'), 'eliza');
+    expect(screen.getByText(/HOW DO YOU DO\. I AM THE DOCTOR/)).toBeInTheDocument();
+    fetchMock.mockClear();
+    await user.type(input, 'My mother hates me.{Enter}');
+    await waitFor(() => expect(document.getElementById('chat-input')).not.toBeDisabled(), { timeout: 15_000 });
+    expect(fetchMock.mock.calls.some(([url]) => url === '/api/chat')).toBe(false);
+    expect(screen.getAllByText(/YOUR MOTHER|FAMILY/).length).toBeGreaterThan(0);
   }, 40_000);
 });

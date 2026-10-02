@@ -12,6 +12,7 @@ import { useVoiceControl } from './hooks/useVoiceControl';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useFocusTrap } from './hooks/useFocusTrap';
 import MenuGroup from './components/enhanced/MenuGroup';
+import { hasStarted, personaOpening, personaTurn, resetPersona, type PersonaEngines } from './engine/personaTurn';
 import { useSessionHistory } from './hooks/useSessionHistory';
 import { useThemeChoice } from './hooks/useThemeChoice';
 import { usePersona } from './hooks/usePersona';
@@ -45,16 +46,21 @@ const TopicFlowDiagram = lazy(() => import('./components/TopicFlowDiagram'));
 const ConversationTemplates = lazy(() => import('./components/ConversationTemplates'));
 
 const TYPING_DELAY_MS = 40;
+/** Replies longer than this are printouts and type at FAST_TYPING_DELAY_MS. */
+const LONG_PRINTOUT_CHARS = 400;
+const FAST_TYPING_DELAY_MS = 4;
 const GREETING_LINE_DELAY_MS = 800;
 const GLITCH_PHRASES = ['PARITY CHECKING', 'IRQ CONFLICT'];
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
  * Opening lines per persona. Dr. Sbaitso uses the original v2.20 greeting;
- * ELIZA uses the opener from Weizenbaum's published 1966 transcript. The
- * others are refined from ref-docs/07-08 research.
+ * personas with a local engine use its opener (ELIZA's 1965 script greeting,
+ * JOSHUA's LOGON prompt); the rest get a generic connection line.
  */
 function personaGreeting(personaId: string, personaName: string, userName: string): string[] {
+  const opening = personaOpening(personaId);
+  if (opening) return opening;
   switch (personaId) {
     case 'sbaitso':
       return [
@@ -67,8 +73,6 @@ function personaGreeting(personaId: string, personaName: string, userName: strin
         '',
         'SO, TELL ME ABOUT YOUR PROBLEMS.',
       ];
-    case 'eliza':
-      return ['HOW DO YOU DO.  PLEASE TELL ME YOUR PROBLEM.'];
     default:
       return [`HELLO ${userName}.`, `YOU ARE NOW CONNECTED TO ${personaName.toUpperCase()}.`];
   }
@@ -204,6 +208,9 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   // Guards one conversational turn at a time across async callers (typed input,
   // templates, voice) without depending on render-time state.
   const busyRef = useRef(false);
+  // Local engine state per persona (ELIZA, PARRY, HAL, JOSHUA); see engine/personaTurn.
+  const enginesRef = useRef<PersonaEngines>({});
+  const engineSeedRef = useRef(Date.now() >>> 0);
   // Lets in-flight async sequences (greeting, typewriter) stop after unmount.
   const unmountedRef = useRef(false);
   useEffect(() => {
@@ -243,7 +250,9 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
 
     // One TTS request for the whole greeting stays well inside rate limits.
     // Any failure degrades to a text-only session rather than blocking it.
-    const audio = await synthesizeSpeech(lines.filter((line) => line.trim()).join('. '), characterId, speechOptions).catch(
+    // JOSHUA's LOGON prompt is printed, never spoken.
+    const spokenGreeting = characterId === 'joshua' ? '' : lines.filter((line) => line.trim()).join('. ');
+    const audio = await (spokenGreeting ? synthesizeSpeech(spokenGreeting, characterId, speechOptions) : Promise.resolve('')).catch(
       (error) => {
         console.warn('Greeting speech unavailable; continuing text-only:', error);
         return '';
@@ -283,10 +292,29 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     soundEffects.playSound('message-send');
     setMessages((prev) => [...prev, { author: 'user', text: trimmed, timestamp: Date.now(), characterId }]);
 
+    // Personas with a local engine decide the turn first (engine/personaTurn).
+    const turn = personaTurn(characterId, enginesRef.current, trimmed, {
+      userName: userName ?? '',
+      seed: engineSeedRef.current,
+    });
+    enginesRef.current = turn.engines;
+    const plan = turn.plan;
+
     try {
+      if (plan.kind === 'ignore') return false;
       let reply: string;
       try {
-        reply = formatReply(await getAIResponse(trimmed, characterId, chatOptions));
+        if (plan.kind === 'local') {
+          reply = plan.lines.join('\n');
+        } else if (plan.kind === 'model') {
+          const options = plan.customCharacter ? { customCharacter: plan.customCharacter } : {};
+          reply = plan.finalize(await getAIResponse(plan.message, plan.historyKey, options).catch((error: unknown) => {
+            if (plan.fallback) return plan.fallback;
+            throw error;
+          }));
+        } else {
+          reply = formatReply(await getAIResponse(trimmed, characterId, chatOptions));
+        }
       } catch (error) {
         console.error('Reply failed:', error);
         soundEffects.playSound('error');
@@ -304,15 +332,19 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
         if (ctx) playGlitchSound(ctx);
       }
 
+      // What is spoken can differ from what is shown (JOSHUA's boards and lists).
+      const spokenText = plan.kind === 'local' ? plan.speak : reply;
       // Synthesis runs while the reply is typed out.
-      const audioPromise = (mutedRef.current ? Promise.resolve('') : synthesizeSpeech(reply, characterId, speechOptions)).catch((error) => {
+      const audioPromise = (mutedRef.current || !spokenText.trim() ? Promise.resolve('') : synthesizeSpeech(spokenText, characterId, speechOptions)).catch((error) => {
         console.warn('Reply speech unavailable; continuing text-only:', error);
         return '';
       });
 
       setMessages((prev) => [...prev, { author: 'dr', text: '', timestamp: Date.now(), characterId }]);
+      // Long printouts (JOSHUA's self-play lesson) scroll at terminal speed.
+      const typingDelay = reply.length > LONG_PRINTOUT_CHARS ? FAST_TYPING_DELAY_MS : TYPING_DELAY_MS;
       for (let i = 0; i < reply.length; i++) {
-        await sleep(TYPING_DELAY_MS);
+        await sleep(typingDelay);
         if (unmountedRef.current) return true;
         // Set the visible prefix rather than appending: the updater must be
         // pure, because React StrictMode invokes it twice.
@@ -324,7 +356,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       }
 
       try {
-        await speech.speak(await audioPromise, reply);
+        await speech.speak(await audioPromise, spokenText);
       } catch (error) {
         console.warn('Reply audio could not be played; the text is kept:', error);
       }
@@ -354,6 +386,8 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     setMessages([]);
     setUserInput('');
     resetChat(characterId); // the model forgets too, as the greeting promises
+    if (characterId === 'parry') resetChat('parry-engine');
+    enginesRef.current = resetPersona(enginesRef.current, characterId);
   };
 
   /**
@@ -369,6 +403,8 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       setMessages((prev) => [
         ...prev,
         { author: 'dr', text: `--- NOW TALKING TO ${next.name.toUpperCase()} ---`, timestamp: Date.now(), characterId: id },
+        // A persona with its own opener (JOSHUA's LOGON:) shows it on arrival.
+        ...(hasStarted(enginesRef.current, id) ? [] : (personaOpening(id) ?? [])).map((text) => ({ author: 'dr' as const, text, timestamp: Date.now(), characterId: id })),
       ]);
     }
     announce(`Now talking to ${next.name}`);

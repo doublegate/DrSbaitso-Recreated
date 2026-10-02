@@ -98,15 +98,16 @@ Voices and audio for HAL and JOSHUA are tracked separately (`ref-docs/09`).
 - [x] JOSHUA local engine (`src/engine/joshua/`): `LOGON:`, greeting as PROFESSOR
       FALKEN, `LIST GAMES` / `HELP GAMES`, GLOBAL THERMONUCLEAR WAR to chess offer to
       side menu, tic-tac-toe against the user, zero-player self-play lesson that sets
-      `learnedFutility`. (Engine done; UI integration pending.)
-- [ ] Wire `joshuaRespond` into `EnhancedApp.tsx`: start at `LOGON:`, send
-      `modelMessage` (not `message`) to the model, render boards in a monospace block.
+      `learnedFutility`.
+- [x] Wire `joshuaRespond` into `EnhancedApp.tsx` (via `engine/personaTurn.ts`):
+      starts at `LOGON:`, sends `modelMessage`, boards print in the monospace log.
 - [x] HAL local layer (`src/engine/hal/`): one pod-bay refusal per session,
       "I'm sorry, <name>" refusals of disconnect requests, and a `shutdown` ending
-      (plea, regression, "Daisy Bell") on the third request. (Engine done; UI
-      integration pending.)
-- [ ] Wire `halRespond` into `EnhancedApp.tsx`: send `modelMessage`, apply the
-      Eltro-style slow-down from `result.slowdownFrom`, disable input once offline.
+      (plea, regression, "Daisy Bell") on the third request.
+- [x] Wire `halRespond` into `EnhancedApp.tsx`: sends `modelMessage`; input is
+      ignored once offline.
+- [ ] Apply the Eltro-style slow-down to the shutdown speech from
+      `result.slowdownFrom` (needs the per-persona voice routes).
 - [ ] (Optional) Animate the self-play games from `result.games` instead of printing
       the summary lines at once.
 
