@@ -1,5 +1,5 @@
 /** Status bar: persistent display and privacy settings (audio mode, theme, saved history, mute). */
-import { AUDIO_MODES } from '../../constants';
+import { AUDIO_MODES, VOICE_PROFILES, type VoiceProfileId } from '../../constants';
 import type { AudioModeId } from '../../utils/audio';
 import { shortcutLabel } from '../../utils/shortcuts';
 
@@ -12,6 +12,10 @@ export interface StatusBarProps {
   keepHistory: boolean;
   onKeepHistoryChange: (keep: boolean) => void;
   muted: boolean;
+  /** Dr. Sbaitso's voice profile (shown only while he is the active persona). */
+  voiceProfile: VoiceProfileId;
+  onVoiceProfileChange: (id: VoiceProfileId) => void;
+  showVoiceProfile: boolean;
 }
 
 export default function StatusBar({
@@ -23,6 +27,9 @@ export default function StatusBar({
   keepHistory,
   onKeepHistoryChange,
   muted,
+  voiceProfile,
+  onVoiceProfileChange,
+  showVoiceProfile,
 }: StatusBarProps) {
   return (
     <footer className="shrink-0 mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" data-tour-id="audio-settings">
@@ -41,6 +48,22 @@ export default function StatusBar({
           ))}
         </select>
       </label>
+      {showVoiceProfile && (
+        <label className="flex items-center gap-1">
+          VOICE
+          <select
+            id="voice-profile-select"
+            value={voiceProfile}
+            onChange={(e) => onVoiceProfileChange(e.target.value as VoiceProfileId)}
+            className="enh-select"
+            aria-label="Voice profile"
+          >
+            {Object.values(VOICE_PROFILES).map((profile) => (
+              <option key={profile.id} value={profile.id}>{profile.label}</option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className="flex items-center gap-1">
         THEME
         <select

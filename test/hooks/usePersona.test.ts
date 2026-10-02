@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { usePersona, PERSONA_KEY, CUSTOM_CHARACTERS_KEY } from '@/hooks/usePersona';
+import { usePersona, PERSONA_KEY, CUSTOM_CHARACTERS_KEY, VOICE_PROFILE_KEY } from '@/hooks/usePersona';
 import type { CustomCharacter } from '@/types';
 
 const robo: CustomCharacter = {
@@ -89,5 +89,34 @@ describe('usePersona', () => {
     localStorage.setItem(CUSTOM_CHARACTERS_KEY, '{"not":"an array"}');
     const { result } = renderHook(() => usePersona());
     expect(result.current.customCharacters).toEqual([]);
+  });
+
+  describe('voice profile (ported from the AI Studio version)', () => {
+    it('defaults to the classic voice and sends no profile', () => {
+      const { result } = renderHook(() => usePersona());
+      expect(result.current.voiceProfile).toBe('classic');
+      expect(result.current.speechOptions).toEqual({});
+    });
+
+    it('sends the chosen profile for Dr. Sbaitso and remembers it', () => {
+      const { result } = renderHook(() => usePersona());
+      act(() => result.current.setVoiceProfile('deep'));
+      expect(result.current.speechOptions).toEqual({ voiceProfile: 'deep' });
+      expect(localStorage.getItem(VOICE_PROFILE_KEY)).toBe('deep');
+      expect(renderHook(() => usePersona()).result.current.voiceProfile).toBe('deep');
+    });
+
+    it('applies to Dr. Sbaitso only', () => {
+      const { result } = renderHook(() => usePersona());
+      act(() => result.current.setVoiceProfile('glitchy'));
+      act(() => result.current.selectPersona('hal9000'));
+      expect(result.current.speechOptions).toEqual({});
+      expect(result.current.voiceProfileApplies).toBe(false);
+    });
+
+    it('ignores an unknown stored profile', () => {
+      localStorage.setItem(VOICE_PROFILE_KEY, 'robotic');
+      expect(renderHook(() => usePersona()).result.current.voiceProfile).toBe('classic');
+    });
   });
 });

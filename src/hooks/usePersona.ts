@@ -5,11 +5,30 @@
  * their own instruction and voice prompt).
  */
 import { useState } from 'react';
-import { CHARACTERS, DEFAULT_CHARACTER, voiceProcessingFor, type VoiceProcessing } from '../constants';
+import {
+  CHARACTERS,
+  DEFAULT_CHARACTER,
+  DEFAULT_VOICE_PROFILE,
+  VOICE_PROFILES,
+  voiceProcessingFor,
+  type VoiceProcessing,
+  type VoiceProfileId,
+} from '../constants';
 import type { CustomCharacter } from '../types';
 
 export const PERSONA_KEY = 'sbaitso_persona';
 export const CUSTOM_CHARACTERS_KEY = 'customCharacters';
+/** Same key as the Google AI Studio version of the app, so a choice made there carries over. */
+export const VOICE_PROFILE_KEY = 'drSbaitsoVoice';
+
+function loadVoiceProfile(): VoiceProfileId {
+  try {
+    const stored = localStorage.getItem(VOICE_PROFILE_KEY);
+    return stored !== null && Object.hasOwn(VOICE_PROFILES, stored) ? (stored as VoiceProfileId) : DEFAULT_VOICE_PROFILE;
+  } catch {
+    return DEFAULT_VOICE_PROFILE;
+  }
+}
 
 export interface Persona {
   id: string;
@@ -53,6 +72,16 @@ export function usePersona() {
     }
   });
 
+  const [voiceProfile, setVoiceProfileState] = useState<VoiceProfileId>(loadVoiceProfile);
+  const setVoiceProfile = (id: VoiceProfileId) => {
+    setVoiceProfileState(id);
+    try {
+      localStorage.setItem(VOICE_PROFILE_KEY, id);
+    } catch {
+      // Storage unavailable: the choice lasts for this page only.
+    }
+  };
+
   const personas: Persona[] = [
     ...CHARACTERS.map((c) => ({ id: c.id, name: c.name, description: c.description, isCustom: false })),
     ...customCharacters.map((c) => ({ id: c.id, name: c.name, description: c.description, isCustom: true })),
@@ -85,7 +114,13 @@ export function usePersona() {
   };
 
   const chatOptions = custom ? { customCharacter: { name: custom.name, systemInstruction: custom.systemInstruction } } : {};
-  const speechOptions = custom ? { voicePrompt: custom.voicePrompt } : {};
+  // Voice profiles are Dr. Sbaitso's only (the server ignores them for other personas).
+  const voiceProfileApplies = persona.id === 'sbaitso';
+  const speechOptions = custom
+    ? { voicePrompt: custom.voicePrompt }
+    : voiceProfileApplies && voiceProfile !== DEFAULT_VOICE_PROFILE
+      ? { voiceProfile }
+      : {};
   /** Playback processing route: pass to useSpeechPlayer's speak(). Custom characters keep the Sbaitso chain. */
   const voiceProcessing: VoiceProcessing = custom ? 'sbaitso' : voiceProcessingFor(persona.id);
 
@@ -106,6 +141,9 @@ export function usePersona() {
     chatOptions,
     speechOptions,
     voiceProcessing,
+    voiceProfile,
+    setVoiceProfile,
+    voiceProfileApplies,
     formatReply,
   };
 }

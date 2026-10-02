@@ -229,6 +229,20 @@ describe('Enhanced mode personas', () => {
     await waitFor(() => expect(played.mock.calls.map(([e]) => e)).toEqual(['character-switch', 'message-send', 'message-receive']));
   }, 40_000);
 
+  it("sends Dr. Sbaitso's chosen voice profile with his speech", async () => {
+    const user = userEvent.setup();
+    const input = await reachChatAs(user, 'ALICE');
+    await user.selectOptions(screen.getByLabelText('Voice profile'), 'deep');
+    await user.type(input, 'hello there{Enter}');
+    await screen.findByText('I AM AFRAID I CANNOT DO THAT.', { selector: 'p' }, { timeout: 10_000 });
+    await waitFor(() => {
+      const tts = fetchMock.mock.calls.filter(([url]) => url === '/api/tts');
+      expect(JSON.parse(tts.at(-1)![1].body).voiceProfile).toBe('deep');
+    });
+    await user.selectOptions(screen.getByLabelText('PERSONA:'), 'hal9000');
+    expect(screen.queryByLabelText('Voice profile')).toBeNull();
+  }, 40_000);
+
   it('answers ELIZA locally from the 1965 script, without calling the model', async () => {
     const user = userEvent.setup();
     const input = await reachChatAs(user, 'ALICE');

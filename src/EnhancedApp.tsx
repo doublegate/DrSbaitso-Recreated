@@ -239,6 +239,9 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
             keepHistory={keepHistory}
             onKeepHistoryChange={setKeepHistory}
             muted={muted}
+            voiceProfile={personaState.voiceProfile}
+            onVoiceProfileChange={personaState.setVoiceProfile}
+            showVoiceProfile={personaState.voiceProfileApplies}
           />
         </div>
       </main>
