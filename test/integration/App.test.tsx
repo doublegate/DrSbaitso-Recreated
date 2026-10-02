@@ -1,12 +1,12 @@
 /**
- * App-level regression tests for the user path that was broken in
+ * Enhanced-mode App regression tests for the user path that was broken in
  * production: enter a name, hear the greeting, reach the chat prompt.
  */
 import { StrictMode } from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import App from '@/App';
+import App from '@/EnhancedApp';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // 4 bytes = 2 silent PCM16 samples.

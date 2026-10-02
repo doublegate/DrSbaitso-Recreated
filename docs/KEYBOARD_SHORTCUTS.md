@@ -12,7 +12,8 @@ buttons show their shortcut in their tooltip and accessible label.
 
 | Shortcut | Action |
 |---|---|
-| Alt+Shift+A | Accessibility settings |
+| Alt+Shift+X | Switch between the classic screen and the enhanced UI |
+| Alt+Shift+A | Accessibility settings (enhanced UI) |
 | Alt+Shift+Q | Cycle audio quality mode (Modern, Subtle, Authentic, Ultra) |
 | Alt+Shift+I | Conversation insights |
 | Alt+Shift+H | Show the tutorial |

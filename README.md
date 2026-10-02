@@ -1,6 +1,6 @@
 # Dr. Sbaitso Recreated
 
-> The 1991 Sound Blaster "AI therapist", rebuilt for the web with Google Gemini for conversation and speech.
+> The Sound Blaster "AI therapist" from 1990-1992, rebuilt for the web with Google Gemini for conversation and speech.
 
 [![Live demo](https://img.shields.io/badge/demo-dr--sbaitso--recreated.vercel.app-000080)](https://dr-sbaitso-recreated.vercel.app)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
@@ -8,9 +8,15 @@
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)
 
 Type your name, and DOCTOR SBAITSO greets you in ALL CAPS with a crunchy, synthesised
-voice, then asks about your problems — just like the DOS original that shipped with
-Creative Labs sound cards. Four other classic computer personalities (ELIZA, HAL 9000,
-JOSHUA/WOPR and PARRY) are also built in.
+voice, then asks about your problems, just like the DOS program that shipped with
+Creative Labs sound cards.
+
+- **Classic mode** (the default) recreates the original v2.20 screen: an 80x25 DOS text
+  display in the IBM VGA font, with the box-drawn banner and the exact greeting and
+  prompts. It is based on [sourced research](ref-docs) into the original program.
+- **Enhanced mode** adds a modern toolbar and panels, plus four other classic computer
+  personalities: ELIZA, HAL 9000, JOSHUA/WOPR and PARRY. Switch modes with
+  **Alt+Shift+X**.
 
 **Try it:** <https://dr-sbaitso-recreated.vercel.app>
 
@@ -94,10 +100,18 @@ model overrides are listed in [`.env.example`](.env.example). See
 
 ## Credits
 
-The original Dr. Sbaitso was created by Creative Labs (1991) for MS-DOS and Sound
+The original Dr. Sbaitso was created by Creative Labs (1990-1992) for MS-DOS and Sound
 Blaster cards. This is an unofficial fan recreation and is not affiliated with Creative
 Technology. It started as a Google AI Studio app and is built with React, Vite and
 Google Gemini.
+
+IBM VGA font: [The Ultimate Oldschool PC Font Pack](https://int10h.org/oldschool-pc-fonts/)
+by VileR, CC BY-SA 4.0. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## License
+
+[MIT](LICENSE), except for the bundled third-party assets listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 <div align="center">
 

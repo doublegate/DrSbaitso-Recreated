@@ -23,6 +23,17 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - The bundle-analysis report is no longer written into `dist/` and published.
 
 ### Added
+- **Classic mode, now the default.** A faithful recreation of the original v2.20
+  screen: an 80x25 DOS text display in the IBM VGA 9x16 font, scaled by whole
+  numbers. It has the exact VGA palette, the box-drawn banner, and the inline
+  `Please enter your name ...` prompt with the original's letters-only name rule.
+  The greeting matches v2.20 wording and spacing, followed by a yellow `>` prompt
+  and a hard-blinking underline cursor. The previous interface remains available
+  as **Enhanced mode** (Alt+Shift+X, or `?mode=enhanced`). Screen readers get a
+  transcript and a labelled input. Details: `ref-docs/03-screen-and-ui.md`.
+- `LICENSE` (MIT; the README had always claimed MIT, but there was no licence file)
+  and `THIRD_PARTY_NOTICES.md` (the bundled CC BY-SA 4.0 font).
+- `ref-docs/`: sourced research on the original program.
 - **Model fallback.** When a model is overloaded (503), out of quota (429) or slow,
   the proxy tries the next one within a 50-second budget. The defaults are
   `gemini-3.8-flash` (then 3.7, 3.5, flash-latest) for chat and `gemini-3.8-flash-tts`

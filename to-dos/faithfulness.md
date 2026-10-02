@@ -2,8 +2,20 @@
 
 Findings from `ref-docs/` (sourced from the v1.01 `SBAITSO.EXE` and v2.20 `SBAITSO2.EXE`
 binaries on archive.org, Creative's `SBTALKER.EXE` measured under emulation, and First
-Byte's patents). Items marked **[decision]** wait on the owner's choice. Everything
-else is a factual correction to make either way.
+Byte's patents). Everything else is a factual correction to make either way.
+
+## Owner decisions (2026-10-02)
+
+| Topic | Decision |
+|---|---|
+| Screen | **Classic 80x25 screen by default**, plus an "Enhanced" toggle that restores the toolbar, panels and modern extras |
+| Engine | **Hybrid**: a local parser for the original commands and deterministic cases (empty, repeated and garbage input, profanity, the parity sequence, the exit flow); Gemini for open conversation, with a prompt in the original's register |
+| Sessions | **Opt-in** "Keep session history" (off by default, honouring "MEMORY CONTENTS WILL BE WIPED OFF") |
+| Voice | **Measured pipeline plus pitch flattening (LPC) in this release** |
+| License | **MIT** |
+| Verification | Run the archived original **inside DOSBox only**; captures stay in the scratchpad, never committed |
+| Personas | Classic is Dr. Sbaitso only; **the persona selector lives in Enhanced mode** |
+| Font | **Bundle the IBM VGA web font** (VileR, CC BY-SA 4.0) with its licence and credit |
 
 ## Facts to correct (no decision needed)
 
@@ -26,7 +38,7 @@ else is a factual correction to make either way.
 - [ ] Check whether Gemini honours `speechMetadata.style` in `generateContent` (A/B test
       with an extreme style). If it doesn't, the voice styles do nothing.
 
-## Behaviour [decision]
+## Behaviour (decided: hybrid engine)
 
 - [ ] Local command parser before the model: `HELP` (3 pages), `R` (repeat), `SAY`,
       `CALC`, `AUTHOR`, `SHUT UP`, and dot commands such as `.PITCH 0-9`, `.SPEED`,
@@ -38,23 +50,23 @@ else is a factual correction to make either way.
 - [ ] Name entry: letters and spaces only, a length limit, each letter spoken as it is
       typed, and "Doctor Sbaitso" spoken first.
 - [ ] Exit: `BYE` → `GOOD BYE` → `<C>ontinue <N>ew patient <Q>uit`.
-- [ ] Session saving vs. the greeting's promise that "MEMORY CONTENTS WILL BE WIPED OFF".
+- [ ] Opt-in "Keep session history" setting (off by default).
 
-## Screen [decision]
+## Screen (decided: classic default + enhanced toggle)
 
 - [ ] An 80x25 DOS text screen: `#0000AA` background, white text, `#FFFF55` prompt and
       title, a box-drawn banner, and the IBM VGA font (VileR, CC BY-SA 4.0, attribution
       required).
 - [ ] Mixed-case `Please enter your name ...` on row 6; one-space indent; text printed a
       line at a time, then spoken; blinking underline cursor.
-- [ ] Where the modern toolbar and panels live: a separate "enhanced" mode, a menu,
-      or kept as they are.
+- [ ] Enhanced-mode toggle that restores the toolbar, panels and persona selector.
 
-## Voice [decision]
+## Voice (decided: measured pipeline + LPC pitch flattening)
 
 - [ ] Vintage pipeline at 8,475 Hz unsigned 8-bit, 80 Hz-3.8 kHz band, a -8 dB high
       shelf, and sample-and-hold resampling.
 - [ ] Flattening pitch per syllable (LPC resynthesis): the biggest remaining gap, and
       the largest piece of work.
-- [ ] Optional "bring your own `SBTALKER.EXE`" emulation mode. The original engine
-      remains First Byte copyright, so it could never be bundled.
+- [ ] (Later, not this release) Optional "bring your own `SBTALKER.EXE`" emulation
+      mode. The original engine remains First Byte copyright, so it could never be
+      bundled.

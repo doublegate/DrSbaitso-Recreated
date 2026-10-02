@@ -33,3 +33,6 @@ reports/
 
 # Vitest 5 output directory
 .vitest/
+
+# Agent worktrees (Claude Code)
+.claude/worktrees/

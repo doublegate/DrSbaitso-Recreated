@@ -220,3 +220,90 @@ button, input[type="button"], .touch-target {
   width: auto;
   overflow: visible;
 }
+
+/* ------------------------------------------------------------------------
+   Classic mode: DOS 80x25 text screen (see ref-docs/03-screen-and-ui.md).
+   IBM VGA 9x16 font: The Ultimate Oldschool PC Font Pack by VileR,
+   CC BY-SA 4.0 (public/fonts/LICENSE-oldschool-pc-font-pack.txt).
+   ------------------------------------------------------------------------ */
+@font-face {
+  font-family: 'IBM VGA 9x16';
+  src: url('/fonts/Web437_IBM_VGA_9x16.woff') format('woff');
+  font-display: block;
+}
+
+.dos-overscan {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.dos-screen {
+  position: relative;
+  flex: none;
+  font-family: 'IBM VGA 9x16', monospace;
+  font-size: 16px;
+  line-height: 16px;
+  white-space: pre;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  text-rendering: optimizeSpeed;
+  transform-origin: center;
+  image-rendering: pixelated;
+  user-select: text;
+}
+
+.dos-row {
+  height: 16px;
+}
+
+/* DOS underline cursor: hard on/off blink (~229 ms on, ~229 ms off). */
+.dos-cursor {
+  position: absolute;
+  left: calc(var(--col) * 9px);
+  top: calc(var(--row) * 16px + 14px);
+  width: 9px;
+  height: 2px;
+  background: #ffffff;
+  animation: dos-blink 458ms steps(1, end) infinite;
+}
+
+@keyframes dos-blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.reduce-motion .dos-cursor {
+  animation: none;
+}
+
+/* The real input is invisible but focused, so typing, mobile keyboards and
+   screen readers work; what it holds is drawn on the DOS screen. */
+.dos-hidden-input {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  font-size: 16px; /* prevents iOS zoom on focus */
+  border: 0;
+  padding: 0;
+}
+
+.dos-mode-link:focus {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  padding: 4px 8px;
+  background: #000;
+  color: #ffff55;
+  font-family: 'IBM VGA 9x16', monospace;
+  border: 1px solid #ffff55;
+}
+

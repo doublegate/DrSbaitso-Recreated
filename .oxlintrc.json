@@ -54,7 +54,8 @@
     "reports",
     "node_modules",
     "public/**/*.js",
-    "docs"
+    "docs",
+    ".claude/**"
   ],
   "overrides": [
     {

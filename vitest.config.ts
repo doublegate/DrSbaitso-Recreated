@@ -9,7 +9,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './test/setup.ts',
     css: true,
-    exclude: ['node_modules', 'dist', 'build', 'e2e'],
+    // .claude/worktrees holds agent worktrees (full repo copies).
+    exclude: ['node_modules', 'dist', 'build', 'e2e', '.claude/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json-summary', 'html', 'lcov'],

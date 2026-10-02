@@ -20,7 +20,8 @@ export type ShortcutId =
   | 'voiceInput'
   | 'emotionViz'
   | 'topicDiagram'
-  | 'templates';
+  | 'templates'
+  | 'switchMode';
 
 export interface AppShortcut {
   id: ShortcutId;
@@ -40,6 +41,7 @@ export const APP_SHORTCUTS: readonly AppShortcut[] = [
   { id: 'emotionViz', code: 'KeyE', description: 'Emotion visualizer' },
   { id: 'topicDiagram', code: 'KeyT', description: 'Topic diagram' },
   { id: 'templates', code: 'KeyL', description: 'Conversation templates' },
+  { id: 'switchMode', code: 'KeyX', description: 'Switch between the classic screen and the enhanced UI' },
 ];
 
 export function matchShortcut(event: Pick<KeyboardEvent, 'code' | 'altKey' | 'shiftKey' | 'ctrlKey' | 'metaKey'>): ShortcutId | null {
