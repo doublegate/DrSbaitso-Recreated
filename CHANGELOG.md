@@ -144,6 +144,15 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   server Timestamp object with a number; both sides are now milliseconds. A new
   `CloudSyncPanel` wraps the settings UI and hook. Firebase stays a lazily loaded
   chunk (a test rejects static imports).
+- **Performance profiler.** Nothing loaded it, it logged every measurement to the
+  console, overlapping async calls of one method overwrote each other, and "Core
+  Web Vitals" covered only FCP and TTFB. Timings are now aggregated per name
+  (count, average, min, max) and mirrored to the User Timing API; the `profile`
+  decorator supports both legacy and standard decorators; LCP, CLS and INP are
+  observed with `PerformanceObserver`. Development builds load it automatically and
+  print a console report (`window.sbaitsoProfiler.report()` on demand); in
+  production, `?profile=1` enables it and adds a small on-screen vitals overlay. It
+  is a separate lazy chunk, absent from normal page loads.
 
 ### Changed
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
