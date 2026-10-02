@@ -2,11 +2,14 @@
  * CALC: a small arithmetic evaluator. A hand-written tokenizer and
  * recursive-descent parser; no `eval`, no `Function`.
  *
- * The original's strings are CONFIRMED (output label "Computer:", the phrase
- * "<a> divided by <b> equals to <c>", and the two error messages). Its exact
- * grammar is not: one level of brackets and the four operations are LIKELY.
+ * The original's strings are CONFIRMED (the phrase "<a> divided by <b> equals
+ * to <c>" and the two error messages). Its exact grammar is not: one level of
+ * brackets and the four operations are LIKELY. The printed format is CONFIRMED
+ * (DOSBox): `CALC 2+3` prints ` =  5`, `WHAT IS 12*4` prints `12*4 =  48`,
+ * unlabeled unless `.PROMPT ON` is set.
  */
 
+/** Label in front of every reply, CALC included, while `.PROMPT ON` is set. */
 export const CALC_LABEL = 'Computer: ';
 
 export const CALC_ERRORS = {
@@ -184,9 +187,30 @@ export function evaluateArithmetic(expr: string): CalcOutcome {
   }
 }
 
-/** CALC output: printed with the `Computer:` label, spoken without it. */
-export function calcReply(expr: string): { lines: string[]; speak: string[] } {
+/**
+ * A value as the original printed it after `=`: a leading space for a
+ * positive number, the minus sign in its place for a negative one (the BASIC
+ * STR$ convention, which the observed ` =  5` matches; the negative form is
+ * LIKELY).
+ */
+function printedValue(value: number): string {
+  return value < 0 ? `-${formatNumber(-value)}` : ` ${formatNumber(value)}`;
+}
+
+/** Remove trailing punctuation the user typed after an expression ("12*4?"). */
+const cleanExpression = (expr: string): string => expr.trim().replace(/[?!=.\s]+$/, '');
+
+/**
+ * CALC output. Printed as ` =  <value>`, or `<expression> =  <value>` when
+ * `echo` is set (the WHAT IS route); spoken in words. Errors are printed and
+ * spoken as the original's message.
+ */
+export function calcReply(expr: string, options: { echo?: boolean } = {}): { lines: string[]; speak: string[] } {
   const outcome = evaluateArithmetic(expr);
-  const text = outcome.ok ? outcome.text : CALC_ERRORS[outcome.error];
-  return { lines: [CALC_LABEL + text], speak: [text] };
+  if (!outcome.ok) {
+    const message = CALC_ERRORS[outcome.error];
+    return { lines: [message], speak: [message] };
+  }
+  const prefix = options.echo ? cleanExpression(expr) : '';
+  return { lines: [`${prefix} = ${printedValue(outcome.value)}`], speak: [outcome.text] };
 }

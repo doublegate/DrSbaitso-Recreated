@@ -86,7 +86,8 @@ describe('ClassicApp', () => {
     const user = userEvent.setup();
     const input = await startSession(user);
     await user.type(input, 'calc 6/3{Enter}');
-    await waitFor(() => expect(screenText()).toMatch(/EQUALS TO 2|equals to 2/i), { timeout: 15_000 });
+    await waitFor(() => expect(screenText()).toContain(' =  2'), { timeout: 15_000 });
+    expect(screenText()).not.toContain('Computer:');
     expect(chatCalls(fetchMock)).toHaveLength(0);
   }, 40_000);
 

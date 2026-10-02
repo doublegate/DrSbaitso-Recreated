@@ -140,16 +140,18 @@ describe('SAY', () => {
 });
 
 describe('CALC and WHAT IS arithmetic', () => {
-  it('evaluates CALC locally', () => {
+  it('evaluates CALC locally, printing " =  <value>" with no label', () => {
     expect(run(['calc 6/3']).last).toEqual({
       kind: 'reply',
-      lines: ['Computer: 6 divided by 3 equals to 2'],
+      lines: [' =  2'],
       speak: ['6 divided by 3 equals to 2'],
     });
+    expect(linesOf(run(['CALC 2+3']).last)).toEqual([' =  5']);
   });
 
-  it('evaluates WHAT IS with arithmetic', () => {
-    expect(linesOf(run(['What is 2 plus 2?']).last)).toEqual(['Computer: 2 plus 2 equals to 4']);
+  it('evaluates WHAT IS with arithmetic, echoing the expression', () => {
+    expect(linesOf(run(['WHAT IS 12*4']).last)).toEqual(['12*4 =  48']);
+    expect(linesOf(run(['What is 2 plus 2?']).last)).toEqual(['2 plus 2 =  4']);
   });
 
   it('reports a bug for CALC without an expression', () => {

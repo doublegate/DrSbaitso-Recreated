@@ -286,9 +286,9 @@ function command(state: SbaitsoState, text: string, plain: string): EngineStep |
   return null;
 }
 
-/** CALC output keeps its mixed case and `Computer:` label, so it is built here rather than by `reply`. */
-function calcStep(state: SbaitsoState, expr: string): EngineStep {
-  const { lines, speak } = calcReply(expr);
+/** CALC output keeps its mixed case, so it is built here rather than by `reply`. */
+function calcStep(state: SbaitsoState, expr: string, echo = false): EngineStep {
+  const { lines, speak } = calcReply(expr, { echo });
   return { state: { ...state, lastReply: speak }, result: { kind: 'reply', lines, speak } };
 }
 
@@ -332,7 +332,7 @@ export function processInput(state: SbaitsoState, rawInput: string): EngineStep 
 
   // WHAT IS <arithmetic> is evaluated like CALC; WHAT IS <anything else> is conversation.
   const whatIs = /^WHAT\s+IS\s+(.+)$/is.exec(text);
-  if (whatIs && looksArithmetic(whatIs[1])) return calcStep(current, whatIs[1]);
+  if (whatIs && looksArithmetic(whatIs[1])) return calcStep(current, whatIs[1], true);
 
   // Repeated input, compared after normalising case and punctuation.
   if (plain === current.lastInput) {
