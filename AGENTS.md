@@ -110,6 +110,9 @@ npm run analyze        # bundle report -> reports/ (gitignored)
   no box, and the hidden transcript holds the whole greeting at once). Enhanced messages carry a
   hidden speaker label: assert on the `Conversation messages` log, not exact `getByText`.
   Playwright's `pressed: false` also matches elements with no `aria-pressed`.
+- **`api/` runs as native Node ESM on Vercel, compiled file by file, not bundled.** Every relative
+  import reachable from `api/*.ts` (including `src/constants.ts` and what it imports) needs a `.js`
+  extension; Vite and Vitest hide the problem. `test/api/esmImports.test.ts` enforces it.
 - **CI** (`.github/workflows/ci.yml`) mirrors the gates above plus `npm audit`; actions are
   pinned by SHA.
 

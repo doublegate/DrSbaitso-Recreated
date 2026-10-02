@@ -264,6 +264,9 @@ repairs every feature that existed in code but could not be reached.
 - **Speech at another sample rate would have played at the wrong pitch.** The
   server reported the rate but the browser always decoded 24 kHz; the server now
   converts any other rate to 24 kHz, so the client contract always holds.
+- **The API functions crashed on Vercel** (found on the 2.0 preview): a shared
+  file imported a module without the `.js` extension that native Node modules
+  require. A test now walks the functions' import graph and fails on any such import.
 - **Long conversations stopped working.** Each persona's history was resent in
   full every turn, so after enough turns every request exceeded the size limit and
   failed. Only the history the server uses is sent now.

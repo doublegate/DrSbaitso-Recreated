@@ -438,7 +438,8 @@ export const DEFAULT_AUDIO_MODE = 'authentic';
 // target is absent is shown centred. No step requires an action: the tutorial
 // overlay is modal, so the page underneath cannot be clicked or typed into.
 import type { OnboardingStep } from './types';
-import { shortcutLabel } from './utils/shortcuts';
+// .js: the API functions import this file as a native Node ES module (test/api/esmImports.test.ts).
+import { shortcutLabel } from './utils/shortcuts.js';
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
