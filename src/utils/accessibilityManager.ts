@@ -148,7 +148,10 @@ export class ScreenReaderAnnouncer {
     this.liveRegion.setAttribute('aria-live', 'polite');
     this.liveRegion.setAttribute('aria-atomic', 'true');
     this.liveRegion.setAttribute('role', 'status');
-    this.liveRegion.style.position = 'absolute';
+    // Fixed, not absolute: an absolute node appended after a full-viewport
+    // app extends the body and makes the whole page scroll.
+    this.liveRegion.style.position = 'fixed';
+    this.liveRegion.style.top = '0';
     this.liveRegion.style.left = '-10000px';
     this.liveRegion.style.width = '1px';
     this.liveRegion.style.height = '1px';
