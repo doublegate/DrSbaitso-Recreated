@@ -170,9 +170,8 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
     to 220 Hz-3.8 kHz. Fricatives keep their own LPC residual, not synthetic noise.
   - Style prompts describe qualities only and never name a performer or film
     character.
-  - Integration in `src/EnhancedApp.tsx` is pending: it must pass
-    `usePersona().voiceProcessing` to `speech.speak(audio, text, { processing })`.
-    Until then playback still uses the Sbaitso chain for every persona.
+  - Enhanced mode plays each persona's greeting and replies through its route;
+    the classic screen stays on the Sbaitso chain.
 
 ### Fixed
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The

@@ -93,7 +93,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   const [isPreparingGreeting, setIsPreparingGreeting] = useState(false);
   // The active persona (built-in or custom), chosen in the toolbar.
   const personaState = usePersona();
-  const { persona, chatOptions, speechOptions, formatReply } = personaState;
+  const { persona, chatOptions, speechOptions, formatReply, voiceProcessing } = personaState;
   const characterId = persona.id;
 
   // Audio mode state (v1.3.0)
@@ -278,7 +278,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     void playSoundPackEvent('startup');
 
     // Speak while the lines appear; input unlocks once both have finished.
-    const spoken = speech.speak(audio, lines.filter((l) => l.trim()).join(' ')).catch((error) => console.warn('Greeting audio failed:', error));
+    const spoken = speech.speak(audio, lines.filter((l) => l.trim()).join(' '), { processing: voiceProcessing }).catch((error) => console.warn('Greeting audio failed:', error));
     for (const line of lines) {
       if (unmountedRef.current) return;
       setMessages((prev) => [...prev, { author: 'dr', text: line, timestamp: Date.now(), characterId }]);
@@ -372,7 +372,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       }
 
       try {
-        await speech.speak(await audioPromise, spokenText);
+        await speech.speak(await audioPromise, spokenText, { processing: voiceProcessing });
       } catch (error) {
         console.warn('Reply audio could not be played; the text is kept:', error);
       }

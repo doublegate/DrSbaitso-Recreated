@@ -138,8 +138,8 @@ Voices from [ref-docs/05](../ref-docs/05-eliza.md), [06](../ref-docs/06-parry.md
       spliced 80/110/250 ms gaps, even word loudness, 220 Hz-3.8 kHz band.
 - [x] ELIZA and PARRY play clean in every audio mode.
 - [x] HAL "shutdown" effect (independent pitch and tempo ramps) as a pure function.
-- [ ] Wire the routes into `src/EnhancedApp.tsx`: pass `usePersona().voiceProcessing`
-      to both `speech.speak` calls (greeting and reply). Classic mode stays `sbaitso`.
+- [x] Wire the routes into `src/EnhancedApp.tsx`: both `speech.speak` calls (greeting
+      and reply) pass `usePersona().voiceProcessing`. Classic mode stays `sbaitso`.
 - [ ] Listen to every persona and A/B the voices the docs list (HAL: Iapetus, Charon,
       Schedar; JOSHUA: Schedar, Orus, Charon; PARRY: Algenib). Nothing here has been
       heard yet; the choices and chains are tested only on synthetic signals.
