@@ -35,7 +35,8 @@ ELIZA, HAL 9000, JOSHUA/WOPR, PARRY) plus user-created custom characters.
 ```bash
 npm ci                 # Node >= 22.12 (24 recommended)
 npm run dev            # http://localhost:3000; serves api/* too; needs GEMINI_API_KEY in .env.local
-npm run build          # vite build -> dist/ (never contains the key; grep AIza dist must be empty)
+npm run build          # vite build -> dist/ (never contains the key)
+npm run check:secrets  # fails if dist/ holds anything shaped like a Google API key
 npm run typecheck      # tsc on tsconfig.json (browser), tsconfig.node.json (api/configs), tsconfig.test.json
 npm run lint           # oxlint (.oxlintrc.json); hooks rules are errors
 npm run test:run       # vitest (jsdom); `npm test` is watch mode

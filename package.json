@@ -12,6 +12,7 @@
     "analyze": "ANALYZE=1 vite build",
     "preview": "vite preview",
     "lint": "oxlint",
+    "check:secrets": "! grep -rElI 'AIza[0-9A-Za-z_-]{35}' dist",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",

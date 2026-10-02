@@ -12,6 +12,8 @@ import { useVoiceControl } from './hooks/useVoiceControl';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useFocusTrap } from './hooks/useFocusTrap';
 import MenuGroup from './components/enhanced/MenuGroup';
+import { playSoundPackEvent } from './utils/soundPackPlayer';
+import { saveSoundPack } from './utils/soundPackStore';
 import { hasStarted, personaOpening, personaTurn, resetPersona, type PersonaEngines } from './engine/personaTurn';
 import { useSessionHistory } from './hooks/useSessionHistory';
 import { useThemeChoice } from './hooks/useThemeChoice';
@@ -39,6 +41,7 @@ const MusicPlayer = lazy(() => import('./components/MusicPlayer'));
 const InstallPrompt = lazy(() => import('./components/InstallPrompt'));
 const SoundPackManager = lazy(() => import('./components/SoundPackManager'));
 const SoundPackCreator = lazy(() => import('./components/SoundPackCreator'));
+const CloudSyncPanel = lazy(() => import('./components/CloudSyncPanel'));
 // v1.11.0 Components (lazy-loaded - Option C)
 const VoiceInput = lazy(() => import('./components/VoiceInput'));
 const EmotionVisualizer = lazy(() => import('./components/EmotionVisualizer'));
@@ -132,7 +135,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   const activeTheme = themeChoice.theme;
 
   // Conversation history is opt-in (the greeting promises memory is wiped).
-  const { keepHistory, setKeepHistory, currentSession, savedSessions } = useSessionHistory(messages, {
+  const { keepHistory, setKeepHistory, currentSession, savedSessions, mergeSessions } = useSessionHistory(messages, {
     characterId,
     themeId: currentTheme,
     audioQualityId: audioMode,
@@ -146,6 +149,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
   const [showSoundPackManager, setShowSoundPackManager] = useState(false);
   const [showSoundPackCreator, setShowSoundPackCreator] = useState(false);
+  const [showCloudSync, setShowCloudSync] = useState(false);
 
   // v1.11.0 Feature states (Option C)
   const [showVoiceInput, setShowVoiceInput] = useState(false);
@@ -220,6 +224,14 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     };
   }, []);
 
+  // Theme switches play the sound pack's theme-change sound (not on first render).
+  const lastThemeRef = useRef(currentTheme);
+  useEffect(() => {
+    if (lastThemeRef.current === currentTheme) return;
+    lastThemeRef.current = currentTheme;
+    void playSoundPackEvent('theme-change');
+  }, [currentTheme]);
+
   // Keep the newest line in view (messages changes on every typed character).
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -263,6 +275,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     setIsPreparingGreeting(false);
     setUserName(name);
     setIsGreeting(true);
+    void playSoundPackEvent('startup');
 
     // Speak while the lines appear; input unlocks once both have finished.
     const spoken = speech.speak(audio, lines.filter((l) => l.trim()).join(' ')).catch((error) => console.warn('Greeting audio failed:', error));
@@ -290,6 +303,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     void ensureAudioReady();
 
     soundEffects.playSound('message-send');
+    void playSoundPackEvent('message-send');
     setMessages((prev) => [...prev, { author: 'user', text: trimmed, timestamp: Date.now(), characterId }]);
 
     // Personas with a local engine decide the turn first (engine/personaTurn).
@@ -318,6 +332,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       } catch (error) {
         console.error('Reply failed:', error);
         soundEffects.playSound('error');
+        void playSoundPackEvent('error');
         const ctx = getSharedAudioContext();
         if (ctx) playErrorBeep(ctx);
         setMessages((prev) => [
@@ -330,6 +345,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       if (GLITCH_PHRASES.some((phrase) => reply.includes(phrase))) {
         const ctx = getSharedAudioContext();
         if (ctx) playGlitchSound(ctx);
+        void playSoundPackEvent('glitch');
       }
 
       // What is spoken can differ from what is shown (JOSHUA's boards and lists).
@@ -362,6 +378,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       }
 
       soundEffects.playSound('message-receive');
+      void playSoundPackEvent('message-receive');
       // The log itself is not a live region (it would re-announce every typed
       // character), so the finished reply is announced once here.
       if (accessibilitySettings.announceMessages) {
@@ -399,6 +416,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     const next = personaState.personas.find((p) => p.id === id);
     if (!next || next.id === persona.id) return;
     personaState.selectPersona(id);
+    void playSoundPackEvent('character-switch');
     if (userName) {
       setMessages((prev) => [
         ...prev,
@@ -620,6 +638,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
                     { id: 'characters', icon: '🎭', label: 'Character creator', onSelect: () => setShowCharacterCreator(true) },
                     { id: 'a11y', icon: '♿', label: 'Accessibility', shortcut: shortcutLabel('accessibility'), onSelect: () => setShowAccessibilityPanel(true) },
                     { id: 'voice-help', icon: '❔', label: 'Voice commands', onSelect: () => setShowVoiceControlHelp(true) },
+                    { id: 'cloud-sync', icon: '☁️', label: 'Cloud sync', onSelect: () => setShowCloudSync(true) },
                     { id: 'tutorial', icon: '🎓', label: 'Tutorial', shortcut: shortcutLabel('tutorial'), onSelect: () => setShowOnboarding(true) },
                   ]}
                 />
@@ -968,7 +987,6 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading sound pack manager...</div></div>}>
           <SoundPackManager
             theme={activeTheme}
-            audioContext={getSharedAudioContext()}
             onClose={() => setShowSoundPackManager(false)}
             onCreateNew={() => {
               setShowSoundPackManager(false);
@@ -984,19 +1002,28 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
           <SoundPackCreator
             theme={activeTheme}
             onClose={() => setShowSoundPackCreator(false)}
-            onSave={(pack) => {
-              // Save to localStorage and close
-              try {
-                const stored = localStorage.getItem('dr_sbaitso_sound_packs');
-                const packs = stored ? JSON.parse(stored) : [];
-                packs.push(pack);
-                localStorage.setItem('dr_sbaitso_sound_packs', JSON.stringify(packs));
-                setShowSoundPackCreator(false);
-                announce(`Sound pack "${pack.metadata.name}" created successfully`);
-              } catch (error) {
-                console.error('Failed to save sound pack:', error);
-                alert('Failed to save sound pack');
-              }
+            onSave={async (pack) => {
+              // Packs live in IndexedDB (decoded audio can exceed localStorage
+              // quota). A failure propagates: the creator shows it and stays open.
+              await saveSoundPack(pack);
+              announce(`Sound pack "${pack.metadata.name}" created successfully`);
+            }}
+          />
+        </Suspense>
+      )}
+
+      {/* Cloud sync: uploads only saved history, so nothing leaves the browser while SAVE HISTORY is off. */}
+      {showCloudSync && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="text-white">Loading cloud sync...</div></div>}>
+          <CloudSyncPanel
+            onClose={() => setShowCloudSync(false)}
+            getLocalData={() => ({
+              sessions: savedSessions,
+              updatedAt: savedSessions.reduce((latest, s) => Math.max(latest, s.updatedAt), 0),
+            })}
+            onRemoteData={(data) => {
+              const merged = mergeSessions(data.sessions ?? []);
+              if (merged > 0) announce(`${merged} conversation${merged === 1 ? '' : 's'} restored from the cloud`);
             }}
           />
         </Suspense>

@@ -81,5 +81,13 @@ export function useSessionHistory(messages: Message[], options: SessionOptions) 
     setSavedSessions(on ? SessionManager.getAllSessions() : []);
   };
 
-  return { keepHistory, setKeepHistory, currentSession, savedSessions };
+  /** Merges sessions from cloud sync; nothing is stored while history is off. */
+  const mergeSessions = (incoming: ConversationSession[]): number => {
+    if (!keepHistory) return 0;
+    const written = SessionManager.mergeSessions(incoming);
+    if (written > 0) setSavedSessions(SessionManager.getAllSessions());
+    return written;
+  };
+
+  return { keepHistory, setKeepHistory, currentSession, savedSessions, mergeSessions };
 }

@@ -73,4 +73,37 @@ describe('useSessionHistory', () => {
     act(() => vi.advanceTimersByTime(2000));
     expect(SessionManager.getAllSessions()).toHaveLength(2);
   });
+
+  describe('mergeSessions (cloud sync)', () => {
+    const remote = (id: string, updatedAt: number, text = 'remote') => ({
+      ...SessionManager.createSession('sbaitso', 'dos-blue', 'authentic'),
+      id,
+      updatedAt,
+      messages: msgs(text),
+      messageCount: 1,
+    });
+
+    it('stores nothing while history is off', () => {
+      const { result } = renderHook(() => useSessionHistory([], opts));
+      let merged = -1;
+      act(() => {
+        merged = result.current.mergeSessions([remote('a', 5)]);
+      });
+      expect(merged).toBe(0);
+      expect(SessionManager.getAllSessions()).toEqual([]);
+    });
+
+    it('adds unknown sessions and replaces older copies, keeping newer local ones', () => {
+      localStorage.setItem(KEEP_HISTORY_KEY, 'true');
+      SessionManager.mergeSessions([remote('old', 1, 'local old'), remote('new', 9, 'local new')]);
+      const { result } = renderHook(() => useSessionHistory([], opts));
+      let merged = -1;
+      act(() => {
+        merged = result.current.mergeSessions([remote('old', 5, 'cloud'), remote('new', 2, 'stale'), remote('extra', 3)]);
+      });
+      expect(merged).toBe(2);
+      const byId = Object.fromEntries(result.current.savedSessions.map((s) => [s.id, s.messages[0].text]));
+      expect(byId).toEqual({ old: 'cloud', new: 'local new', extra: 'remote' });
+    });
+  });
 });

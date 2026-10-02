@@ -67,6 +67,15 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   are printed but not spoken, and long printouts scroll at terminal speed. Clear
   conversation resets the persona's engine. Dr. Sbaitso's engine still drives only
   the classic screen.
+- **Sound packs play and save properly.** The active pack now sounds on startup,
+  send, receive, errors, glitches, persona switches and theme changes; before, no
+  event ever reached it. New packs are saved to IndexedDB, and if a save fails the
+  creator stays open and shows why instead of closing silently.
+- **Cloud sync is reachable** from SETTINGS > Cloud sync. It uploads only the
+  conversations kept with SAVE HISTORY (nothing while that is off), and newer
+  conversations from the cloud are merged into the history.
+- `npm run check:secrets`: fails if the built `dist/` contains anything shaped like
+  a Google API key.
 - **Enhanced mode layout.** The row of about twenty unlabelled emoji buttons is
   replaced by four labelled menus (CONVERSATION, VISUALS, SOUND, SETTINGS), each item
   showing its keyboard shortcut, plus a CLASSIC button. The menus support Escape,

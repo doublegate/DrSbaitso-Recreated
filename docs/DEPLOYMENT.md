@@ -67,7 +67,7 @@ curl -s -X POST $URL/api/chat -H 'content-type: application/json' \
 curl -s -X POST $URL/api/chat -H 'content-type: application/json' \
   -d '{"characterId":"nope","message":"hi"}'
 # No key in any served script: should print nothing
-for a in $(curl -s $URL/ | grep -oE '/assets/[^"]+\.js'); do curl -s $URL$a | grep -l AIza; done
+for a in $(curl -s $URL/ | grep -oE '/assets/[^"]+\.js'); do curl -s $URL$a | grep -lE 'AIza[0-9A-Za-z_-]{35}'; done
 ```
 
 Preview deployments are behind Vercel Authentication by default. Use a shareable

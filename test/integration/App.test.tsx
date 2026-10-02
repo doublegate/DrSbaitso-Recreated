@@ -8,6 +8,10 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '@/EnhancedApp';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { playSoundPackEvent } from '@/utils/soundPackPlayer';
+
+// Sound packs are fire-and-forget; recorded here so tests can check the events.
+vi.mock('@/utils/soundPackPlayer', () => ({ playSoundPackEvent: vi.fn(() => Promise.resolve()) }));
 
 // 4 bytes = 2 silent PCM16 samples.
 const SILENT_AUDIO = 'AAAAAA==';
@@ -212,6 +216,17 @@ describe('Enhanced mode personas', () => {
     const body = JSON.parse(chatCall![1].body);
     expect(body.characterId).toBe('hal9000');
     expect(body.message).toContain("CREW MEMBER'S NAME=Dave");
+  }, 40_000);
+
+  it('plays the active sound pack for send, receive and persona switches', async () => {
+    const played = vi.mocked(playSoundPackEvent);
+    const user = userEvent.setup();
+    const input = await reachChatAs(user, 'ALICE');
+    played.mockClear();
+    await user.selectOptions(screen.getByLabelText('PERSONA:'), 'hal9000');
+    await user.type(input, 'how is the mission going{Enter}');
+    await screen.findByText('I AM AFRAID I CANNOT DO THAT.', { selector: 'p' }, { timeout: 10_000 });
+    await waitFor(() => expect(played.mock.calls.map(([e]) => e)).toEqual(['character-switch', 'message-send', 'message-receive']));
   }, 40_000);
 
   it('answers ELIZA locally from the 1965 script, without calling the model', async () => {

@@ -24,7 +24,8 @@ const MAX_AUDIO_FILE_BYTES = 20 * 1024 * 1024;
 interface SoundPackCreatorProps {
   theme: Theme;
   onClose: () => void;
-  onSave: (pack: SoundPack) => void;
+  /** May return a promise; a rejection is shown in the panel, which stays open. */
+  onSave: (pack: SoundPack) => void | Promise<void>;
   initialPack?: SoundPack;
 }
 
@@ -177,12 +178,14 @@ export default function SoundPackCreator({
   }, [pack]);
 
   // Save pack
-  const handleSave = useCallback(() => {
-    if (validatePack()) {
-      onSave(pack);
+  // Validation errors are listed in the panel; it closes only once the save succeeds.
+  const handleSave = useCallback(async () => {
+    if (!validatePack()) return;
+    try {
+      await onSave(pack);
       onClose();
-    } else {
-      alert('Please fix validation errors before saving');
+    } catch (error) {
+      setErrors([`Could not save: ${error instanceof Error ? error.message : 'unknown error'}`]);
     }
   }, [pack, validatePack, onSave, onClose]);
 

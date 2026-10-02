@@ -25,6 +25,34 @@ export class SessionManager {
     };
   }
 
+  /**
+   * Upsert sessions from elsewhere (cloud sync): unknown ids are added and a
+   * copy replaces the stored one only when it is newer. Leaves the current
+   * session pointer alone. Returns how many sessions were written.
+   */
+  static mergeSessions(incoming: ConversationSession[]): number {
+    try {
+      const sessions = this.getAllSessions();
+      let written = 0;
+      for (const session of incoming) {
+        const index = sessions.findIndex((s) => s.id === session.id);
+        if (index < 0) {
+          sessions.push(session);
+        } else if (session.updatedAt > sessions[index].updatedAt) {
+          sessions[index] = session;
+        } else {
+          continue;
+        }
+        written++;
+      }
+      if (written > 0) localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+      return written;
+    } catch (error) {
+      console.error('Failed to merge sessions:', error);
+      return 0;
+    }
+  }
+
   static saveSession(session: ConversationSession): void {
     try {
       const sessions = this.getAllSessions();
