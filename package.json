@@ -20,7 +20,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:all": "npm run test:run && npm run test:e2e",
     "test:ci": "npm run test:coverage && npm run test:e2e",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
     "@google/genai": "^2.26.0",

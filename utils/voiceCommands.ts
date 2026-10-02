@@ -206,6 +206,8 @@ export function createVoiceCommands(handlers: {
   onOpenAccessibility?: () => void;
   onOpenSearch?: () => void;
   onOpenVisualizer?: () => void;
+  onToggleMusic?: () => void;
+  onOpenSoundPacks?: () => void;
   onHelp?: () => void;
 }): VoiceCommand[] {
   const commands: VoiceCommand[] = [];
@@ -458,6 +460,28 @@ export function createVoiceCommands(handlers: {
       description: 'Toggle audio visualizer',
       category: 'navigation',
       action: handlers.onOpenVisualizer,
+    });
+  }
+
+  if (handlers.onToggleMusic) {
+    commands.push({
+      id: 'toggle_music',
+      name: 'Toggle Music',
+      phrases: ['play music', 'play some music', 'toggle music', 'stop music', 'music player'],
+      description: 'Show or hide the chiptune music player',
+      category: 'audio',
+      action: handlers.onToggleMusic,
+    });
+  }
+
+  if (handlers.onOpenSoundPacks) {
+    commands.push({
+      id: 'open_sound_packs',
+      name: 'Open Sound Packs',
+      phrases: ['open sound packs', 'sound packs', 'manage sound packs'],
+      description: 'Open the sound pack manager',
+      category: 'audio',
+      action: handlers.onOpenSoundPacks,
     });
   }
 

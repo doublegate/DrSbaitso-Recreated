@@ -5,8 +5,16 @@
  * Displays current emotion state and history.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { detectEmotions, getEmotionColor, getEmotionEmoji, type EmotionAnalysis } from '@/utils/emotionDetection';
+
+const EMOTIONS = ['joy', 'anger', 'fear', 'sadness', 'surprise'] as const;
+type Emotion = (typeof EMOTIONS)[number];
+
+/** Strength of the dominant emotion, 0-100 (0 for neutral text). */
+function dominantStrength(analysis: EmotionAnalysis): number {
+  return analysis.dominant === 'neutral' ? 0 : analysis[analysis.dominant];
+}
 
 interface EmotionVisualizerProps {
   messages: Array<{ author: string; text: string }>;
@@ -25,22 +33,18 @@ export function EmotionVisualizer({
   messages,
   theme,
   maxHistory = 10
-}: EmotionVisualizerProps): JSX.Element {
-  const [emotionHistory, setEmotionHistory] = useState<EmotionAnalysis[]>([]);
-  const [currentEmotion, setCurrentEmotion] = useState<EmotionAnalysis | null>(null);
+}: EmotionVisualizerProps): React.JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Analyze latest message
-  useEffect(() => {
-    if (messages.length === 0) return;
-
-    const latestMessage = messages[messages.length - 1];
-    if (latestMessage.author === 'user') {
-      const analysis = detectEmotions(latestMessage.text);
-      setCurrentEmotion(analysis);
-      setEmotionHistory(prev => [...prev.slice(-(maxHistory - 1)), analysis]);
-    }
-  }, [messages, maxHistory]);
+  // Derived from the user's messages, so opening the panel mid-conversation
+  // shows the whole history and the result is stable under re-renders.
+  const userTexts = messages.filter((m) => m.author === 'user' && m.text.trim()).map((m) => m.text);
+  const historyKey = userTexts.slice(-maxHistory).join('\u0000');
+  const emotionHistory = useMemo<EmotionAnalysis[]>(
+    () => (historyKey ? historyKey.split('\u0000').map((text) => detectEmotions(text)) : []),
+    [historyKey],
+  );
+  const currentEmotion = emotionHistory.at(-1) ?? null;
 
   // Draw emotion graph
   useEffect(() => {
@@ -71,8 +75,8 @@ export function EmotionVisualizer({
     }
 
     // Draw emotion lines
-    const emotions: Array<keyof EmotionAnalysis['scores']> = ['joy', 'anger', 'fear', 'sadness', 'surprise'];
-    const colors = {
+    const emotions = EMOTIONS;
+    const colors: Record<Emotion, string> = {
       joy: '#22c55e',
       anger: '#ef4444',
       fear: '#a855f7',
@@ -89,7 +93,7 @@ export function EmotionVisualizer({
 
       emotionHistory.forEach((analysis, index) => {
         const x = index * spacing;
-        const y = height - (analysis.scores[emotion] * height);
+        const y = height - (analysis[emotion] / 100) * height;
 
         if (index === 0) {
           ctx.moveTo(x, y);
@@ -146,13 +150,13 @@ export function EmotionVisualizer({
                 {currentEmotion.dominant}
               </p>
               <p className="text-xs" style={{ color: theme?.colors.text }}>
-                Confidence: {(currentEmotion.confidence * 100).toFixed(0)}%
+                Strength: {Math.round(dominantStrength(currentEmotion))}%
               </p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold" style={{ color: getEmotionColor(currentEmotion.dominant) }}>
-              {(currentEmotion.scores[currentEmotion.dominant] * 100).toFixed(0)}%
+              {Math.round(dominantStrength(currentEmotion))}%
             </p>
           </div>
         </div>
@@ -160,23 +164,24 @@ export function EmotionVisualizer({
 
       {/* Emotion Scores */}
       <div className="mb-4 space-y-2">
-        {Object.entries(currentEmotion.scores).map(([emotion, score]) => (
+        {EMOTIONS.map((emotion) => [emotion, currentEmotion[emotion]] as const).map(([emotion, score]) => (
           <div key={emotion}>
             <div className="flex justify-between items-center mb-1">
               <span className="text-xs capitalize flex items-center gap-1" style={{ color: theme?.colors.text }}>
-                {getEmotionEmoji(emotion as any)}
+                {getEmotionEmoji(emotion)}
                 {emotion}
               </span>
               <span className="text-xs font-mono" style={{ color: theme?.colors.text }}>
-                {(score * 100).toFixed(0)}%
+                {Math.round(score)}%
               </span>
             </div>
             <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
               <div
+                data-testid={`emotion-bar-${emotion}`}
                 className="h-full rounded-full transition-all duration-300"
                 style={{
-                  width: `${score * 100}%`,
-                  backgroundColor: getEmotionColor(emotion as any)
+                  width: `${Math.min(100, Math.max(0, score))}%`,
+                  backgroundColor: getEmotionColor(emotion)
                 }}
               />
             </div>
@@ -232,7 +237,7 @@ function getMostCommonEmotion(history: EmotionAnalysis[]): string {
 /**
  * Mini emotion badge for inline display
  */
-export function EmotionBadge({ text }: { text: string }): JSX.Element {
+export function EmotionBadge({ text }: { text: string }): React.JSX.Element {
   const analysis = detectEmotions(text);
 
   return (
@@ -242,7 +247,7 @@ export function EmotionBadge({ text }: { text: string }): JSX.Element {
         backgroundColor: `${getEmotionColor(analysis.dominant)}33`,
         color: getEmotionColor(analysis.dominant)
       }}
-      title={`${analysis.dominant} (${(analysis.confidence * 100).toFixed(0)}%)`}
+      title={`${analysis.dominant} (${Math.round(dominantStrength(analysis))}%)`}
     >
       <span>{getEmotionEmoji(analysis.dominant)}</span>
       <span className="capitalize">{analysis.dominant}</span>

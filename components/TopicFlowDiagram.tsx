@@ -30,7 +30,7 @@ interface TopicFlowDiagramProps {
 export function TopicFlowDiagram({
   messages,
   theme
-}: TopicFlowDiagramProps): JSX.Element {
+}: TopicFlowDiagramProps): React.JSX.Element {
   const svgRef = useRef<SVGSVGElement>(null);
   const [analysis, setAnalysis] = useState<ConversationAnalysis | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);

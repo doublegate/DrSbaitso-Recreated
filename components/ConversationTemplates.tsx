@@ -34,7 +34,7 @@ export function ConversationTemplates({
   onClose,
   onSelectTemplate,
   theme
-}: ConversationTemplatesProps): JSX.Element | null {
+}: ConversationTemplatesProps): React.JSX.Element | null {
   const [templates, setTemplates] = useState<ConversationTemplate[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');

@@ -205,9 +205,11 @@ export async function measureAsyncFn<T>(name: string, fn: () => Promise<T>): Pro
 }
 
 /**
- * Performance decorator
+ * Method decorator that records a timing metric for each call.
+ * (Named `profile`, not `performance`, so it does not shadow the global
+ * `performance` API that the profiler itself relies on.)
  */
-export function performance(name?: string) {
+export function profile(name?: string) {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const metricName = name || `${target.constructor.name}.${propertyKey}`;

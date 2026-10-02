@@ -59,7 +59,7 @@ export class CloudSync {
   private auth: any = null;
   private userId: string | null = null;
   private deviceId: string;
-  private syncInterval: NodeJS.Timeout | null = null;
+  private syncInterval: ReturnType<typeof setTimeout> | null = null;
   private options: SyncOptions;
   private status: SyncStatus;
   private listeners: Map<string, ((data: any) => void)[]> = new Map();

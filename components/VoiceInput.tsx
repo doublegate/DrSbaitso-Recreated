@@ -21,7 +21,7 @@ export function VoiceInput({
   isEnabled = true,
   language = 'en-US',
   continuous = false
-}: VoiceInputProps): JSX.Element {
+}: VoiceInputProps): React.JSX.Element {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');

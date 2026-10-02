@@ -144,7 +144,7 @@ function DefaultErrorUI({
   errorInfo,
   errorCount,
   onReset
-}: DefaultErrorUIProps): JSX.Element {
+}: DefaultErrorUIProps): React.JSX.Element {
   const [showDetails, setShowDetails] = React.useState(false);
 
   const handleReload = (): void => {

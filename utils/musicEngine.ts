@@ -51,10 +51,11 @@ export class MusicEngine {
   /**
    * Initialize the music engine
    */
-  init(): void {
+  init(context?: AudioContext | null): void {
     if (this.audioContext) return;
 
-    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // Prefer the app's shared context; browsers cap how many may exist.
+    this.audioContext = context ?? new (window.AudioContext || (window as any).webkitAudioContext)();
 
     // Master gain
     this.masterGain = this.audioContext.createGain();

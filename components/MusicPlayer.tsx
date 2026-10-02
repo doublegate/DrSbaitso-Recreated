@@ -16,17 +16,19 @@ interface MusicPlayerProps {
       border: string;
     };
   };
+  /** The app's shared AudioContext, reused instead of creating another. */
+  audioContext?: AudioContext | null;
 }
 
-export default function MusicPlayer({ theme }: MusicPlayerProps) {
+export default function MusicPlayer({ theme, audioContext }: MusicPlayerProps) {
   const [enabled, setEnabled] = useState(false);
   const [volume, setVolume] = useState(50);
   const [mood, setMood] = useState<MusicMood>('auto');
   const [tempo, setTempo] = useState<MusicTempo>('normal');
 
   useEffect(() => {
-    musicEngine.init();
-  }, []);
+    musicEngine.init(audioContext);
+  }, [audioContext]);
 
   const handleToggle = () => {
     const newEnabled = !enabled;

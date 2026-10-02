@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "vite/client",
+      "node",
+      "vitest/globals",
+      "@testing-library/jest-dom"
+    ]
+  },
+  "include": [
+    "test",
+    "components/**/*.test.tsx",
+    "*.ts",
+    "*.tsx",
+    "components",
+    "hooks",
+    "utils",
+    "services",
+    "api",
+    "e2e",
+    "playwright.config.ts"
+  ],
+  "exclude": [
+    "vite.config.ts",
+    "vitest.config.ts"
+  ]
+}

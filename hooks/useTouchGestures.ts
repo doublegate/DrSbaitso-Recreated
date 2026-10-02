@@ -31,7 +31,7 @@ interface TouchState {
   startX: number;
   startY: number;
   startTime: number;
-  longPressTimer?: NodeJS.Timeout;
+  longPressTimer?: ReturnType<typeof setTimeout>;
 }
 
 /**

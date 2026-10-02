@@ -30,8 +30,8 @@ export function ConversationReplay({ isOpen, onClose, session }: ConversationRep
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentMessage = session.messages[currentIndex];
   const messages = session.messages;

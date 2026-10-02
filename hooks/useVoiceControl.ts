@@ -42,6 +42,8 @@ export interface VoiceControlOptions {
   onOpenAccessibility?: () => void;
   onOpenSearch?: () => void;
   onOpenVisualizer?: () => void;
+  onToggleMusic?: () => void;
+  onOpenSoundPacks?: () => void;
   onHelp?: () => void;
 }
 
@@ -73,6 +75,8 @@ const HANDLER_KEYS: HandlerKey[] = [
   'onOpenAccessibility',
   'onOpenSearch',
   'onOpenVisualizer',
+  'onToggleMusic',
+  'onOpenSoundPacks',
   'onHelp',
 ];
 
