@@ -251,7 +251,7 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 
 ### Documentation
 
-- **CHANGELOG-v1.11.0.md**: Comprehensive 400+ line release notes with detailed feature documentation
+- **CHANGELOG-v1.11.0.md** (now `docs/history/`): Comprehensive 400+ line release notes with detailed feature documentation
 - **CLAUDE.md**: Updated with v1.11.0 component documentation and feature summary
 - **Updated test patterns**: Documented incremental rerender patterns for useEffect-based components
 
@@ -336,7 +336,7 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **DEVELOPMENT_GUIDE.md** (~3,200 words): Environment setup, project structure, testing strategies, code style guide, component creation, character/theme tutorials, debugging techniques, contributing guidelines
 - **API_REFERENCE.md** (~2,800 words): Gemini AI integration, utility functions, custom hooks, component APIs, type definitions with code examples
 - **PERFORMANCE.md** (~2,400 words): Bundle optimization, lazy loading patterns, code splitting, Lighthouse scores, Core Web Vitals, profiling techniques
-- **FEATURES_V1.9.0.md** (~3,500 words): Feature overviews, user guides, technical details, configuration options, troubleshooting, known limitations
+- **FEATURES_V1.9.0.md** (now `docs/history/`, ~3,500 words): Feature overviews, user guides, technical details, configuration options, troubleshooting, known limitations
 
 ### Technical Implementation
 

@@ -119,7 +119,7 @@ npm test
 We welcome many types of contributions:
 
 - **Bug fixes**: Fix issues in existing code
-- **New features**: Implement features from the [ROADMAP.md](ROADMAP.md)
+- **New features**: Implement features from the [to-dos/ROADMAP.md](to-dos/ROADMAP.md)
 - **Documentation**: Improve or add documentation
 - **Tests**: Add or improve test coverage
 - **Code quality**: Refactoring, optimization, or cleanup
@@ -136,7 +136,7 @@ We welcome many types of contributions:
    - `enhancement` - New feature or request
    - `documentation` - Improvements or additions
 
-2. **Check the roadmap**: See [ROADMAP.md](ROADMAP.md) for planned features
+2. **Check the roadmap**: See [to-dos/ROADMAP.md](to-dos/ROADMAP.md) for planned features
 
 3. **Propose new ideas**: Open an issue to discuss your idea before implementing
 
