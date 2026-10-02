@@ -39,8 +39,9 @@ npm run build          # vite build -> dist/ (never contains the key)
 npm run check:secrets  # fails if dist/ holds anything shaped like a Google API key
 npm run typecheck      # tsc on tsconfig.json (browser), tsconfig.node.json (api/configs), tsconfig.test.json
 npm run lint           # oxlint (.oxlintrc.json); hooks rules are errors
-npm run test:run       # vitest (jsdom); `npm test` is watch mode
-npm run test:e2e       # Playwright (chromium); builds + previews on :4173
+npm run test:run       # vitest (jsdom); `npm test` is watch mode; enforces perf budgets
+npm run test:coverage  # COVERAGE=1: thresholds ratchet in vitest.config.ts; perf budgets skipped
+npm run test:e2e       # Playwright (chromium); builds + previews on :4173; /api mocked (e2e/fixtures.ts)
 npm run analyze        # bundle report -> reports/ (gitignored)
 ```
 
@@ -94,9 +95,13 @@ npm run analyze        # bundle report -> reports/ (gitignored)
 - **`test/setup.ts`** defines `SpeechRecognition` as writable but non-configurable: assign it, do
   not `vi.stubGlobal` it.
 - **Known open debt (planned phases):**
-  - Coverage only counts imported files (no `coverage.include`).
-  - The e2e specs have vacuous `if (isVisible)` guards and hit the real API.
   - Lint categories at "warn" are promoted as they are cleared.
+- **e2e:** classic readiness is `main[data-phase="chat"]` checked as an attribute (`<main>` has
+  no box, and the hidden transcript holds the whole greeting at once). Enhanced messages carry a
+  hidden speaker label: assert on the `Conversation messages` log, not exact `getByText`.
+  Playwright's `pressed: false` also matches elements with no `aria-pressed`.
+- **CI** (`.github/workflows/ci.yml`) mirrors the gates above plus `npm audit`; actions are
+  pinned by SHA.
 
 ### Personas (behavioural contract for the system prompts)
 

@@ -19,8 +19,8 @@ export default defineConfig({
   /* Opt out of parallel tests on CI */
   workers: process.env.CI ? 1 : undefined,
 
-  /* Reporter to use */
-  reporter: 'html',
+  /* CI: annotations plus an HTML report kept as an artifact; locally, a plain list. */
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
 
   /* Shared settings for all the projects below */
   use: {

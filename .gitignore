@@ -36,3 +36,7 @@ reports/
 
 # Agent worktrees (Claude Code)
 .claude/worktrees/
+
+# Playwright output
+test-results/
+playwright-report/

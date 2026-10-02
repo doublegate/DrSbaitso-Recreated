@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { planWoprLevels, processWoprVoice, segmentWords, woprBandLimit, WOPR_LEVELS } from '@/utils/personaVoices';
 import { estimatePitch } from '@/utils/lpcMonotone';
-import { bestCpuMs } from '../helpers/cpuTime';
+import { bestCpuMs, perfIt } from '../helpers/cpuTime';
 
 const FS = 24000;
 
@@ -214,7 +214,7 @@ describe('processWoprVoice', () => {
     expect(processWoprVoice(new Float32Array(4800), FS).every((v) => v === 0)).toBe(true);
   });
 
-  it('processes five seconds of 24 kHz speech in under 150 ms', () => {
+  perfIt('processes five seconds of 24 kHz speech in under 150 ms', () => {
     const parts: Float32Array[] = [];
     for (let k = 0; k < 13; k++) parts.push(word(110 + 5 * k, 150, 0.3, 0.2), silence(0.08));
     const input = concat(...parts).subarray(0, 5 * FS);

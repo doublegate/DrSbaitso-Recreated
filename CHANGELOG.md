@@ -173,6 +173,20 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   - Enhanced mode plays each persona's greeting and replies through its route;
     the classic screen stays on the Sbaitso chain.
 
+### Testing
+- **End-to-end tests rewritten.** The old specs wrapped 74 checks in
+  `if (isVisible)` guards, so they could pass without testing anything, and they
+  called the real Gemini API. The new suite (`e2e/`) mocks `/api`, asserts every
+  step, and covers the classic screen (greeting, model reply, CALC, the parity
+  flood, the exit menu) and Enhanced mode (layout, menus, panels, templates, ELIZA
+  and JOSHUA answering locally, switching screens).
+- **Continuous integration** (`.github/workflows/ci.yml`): lint, typecheck, unit
+  tests, coverage, build, the bundle key check, `npm audit` and Playwright on every
+  push to `main` and every pull request.
+- Coverage thresholds raised to the measured level (about 67% of lines). Timing
+  budgets for the audio chains are skipped under coverage instrumentation and
+  enforced in the plain test run.
+
 ### Fixed
 - **Classic mode now behaves like the original program as it runs in DOSBox.**
   The 1992 program was run in an emulator and its screen and sound measured
@@ -206,6 +220,10 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
   hidden screen-reader announcer sat in the page flow below the app; it is now fixed
   in place.
+- **Floating panels covered the menus.** With the topic diagram open, the header
+  menus could not be clicked; the header now stays on top.
+- **Conversation templates could not be chosen from the keyboard.** The cards are
+  now focusable buttons that respond to Enter and Space.
 - **An empty yellow box appeared under any focused button** while keyboard hints were
   on. Hints now render only on elements that define one.
 - **Crash right after name entry.** `<InstallPrompt />` was rendered without its

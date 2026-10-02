@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { bestCpuMs, perfIt } from '../helpers/cpuTime';
 import {
   AUTHENTICITY_PRESETS,
   AuthenticityLevel,
@@ -196,11 +197,11 @@ describe('processVintageSamples', () => {
     );
   });
 
-  it('processes five seconds of 24 kHz audio quickly', () => {
+  perfIt('processes five seconds of 24 kHz audio quickly', () => {
     const fiveSeconds = Float32Array.from(sine(130, 5), (v, i) => v * (0.6 + 0.4 * Math.sin(i / 1200)));
-    const started = performance.now();
-    processVintageSamples(fiveSeconds, FS, getPresetConfig(AuthenticityLevel.Authentic), '.');
-    expect(performance.now() - started).toBeLessThan(300);
+    expect(
+      bestCpuMs(() => processVintageSamples(fiveSeconds, FS, getPresetConfig(AuthenticityLevel.Authentic), '.')),
+    ).toBeLessThan(300);
   });
 });
 

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { bestCpuMs, perfIt } from '../helpers/cpuTime';
 import {
   autocorrelation,
   buildPitchContour,
@@ -192,11 +193,9 @@ describe('lpcMonotone', () => {
     expect(Array.from(a)).toEqual(Array.from(b));
   });
 
-  it('processes five seconds of speech-rate audio quickly', () => {
+  perfIt('processes five seconds of speech-rate audio quickly', () => {
     const fiveSeconds = Float32Array.from(vowel(130, 5), (v, i) => v * (0.6 + 0.4 * Math.sin(i / 400)));
-    const started = performance.now();
-    lpcMonotone(fiveSeconds, { sampleRate: FS, endPunctuation: '.' });
-    expect(performance.now() - started).toBeLessThan(300);
+    expect(bestCpuMs(() => lpcMonotone(fiveSeconds, { sampleRate: FS, endPunctuation: '.' }))).toBeLessThan(300);
   });
 });
 

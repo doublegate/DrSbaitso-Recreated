@@ -1,3 +1,5 @@
+import { it } from 'vitest';
+
 /**
  * Best-of-`runs` CPU time of `fn` in milliseconds, for performance budgets.
  *
@@ -16,3 +18,10 @@ export function bestCpuMs(fn: () => void, runs = 3): number {
   }
   return best;
 }
+
+/**
+ * `it` for performance budgets. Skipped under coverage (`COVERAGE=1`, set by
+ * `npm run test:coverage`), whose instrumentation makes every budget meaningless;
+ * the plain test run still enforces them.
+ */
+export const perfIt = process.env.COVERAGE ? it.skip : it;

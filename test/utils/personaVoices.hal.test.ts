@@ -8,7 +8,7 @@ import {
   processHalVoice,
 } from '@/utils/personaVoices';
 import { estimatePitch } from '@/utils/lpcMonotone';
-import { bestCpuMs } from '../helpers/cpuTime';
+import { bestCpuMs, perfIt } from '../helpers/cpuTime';
 
 const FS = 24000;
 
@@ -129,7 +129,7 @@ describe('processHalVoice', () => {
     expect(processHalVoice(new Float32Array(4800), FS).every((v) => v === 0)).toBe(true);
   });
 
-  it('processes five seconds of 24 kHz speech in under 150 ms', () => {
+  perfIt('processes five seconds of 24 kHz speech in under 150 ms', () => {
     const input = vowel(120, 5);
     // About 30 ms standalone.
     expect(bestCpuMs(() => processHalVoice(input, FS))).toBeLessThan(150);
