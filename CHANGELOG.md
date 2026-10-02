@@ -89,6 +89,16 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   `PARITY ERR ... RECOVERED / PHEW!   THAT WAS CLOSE!` sequence, and the age prompt.
   Also the exact v2.20 greeting layout and the name rules (letters and spaces only,
   `NAME TOO LONG`). Pure functions with 98% test coverage; not yet wired into the UI.
+- **Local ELIZA engine** (`src/engine/eliza/`): Weizenbaum's algorithm as the 1965
+  MAD-SLIP source runs it, loaded with the public-domain (CC0) 1965 DOCTOR script
+  (`.TAPE. 100`), so ELIZA needs no model call for text. It has ranked keywords,
+  `0`/`n` decomposition with DLIST tag classes, per-rule cycling reassembly,
+  substitutions (I/YOU, MY/YOUR ...), delimiters `.` `,` and `BUT`, the MEMORY queue
+  recalled on every fourth input and chosen by the original SLIP mid-square hash, and
+  the NONE fallback. It reproduces, line for line, the original program running this
+  script on emulated CTSS. Output is ALL CAPS with no `?`. The 1966 CACM script is
+  still under ACM copyright and is not shipped (`THIRD_PARTY_NOTICES.md`). Pure
+  functions; not yet wired into the UI.
 
 ### Fixed
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
