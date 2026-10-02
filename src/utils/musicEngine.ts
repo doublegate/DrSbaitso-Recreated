@@ -5,8 +5,8 @@
  * Uses Web Audio API to create chiptune-style sounds procedurally.
  *
  * Features:
- * - Adaptive mood (major = positive, minor = negative)
- * - Dynamic tempo based on conversation pace
+ * - Moods; 'auto' follows the conversation's sentiment (useMusicMood)
+ * - Three tempos, changeable while playing
  * - Pentatonic/minor scale patterns
  * - 4-bar loop structure with variation
  * - Multiple instrument layers (lead, bass, arpeggio)
@@ -24,6 +24,9 @@ export interface MusicSettings {
   tempo: MusicTempo;
 }
 
+/** Sentiment at or below minus this switches the 'auto' mood to a minor scale. */
+const AUTO_MOOD_THRESHOLD = 0.2;
+
 export class MusicEngine {
   private audioContext: AudioContext | null = null;
   private masterGain: GainNode | null = null;
@@ -34,6 +37,10 @@ export class MusicEngine {
   private isPlaying: boolean = false;
   private currentBeat: number = 0;
   private intervalId: number | null = null;
+  /** True only when init() created the context (the shared one is never closed here). */
+  private ownsContext = false;
+  /** Conversation sentiment, -1..1, which the 'auto' mood follows. */
+  private sentiment = 0;
 
   private settings: MusicSettings = {
     enabled: false,
@@ -57,8 +64,9 @@ export class MusicEngine {
     if (this.audioContext) return;
 
     // Prefer the app's shared context; browsers cap how many may exist.
-    this.audioContext =
-      context ?? getSharedAudioContext() ?? new (window.AudioContext || (window as any).webkitAudioContext)();
+    const shared = context ?? getSharedAudioContext();
+    this.ownsContext = !shared;
+    this.audioContext = shared ?? new (window.AudioContext || (window as any).webkitAudioContext)();
 
     // Master gain
     this.masterGain = this.audioContext.createGain();
@@ -119,11 +127,23 @@ export class MusicEngine {
     console.log('[MusicEngine] Stopped playing');
   }
 
+  /** Sets the conversation sentiment (-1..1) that the 'auto' mood follows. */
+  setSentiment(score: number): void {
+    this.sentiment = Number.isFinite(score) ? Math.max(-1, Math.min(1, score)) : 0;
+  }
+
   /**
    * Update music settings
    */
   updateSettings(settings: Partial<MusicSettings>): void {
+    const tempoChanged = settings.tempo !== undefined && settings.tempo !== this.settings.tempo;
     this.settings = { ...this.settings, ...settings };
+
+    // The beat interval is fixed when playback starts; restart it for a new tempo.
+    if (tempoChanged && this.isPlaying) {
+      this.stop();
+      this.start();
+    }
 
     if (this.masterGain) {
       this.masterGain.gain.value = (this.settings.volume / 100) * 0.3;
@@ -260,11 +280,11 @@ export class MusicEngine {
 
     if (mood === 'happy') return this.PENTATONIC_MAJOR;
     if (mood === 'sad') return this.NATURAL_MINOR;
-    if (mood === 'tense') return this.NATURAL_MINOR;
+    if (mood === 'tense') return this.PENTATONIC_MINOR;
     if (mood === 'neutral') return this.PENTATONIC_MAJOR;
 
-    // Auto: could be determined by sentiment later
-    return this.PENTATONIC_MAJOR;
+    // Auto: minor when the conversation turns negative, major otherwise.
+    return this.sentiment <= -AUTO_MOOD_THRESHOLD ? this.NATURAL_MINOR : this.PENTATONIC_MAJOR;
   }
 
   /**
@@ -295,8 +315,9 @@ export class MusicEngine {
   destroy(): void {
     this.stop();
 
-    if (this.audioContext && this.audioContext.state !== 'closed') {
-      this.audioContext.close();
+    // Closing the page's shared context would silence speech too.
+    if (this.ownsContext && this.audioContext && this.audioContext.state !== 'closed') {
+      void this.audioContext.close();
     }
 
     this.audioContext = null;

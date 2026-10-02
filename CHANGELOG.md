@@ -264,6 +264,18 @@ repairs every feature that existed in code but could not be reached.
 - **Speech at another sample rate would have played at the wrong pitch.** The
   server reported the rate but the browser always decoded 24 kHz; the server now
   converts any other rate to 24 kHz, so the client contract always holds.
+- **Long conversations stopped working.** Each persona's history was resent in
+  full every turn, so after enough turns every request exceeded the size limit and
+  failed. Only the history the server uses is sent now.
+- **Music player.** Changing the tempo while playing had no effect, Sad and Tense
+  sounded the same, and Auto did not follow the conversation; Auto now turns minor
+  when the conversation turns negative. Closing the music engine could have closed
+  the page's shared audio, silencing speech.
+- **Accessibility and help.** "Skip to settings" led nowhere and the name screen
+  offered skip links to missing elements; the classic cursor ignored the system's
+  reduced-motion setting; "show statistics" opened search instead of insights; the
+  voice help described a microphone button that is gone; and the tour pointed at
+  a character button and offered a text export that do not exist.
 - **Request size limit measured in bytes.** The 64 KiB body cap counted
   characters, so multibyte text could exceed it; the body is now read as a
   stream and rejected as soon as it passes the limit.

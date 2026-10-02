@@ -16,6 +16,7 @@ import { useChatPipeline } from './hooks/useChatPipeline';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { useGlobalSwipe } from './hooks/useTouchGestures';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
+import { useMusicMood } from './hooks/useMusicMood';
 import SkipNav from './components/SkipNav';
 import NameEntry from './components/enhanced/NameEntry';
 import EnhancedHeader from './components/enhanced/EnhancedHeader';
@@ -70,6 +71,8 @@ export default function EnhancedApp({
     announceMessages: accessibilitySettings.announceMessages,
   });
   const { userName, messages, isLoading, isGreeting, isPreparingGreeting } = chat;
+  // The music player's 'auto' mood follows the conversation.
+  useMusicMood(messages, isLoading);
 
   // Conversation history is opt-in (the greeting promises memory is wiped).
   const { keepHistory, setKeepHistory, currentSession, savedSessions, mergeSessions } = useSessionHistory(messages, {
