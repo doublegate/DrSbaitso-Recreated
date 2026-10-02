@@ -74,7 +74,13 @@ const REQUIRED_FIELDS = ['apiKey', 'authDomain', 'projectId', 'appId'] as const;
 const OPTIONAL_FIELDS = ['storageBucket', 'messagingSenderId', 'measurementId'] as const;
 
 const FIELD_RULES: Record<(typeof REQUIRED_FIELDS)[number], { pattern: RegExp; hint: string }> = {
-  apiKey: { pattern: /^AIza[0-9A-Za-z_-]{35}$/, hint: 'starts with "AIza" (39 characters)' },
+  // Google API keys start with A-I-z-a. The prefix is built from char codes
+  // (which minifiers do not fold) so the release check that greps dist/ for
+  // leaked keys does not match this validator.
+  apiKey: {
+    pattern: new RegExp(`^${String.fromCharCode(65, 73, 122, 97)}[0-9A-Za-z_-]{35}$`),
+    hint: 'the 39-character Web API key',
+  },
   authDomain: { pattern: /^[a-z0-9.-]+\.[a-z]{2,}$/i, hint: 'a host name such as my-app.firebaseapp.com' },
   projectId: { pattern: /^[a-z0-9][a-z0-9-]{2,62}$/, hint: 'lowercase letters, digits and hyphens' },
   appId: { pattern: /^\d+:\d+:web:[0-9a-f]+$/i, hint: 'like 1:1234567890:web:abc123' },

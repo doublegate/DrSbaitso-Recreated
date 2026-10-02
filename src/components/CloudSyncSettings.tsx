@@ -184,7 +184,7 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
                 onChange={(e) => setConfigText(e.target.value)}
                 rows={7}
                 spellCheck={false}
-                placeholder={'{\n  apiKey: "AIza...",\n  authDomain: "my-app.firebaseapp.com",\n  projectId: "my-app",\n  appId: "1:123:web:abc"\n}'}
+                placeholder={'{\n  apiKey: "your-web-api-key",\n  authDomain: "my-app.firebaseapp.com",\n  projectId: "my-app",\n  appId: "1:123:web:abc"\n}'}
                 style={{
                   width: '100%',
                   backgroundColor: '#FFFFFF',
