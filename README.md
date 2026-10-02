@@ -88,6 +88,7 @@ model overrides are listed in [`.env.example`](.env.example). See
 - [CHANGELOG.md](CHANGELOG.md): release history
 - [docs/TESTING.md](docs/TESTING.md): test strategy and how to run each suite
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md): common problems
+- [ref-docs/](ref-docs): sourced research on the original program (history, voice, screen)
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute
 - [to-dos/](to-dos): roadmap and open work
 
