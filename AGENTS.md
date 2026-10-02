@@ -79,7 +79,8 @@ npm run analyze        # bundle report -> reports/ (gitignored)
   loop in `useVoiceControl`).
 - **Audio modes:**
   - `decodeAudioData` applies the vintage processing.
-  - `getPlaybackSettings` adds playback rate and an optional extra crush; only Ultra crushes.
+  - `getPlaybackSettings` is 1.0x with no extra crush in every mode: a rate above 1 raises the
+    pitch, and the original is full 8-bit.
   - Never re-add a global 64-level crush.
 - **Vercel previews sit behind SSO.** Smoke-test with the Vercel MCP `get_access_to_vercel_url`
   plus a curl cookie jar.

@@ -6,17 +6,29 @@ describe('getPlaybackSettings', () => {
     expect(getPlaybackSettings('modern')).toEqual({ bitDepth: 0, playbackRate: 1 });
   });
 
-  it('does not re-crush modes that vintage processing already quantised', () => {
-    expect(getPlaybackSettings('subtle').bitDepth).toBe(0);
-    expect(getPlaybackSettings('authentic').bitDepth).toBe(0);
+  it('never re-crushes: vintage processing already quantised to full 8-bit', () => {
+    for (const mode of ['subtle', 'authentic', 'ultra'] as const) {
+      expect(getPlaybackSettings(mode).bitDepth).toBe(0);
+    }
   });
 
-  it('keeps the extra artifacts only for Ultra', () => {
-    expect(getPlaybackSettings('ultra').bitDepth).toBeGreaterThan(0);
+  it('plays every mode at 1.0x, since playbackRate above 1 raises the pitch', () => {
+    for (const mode of ['modern', 'subtle', 'authentic', 'ultra'] as const) {
+      expect(getPlaybackSettings(mode).playbackRate).toBe(1);
+    }
   });
 });
 
 describe('playAudio', () => {
+  it('defaults to no crush and normal speed', async () => {
+    const ctx = new AudioContext();
+    const buffer = ctx.createBuffer(1, 10, 24000);
+    let source: AudioBufferSourceNode | undefined;
+    await playAudio(buffer, ctx, undefined, undefined, true, (s) => (source = s));
+    expect(source?.playbackRate.value).toBe(1);
+    expect(ctx.createScriptProcessor).not.toHaveBeenCalled();
+  });
+
   it('reports the source node so callers can stop or visualise it', async () => {
     const ctx = new AudioContext();
     const buffer = ctx.createBuffer(1, 10, 24000);

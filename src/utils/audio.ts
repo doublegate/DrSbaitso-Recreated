@@ -74,14 +74,17 @@ export type AudioModeId = 'modern' | 'subtle' | 'authentic' | 'ultra';
 
 /**
  * Playback settings applied after vintage processing. Vintage processing
- * (decodeAudioData) already band-limits and quantises the authentic modes,
- * so only Ultra adds a further bit-crush; Modern plays the TTS untouched.
+ * (decodeAudioData) already band-limits and quantises the vintage modes to
+ * full unsigned 8-bit, as the original engine output, so no mode adds a
+ * further crush. Every mode plays at 1.0x: a playbackRate above 1 resamples
+ * and so raises the pitch, while the original's pitch was fixed by the Sound
+ * Blaster time constant (ref-docs/02-voice-and-audio.md section 7.2).
  */
 const PLAYBACK_BY_MODE: Record<AudioModeId, { bitDepth: number; playbackRate: number }> = {
   modern: { bitDepth: 0, playbackRate: 1 },
   subtle: { bitDepth: 0, playbackRate: 1 },
-  authentic: { bitDepth: 0, playbackRate: 1.1 },
-  ultra: { bitDepth: 64, playbackRate: 1.1 },
+  authentic: { bitDepth: 0, playbackRate: 1 },
+  ultra: { bitDepth: 0, playbackRate: 1 },
 };
 
 export function getPlaybackSettings(mode: AudioModeId): { bitDepth: number; playbackRate: number } {
@@ -113,7 +116,7 @@ function mapAudioModeToAuthenticityLevel(mode: 'modern' | 'subtle' | 'authentic'
  * @param buffer - AudioBuffer to play
  * @param ctx - AudioContext instance
  * @param bitDepth - Number of quantization levels (0 = disabled, 16 = 4-bit, 64 = 6-bit, 256 = 8-bit)
- * @param playbackRate - Playback speed multiplier (e.g., 1.1 for faster/deeper voice)
+ * @param playbackRate - Playback speed multiplier. Above 1 it also raises the pitch.
  * @param useWorklet - Whether to attempt AudioWorklet (true) or force ScriptProcessorNode fallback (false)
  * @param onStart - Receives the source node once playback starts (to stop or visualise it)
  * @returns Promise<void> - Resolves when playback completes or the source is stopped
@@ -123,8 +126,8 @@ function mapAudioModeToAuthenticityLevel(mode: 'modern' | 'subtle' | 'authentic'
 export function playAudio(
   buffer: AudioBuffer,
   ctx: AudioContext,
-  bitDepth: number = 64,
-  playbackRate: number = 1.1,
+  bitDepth: number = 0,
+  playbackRate: number = 1,
   useWorklet: boolean = true,
   onStart?: (source: AudioBufferSourceNode) => void
 ): Promise<void> {

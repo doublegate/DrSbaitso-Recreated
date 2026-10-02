@@ -14,7 +14,7 @@ else is a factual correction to make either way.
       ([ref-docs/02](../ref-docs/02-voice-and-audio.md))
 - [x] Pronunciation: "SBAYT-so", not "SUH-BAIT-SO" (`api/_lib/gemini.ts`). Spell out
       "DOCTOR", not "DR.".
-- [ ] `playbackRate` 1.1 raises pitch by 10%; it does not deepen the voice. Use 1.0 for
+- [x] `playbackRate` 1.1 raises pitch by 10%; it does not deepen the voice. Use 1.0 for
       the authentic modes (`src/utils/audio.ts`).
 - [ ] The Authentic preset's 5 kHz high cut has no effect; the original sits under a
       roughly 4 kHz ceiling at 8,475 Hz (`src/utils/vintageAudioProcessing.ts`).

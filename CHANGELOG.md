@@ -99,6 +99,9 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   the audio processing supplies the 8-bit sound. The `deep` voice profile is
   labelled as an enhancement, not the original voice. See
   `ref-docs/02-voice-and-audio.md`.
+- **The Authentic and Ultra voices are no longer pitched up 10%.** They played at
+  1.1x, and `playbackRate` raises pitch as well as speed. Every mode now plays at
+  1.0x. Ultra no longer adds a 6-bit crush on top: the original was full 8-bit.
 
 ### Changed
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
