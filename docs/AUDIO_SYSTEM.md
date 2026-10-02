@@ -1,4 +1,4 @@
-# Audio System Documentation
+# Audio System
 
 ## Overview
 
@@ -169,383 +169,88 @@ about 76 ms, Sbaitso Authentic chain about 28 ms. The tests budget 150 ms of CPU
 
 ### Integration
 
-`useSpeechPlayer(mode).speak(audio, text, { processing })` defaults to `'sbaitso'`. Enhanced
-mode should pass `usePersona().voiceProcessing`; Classic mode stays on `'sbaitso'`.
+`useSpeechPlayer(mode).speak(audio, text, { processing })` (`src/hooks/useSpeechPlayer.ts`)
+decodes, processes and plays one clip and resolves when it ends or is stopped.
 
-## Core Audio Functions
+- **Enhanced mode** passes `usePersona().voiceProcessing` for the greeting and every reply
+  (`src/hooks/useChatPipeline.ts`), and the audio mode from the status bar (default
+  Authentic; Alt+Shift+Q cycles it). Custom characters use the `sbaitso` route.
+- **Classic screen** always uses Dr. Sbaitso's default voice, the `sbaitso` route and
+  the Authentic mode. A reply is synthesised in one request, and each line is printed at
+  its estimated place in the clip (`cueOffsets` in `src/utils/speechCues.ts`). A key
+  press stops the speech; the remaining lines print silently.
+- The classic dot commands `.PITCH`, `.SPEED`, `.TONE` and `.VOLUME` are accepted and
+  range-checked like the original's, but do not yet change the audio.
 
-### decode(base64: string): Uint8Array
+## Request to playback
 
-Converts base64-encoded audio data to raw bytes with `atob()`.
-
-### decodeAudioData(): AudioBuffer
-
-```typescript
-export async function decodeAudioData(
-  data: Uint8Array,
-  ctx: AudioContext,
-  sampleRate: number,
-  numChannels: number,
-  audioMode?: 'modern' | 'subtle' | 'authentic' | 'ultra',
-  endPunctuation: '.' | '?' | '!' | null = null,
-  options: { processing?: 'sbaitso' | 'clean' | 'hal' | 'wopr'; text?: string } = {}
-): Promise<AudioBuffer>
+```
+browser                         server (api/tts.ts)                     browser
+synthesizeSpeech(text, id) ---> persona voice + style, TTS casing,  ---> base64 PCM16, 24 kHz
+                                pronunciation, model fallback,           decode() -> decodeAudioData()
+                                WAV header stripped, resampled to        route: vintage | hal | wopr | none
+                                24 kHz if the model used another rate    playAudio() on the shared context
 ```
 
-Strips a RIFF/WAVE header if present and converts little-endian PCM16 to Float32
-(`int16 / 32768`). Then, by route: `sbaitso` (the default) applies the vintage chain for any
-mode other than `modern`; `clean` applies nothing; `hal` and `wopr` apply their chains in every
-mode.
-
-### playAudio(): Promise<void>
-
-```typescript
-export function playAudio(
-  buffer: AudioBuffer,
-  ctx: AudioContext,
-  bitDepth: number = 0,      // quantisation levels; 0 disables the crusher
-  playbackRate: number = 1,  // above 1 raises pitch as well as speed
-  useWorklet: boolean = true,
-  onStart?: (source: AudioBufferSourceNode) => void
-): Promise<void>
-```
-
-Plays the buffer through a `BufferSourceNode`. With `bitDepth > 0` it inserts a bit-crusher
-(AudioWorklet `bit-crusher-processor`, or a `ScriptProcessorNode` fallback) that rounds each
-sample to `bitDepth` levels. No speech mode uses it any more: the vintage chain already
-quantises to the original's full 8 bits. Nodes are disconnected when playback ends, and the
-promise resolves then.
-
-## Sound Effects
-
-### playParityTone(): the parity buzz
-
-The original's parity glitch is a flood of `PARITY ERR ...` lines over a continuous
-buzz falling from about 1 kHz to about 0.7 kHz for about 4 seconds (measured in
-DOSBox, `ref-docs/04-dosbox-verification.md` section 4). The classic screen plays it
-with `playParityTone(ctx, seconds)`, a square wave on the shared context that never
-throws.
-
-```typescript
-export function playParityTone(ctx: AudioContext, seconds?: number): void
-```
-
-### playGlitchSound(): White Noise
-
-Not authentic: a 200 ms noise burst kept for Enhanced mode. The original had no
-noise burst.
-
-```typescript
-export function playGlitchSound(ctx: AudioContext): void
-```
-
-**Implementation:**
-
-```typescript
-const bufferSize = ctx.sampleRate * 0.2; // 200ms
-const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-const output = buffer.getChannelData(0);
-
-for (let i = 0; i < bufferSize; i++) {
-  output[i] = Math.random() * 2 - 1; // Random [-1.0, 1.0]
-}
-```
-
-**White Noise Generation:**
-- Random samples uniformly distributed in [-1.0, 1.0]
-- Contains all frequencies equally
-- Mimics hardware glitch/static
-
-**Volume Envelope:**
-```typescript
-const gainNode = ctx.createGain();
-gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-```
-
-**Envelope Shape:**
-```
-Volume
-  0.3 ┤━╮
-      │ ╲
-      │  ╲
-      │   ╲___
-  0.0 ┤───────╲───
-      0ms    200ms
-```
-
-- Starts at 30% volume (0.3)
-- Exponentially fades to near-zero (0.001) over 200ms
-- Prevents harsh cutoff
-
-### playErrorBeep(): Square Wave
-
-Triggered on API errors or failures.
-
-```typescript
-export function playErrorBeep(ctx: AudioContext): void
-```
-
-**Implementation:**
-
-```typescript
-const oscillator = ctx.createOscillator();
-const gainNode = ctx.createGain();
-
-oscillator.type = 'square';
-oscillator.frequency.setValueAtTime(300, ctx.currentTime);
-
-gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
-gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-```
-
-**Square Wave Properties:**
-- **Frequency:** 300 Hz (low, jarring pitch)
-- **Waveform:** Square (harsh, 8-bit character)
-- **Duration:** 300ms
-
-**Square Wave Visualization:**
-```
-Amplitude
-  1.0 ┤━━╮  ╭━━╮  ╭━━
-      │  │  │  │  │
-  0.0 ┤  ╰━━╯  ╰━━╯
- -1.0 ┤
-      ├──────────────
-      0ms        33ms
-      (300 Hz = 3.33ms period)
-```
-
-**Why Square Wave?**
-- PC speaker only produced square waves
-- Authentic retro beep sound
-- High harmonic content (aggressive tone)
-
-## AudioContext Management
-
-### ensureAudioContext()
-
-Singleton pattern for AudioContext lifecycle.
-
-```typescript
-const ensureAudioContext = () => {
-  if (!audioContextRef.current) {
-    try {
-      audioContextRef.current = new (window.AudioContext ||
-                                      (window as any).webkitAudioContext)
-                                     ({ sampleRate: 24000 });
-    } catch (e) {
-      console.error("Could not create AudioContext:", e);
-    }
-  }
-};
-```
-
-**Why Singleton?**
-- AudioContext creation is expensive
-- Browser limits concurrent contexts (6 in Chrome)
-- Maintains consistent sample rate across sessions
-
-**Sample Rate: 24 kHz**
-- Matches Gemini TTS output (24,000 Hz)
-- Lower than CD quality (44.1 kHz)
-- Contributes to retro sound aesthetic
-
-**Browser Compatibility:**
-- Standard: `window.AudioContext`
-- Safari fallback: `window.webkitAudioContext`
-
-### Autoplay Policy Compliance
-
-Modern browsers block audio without user interaction.
-
-**Strategy:**
-```typescript
-if (ctx.state === 'suspended') {
-  ctx.resume();
-}
-```
-
-**User Interaction Triggers:**
-- Name submission (handleNameSubmit)
-- Message submission (handleUserInput)
-
-**State Transitions:**
-```
-Initial: AudioContext.state = 'suspended'
-   ↓ (user clicks/presses Enter)
-ensureAudioContext() → new AudioContext()
-   ↓
-AudioContext.state = 'running' or 'suspended'
-   ↓ (if suspended)
-ctx.resume()
-   ↓
-AudioContext.state = 'running'
-   ↓
-Audio plays successfully
-```
-
-## Performance Characteristics
-
-### Memory Usage
-
-**Per Audio Playback:**
-- AudioBuffer: ~48KB per second of audio
-- ScriptProcessorNode: 2048 samples × 4 bytes = 8KB buffer
-- Total: ~56KB per active playback
-
-**Greeting Sequence:**
-- 7 pre-generated AudioBuffers stored in state
-- ~7 × 2 seconds × 48KB = ~672KB total
-- Released after greeting completes
-
-### CPU Usage
-
-**Vintage processing (offline, before playback):**
-- Runs once per utterance on the decoded buffer, O(n) per stage
-- About 20 ms for 5 s of speech in the Authentic chain (Node, desktop CPU), most of it in the
-  LPC stage
-
-**Bit-crusher (only when `bitDepth > 0`; no speech mode uses it):**
-- 2048 samples per callback
-- At 24 kHz: 2048/24000 = 85ms interval
-- ~12 callbacks per second
-- Minimal CPU impact (<1% on modern hardware)
-
-**Quantization Algorithm:**
-- O(n) per buffer (n = 2048)
-- Simple arithmetic operations
-- No complex DSP
-
-### Latency
-
-**Total Audio Latency:**
-1. TTS API call: 500-1500ms (network dependent)
-2. Base64 decode: <1ms
-3. AudioBuffer creation: <10ms
-4. Playback start: <5ms
-5. **Total: ~515-1515ms**
-
-**Mitigation Strategy:**
-- Typewriter effect masks TTS latency
-- Parallel audio generation during typing
-- Pre-generation for greeting sequence
-
-## Browser Compatibility
-
-### Supported Browsers
-
-| Browser | Version | Notes |
-|---------|---------|-------|
-| Chrome | 88+ | Full support |
-| Firefox | 85+ | Full support |
-| Safari | 14+ | Requires webkitAudioContext |
-| Edge | 88+ | Full support (Chromium) |
-
-### Known Issues
-
-#### ScriptProcessorNode Deprecation
-
-⚠️ **Warning:** ScriptProcessorNode is deprecated in favor of AudioWorklet.
-
-**Current Status:**
-- Still supported in all major browsers
-- No removal timeline announced
-- Works reliably for this use case
-
-**Future Migration Path:**
-```typescript
-// Current (deprecated)
-const bitCrusher = ctx.createScriptProcessor(2048, 1, 1);
-bitCrusher.onaudioprocess = function(e) { ... };
-
-// Future (AudioWorklet)
-await ctx.audioWorklet.addModule('bit-crusher-processor.js');
-const bitCrusher = new AudioWorkletNode(ctx, 'bit-crusher');
-```
-
-**Migration Benefits:**
-- Runs on separate audio thread (no main thread blocking)
-- Better performance
-- Lower latency
-
-#### Mobile Safari Issues
-
-**Autoplay Policy:**
-- Stricter than desktop browsers
-- Requires explicit user tap (not programmatic)
-- May require retry on first playback
-
-**Sample Rate:**
-- iOS defaults to 48 kHz regardless of request
-- May need resampling for consistent behavior
-
-#### Memory Leaks
-
-**ScriptProcessorNode:**
-- Does not garbage collect if not disconnected
-- Must call `disconnect()` after use
-- Current implementation handles this correctly
-
-## Testing Audio System
-
-### Manual Testing
-
-```typescript
-// Test basic playback
-const ctx = new AudioContext({ sampleRate: 24000 });
-const testBuffer = ctx.createBuffer(1, 24000, 24000); // 1 second silence
-await playAudio(testBuffer, ctx);
-
-// Test bit-crusher effect
-const data = new Uint8Array(48000); // 1 second of audio
-const buffer = await decodeAudioData(data, ctx, 24000, 1);
-await playAudio(buffer, ctx); // Should hear quantization artifacts
-
-// Test glitch sound
-playGlitchSound(ctx); // Should hear 200ms white noise
-
-// Test error beep
-playErrorBeep(ctx); // Should hear 300ms square wave beep
-```
-
-### Expected Audio Quality
-
-✅ **Correct Behavior (Authentic):**
-- Dark, band-limited voice with a faint metallic edge (sample-and-hold images)
-- Pitch held flat on each syllable, stepping between syllables
-- Falls at the end of a statement, rises at the end of a question
-- Same speed as the TTS (no 1.1x speed-up)
-
-❌ **Incorrect Behavior:**
-- Audio sounds identical to source
-- No distortion or artifacts
-- Smooth, modern speech synthesis
-- Silent or no playback
-
-## Advanced Topics
-
-### Bit Depth Comparison
-
-| Bit Depth | Levels | Step Size | Use Case |
-|-----------|--------|-----------|----------|
-| 1-bit | 2 | 1.0 | Extreme lo-fi |
-| 4-bit | 16 | 0.125 | Heavy distortion |
-| 6-bit | 64 | 0.031746 | Former (unsupported) "authentic" setting |
-| **8-bit** | **256** | **0.0078125** | **Dr. Sbaitso: unsigned 8-bit at 8475 Hz** |
-| 16-bit | 65,536 | 0.000015 | CD quality |
-
-### Effects now implemented
-
-Sample-rate reduction with sample-and-hold, the low-pass output filter and pitch flattening are
-now part of the vintage chain (see "Processing pipeline" above).
-
-## Future Enhancements
-
-1. **Validation:** Compare rendered F0 and band levels with `ref-docs/02-voice-and-audio.md`
-   sections 3.2-3.3 (checklist in section 7.6)
-2. **Per-sentence intonation:** one contour per sentence rather than per TTS call
-3. **Original-engine mode:** optional, bring-your-own `SBTALKER.EXE` emulation
-4. **Audio Caching:** Store generated audio in IndexedDB
-5. **Streaming Support:** Real-time audio processing for longer responses
-6. **Visualization:** Waveform display with quantization levels
+The server contract is fixed: mono PCM16 at 24 kHz (`docs/API.md`). `decodeAudioData` still
+strips a RIFF/WAVE header if one arrives.
+
+## Core functions (`src/utils/audio.ts`)
+
+| Function | What it does |
+|---|---|
+| `decode(base64)` | Base64 to bytes |
+| `decodeAudioData(data, ctx, sampleRate, channels, mode?, endPunctuation?, { processing, text })` | PCM16 to an `AudioBuffer` (`int16 / 32768`), then the route: `sbaitso` applies the vintage chain in any mode other than `modern`; `clean` nothing; `hal` and `wopr` their chains in every mode (these change the length, so they return a new buffer) |
+| `getPlaybackSettings(mode)` | `{ bitDepth: 0, playbackRate: 1 }` for every mode |
+| `playAudio(buffer, ctx, bitDepth, playbackRate, useWorklet, onStart)` | Plays through a `BufferSource`. With `bitDepth > 0` it inserts a bit-crusher (AudioWorklet `bit-crusher-processor` from `public/audio-processor.worklet.js`, or a `ScriptProcessorNode` fallback). No speech mode uses it. Nodes are disconnected when playback ends. `onStart` receives the source, which the audio visualizer and "stop audio" use. |
+| `playParityTone(ctx, seconds)` | The classic screen's parity buzz: a square wave falling from about 1 kHz to about 0.7 kHz under the `PARITY ERR` flood (measured in DOSBox, `ref-docs/04-dosbox-verification.md` section 4) |
+| `playGlitchSound(ctx)` | Enhanced mode only: a 200 ms noise burst when a reply contains the original's parity text. Not something the original did. |
+| `playErrorBeep(ctx)` | Enhanced mode only: a 300 Hz square beep for 300 ms when a reply fails |
+
+## The shared AudioContext (`src/utils/sharedAudio.ts`)
+
+There is one `AudioContext` for the page, created lazily at the device's native rate and
+never closed. Speech, the interface sound effects (`src/utils/soundEffects.ts`), sound
+packs (`src/utils/soundPackPlayer.ts`) and the music engine all use it.
+
+- `ensureAudioReady()` resumes the context (browsers start it suspended until a user
+  gesture) and loads the bit-crusher worklet once; if the worklet cannot load,
+  `playAudio` falls back to a `ScriptProcessorNode`.
+- Enhanced mode calls it on name submission and on every send. On the classic screen,
+  speech starts once the context is running: the very first start is silent until you
+  type, and later starts (after Q and Enter) say "Doctor Sbaitso, by Creative Labs".
+- `peekSharedAudioContext()` reports whether audio is unlocked without creating a
+  context (which would trigger the browser's autoplay warning).
+
+The 24 kHz speech buffers are resampled by the browser to the context's rate on playback.
+
+## Other sounds
+
+| Source | Where | Notes |
+|---|---|---|
+| Interface sounds | SOUND > Sound settings (Alt+Shift+S) | Procedural key clicks, beeps, boot sounds and ambience in four styles (DOS PC, Apple II, Commodore 64, modern synth); settings in localStorage |
+| Sound packs | SOUND > Sound packs (Alt+Shift+P) | User-supplied sounds on app events; see [SOUND_PACKS_GUIDE.md](SOUND_PACKS_GUIDE.md) |
+| Background music | SOUND > Music player (Alt+Shift+M) | Procedural chiptune; see [MUSIC_MODE.md](MUSIC_MODE.md) |
+
+All three are Enhanced-mode features; the classic screen plays only speech and the parity
+buzz.
+
+## Testing
+
+The chains are pure functions on `Float32Array`, so they are tested without an
+`AudioContext` on synthetic signals: frequencies, levels, lengths, determinism and
+CPU-time budgets (`test/utils/vintageAudioProcessing.test.ts`, `lpcMonotone.test.ts`,
+`personaVoices.*.test.ts`, `audio.test.ts`). See [TESTING.md](TESTING.md).
+
+To listen, run `npm run dev`, open Enhanced mode, and switch the audio mode in the status
+bar (Alt+Shift+Q). Authentic should sound dark and band-limited with a faint metallic
+edge, the pitch held flat on each syllable, falling at the end of a statement and rising
+at a question, at the same speed as the TTS.
+
+## Open work
+
+- Listening validation against the original (`ref-docs/02-voice-and-audio.md` section
+  7.6) and of the persona routes; tracked in `to-dos/faithfulness.md`.
+- One pitch contour per sentence rather than per TTS call.
+- The classic voice dot commands (`.PITCH`, `.SPEED`, `.TONE`, `.VOLUME`) have no audible
+  effect yet.

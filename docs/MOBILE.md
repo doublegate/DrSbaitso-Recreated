@@ -1,370 +1,72 @@
-# Mobile Documentation
+# Mobile
 
-Complete guide to using Dr. Sbaitso Recreated on mobile devices.
+The app runs in mobile browsers and can be installed to the home screen. Both screens
+work with touch and an on-screen keyboard; the classic screen is built for a desktop-sized
+display, so on phones Enhanced mode is the more comfortable one.
 
-## Overview
+## Classic screen
 
-Version 1.2.0 introduces full mobile support with touch-optimized UI, responsive layouts, and gesture controls. The application works seamlessly on iOS Safari, Chrome Android, and other mobile browsers.
+- The 80x25 text screen is 720x400 CSS pixels at 1x and is scaled by whole numbers only,
+  so the bitmap font stays crisp (`integerScale` in
+  `src/components/classic/DosScreen.tsx`).
+- Tap anywhere to focus the hidden input and bring up the keyboard. The input uses a
+  16 px font so iOS does not zoom on focus, and `autocapitalize="characters"`.
+- **Known limitation:** the scale never goes below 1, so a viewport narrower than 720 px
+  or shorter than 400 px crops the screen at the edges. On a phone, use landscape, or
+  switch to Enhanced mode.
+- Switching screens on a touch device: open the page with `?mode=enhanced`, or use the
+  home-screen shortcut *Enhanced Mode* of the installed app. (The "Switch to the
+  enhanced interface" link appears only on keyboard focus.)
 
-## Mobile Features
+## Enhanced mode
 
-### Responsive Design
+- The layout fills the dynamic viewport height (`h-dvh`), so the input line stays above
+  the keyboard and the browser toolbars.
+- The header wraps; on screens up to 640 px wide, an open menu spans the full width.
+- The status bar wraps onto several lines; the "Alt+Shift+X classic screen" hint is
+  hidden on small screens.
+- Buttons and inputs have a 44x44 px minimum touch target. Form fields use a 16 px font
+  under 768 px wide, so iOS does not zoom.
+- **Swipe right** anywhere (at least 75 px horizontally) closes the panel opened last,
+  like a back gesture (`useGlobalSwipe` in `src/hooks/useTouchGestures.ts`, with
+  `closeLatest` from `src/hooks/usePanels.ts`). Swiping left does nothing.
+- Pinch zoom is allowed (the viewport does not set `maximum-scale` or
+  `user-scalable=no`).
 
-**Breakpoints:**
-- **Mobile**: <768px - Optimized for phones
-- **Tablet**: 768-1024px - Optimized for tablets
-- **Desktop**: >1024px - Full desktop experience
+## Audio
 
-**Automatic Optimization:**
-- UI scales to screen size
-- Touch targets enlarged to 44x44px minimum
-- Font sizes adjusted for readability
-- Scrollbar thickness reduced on mobile
-- Keyboard inputs optimized to prevent zoom
+Browsers keep audio locked until the first tap or key press. The first speech plays after
+you submit your name (Enhanced) or type (classic). On iOS, the ring/silent switch can
+mute Web Audio.
 
-### Touch Gestures
+## Voice
 
-**Swipe Gestures:**
-- **Swipe Left**: Navigate to next AI character
-- **Swipe Right**: Navigate to previous AI character
-- **Swipe Up/Down**: Scroll message history (natural scrolling)
+Voice input and hands-free voice control use the Web Speech API: Chrome on Android and
+Safari on iOS support it; Firefox does not. See [VOICE_INPUT.md](VOICE_INPUT.md).
 
-**Touch Actions:**
-- **Tap**: Select buttons, activate inputs
-- **Long Press**: Show context menus (future feature)
-- **Double Tap**: Currently unused (reserved for future features)
+## Installing
 
-### Virtual Keyboard Handling
+| Platform | How |
+|---|---|
+| Android (Chrome, Edge) | The app offers an install banner when the browser allows it, or use the browser menu > *Install app* / *Add to Home screen* |
+| iOS / iPadOS (Safari) | Share > *Add to Home Screen* |
 
-**iOS Optimization:**
-- Input font size set to 16px minimum (prevents auto-zoom)
-- Viewport adjusts when keyboard appears
-- Scroll position maintained during keyboard transitions
-- Auto-scroll to active input field
+The installed app opens full screen. Long-press its icon for the shortcuts *Classic
+Screen* and *Enhanced Mode*. On Android, sharing text or a link to the installed app puts
+it, unsent, on the input line. See [PWA.md](PWA.md).
 
-**Android Optimization:**
-- Keyboard overlay handled gracefully
-- Input remains visible above keyboard
-- Smooth keyboard transitions
-- Auto-focus management
+## Data use
 
-## Browser Support
-
-### iOS Safari (14.1+)
-
-**Supported Features:**
-- ✅ AudioWorklet bit-crushing
-- ✅ Touch gestures
-- ✅ Responsive layout
-- ✅ Voice input (with webkit prefix)
-- ✅ Session storage
-- ✅ Audio playback (requires user interaction first)
-
-**Known Limitations:**
-- AudioContext must start after user gesture
-- No pull-to-refresh in standalone mode
-- Limited background audio processing
-
-### Chrome Android (88+)
-
-**Supported Features:**
-- ✅ Full AudioWorklet support
-- ✅ Touch gestures
-- ✅ Responsive layout
-- ✅ Voice input (excellent support)
-- ✅ Session storage
-- ✅ Background audio (limited)
-
-**Known Limitations:**
-- Some devices may have voice recognition latency
-- Battery usage higher during continuous voice listening
-
-### Samsung Internet (15+)
-
-**Supported Features:**
-- ✅ AudioWorklet support
-- ✅ Touch gestures
-- ✅ Responsive layout
-- ⚠️ Voice input (limited support)
-- ✅ Session storage
-
-**Known Limitations:**
-- Voice input accuracy varies by device
-- Some Samsung-specific UI quirks
-
-## Installation
-
-### Add to Home Screen (iOS)
-
-1. Open Safari and navigate to the app
-2. Tap the Share button (square with arrow)
-3. Scroll down and tap "Add to Home Screen"
-4. Name the app and tap "Add"
-5. App icon appears on home screen
-
-**Standalone Mode Benefits:**
-- Full-screen experience
-- No Safari UI chrome
-- App-like experience
-- Custom app icon
-
-### Add to Home Screen (Android)
-
-1. Open Chrome and navigate to the app
-2. Tap the three-dot menu
-3. Tap "Add to Home screen"
-4. Name the app and tap "Add"
-5. App icon appears on home screen
-
-**Standalone Mode Benefits:**
-- Immersive full-screen
-- No browser UI
-- Faster launch
-- App-like behavior
-
-## Performance Optimization
-
-### Mobile Performance Tips
-
-**Audio Quality:**
-- Use "Authentic 8-bit" or "High Quality" presets on mobile
-- "Modern Quality" provides best performance
-- "Extreme Lo-Fi" most CPU-intensive
-
-**Session Management:**
-- Clear old sessions periodically (localStorage limited to ~5-10MB)
-- Export important conversations to free up space
-- Use statistics reset to clear accumulated data
-
-**Battery Life:**
-- Disable continuous voice listening when not needed
-- Lower screen brightness
-- Close app when finished (don't leave in background)
-
-### Data Usage
-
-**Network Usage:**
-- Chat API: ~1-5KB per message
-- TTS API: ~50-150KB per response
-- AudioWorklet: Loaded once (~2KB)
-- Total per session: ~500KB-2MB
-
-**Offline Capabilities:**
-- App shell cached after first load
-- Audio processing works offline
-- Chat/TTS requires internet connection
-
-## Touch Gesture Implementation
-
-### Using Touch Gestures in Your Code
-
-```typescript
-import { useTouchGestures } from '@/hooks/useTouchGestures';
-
-const MyComponent = () => {
-  const gestureRef = useTouchGestures<HTMLDivElement>({
-    onSwipeLeft: () => console.log('Swiped left'),
-    onSwipeRight: () => console.log('Swiped right'),
-    onSwipeUp: () => console.log('Swiped up'),
-    onSwipeDown: () => console.log('Swiped down'),
-    onLongPress: () => console.log('Long press'),
-    onTap: () => console.log('Tapped'),
-    swipeThreshold: 50, // pixels
-    longPressDelay: 500, // milliseconds
-    tapMaxDuration: 200, // milliseconds
-  });
-
-  return <div ref={gestureRef}>Swipe me!</div>;
-};
-```
-
-### Global Swipe Detection
-
-```typescript
-import { useGlobalSwipe } from '@/hooks/useTouchGestures';
-
-const App = () => {
-  useGlobalSwipe({
-    onSwipeLeft: () => nextCharacter(),
-    onSwipeRight: () => previousCharacter(),
-  });
-
-  return <div>App content</div>;
-};
-```
-
-## Responsive Design Implementation
-
-### Using Media Query Hooks
-
-```typescript
-import {
-  useIsMobile,
-  useIsTablet,
-  useIsDesktop,
-  useDeviceType,
-  useViewportSize
-} from '@/hooks/useMediaQuery';
-
-const MyComponent = () => {
-  const isMobile = useIsMobile(); // <768px
-  const isTablet = useIsTablet(); // 768-1024px
-  const isDesktop = useIsDesktop(); // >1024px
-  const deviceType = useDeviceType(); // 'mobile' | 'tablet' | 'desktop'
-  const { width, height } = useViewportSize();
-
-  return (
-    <div>
-      {isMobile && <MobileLayout />}
-      {isTablet && <TabletLayout />}
-      {isDesktop && <DesktopLayout />}
-    </div>
-  );
-};
-```
-
-### Custom Media Queries
-
-```typescript
-import { useMediaQuery, BREAKPOINTS } from '@/hooks/useMediaQuery';
-
-const MyComponent = () => {
-  const isPortrait = useMediaQuery('(orientation: portrait)');
-  const isTouchDevice = useMediaQuery(BREAKPOINTS.touch);
-  const isHighDPI = useMediaQuery('(min-resolution: 2dppx)');
-
-  return <div>Responsive content</div>;
-};
-```
+Each reply is one `/api/chat` request (a few KB, since the conversation so far is sent
+with it) and, unless muted, one `/api/tts` request returning raw 24 kHz 16-bit audio
+(about 48 KB per second of speech). Muting speech (SOUND menu) saves the TTS traffic.
+The app shell is cached by the service worker after the first visit.
 
 ## Troubleshooting
 
-### Common Mobile Issues
-
-**Audio not playing:**
-- Ensure user has interacted with page first (tap anywhere)
-- Check device volume and ringer/silent switch (iOS)
-- Verify browser permissions for audio
-- Try refreshing the page
-
-**Voice input not working:**
-- Check microphone permission in browser settings
-- Verify microphone is not being used by another app
-- Test in supported browser (Chrome, Safari, Edge)
-- Check network connection (required for voice processing)
-
-**Touch gestures not responding:**
-- Ensure you're not in text selection mode
-- Try refreshing the page
-- Check browser console for errors
-- Verify touch events are supported
-
-**Keyboard issues:**
-- If zoom occurs on input focus, report as bug
-- If keyboard covers input, try scrolling manually
-- If keyboard doesn't dismiss, tap outside input area
-
-**Performance issues:**
-- Clear browser cache and reload
-- Close other browser tabs
-- Restart browser app
-- Lower audio quality preset
-- Clear old sessions from localStorage
-
-### Reporting Mobile Issues
-
-When reporting mobile issues, please include:
-- Device model and OS version
-- Browser name and version
-- Exact steps to reproduce
-- Screenshot or screen recording
-- Console error messages (if any)
-
-## Advanced Mobile Features
-
-### Haptic Feedback (Future)
-
-Planned for v1.3.0:
-- Vibration on button press
-- Haptic feedback for voice input
-- Vibration patterns for different events
-
-### Offline Mode (Future)
-
-Planned for v1.3.0:
-- Service Worker for offline functionality
-- Cached responses for common questions
-- Offline session editing
-
-### Mobile-Specific Themes (Future)
-
-Planned for v1.3.0:
-- Dark mode for OLED screens
-- High-contrast mode for sunlight
-- Battery-saving mode
-
-## Accessibility on Mobile
-
-### Touch Target Sizes
-
-All interactive elements meet WCAG 2.1 AA standards:
-- Minimum 44x44px touch targets
-- Adequate spacing between targets
-- Visual feedback on touch
-
-### Screen Reader Support
-
-Planned improvements in v1.3.0:
-- Full VoiceOver support (iOS)
-- TalkBack support (Android)
-- Semantic HTML markup
-- ARIA labels for all interactive elements
-
-### Voice Control
-
-Current voice input features:
-- Voice-to-text for message input
-- Voice commands (future)
-- Voice navigation (future)
-
-## Best Practices
-
-### For Users
-
-1. **Use in landscape mode** on phones for better text visibility
-2. **Enable "Do Not Disturb"** for uninterrupted sessions
-3. **Keep screen timeout long** during voice input
-4. **Use headphones** for privacy and better audio quality
-5. **Clear old sessions** regularly to maintain performance
-
-### For Developers
-
-1. **Test on real devices** not just emulators
-2. **Handle touch events with passive listeners** for performance
-3. **Respect safe area insets** for notched devices
-4. **Optimize bundle size** for mobile networks
-5. **Implement loading states** for slow connections
-
-## Future Enhancements
-
-Planned for future versions:
-- [ ] Native mobile apps (iOS/Android)
-- [ ] Push notifications for session reminders
-- [ ] Biometric authentication for session privacy
-- [ ] Cloud sync across devices
-- [ ] Offline-first architecture
-- [ ] Progressive Web App (PWA) manifest
-- [ ] Share conversations via native share sheet
-- [ ] Deep linking support
-- [ ] Mobile-optimized onboarding flow
-
-## Resources
-
-- [Touch Events API](https://developer.mozilla.org/en-US/docs/Web/API/Touch_events)
-- [Viewport Meta Tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag)
-- [iOS Safari Web App](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html)
-- [Android Chrome WebAPK](https://developer.chrome.com/docs/android/trusted-web-activity/)
-
----
-
-**Last Updated**: v1.2.0 (2025-10-30)
+| Symptom | Check |
+|---|---|
+| No sound | Tap once first; check the silent switch (iOS) and media volume |
+| Classic screen cut off | Rotate to landscape or use `?mode=enhanced` |
+| Keyboard does not appear on the classic screen | Tap the screen once |
+| Voice input unavailable | Use Chrome (Android) or Safari (iOS); allow the microphone |
