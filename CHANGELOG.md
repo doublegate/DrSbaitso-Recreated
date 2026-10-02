@@ -99,6 +99,16 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   script on emulated CTSS. Output is ALL CAPS with no `?`. The 1966 CACM script is
   still under ACM copyright and is not shipped (`THIRD_PARTY_NOTICES.md`). Pure
   functions; not yet wired into the UI.
+- **Local PARRY engine** (`src/engine/parry/`), the hybrid design from
+  `ref-docs/06-parry.md`: a pure engine owns Colby's Fear/Anger/Mistrust/Hurt
+  state (published rise and decay equations, WEAK/MILD/STRONG versions), the
+  weighted flare graph, the bookie story (told only to a non-threatening listener),
+  the Mafia delusion (MILD/STRONG only) and the exits (BYE at extreme affect, after
+  5 swear inputs or 9 repetitive ones). It decides what PARRY does each turn;
+  `buildParryPrompt` asks Gemini to phrase exactly one line for that decision from
+  a fixed persona, and a newly written line bank covers offline use. Seeded and
+  deterministic; reimplemented from the papers, nothing taken from the unlicensed
+  source. Not yet wired into the UI.
 
 ### Fixed
 - **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
