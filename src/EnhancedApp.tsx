@@ -265,7 +265,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
     setIsGreeting(true);
 
     // Speak while the lines appear; input unlocks once both have finished.
-    const spoken = speech.speak(audio).catch((error) => console.warn('Greeting audio failed:', error));
+    const spoken = speech.speak(audio, lines.filter((l) => l.trim()).join(' ')).catch((error) => console.warn('Greeting audio failed:', error));
     for (const line of lines) {
       if (unmountedRef.current) return;
       setMessages((prev) => [...prev, { author: 'dr', text: line, timestamp: Date.now(), characterId }]);
@@ -333,7 +333,7 @@ export default function EnhancedApp({ onSwitchMode }: { onSwitchMode?: () => voi
       }
 
       try {
-        await speech.speak(await audioPromise);
+        await speech.speak(await audioPromise, reply);
       } catch (error) {
         console.warn('Reply audio could not be played; the text is kept:', error);
       }

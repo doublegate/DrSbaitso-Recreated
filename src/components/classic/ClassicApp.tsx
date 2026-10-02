@@ -90,7 +90,7 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
   const speak = async (spoken: string) => {
     if (!spoken.trim()) return;
     try {
-      await speech.speak(await synthesizeSpeech(spoken, 'sbaitso'));
+      await speech.speak(await synthesizeSpeech(spoken, 'sbaitso'), spoken);
     } catch (error) {
       console.warn('Speech unavailable; text kept:', error);
     }
@@ -110,7 +110,7 @@ export default function ClassicApp({ onSwitchMode }: { onSwitchMode?: () => void
     }
     if (spoken) announce(spoken);
     try {
-      await speech.speak(await audio);
+      await speech.speak(await audio, spoken);
     } catch (error) {
       console.warn('Speech unavailable; text kept:', error);
     }
