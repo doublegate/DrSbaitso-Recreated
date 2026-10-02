@@ -12,21 +12,19 @@ export default defineConfig({
     exclude: ['node_modules', 'dist', 'build', 'e2e'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
-      exclude: [
-        'node_modules/',
-        'test/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/dist/',
-        '**/build/',
-        '**/.{idea,git,cache,output,temp}/',
-      ],
+      reporter: ['text-summary', 'json-summary', 'html', 'lcov'],
+      // Count every source file, not just the ones a test happens to import
+      // (the previous setup reported 87% by ignoring untested files).
+      include: ['src/**/*.{ts,tsx}', 'api/**/*.ts'],
+      exclude: ['src/sw.ts', '**/*.test.{ts,tsx}', '**/*.d.ts'],
+      // Ratchet: set just below the measured baseline (2026-10-02: 44.8% lines,
+      // 44.5% statements, 36.8% functions, 37.1% branches). Raise these as
+      // coverage grows; never lower them to make a change pass.
       thresholds: {
-        lines: 80,
-        functions: 75,
-        branches: 70,
-        statements: 80,
+        lines: 44,
+        statements: 44,
+        functions: 36,
+        branches: 36,
       },
     },
   },
