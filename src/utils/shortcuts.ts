@@ -44,7 +44,16 @@ export const APP_SHORTCUTS: readonly AppShortcut[] = [
   { id: 'switchMode', code: 'KeyX', description: 'Switch between the classic screen and the enhanced UI' },
 ];
 
-export function matchShortcut(event: Pick<KeyboardEvent, 'code' | 'altKey' | 'shiftKey' | 'ctrlKey' | 'metaKey'>): ShortcutId | null {
+/** The KeyboardEvent fields matchShortcut reads (structural, so this module needs no DOM types). */
+export interface ShortcutKeyEvent {
+  code: string;
+  altKey: boolean;
+  shiftKey: boolean;
+  ctrlKey: boolean;
+  metaKey: boolean;
+}
+
+export function matchShortcut(event: ShortcutKeyEvent): ShortcutId | null {
   if (!event.altKey || !event.shiftKey || event.ctrlKey || event.metaKey) return null;
   return APP_SHORTCUTS.find((s) => s.code === event.code)?.id ?? null;
 }

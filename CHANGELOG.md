@@ -117,6 +117,12 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   encoding no longer builds strings byte by byte, copying uses the Clipboard API,
   and the active pack is remembered across reloads. A new `glitch` trigger joins
   the existing events.
+- **Onboarding tour.** Its steps pointed at element ids that do not exist, and two
+  steps waited for a click or keystroke the modal overlay made impossible, so the
+  tour could not get past step 2. Steps now target the enhanced UI's
+  `data-tour-id` hooks, sit next to the highlighted control, and fall back to a
+  centred card when a control is absent. The false "a sample conversation has been
+  loaded" claim is gone, and shortcut text is generated from `utils/shortcuts.ts`.
 
 ### Changed
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
