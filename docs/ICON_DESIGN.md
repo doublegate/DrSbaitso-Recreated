@@ -150,7 +150,7 @@ If you want to create different icon variants, consider these themes:
 ### Retro Robot Face
 - Stylized robot/AI face
 - Pixel art style (8-bit aesthetic)
-- Speech bubble with "PARITY CHECKING"
+- Speech bubble with "PARITY ERR ..." (the original's scripted glitch)
 
 ### Modernized Flat Design
 - Minimalist "Dr. S" monogram

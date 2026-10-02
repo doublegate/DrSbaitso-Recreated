@@ -218,12 +218,22 @@ promise resolves then.
 
 ## Sound Effects
 
+### playParityTone(): the parity buzz
+
+The original's parity glitch is a flood of `PARITY ERR ...` lines over a continuous
+buzz falling from about 1 kHz to about 0.7 kHz for about 4 seconds (measured in
+DOSBox, `ref-docs/04-dosbox-verification.md` section 4). The classic screen plays it
+with `playParityTone(ctx, seconds)`, a square wave on the shared context that never
+throws.
+
+```typescript
+export function playParityTone(ctx: AudioContext, seconds?: number): void
+```
+
 ### playGlitchSound(): White Noise
 
-Not authentic: the original's "parity error" glitch was spoken text, with no noise burst
-(`ref-docs/02-voice-and-audio.md` section 5).
-
-Triggered when response contains "PARITY CHECKING" or "IRQ CONFLICT".
+Not authentic: a 200 ms noise burst kept for Enhanced mode. The original had no
+noise burst.
 
 ```typescript
 export function playGlitchSound(ctx: AudioContext): void

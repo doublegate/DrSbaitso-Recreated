@@ -732,52 +732,36 @@ Install extension:
 
 ### User-Facing Errors
 
-These errors appear in Dr. Sbaitso's responses:
+A failed reply is shown in character (`src/utils/retroErrors.ts`). Known causes get
+a message that says what to do:
 
-```
-UNEXPECTED DATA STREAM CORRUPTION. PLEASE REBOOT.
-INTERNAL PROCESSOR FAULT. PLEASE TRY AGAIN.
-MEMORY ADDRESS CONFLICT. PLEASE RESTATE YOUR PROBLEM.
-IRQ CONFLICT AT ADDRESS 220H. SESSION TERMINATED.
-```
+| Message | Cause | Action |
+|---|---|---|
+| `SYSTEM OVERLOAD. TOO MANY REQUESTS. PLEASE WAIT A MOMENT AND TRY AGAIN.` | 429 from `/api` (rate limit or model quota) | Wait, then try again |
+| `MY PROCESSOR IS BUSY. PLEASE TRY AGAIN IN A MOMENT.` | Every model was overloaded or timed out | Try again shortly |
+| `CARRIER LOST. PLEASE CHECK YOUR CONNECTION.` | The browser could not reach `/api` | Check the network |
+| `SYSTEM NOT CONFIGURED. THE OPERATOR MUST INSTALL AN API KEY.` | `GEMINI_API_KEY` is not set on the server | Set it (see `DEPLOYMENT.md`) |
 
-**Meaning:** API call failed (network, rate limit, or other error)
+Any other failure shows one of four generic DOS-style faults, such as
+`INTERNAL PROCESSOR FAULT. PLEASE TRY AGAIN.`. None of them uses the word PARITY,
+which belongs to the scripted parity sequence.
 
-**Action:** Wait a few seconds and try again
+If speech fails, the reply is still shown and the session continues as text only;
+the greeting does the same.
 
-```
-SYSTEM ERROR: FAILED TO INITIALIZE. PLEASE REFRESH.
-```
+### Console Messages
 
-**Meaning:** Greeting audio generation failed
+| Message | Meaning |
+|---|---|
+| `Reply failed:` | The chat request failed; the in-character message above is shown |
+| `Greeting speech unavailable; continuing text-only:` | The greeting TTS request failed |
+| `Reply speech unavailable; continuing text-only:` | A reply's TTS request failed |
+| `Reply audio could not be played; the text is kept:` | Audio arrived but could not be decoded or played |
+| `[audio] Could not create AudioContext:` | The browser refused Web Audio; there is no speech |
+| `[audio] AudioWorklet unavailable, using ScriptProcessor fallback:` | Older browser; audio still works |
 
-**Action:** Refresh page and try again
-
-### Console Errors
-
-```
-Error getting response from Gemini: <details>
-```
-
-**Check:** Network tab for API response details
-
-```
-Error synthesizing speech: <details>
-```
-
-**Check:** TTS API quota and network connection
-
-```
-Could not create AudioContext: <error>
-```
-
-**Check:** Browser compatibility and permissions
-
-```
-No audio data received from TTS API
-```
-
-**Check:** API key validity and quota
+For a failed request, the Network tab shows the `/api/chat` or `/api/tts` response
+body, which carries an error `code`.
 
 ## Getting Help
 
