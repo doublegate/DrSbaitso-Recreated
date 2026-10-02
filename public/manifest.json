@@ -74,6 +74,36 @@
       "purpose": "maskable"
     }
   ],
+  "screenshots": [
+    {
+      "src": "/screenshots/classic-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "The classic 80x25 Dr. Sbaitso screen"
+    },
+    {
+      "src": "/screenshots/enhanced-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Enhanced mode with personas, menus and settings"
+    },
+    {
+      "src": "/screenshots/classic-narrow.png",
+      "sizes": "412x915",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "The classic screen on a phone"
+    },
+    {
+      "src": "/screenshots/enhanced-narrow.png",
+      "sizes": "412x915",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Enhanced mode on a phone"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Classic Screen",
