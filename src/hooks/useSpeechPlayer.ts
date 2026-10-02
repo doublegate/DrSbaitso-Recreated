@@ -21,8 +21,9 @@ export function useSpeechPlayer(mode: AudioModeId) {
    * Resolves when playback ends or is stopped; rejects if audio is unreadable.
    * `text` is what the audio says: its final punctuation sets the end of the
    * pitch contour in the Authentic and Ultra modes (fall, or rise for "?"/"!").
+   * `onStart` receives the clip's playing time in seconds when it starts.
    */
-  const speak = useCallback(async (base64Audio: string, text?: string) => {
+  const speak = useCallback(async (base64Audio: string, text?: string, onStart?: (seconds: number) => void) => {
     if (!base64Audio) return;
     const ctx = await ensureAudioReady();
     if (!ctx) return;
@@ -42,6 +43,8 @@ export function useSpeechPlayer(mode: AudioModeId) {
         sourceRef.current = source;
         setCurrentSource(source);
         setIsPlaying(true);
+        const rate = source.playbackRate?.value || playbackRate || 1;
+        onStart?.(buffer.duration / rate);
       });
     } finally {
       sourceRef.current = null;

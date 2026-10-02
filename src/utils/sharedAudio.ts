@@ -30,6 +30,15 @@ export function getSharedAudioContext(): AudioContext | null {
 }
 
 /**
+ * The context if something already created it, without creating one. Lets a
+ * caller find out whether audio has been unlocked by a user gesture (state
+ * "running") without triggering the browser's autoplay warning.
+ */
+export function peekSharedAudioContext(): AudioContext | null {
+  return context;
+}
+
+/**
  * Resumes the context (browsers start it suspended until a user gesture) and
  * waits for the bit-crusher worklet. Resolves even if the worklet cannot be
  * loaded; playAudio then falls back to a ScriptProcessorNode.

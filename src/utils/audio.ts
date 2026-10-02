@@ -235,6 +235,38 @@ export function playGlitchSound(ctx: AudioContext): void {
   };
 }
 
+/**
+ * The buzz under the parity flood: a continuous tone falling from about 1 kHz
+ * to about 0.7 kHz over the flood (about 4 s; CONFIRMED (DOSBox), ref-docs/04
+ * section 4). Best effort: never throws, so a missing or broken audio context
+ * only loses the sound.
+ */
+export function playParityTone(ctx: AudioContext, seconds: number = 4): void {
+  try {
+    if (ctx.state === 'suspended') void ctx.resume();
+    const start = ctx.currentTime;
+    const end = start + Math.max(0.05, seconds);
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(1000, start);
+    oscillator.frequency.exponentialRampToValueAtTime(700, end);
+    gain.gain.setValueAtTime(0.06, start);
+    gain.gain.setValueAtTime(0.06, Math.max(start, end - 0.1));
+    gain.gain.linearRampToValueAtTime(0, end);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      gain.disconnect();
+    };
+    oscillator.start(start);
+    oscillator.stop(end);
+  } catch (error) {
+    console.warn('[audio] Parity tone unavailable:', error);
+  }
+}
+
 export function playErrorBeep(ctx: AudioContext): void {
     if (ctx.state === 'suspended') {
         ctx.resume();
