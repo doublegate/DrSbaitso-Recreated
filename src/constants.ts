@@ -380,7 +380,9 @@ export const AUDIO_QUALITIES: AudioQuality[] = [
 
 export const DEFAULT_AUDIO_QUALITY = 'default';
 
-// Audio mode configurations (Authentic 1991 Dr. Sbaitso Voice Recreation)
+// Audio modes for the Sbaitso voice route. technicalSpecs must match
+// getAuthenticitySpecs() in utils/vintageAudioProcessing.ts (pinned by a test);
+// the values come from ref-docs/02-voice-and-audio.md.
 export interface AudioMode {
   id: 'modern' | 'subtle' | 'authentic' | 'ultra';
   name: string;
@@ -393,30 +395,30 @@ export const AUDIO_MODES: AudioMode[] = [
   {
     id: 'modern',
     name: 'Modern Quality',
-    description: 'Current Gemini TTS - Natural prosody',
-    technicalSpecs: '24 kHz, 16-bit',
+    description: 'Gemini TTS as delivered - natural prosody',
+    technicalSpecs: '24.0 kHz, 16-bit, 0-20000 Hz',
     details: 'Clean, modern text-to-speech with natural intonation and full frequency range'
   },
   {
     id: 'subtle',
     name: 'Subtle Vintage',
-    description: 'Light retro processing - Enhanced nostalgia',
-    technicalSpecs: '22 kHz, 16-bit, 200-8000 Hz',
-    details: 'Slightly vintage sound with gentle processing for a nostalgic feel'
+    description: 'Light retro filtering - not period-accurate',
+    technicalSpecs: '22.1 kHz, 16-bit, 200-8000 Hz',
+    details: 'A gentle telephone-band filter for a nostalgic feel, without the 8-bit sound'
   },
   {
     id: 'authentic',
-    name: 'Authentic 1991',
-    description: 'Original Dr. Sbaitso sound - Recommended',
-    technicalSpecs: '11 kHz, 8-bit, 300-5000 Hz',
-    details: 'Authentic Sound Blaster 8-bit audio quality matching the 1991 original'
+    name: 'Authentic Sound Blaster',
+    description: 'The measured original sound - Recommended',
+    technicalSpecs: '8.5 kHz, 8-bit, 80-3800 Hz',
+    details: "Resampled to the original's 8,475 Hz, unsigned 8-bit with sample-and-hold, and the pitch flattened like the 1992 voice"
   },
   {
     id: 'ultra',
     name: 'Ultra Authentic',
-    description: 'Maximum vintage with artifacts - Purist mode',
-    technicalSpecs: '11 kHz, 8-bit, 300-5000 Hz + artifacts',
-    details: 'Maximum authenticity with aliasing and quantization artifacts for true 1991 experience'
+    description: 'Authentic, through a darker Sound Blaster Pro filter',
+    technicalSpecs: '8.5 kHz, 8-bit, 80-3200 Hz',
+    details: "Everything in Authentic, with the SB Pro's lower 3.2 kHz output filter"
   }
 ];
 
@@ -436,13 +438,13 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to Dr. Sbaitso Recreated!',
-    content: 'The 1991 Sound Blaster AI therapist, recreated for the web. This short tour points out the main controls of the enhanced interface.',
+    content: 'The Sound Blaster AI therapist (1990-1992), recreated for the web. This short tour points out the main controls of the enhanced interface.',
     skipable: true
   },
   {
     id: 'characters',
     title: 'AI Personalities',
-    content: 'Five personalities from computing history are built in: Dr. Sbaitso (1991), ELIZA (1966), HAL 9000 (1968), JOSHUA/WOPR (1983) and PARRY (1972). The highlighted character button opens the Character Creator, where you can design your own.',
+    content: 'Five personalities from computing history are built in: Dr. Sbaitso (1990-1992), ELIZA (1966), HAL 9000 (1968), JOSHUA/WOPR (1983) and PARRY (1972). The highlighted character button opens the Character Creator, where you can design your own.',
     target: '[data-tour-id="character-selection"]',
     skipable: true
   },

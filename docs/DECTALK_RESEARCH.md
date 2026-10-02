@@ -4,6 +4,11 @@
 **Research Date:** October 30, 2025
 **Purpose:** To accurately recreate the original 1991 Dr. Sbaitso voice synthesis technology
 
+> **Superseded by [`ref-docs/02-voice-and-audio.md`](../ref-docs/02-voice-and-audio.md) and
+> [`ref-docs/01-history-and-behavior.md`](../ref-docs/01-history-and-behavior.md).** Kept for
+> its history. Its timeline is wrong: Dr. Sbaitso shipped in 1990 (v1.01) and 1992 (v2.20), not
+> "late 1991". Use the ref-docs for any decision.
+>
 > **Corrected 2026-10-02.** The engine description, sample rate, frequency response and voice
 > parameters in this document have been corrected against measurements of the original engine
 > and First Byte's patents. The authoritative, sourced reference is

@@ -7,7 +7,7 @@
 
 The app had grown a modern toolbar UI with about twenty features (personas,
 themes, visualisers, export, sound packs, voice control). None of it resembled
-the 1991 program the project is named after, and the goal set for v2 was
+the 1990-1992 program the project is named after, and the goal set for v2 was
 faithfulness to the original. Removing the features was ruled out ("keep
 everything, fix it").
 
