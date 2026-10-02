@@ -11,9 +11,9 @@ display, so on phones Enhanced mode is the more comfortable one.
   `src/components/classic/DosScreen.tsx`).
 - Tap anywhere to focus the hidden input and bring up the keyboard. The input uses a
   16 px font so iOS does not zoom on focus, and `autocapitalize="characters"`.
-- **Known limitation:** the scale never goes below 1, so a viewport narrower than 720 px
-  or shorter than 400 px crops the screen at the edges. On a phone, use landscape, or
-  switch to Enhanced mode.
+- On a viewport smaller than 720x400 the screen shrinks to fit (above that it scales by
+  whole numbers for a crisp font). On a phone in portrait the 80 columns are small;
+  landscape or Enhanced mode reads more comfortably.
 - Switching screens on a touch device: open the page with `?mode=enhanced`, or use the
   home-screen shortcut *Enhanced Mode* of the installed app. (The "Switch to the
   enhanced interface" link appears only on keyboard focus.)

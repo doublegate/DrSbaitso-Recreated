@@ -54,8 +54,8 @@ Other cases:
   the next line.
 - **The name is rejected**: as in the original, names take letters and spaces only, and
   there is a length limit (`NAME TOO LONG`).
-- **The screen is cut off**: the 720x400 screen is only scaled up by whole numbers, so a
-  window smaller than that crops it. Enlarge the window or use Enhanced mode.
+- **The text is small on a phone**: below 720x400 the screen shrinks to fit the whole
+  80x25 grid. Turn the phone to landscape or use Enhanced mode.
 
 ## Enhanced mode
 
