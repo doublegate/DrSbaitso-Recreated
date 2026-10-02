@@ -1,16 +1,23 @@
 import { GeminiServiceError } from '../services/geminiService';
 
+/**
+ * Generic faults for a failed reply. They are period-plausible DOS-style
+ * messages, not quotes: the original never failed this way. The invented
+ * "IRQ CONFLICT AT ADDRESS 220H" glitch is gone, and none of these use the
+ * word PARITY, which belongs to the scripted parity sequence in
+ * src/engine/sbaitso/.
+ */
 const GENERIC_FAULTS = [
   'UNEXPECTED DATA STREAM CORRUPTION. PLEASE REBOOT.',
   'INTERNAL PROCESSOR FAULT. PLEASE TRY AGAIN.',
   'MEMORY ADDRESS CONFLICT. PLEASE RESTATE YOUR PROBLEM.',
-  'IRQ CONFLICT AT ADDRESS 220H. PLEASE TRY AGAIN.',
+  'GENERAL FAILURE READING DRIVE C. PLEASE TRY AGAIN.',
 ];
 
 /**
  * In-character error text for a failed reply. Known failure modes get a
  * message that tells the user what to do; anything else gets a generic
- * 1991-style fault.
+ * early-1990s DOS-style fault.
  */
 export function retroErrorMessage(error: unknown, random: () => number = Math.random): string {
   if (error instanceof GeminiServiceError) {

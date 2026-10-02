@@ -675,12 +675,12 @@ Experience conversations with 5 different AI personalities from computing histor
 - **Description:** The original AI therapist from Sound Blaster cards
 - **Personality Traits:**
   - ALL CAPS responses
-  - Probing therapeutic questions
-  - Random 8-bit system glitches
-  - Knowledge limited to 1991
-  - Formal, slightly robotic manner
-- **Typical Responses:** "TELL ME MORE ABOUT YOUR PROBLEMS", "WHY DO YOU SAY THAT?"
-- **Glitches:** "PARITY CHECKING...", "IRQ CONFLICT AT ADDRESS 220H"
+  - Short, cheeky keyword-matcher replies
+  - Knowledge limited to 1992 (v2.20)
+  - Initialisms spelled out for the speech chip ("C P U")
+- **Typical Responses:** "WHY DO YOU FEEL THAT WAY?", "I SEE, GO ON", "THAT'S NOT MY PROBLEM"
+- **Glitches:** the original's scripted "PARITY ERR ... RECOVERED" / "PHEW!   THAT WAS CLOSE!"
+  sequence, produced by the local engine (`src/engine/sbaitso/`), never by the model
 
 ####ELIZA
 - **Era:** 1966

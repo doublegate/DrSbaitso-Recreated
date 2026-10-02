@@ -106,6 +106,14 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   while it played.
 
 ### Changed
+- **Dr. Sbaitso persona rebuilt from the original program.** The prompt no longer
+  asks for catchphrases and glitches the original never had ("TELL ME MORE ABOUT
+  YOUR PROBLEMS", "PLEASE ELABORATE", "PARITY CHECKING", "IRQ CONFLICT"). It now
+  uses the v2.20 program's real lines and cheeky register, dates it 1990-1992
+  rather than 1991, spells initialisms for the speech chip ("C P U"), and tells the
+  model never to produce parity errors, which the local engine owns. The generic
+  error messages and the glitch counter dropped the invented IRQ / parity-checking
+  strings too; the counter now counts the real `PARITY ERR` sequence.
 - **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
   workers (`service-worker.js`, the registered one, and the unused `sw.js`). The
   new worker precaches the real hashed build output, so every deploy refreshes
