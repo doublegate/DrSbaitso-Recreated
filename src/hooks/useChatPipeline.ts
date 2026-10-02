@@ -181,6 +181,7 @@ export function useChatPipeline({
             if (plan.fallback) return plan.fallback;
             throw error;
           }));
+          if (plan.onReply) enginesRef.current = plan.onReply(enginesRef.current, reply);
         } else {
           reply = formatReply(await getAIResponse(trimmed, characterId, chatOptions));
         }
@@ -213,7 +214,11 @@ export function useChatPipeline({
         return '';
       });
 
-      setMessages((prev) => [...prev, { author: 'dr', text: '', timestamp: Date.now(), characterId }]);
+      // Speak-only turns (Dr. Sbaitso's R) add nothing to the log.
+      const printsNothing = plan.kind === 'local' && plan.lines.length === 0;
+      if (!printsNothing) {
+        setMessages((prev) => [...prev, { author: 'dr', text: '', timestamp: Date.now(), characterId }]);
+      }
       // Long printouts (JOSHUA's self-play lesson) scroll at terminal speed.
       const typingDelay = reply.length > LONG_PRINTOUT_CHARS ? FAST_TYPING_DELAY_MS : TYPING_DELAY_MS;
       for (let i = 0; i < reply.length; i++) {

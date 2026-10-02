@@ -130,18 +130,18 @@ describe('useChatPipeline', () => {
   });
 
   it('runs one turn: user line, typed reply, speech, sounds and one announcement', async () => {
-    const deps = makeDeps({ personaState: { ...makeDeps().personaState, formatReply: (t: string) => `${t}!` } });
+    const deps = makeDeps();
     const { result } = await startSession(deps);
     const ok = await settle(result.current.sendMessage('  I feel sad  '));
     expect(ok).toBe(true);
     const [user, reply] = result.current.messages.slice(-2);
     expect(user).toMatchObject({ author: 'user', text: 'I feel sad', characterId: 'sbaitso' });
-    expect(reply).toMatchObject({ author: 'dr', text: 'TELL ME MORE.!' });
+    expect(reply).toMatchObject({ author: 'dr', text: 'TELL ME MORE.' });
     expect(getAIResponse).toHaveBeenCalledWith('I feel sad', 'sbaitso', {});
-    expect(deps.speech.speak).toHaveBeenLastCalledWith('AAAA', 'TELL ME MORE.!', { processing: 'sbaitso' });
+    expect(deps.speech.speak).toHaveBeenLastCalledWith('AAAA', 'TELL ME MORE.', { processing: 'sbaitso' });
     expect(deps.soundEffects.playSound).toHaveBeenCalledWith('message-send');
     expect(deps.soundEffects.playSound).toHaveBeenCalledWith('message-receive');
-    expect(deps.announce).toHaveBeenCalledWith('Dr. Sbaitso says: TELL ME MORE.!');
+    expect(deps.announce).toHaveBeenCalledWith('Dr. Sbaitso says: TELL ME MORE.');
     expect(result.current.isLoading).toBe(false);
   });
 
@@ -205,8 +205,8 @@ describe('useChatPipeline', () => {
     const { result } = await startSession(makeDeps());
     let second: boolean | undefined;
     await act(async () => {
-      const first = result.current.sendMessage('one');
-      second = await result.current.sendMessage('two');
+      const first = result.current.sendMessage('my first long line');
+      second = await result.current.sendMessage('my second long line');
       await vi.runAllTimersAsync();
       await first;
     });
@@ -267,8 +267,8 @@ describe('useChatPipeline', () => {
   it('runs each template prompt as a normal turn', async () => {
     const deps = makeDeps();
     const { result } = await startSession(deps);
-    await settle(result.current.handleSelectTemplate(['first', 'second']));
-    expect(vi.mocked(getAIResponse).mock.calls.map(([m]) => m)).toEqual(['first', 'second']);
+    await settle(result.current.handleSelectTemplate(['the first prompt', 'the second prompt']));
+    expect(vi.mocked(getAIResponse).mock.calls.map(([m]) => m)).toEqual(['the first prompt', 'the second prompt']);
     expect(deps.announce).toHaveBeenCalledWith('Applying conversation template');
   });
 
@@ -277,8 +277,35 @@ describe('useChatPipeline', () => {
     const deps = makeDeps();
     const { result } = await startSession(deps);
     vi.mocked(getAIResponse).mockRejectedValue(new Error('boom'));
-    await settle(result.current.handleSelectTemplate(['first', 'second']));
+    await settle(result.current.handleSelectTemplate(['the first prompt', 'the second prompt']));
     expect(getAIResponse).toHaveBeenCalledTimes(1);
     expect(deps.announce).toHaveBeenCalledWith('Template stopped');
+  });
+
+  it("answers Dr. Sbaitso's commands locally (CALC), without the model", async () => {
+    const { result } = await startSession(makeDeps());
+    await settle(result.current.sendMessage('CALC 2+3'));
+    expect(getAIResponse).not.toHaveBeenCalled();
+    expect(result.current.messages.at(-1)).toMatchObject({ author: 'dr', text: ' =  5' });
+  });
+
+  it('applies a custom character\'s letter case to its replies', async () => {
+    const custom = { id: 'custom_robo', name: 'ROBO', description: '', isCustom: true };
+    const deps = makeDeps({
+      personaState: { ...makeDeps().personaState, persona: custom, personas: [...personas, custom], formatReply: (t: string) => t.toLowerCase() },
+    });
+    const { result } = await startSession(deps);
+    await settle(result.current.sendMessage('how are you today'));
+    expect(result.current.messages.at(-1)).toMatchObject({ author: 'dr', text: 'tell me more.' });
+  });
+
+  it('speaks R (repeat) without adding a line to the log', async () => {
+    const deps = makeDeps();
+    const { result } = await startSession(deps);
+    await settle(result.current.sendMessage('I feel sad today'));
+    const before = result.current.messages.length;
+    await settle(result.current.sendMessage('R'));
+    expect(result.current.messages).toHaveLength(before + 1); // only the user's R
+    expect(deps.speech.speak).toHaveBeenLastCalledWith('AAAA', 'TELL ME MORE.', { processing: 'sbaitso' });
   });
 });

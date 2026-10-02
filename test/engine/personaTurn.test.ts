@@ -17,7 +17,6 @@ function run(id: string, inputs: string[], engines: PersonaEngines = {}) {
 
 describe('personaTurn', () => {
   it('leaves personas without an engine to the normal model pipeline', () => {
-    expect(hasEngine('sbaitso')).toBe(false);
     expect(hasEngine('custom-123')).toBe(false);
     expect(personaTurn('custom-123', {}, 'hi', ctx).plan).toEqual({ kind: 'default' });
   });
@@ -94,6 +93,39 @@ describe('personaTurn', () => {
     const engines: PersonaEngines = {};
     personaTurn('eliza', engines, 'Hello', ctx);
     expect(engines).toEqual({});
+  });
+});
+
+describe('personaTurn: Dr. Sbaitso (Enhanced mode)', () => {
+  it('runs his engine', () => {
+    expect(hasEngine('sbaitso')).toBe(true);
+  });
+
+  it('answers CALC, SAY and HELP locally', () => {
+    const { plans } = run('sbaitso', ['CALC 2+3', 'SAY HELLO THERE', 'HELP']);
+    expect(plans[0]).toMatchObject({ kind: 'local', lines: [' =  5'] });
+    expect(plans[1]).toMatchObject({ kind: 'local', lines: ['HELLO THERE'], speak: 'HELLO THERE' });
+    expect(plans[2]).toMatchObject({ kind: 'local', speak: '' });
+    if (plans[2].kind === 'local') expect(plans[2].lines.join(' ')).toMatch(/Sound Blaster Acting Intelligent/);
+  });
+
+  it('sends open conversation to the model and records the reply for R', () => {
+    let engines: PersonaEngines = {};
+    const first = personaTurn('sbaitso', engines, 'I feel sad', ctx);
+    expect(first.plan).toMatchObject({ kind: 'model', historyKey: 'sbaitso' });
+    if (first.plan.kind !== 'model') return;
+    engines = first.plan.onReply!(first.engines, 'WHY DO YOU FEEL SAD?');
+    const repeat = personaTurn('sbaitso', engines, 'R', ctx).plan;
+    expect(repeat).toEqual({ kind: 'local', lines: [], speak: 'WHY DO YOU FEEL SAD?' });
+  });
+
+  it('keeps the parity sequence short in the log', () => {
+    const { plans } = run('sbaitso', ['SAY PARITY']);
+    const plan = plans[0];
+    expect(plan.kind).toBe('local');
+    if (plan.kind !== 'local') return;
+    expect(plan.lines).toContain('PARITY ERR ... RECOVERED');
+    expect(plan.lines.length).toBeLessThan(20);
   });
 });
 

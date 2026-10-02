@@ -63,6 +63,13 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   conversations are saved in this browser, which feeds search, replay and insights;
   turning it off erases them. Before this, nothing was ever saved, so those panels
   were always empty. Export now always works on the current conversation.
+- **Voice profile selector** (Enhanced mode, status bar, while Dr. Sbaitso is
+  active): CLASSIC, DEEP or SLIGHTLY GLITCHY, remembered across visits under the
+  same storage key the Google AI Studio version used.
+- **Dr. Sbaitso's commands work in Enhanced mode too.** HELP, CALC, SAY, R, BYE,
+  the dot commands, short and repeated input and the parity sequence are answered
+  by his local engine, as on the classic screen; only open conversation goes to
+  the model.
 - **Personas answer through their engines in Enhanced mode**
   (`src/engine/personaTurn.ts`). ELIZA replies entirely offline from the 1965
   script. JOSHUA starts at `LOGON:` and plays its games locally. HAL handles the
@@ -70,8 +77,7 @@ it crashed right after name entry and leaked its Gemini API key in the client bu
   the model only phrases it, with a written fallback line if the call fails. Open
   conversation goes to the model with each engine's session line. Boards and lists
   are printed but not spoken, and long printouts scroll at terminal speed. Clear
-  conversation resets the persona's engine. Dr. Sbaitso's engine still drives only
-  the classic screen.
+  conversation resets the persona's engine.
 - **Sound packs play and save properly.** The active pack now sounds on startup,
   send, receive, errors, glitches, persona switches and theme changes; before, no
   event ever reached it. New packs are saved to IndexedDB, and if a save fails the

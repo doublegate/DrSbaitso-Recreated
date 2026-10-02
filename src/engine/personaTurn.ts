@@ -11,8 +11,10 @@ import { createElizaState, elizaRespond, ELIZA_OPENER, type ElizaState } from '.
 import { buildParryPrompt, createParryState, finalizeParryLine, parryRespond, type ParryState } from './parry';
 import { createHalState, halRespond, type HalState } from './hal';
 import { createJoshuaState, joshuaRespond, LOGON_PROMPT, type JoshuaState } from './joshua';
+import { createSbaitsoState, processInput, recordReply, type SbaitsoState } from './sbaitso';
 
 export interface PersonaEngines {
+  readonly sbaitso?: SbaitsoState;
   readonly eliza?: ElizaState;
   readonly parry?: ParryState;
   readonly hal?: HalState;
@@ -27,7 +29,7 @@ export interface TurnContext {
 }
 
 export type TurnPlan =
-  /** Show `lines`; speak `speak` (empty: print only). */
+  /** Show `lines` (none: speak only); speak `speak` (empty: print only). */
   | { kind: 'local'; lines: string[]; speak: string; endsSession?: boolean }
   /** Ask the model, then show `finalize(reply)`; show `fallback` if the call fails. */
   | {
@@ -37,6 +39,8 @@ export type TurnPlan =
       customCharacter?: { name: string; systemInstruction: string };
       finalize: (text: string) => string;
       fallback: string;
+      /** Lets the engine record the model's reply (Dr. Sbaitso's R repeats it). */
+      onReply?: (engines: PersonaEngines, reply: string) => PersonaEngines;
     }
   /** The persona is no longer listening (HAL after shutdown). */
   | { kind: 'ignore' }
@@ -56,6 +60,9 @@ const local = (lines: string[], speak: string[] = lines, endsSession = false): T
 
 const asIs = (text: string) => text.trim();
 
+/** Flood lines shown in the Enhanced log before the parity sequence recovers. */
+const PARITY_LOG_LINES = 8;
+
 export function personaTurn(
   personaId: string,
   engines: PersonaEngines,
@@ -63,6 +70,48 @@ export function personaTurn(
   ctx: TurnContext,
 ): { engines: PersonaEngines; plan: TurnPlan } {
   switch (personaId) {
+    case 'sbaitso': {
+      const { state, result } = processInput(engines.sbaitso ?? createSbaitsoState(ctx.userName, ctx.seed), input);
+      const next = { ...engines, sbaitso: state };
+      switch (result.kind) {
+        case 'model':
+          return {
+            engines: next,
+            plan: {
+              kind: 'model',
+              message: result.message,
+              historyKey: 'sbaitso',
+              finalize: asIs,
+              fallback: '',
+              onReply: (current, reply) =>
+                current.sbaitso ? { ...current, sbaitso: recordReply(current.sbaitso, reply) } : current,
+            },
+          };
+        case 'reply':
+          return { engines: next, plan: local(result.lines, result.speak) };
+        case 'say':
+          return { engines: next, plan: local([result.text.toUpperCase()], [result.text]) };
+        case 'help':
+        case 'setting':
+          // Printed, not spoken. Dot-command settings only change the classic screen.
+          return { engines: next, plan: local(result.lines, []) };
+        case 'repeat':
+          return { engines: next, plan: local([], result.lines) };
+        case 'parity':
+          // The flood is about 250 lines; the log shows its start and end.
+          return {
+            engines: next,
+            plan: local(
+              [...result.lead, ...result.flood.slice(0, PARITY_LOG_LINES), '...', ...result.flood.slice(-1), ...result.lines],
+              [...result.leadSpeak, ...result.speak],
+            ),
+          };
+        case 'exit':
+          return { engines: next, plan: local(result.lines) };
+        default:
+          return { engines: next, plan: { kind: 'ignore' } };
+      }
+    }
     case 'eliza': {
       const { state, reply } = elizaRespond(engines.eliza ?? createElizaState(), input);
       return { engines: { ...engines, eliza: state }, plan: local([reply]) };
@@ -142,7 +191,13 @@ export function personaOpening(personaId: string): string[] | null {
   }
 }
 
-const ENGINE_KEYS: Record<string, keyof PersonaEngines> = { eliza: 'eliza', parry: 'parry', hal9000: 'hal', joshua: 'joshua' };
+const ENGINE_KEYS: Record<string, keyof PersonaEngines> = {
+  sbaitso: 'sbaitso',
+  eliza: 'eliza',
+  parry: 'parry',
+  hal9000: 'hal',
+  joshua: 'joshua',
+};
 
 /** Forget one persona's engine state (Clear conversation): it starts afresh. */
 export function resetPersona(engines: PersonaEngines, personaId: string): PersonaEngines {
