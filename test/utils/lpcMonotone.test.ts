@@ -6,6 +6,7 @@ import {
   estimatePitch,
   levinsonDurbin,
   lpcMonotone,
+  lpcResynthesize,
   PITCH_TARGETS,
 } from '@/utils/lpcMonotone';
 
@@ -196,5 +197,43 @@ describe('lpcMonotone', () => {
     const started = performance.now();
     lpcMonotone(fiveSeconds, { sampleRate: FS, endPunctuation: '.' });
     expect(performance.now() - started).toBeLessThan(300);
+  });
+});
+
+/** A contour that holds every voiced frame at one pitch. */
+const flat = (hz: number) => (frames: readonly { voiced: boolean }[]) =>
+  Float64Array.from(frames, (f) => (f.voiced ? hz : 0));
+
+describe('lpcResynthesize', () => {
+  it('follows a caller-supplied contour', () => {
+    const out = lpcResynthesize(vowel(150, 1.0), { sampleRate: FS, contour: flat(110) });
+    const { hz } = estimatePitch(out.subarray(Math.round(0.3 * FS), Math.round(0.6 * FS)), FS);
+    expect(Math.abs(hz - 110)).toBeLessThan(3);
+  });
+
+  it('matches lpcMonotone when given the Sbaitso contour and noise excitation', () => {
+    const input = vowel(120, 0.5);
+    const a = lpcMonotone(input, { sampleRate: FS, endPunctuation: '?' });
+    const b = lpcResynthesize(input, {
+      sampleRate: FS,
+      contour: (frames, frameRate) => buildPitchContour(frames, frameRate, '?'),
+    });
+    expect(Array.from(b)).toEqual(Array.from(a));
+  });
+
+  it('re-excites unvoiced frames with their own residual instead of noise', () => {
+    // Noise in, residual excitation out: the output tracks the input sample by
+    // sample far better than a fresh noise source could.
+    const input = Float32Array.from(noise(4000, 5), (v) => v * 0.2);
+    const out = lpcResynthesize(input, { sampleRate: FS, contour: flat(100), unvoiced: 'residual' });
+    let dot = 0;
+    let xx = 0;
+    let yy = 0;
+    for (let i = 0; i < input.length; i++) {
+      dot += input[i] * out[i];
+      xx += input[i] * input[i];
+      yy += out[i] * out[i];
+    }
+    expect(dot / Math.sqrt(xx * yy)).toBeGreaterThan(0.8);
   });
 });
