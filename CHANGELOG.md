@@ -89,6 +89,9 @@ repairs every feature that existed in code but could not be reached.
   targets; HAL now uses **Alnilam** with that direction. `scripts/render-hal-samples.ts`
   regenerates the comparison; `src/utils/psola.ts` (TD-PSOLA pitch narrowing, kept
   for experiments) is not in the app's chain.
+- **HAL's shutdown sounds like the film's.** When HAL is disconnected, "Daisy Bell"
+  slows down and sinks about an octave as it goes, with pitch and tempo on their
+  own curves (the documented two-pass Eltro method), and fades out at the end.
 - **Voice profile selector** (Enhanced mode, status bar, while Dr. Sbaitso is
   active): CLASSIC, DEEP or SLIGHTLY GLITCHY, remembered across visits under the
   same storage key the Google AI Studio version used.

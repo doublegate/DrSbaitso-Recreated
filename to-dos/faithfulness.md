@@ -148,8 +148,8 @@ Voices and audio for HAL and JOSHUA are tracked separately (`ref-docs/09`).
       (plea, regression, "Daisy Bell") on the third request.
 - [x] Wire `halRespond` into `EnhancedApp.tsx`: sends `modelMessage`; input is
       ignored once offline.
-- [ ] Apply the Eltro-style slow-down to the shutdown speech from
-      `result.slowdownFrom` (needs the per-persona voice routes).
+- [x] Apply the Eltro-style slow-down to HAL's shutdown speech: `halShutdownRamp` from where
+      the song starts (pitch about an octave down, tempo to a quarter, 1.5 s fade).
 - [ ] (Optional) Animate the self-play games from `result.games` instead of printing
       the summary lines at once.
 

@@ -30,7 +30,14 @@ export interface TurnContext {
 
 export type TurnPlan =
   /** Show `lines` (none: speak only); speak `speak` (empty: print only). */
-  | { kind: 'local'; lines: string[]; speak: string; endsSession?: boolean }
+  | {
+      kind: 'local';
+      lines: string[];
+      speak: string;
+      endsSession?: boolean;
+      /** HAL's shutdown: where (0-1 through the spoken audio) the slow-down begins. */
+      slowdownFrom?: number;
+    }
   /** Ask the model, then show `finalize(reply)`; show `fallback` if the call fails. */
   | {
       kind: 'model';
@@ -148,8 +155,21 @@ export function personaTurn(
       switch (result.kind) {
         case 'reply':
           return { engines: next, plan: local(result.lines, result.speak) };
-        case 'shutdown':
-          return { engines: next, plan: local(result.lines, result.speak, true) };
+        case 'shutdown': {
+          // The slow-down starts with the song: its share of the spoken text.
+          const before = result.speak.slice(0, result.slowdownFrom).join(' ').length;
+          const total = result.speak.join(' ').length;
+          return {
+            engines: next,
+            plan: {
+              kind: 'local',
+              lines: result.lines,
+              speak: result.speak.join(' '),
+              endsSession: true,
+              slowdownFrom: total > 0 ? before / total : 1,
+            },
+          };
+        }
         case 'offline':
           return { engines: next, plan: { kind: 'ignore' } };
         case 'model':

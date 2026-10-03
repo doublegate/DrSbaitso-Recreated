@@ -20,6 +20,8 @@ export interface DecodeOptions {
   processing?: VoiceProcessing;
   /** What the audio says; the WOPR and HAL chains use its words and punctuation. */
   text?: string;
+  /** HAL route only: apply the shutdown slow-down from this point (0-1) on. */
+  slowdownFrom?: number;
 }
 
 export function decode(base64: string): Uint8Array {
@@ -85,7 +87,9 @@ export async function decodeAudioData(
     // These chains change the length, so the output gets a new buffer.
     const channels: Float32Array[] = [];
     for (let channel = 0; channel < numChannels; channel++) {
-      channels.push(processPersonaSamples(route, buffer.getChannelData(channel), sampleRate, options.text));
+      channels.push(
+        processPersonaSamples(route, buffer.getChannelData(channel), sampleRate, options.text, options.slowdownFrom),
+      );
     }
     const length = Math.max(1, ...channels.map((c) => c.length));
     const output = ctx.createBuffer(numChannels, length, sampleRate);

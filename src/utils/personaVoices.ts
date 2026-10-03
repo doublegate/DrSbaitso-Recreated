@@ -250,9 +250,8 @@ export function halShutdownFactors(u: number): { semitones: number; pitch: numbe
 /**
  * Applies the disconnection effect at a fixed progress `u` to one utterance:
  * WSOLA by tempo/pitch (pitch kept), then resampling by pitch. Net effect:
- * pitch multiplied by `pitch`, duration divided by `tempo`. Not yet wired to
- * the UI; the variance compression and final fade from the doc are left to
- * the caller.
+ * pitch multiplied by `pitch`, duration divided by `tempo`. halShutdownRamp
+ * applies it progressively across HAL's shutdown speech.
  */
 export function halShutdown(input: Float32Array, sampleRate: number, u: number): Float32Array {
   const { pitch, tempo } = halShutdownFactors(u);
@@ -561,4 +560,51 @@ export function processWoprVoice(
       : joined;
   normalise(out, 0, dbToGain(-3));
   return out;
+}
+
+/** Block length for the progressive shutdown, and the cross-fade between blocks. */
+const SHUTDOWN_BLOCK_SECONDS = 0.25;
+const SHUTDOWN_FADE_SECONDS = 0.01;
+/** The documented ending: hold the last pitch and fade over 1.5 s (ref-docs/09 section 6.4). */
+const SHUTDOWN_FINAL_FADE_SECONDS = 1.5;
+
+/**
+ * The disconnection effect across one utterance: unchanged up to `from` (a
+ * fraction of the input, where the song begins), then progressively lower
+ * and slower by halShutdownFactors, block by block with short cross-fades,
+ * ending in a 1.5 s fade. Pitch and tempo follow their own curves, never
+ * one tape-speed ramp (ref-docs/09 sections 2.3 and 6.4).
+ */
+export function halShutdownRamp(input: Float32Array, sampleRate: number, from: number): Float32Array {
+  const split = Math.round(Math.max(0, Math.min(1, from)) * input.length);
+  if (split >= input.length) return Float32Array.from(input);
+  const block = Math.round(sampleRate * SHUTDOWN_BLOCK_SECONDS);
+  const fade = Math.round(sampleRate * SHUTDOWN_FADE_SECONDS);
+  const tail = input.subarray(split);
+  const blocks = Math.max(1, Math.ceil(tail.length / block));
+
+  // Each block is cut with a little overlap and processed at its own progress u.
+  const pieces: Float32Array[] = [];
+  for (let b = 0; b < blocks; b++) {
+    const start = b * block;
+    const end = Math.min(tail.length, start + block + fade);
+    pieces.push(halShutdown(tail.subarray(start, end), sampleRate, (b + 0.5) / blocks));
+  }
+
+  const out: number[] = Array.from(input.subarray(0, split));
+  for (const piece of pieces) {
+    // Cross-fade the first `fade` samples of the piece over the end of what is written.
+    const overlap = Math.min(fade, piece.length, out.length - split);
+    for (let i = 0; i < overlap; i++) {
+      const k = out.length - overlap + i;
+      const w = (i + 1) / (overlap + 1);
+      out[k] = out[k] * (1 - w) + piece[i] * w;
+    }
+    for (let i = overlap; i < piece.length; i++) out.push(piece[i]);
+  }
+
+  const result = Float32Array.from(out);
+  const fadeLength = Math.min(result.length - split, Math.round(sampleRate * SHUTDOWN_FINAL_FADE_SECONDS));
+  for (let i = 0; i < fadeLength; i++) result[result.length - fadeLength + i] *= 1 - (i + 1) / fadeLength;
+  return result;
 }

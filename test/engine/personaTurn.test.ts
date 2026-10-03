@@ -71,6 +71,10 @@ describe('personaTurn', () => {
     const disconnect = 'I am going to disconnect you.';
     const { plans } = run('hal9000', [disconnect, disconnect, disconnect, 'Hello?']);
     expect(plans[2]).toMatchObject({ kind: 'local', endsSession: true });
+    // The slow-down starts where the song starts, part-way through the spoken text.
+    const shutdown = plans[2] as Extract<(typeof plans)[2], { kind: 'local' }>;
+    expect(shutdown.slowdownFrom).toBeGreaterThan(0.2);
+    expect(shutdown.slowdownFrom).toBeLessThan(0.9);
     expect(plans[3]).toEqual({ kind: 'ignore' });
   });
 

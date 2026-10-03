@@ -3,6 +3,7 @@ import {
   countSyllables,
   HAL_DEFAULT_TEMPO,
   halShutdown,
+  halShutdownRamp,
   halShutdownFactors,
   halTempoFor,
   processHalVoice,
@@ -204,5 +205,36 @@ describe('halShutdown', () => {
     const out = halShutdown(input, FS, 0);
     expect(out).not.toBe(input);
     expect(Array.from(out)).toEqual(Array.from(input));
+  });
+});
+
+describe('halShutdownRamp (the disconnection, from a point in the speech)', () => {
+  const input = vowel(100, 6);
+  const pitchAt = (x: Float32Array, from: number) =>
+    estimatePitch(x.subarray(from, from + Math.round(FS * 0.04)), FS, 40, 200).hz;
+
+  it('leaves the speech before the starting point untouched', () => {
+    const out = halShutdownRamp(input, FS, 0.5);
+    const head = Math.round(input.length * 0.5) - Math.round(FS * 0.02);
+    expect(Array.from(out.subarray(0, head))).toEqual(Array.from(input.subarray(0, head)));
+  });
+
+  it('slows the rest down: the part after the starting point lasts much longer', () => {
+    const tail = halShutdownRamp(input, FS, 0.5).length - input.length * 0.5;
+    // Tempo falls from 1 to 0.25 (ref-docs/09 6.4), so the slowed part lasts well over 1.5 times as long.
+    expect(tail).toBeGreaterThan(input.length * 0.5 * 1.5);
+  });
+
+  it('ends far lower than it starts, and fades out', () => {
+    const out = halShutdownRamp(input, FS, 0.2);
+    const start = pitchAt(out, Math.round(FS * 0.5));
+    const late = pitchAt(out, out.length - Math.round(FS * 2.2));
+    expect(start).toBeGreaterThan(90);
+    expect(late).toBeLessThan(start * 0.75);
+    expect(Math.abs(out[out.length - 1])).toBeLessThan(0.01);
+  });
+
+  it('returns the input when the starting point is at the end', () => {
+    expect(halShutdownRamp(input, FS, 1).length).toBe(input.length);
   });
 });

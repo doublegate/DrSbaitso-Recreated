@@ -319,4 +319,13 @@ describe('useChatPipeline', () => {
     expect(result.current.userInput).toBe('I feel sad');
     expect(getAIResponse).not.toHaveBeenCalled();
   });
+
+  it("plays HAL's shutdown with the slow-down starting where the song starts", async () => {
+    const hal = personas[1];
+    const deps = makeDeps({ personaState: { ...makeDeps().personaState, persona: hal, voiceProcessing: 'hal' } });
+    const { result } = await startSession(deps);
+    for (let i = 0; i < 3; i++) await settle(result.current.sendMessage('I am going to disconnect you now.'));
+    const last = vi.mocked(deps.speech.speak).mock.calls.at(-1)!;
+    expect(last[2]).toMatchObject({ processing: 'hal', slowdownFrom: expect.any(Number) });
+  });
 });

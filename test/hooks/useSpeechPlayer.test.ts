@@ -112,4 +112,11 @@ describe('useSpeechPlayer', () => {
     unmount();
     expect(source.stop).toHaveBeenCalled();
   });
+
+  it('passes the shutdown starting point to the decoder', async () => {
+    playAudio.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSpeechPlayer('authentic'));
+    await act(() => result.current.speak('AAAA', 'Daisy.', { processing: 'hal', slowdownFrom: 0.4 }));
+    expect(decodeAudioData.mock.calls[0][6]).toEqual({ processing: 'hal', text: 'Daisy.', slowdownFrom: 0.4 });
+  });
 });

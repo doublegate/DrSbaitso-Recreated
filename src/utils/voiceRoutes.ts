@@ -9,7 +9,7 @@
  * @module voiceRoutes
  */
 import type { VoiceProcessing } from '../constants';
-import { processHalVoice, processWoprVoice } from './personaVoices';
+import { halShutdownRamp, processHalVoice, processWoprVoice } from './personaVoices';
 
 export type AudioModeId = 'modern' | 'subtle' | 'authentic' | 'ultra';
 
@@ -29,14 +29,18 @@ export function resolveVoiceRoute(processing: VoiceProcessing, mode?: AudioModeI
   }
 }
 
-/** Runs one persona chain over one channel. `text` is what the audio says. */
+/**
+ * Runs one persona chain over one channel. `text` is what the audio says;
+ * `slowdownFrom` (HAL only) applies the shutdown ramp from that point on.
+ */
 export function processPersonaSamples(
   route: 'hal' | 'wopr',
   samples: Float32Array,
   sampleRate: number,
   text?: string,
+  slowdownFrom?: number,
 ): Float32Array {
-  return route === 'hal'
-    ? processHalVoice(samples, sampleRate, { text })
-    : processWoprVoice(samples, sampleRate, { text });
+  if (route === 'wopr') return processWoprVoice(samples, sampleRate, { text });
+  const hal = processHalVoice(samples, sampleRate, { text });
+  return slowdownFrom === undefined ? hal : halShutdownRamp(hal, sampleRate, slowdownFrom);
 }

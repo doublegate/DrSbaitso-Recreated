@@ -251,7 +251,10 @@ export function useChatPipeline({
       }
 
       try {
-        await speech.speak(await audioPromise, spokenText, { processing: voiceProcessing });
+        await speech.speak(await audioPromise, spokenText, {
+          processing: voiceProcessing,
+          ...(plan.kind === 'local' && plan.slowdownFrom !== undefined ? { slowdownFrom: plan.slowdownFrom } : {}),
+        });
       } catch (error) {
         console.warn('Reply audio could not be played; the text is kept:', error);
       }

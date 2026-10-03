@@ -14,6 +14,8 @@ const TTS_SAMPLE_RATE = 24000;
 export interface SpeakOptions {
   processing?: VoiceProcessing;
   onStart?: (seconds: number) => void;
+  /** HAL's shutdown: start the slow-down this far (0-1) into the audio. */
+  slowdownFrom?: number;
 }
 
 export function useSpeechPlayer(mode: AudioModeId) {
@@ -44,7 +46,11 @@ export function useSpeechPlayer(mode: AudioModeId) {
       1,
       activeMode,
       text === undefined ? null : endPunctuationOf(text),
-      { processing: options.processing ?? 'sbaitso', text },
+      {
+        processing: options.processing ?? 'sbaitso',
+        text,
+        ...(options.slowdownFrom !== undefined ? { slowdownFrom: options.slowdownFrom } : {}),
+      },
     );
     const { bitDepth, playbackRate } = getPlaybackSettings(activeMode);
     try {
