@@ -112,4 +112,48 @@ describe('useSessionHistory', () => {
       expect(byId).toEqual({ old: 'cloud', new: 'local new', extra: 'remote' });
     });
   });
+
+  describe('all-time statistics', () => {
+    it('counts a conversation once when it ends, while history is on', () => {
+      localStorage.setItem(KEEP_HISTORY_KEY, 'true');
+      const { rerender } = renderHook(({ m }) => useSessionHistory(m, opts), {
+        initialProps: { m: msgs('hi', 'WHY?', 'because') },
+      });
+      rerender({ m: [] }); // cleared: the conversation ended
+      const stats = SessionManager.getStats();
+      expect(stats.totalSessions).toBe(1);
+      expect(stats.totalMessages).toBe(3);
+      expect(stats.charactersUsed).toEqual({ sbaitso: 1 });
+    });
+
+    it('counts the open conversation when the page is closed, but only once', () => {
+      localStorage.setItem(KEEP_HISTORY_KEY, 'true');
+      renderHook(() => useSessionHistory(msgs('hi', 'WHY?'), opts));
+      act(() => {
+        window.dispatchEvent(new Event('pagehide'));
+        window.dispatchEvent(new Event('pagehide'));
+      });
+      expect(SessionManager.getStats().totalSessions).toBe(1);
+    });
+
+    it('records nothing while history is off', () => {
+      const { rerender } = renderHook(({ m }) => useSessionHistory(m, opts), {
+        initialProps: { m: msgs('hi', 'WHY?') },
+      });
+      rerender({ m: [] });
+      act(() => window.dispatchEvent(new Event('pagehide')));
+      expect(SessionManager.getStats().totalSessions).toBe(0);
+    });
+
+    it('erases the totals when history is turned off', () => {
+      localStorage.setItem(KEEP_HISTORY_KEY, 'true');
+      const { result, rerender } = renderHook(({ m }) => useSessionHistory(m, opts), {
+        initialProps: { m: msgs('hi', 'WHY?') },
+      });
+      rerender({ m: [] });
+      expect(SessionManager.getStats().totalSessions).toBe(1);
+      act(() => result.current.setKeepHistory(false));
+      expect(SessionManager.getStats().totalSessions).toBe(0);
+    });
+  });
 });

@@ -66,6 +66,8 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
 
   // Get theme colors
   const theme = THEMES.find((t) => t.id === currentTheme) || THEMES[0];
+  // All-time totals (SessionManager.updateStats); read once when the panel opens.
+  const [totals] = useState(() => SessionManager.getStats());
   const chartColors =
     INSIGHT_CHART_COLORS[currentTheme as keyof typeof INSIGHT_CHART_COLORS] || INSIGHT_CHART_COLORS['dos-blue'];
 
@@ -545,6 +547,26 @@ export default function ConversationInsights({ onClose, currentTheme }: Conversa
             🧠 Advanced Analytics
           </button>
         </div>
+
+        {/* All-time totals: recorded once per conversation while SAVE HISTORY is on */}
+        {totals.totalSessions > 0 && (
+          <div className="mx-4 mt-4 border-2 rounded-sm p-4" style={{ borderColor: theme.colors.border }}>
+            <h2 className="text-xl font-bold mb-3" style={{ color: theme.colors.text }}>
+              All-time totals
+            </h2>
+            <ul className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm" style={{ color: theme.colors.text }}>
+              <li>Conversations: {totals.totalSessions}</li>
+              <li>Messages: {totals.totalMessages}</li>
+              <li>Average per conversation: {totals.averageMessagesPerSession.toFixed(1)}</li>
+              <li>Glitches: {totals.totalGlitches}</li>
+              <li>Time talking: {Math.round(totals.totalConversationTime / 60000)} min</li>
+              <li>
+                Most used persona:{' '}
+                {CHARACTERS.find((c) => c.id === totals.favoriteCharacter)?.name ?? totals.favoriteCharacter}
+              </li>
+            </ul>
+          </div>
+        )}
 
         {/* Charts Grid */}
         {!showAdvanced && (

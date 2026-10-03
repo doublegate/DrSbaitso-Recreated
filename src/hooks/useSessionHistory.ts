@@ -7,7 +7,7 @@
  * history on, it is saved to this browser after each change and listed for
  * search, replay and insights.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { SessionManager } from '../utils/sessionManager';
 import type { ConversationSession, Message } from '../types';
 
@@ -56,6 +56,28 @@ export function useSessionHistory(messages: Message[], options: SessionOptions) 
     };
   }, [messages, options.characterId, options.themeId, options.audioQualityId]);
 
+  // All-time statistics: each conversation counts once, when it ends (cleared,
+  // or the page closes), and only while history is kept.
+  const lastSessionRef = useRef<ConversationSession | null>(null);
+  const recordedRef = useRef(new Set<string>());
+  const recordStats = useEffectEvent((session: ConversationSession | null) => {
+    if (!keepHistory || !session || session.messages.length === 0 || recordedRef.current.has(session.id)) return;
+    recordedRef.current.add(session.id);
+    SessionManager.updateStats(session);
+  });
+  useEffect(() => {
+    if (currentSession) lastSessionRef.current = currentSession;
+    else if (lastSessionRef.current) {
+      recordStats(lastSessionRef.current);
+      lastSessionRef.current = null;
+    }
+  }, [currentSession]);
+  useEffect(() => {
+    const onPageHide = () => recordStats(lastSessionRef.current);
+    window.addEventListener('pagehide', onPageHide);
+    return () => window.removeEventListener('pagehide', onPageHide);
+  }, []);
+
   // Save after the conversation settles (messages change on every typed character).
   useEffect(() => {
     if (!keepHistory || !currentSession) return;
@@ -74,6 +96,7 @@ export function useSessionHistory(messages: Message[], options: SessionOptions) 
       } else {
         localStorage.removeItem(KEEP_HISTORY_KEY);
         SessionManager.clearAllSessions();
+        SessionManager.resetStats();
       }
     } catch {
       // Storage unavailable: history simply is not kept.
