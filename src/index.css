@@ -190,6 +190,9 @@ input[type='button'],
 .show-keyboard-hints button[data-keyboard-hint]::after,
 .show-keyboard-hints a[data-keyboard-hint]::after {
   content: attr(data-keyboard-hint);
+  /* Empty alt text: generated content is otherwise part of the accessible
+     name, so CLASSIC would be announced as "CLASSIC Alt+Shift+X". */
+  content: attr(data-keyboard-hint) / '';
   position: absolute;
   bottom: -20px;
   left: 50%;

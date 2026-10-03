@@ -727,6 +727,9 @@ repairs every feature that existed in code but could not be reached.
 
 ### Fixed
 
+- **Keyboard hints no longer change control names.** The hint drawn after a control
+  (for example Alt+Shift+X on CLASSIC) was part of its accessible name, so screen
+  readers and voice control heard "CLASSIC Alt+Shift+X". It now has empty alt text.
 - **VoiceInput test warnings**: Resolved Vitest mock constructor warnings
 - **Test cleanup issues**: Fixed window property deletion failures in test environment
 - **EmotionVisualizer test assertions**: Fixed tests to work with incremental state updates
