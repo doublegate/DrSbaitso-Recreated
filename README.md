@@ -93,7 +93,7 @@ model overrides are listed in [`.env.example`](.env.example). See
 
 ## Documentation
 
-- [CHANGELOG.md](CHANGELOG.md): release history
+- [CHANGELOG.md](CHANGELOG.md): release history; [Releases](https://github.com/doublegate/DrSbaitso-Recreated/releases) for tagged versions and notes
 - [docs/](docs): architecture, API, testing, deployment, troubleshooting and feature guides
 - [ref-docs/](ref-docs): sourced research on the original program and the other personas
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute

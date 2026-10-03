@@ -254,7 +254,7 @@ There are no `index.ts` barrel files; import modules directly. See
 
 ### Code Style
 
-We use **TypeScript strict mode** and lint with **oxlint** (`npm run lint`; React hooks rules are errors). There is no formatter configuration; follow these guidelines:
+We use **TypeScript strict mode**, lint with **oxlint** (`npm run lint`; React hooks rules are errors) and format with **Prettier 3.9.9** (pinned; `.prettierrc.json`). Run `npm run format` to apply it; CI runs `npm run format:check`. Markdown is not formatted. Beyond what the tools enforce, follow these guidelines:
 
 - **Indentation**: 2 spaces
 - **Quotes**: Single quotes for strings (except JSON)
@@ -466,7 +466,8 @@ Closes #123
 4. **Run tests**: Ensure all tests pass locally
 5. **Update docs**: Document new features or changes
 6. **Build successfully**: Verify production build works
-7. **Check TypeScript and lint**: Run `npm run typecheck` and `npm run lint`
+7. **Check TypeScript, lint and formatting**: Run `npm run typecheck`, `npm run lint` and `npm run format:check`
+8. **Update the CHANGELOG**: Add user-visible changes under `## [Unreleased]` in `CHANGELOG.md`
 
 ### Pull Request Template
 
@@ -518,7 +519,7 @@ Relates to #456
 
 ### Review Process
 
-1. **Automated checks**: CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit tests with budgets and coverage, build, the bundle secret check, `npm audit`, and the Playwright suite
+1. **Automated checks**: CI (`.github/workflows/ci.yml`) runs lint, format check, typecheck, unit tests with budgets and coverage, build, the bundle secret check, `npm audit`, and the Playwright suite
 2. **Code review**: Maintainer reviews code
 3. **Requested changes**: Address feedback and push updates
 4. **Approval**: Maintainer approves PR
@@ -626,6 +627,7 @@ npm run test:run
 
 # 5. Build and verify
 npm run lint
+npm run format:check
 npm run typecheck
 npm run build
 
