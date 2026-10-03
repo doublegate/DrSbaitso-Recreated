@@ -8,15 +8,29 @@ const CURRENT_SESSION_KEY = 'sbaitso_current_session';
 const SETTINGS_KEY = 'sbaitso_settings';
 const STATS_KEY = 'sbaitso_stats';
 
-/** Minimal structural check for a session from outside this browser. */
+const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+
+/**
+ * Structural check for a session from outside this browser (cloud backup,
+ * import). It checks the whole required contract, not just the fields merge
+ * uses: replay, export and insights read name, characterId and the counts.
+ */
 export function isConversationSession(value: unknown): value is ConversationSession {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
   return (
     typeof v.id === 'string' &&
     v.id.length > 0 &&
-    typeof v.updatedAt === 'number' &&
-    Number.isFinite(v.updatedAt) &&
+    typeof v.name === 'string' &&
+    typeof v.characterId === 'string' &&
+    typeof v.themeId === 'string' &&
+    typeof v.audioQualityId === 'string' &&
+    isFiniteNumber(v.createdAt) &&
+    isFiniteNumber(v.updatedAt) &&
+    isFiniteNumber(v.messageCount) &&
+    isFiniteNumber(v.glitchCount) &&
+    (v.startedAt === undefined || isFiniteNumber(v.startedAt)) &&
+    (v.endedAt === undefined || isFiniteNumber(v.endedAt)) &&
     Array.isArray(v.messages) &&
     v.messages.every(
       (m: unknown) =>

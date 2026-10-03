@@ -54,4 +54,19 @@ describe('useThemeChoice', () => {
     const { result } = renderHook(() => useThemeChoice());
     expect(result.current.themes.some((t) => (t as { isCustom?: boolean }).isCustom)).toBe(false);
   });
+
+  it.each(['#12345', '#1234567', '#12', '#123456789'])(
+    'rejects a stored theme with the invalid CSS colour %s',
+    (bad) => {
+      localStorage.setItem(CUSTOM_THEMES_KEY, JSON.stringify([{ ...mine, colors: { ...mine.colors, accent: bad } }]));
+      const { result } = renderHook(() => useThemeChoice());
+      expect(result.current.themes.some((t) => t.id === mine.id)).toBe(false);
+    },
+  );
+
+  it.each(['#abc', '#abcd', '#aabbcc', '#aabbccdd'])('accepts a stored theme with the CSS colour %s', (good) => {
+    localStorage.setItem(CUSTOM_THEMES_KEY, JSON.stringify([{ ...mine, colors: { ...mine.colors, accent: good } }]));
+    const { result } = renderHook(() => useThemeChoice());
+    expect(result.current.themes.some((t) => t.id === mine.id)).toBe(true);
+  });
 });

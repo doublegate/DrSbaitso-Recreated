@@ -7,6 +7,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SoundEffectsManager, getSoundManager, type SoundSettings } from '@/utils/soundEffects';
+import { getSharedAudioContext } from '@/utils/sharedAudio';
 
 // Mock Web Audio API is already set up in test/setup.ts
 
@@ -436,6 +437,15 @@ describe('soundEffects', () => {
 
       // Audio context should be closed
       expect(manager).toBeTruthy();
+    });
+
+    it('does not close the page-wide shared context it borrowed', () => {
+      const shared = getSharedAudioContext()!;
+      const borrowed = (manager as unknown as { getAudioContext(): AudioContext }).getAudioContext();
+      expect(borrowed).toBe(shared);
+      manager.dispose();
+      // Closing it would silence speech and music and leave sharedAudio caching a dead context.
+      expect(shared.close).not.toHaveBeenCalled();
     });
 
     it('should clear sound cache on dispose', async () => {

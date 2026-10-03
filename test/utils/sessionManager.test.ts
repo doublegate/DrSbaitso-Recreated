@@ -397,6 +397,12 @@ describe('SessionManager.mergeSessions (untrusted input)', () => {
       { id: 'bad-messages', updatedAt: 1, messages: 'hi' },
       { id: 'bad-author', updatedAt: 1, messages: [{ author: 'admin', text: 'x' }] },
       { id: 'bad-text', updatedAt: 1, messages: [{ author: 'user', text: 42 }] },
+      // Structurally plausible but missing the rest of the contract (replay reads name and characterId).
+      { id: 'incomplete', updatedAt: 1, messages: [] },
+      { ...valid(), id: 'no-character', characterId: undefined },
+      { ...valid(), id: 'bad-name', name: 7 },
+      { ...valid(), id: 'bad-created', createdAt: 'yesterday' },
+      { ...valid(), id: 'bad-count', messageCount: Number.NaN },
     ];
     const written = SessionManager.mergeSessions([...junk, valid()] as unknown as ConversationSession[]);
     expect(written).toBe(1);

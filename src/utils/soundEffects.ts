@@ -225,6 +225,8 @@ class SoundGenerator {
 
 export class SoundEffectsManager {
   private audioContext: AudioContext | null = null;
+  /** True only when this manager created the context; the shared one is never closed here. */
+  private ownsContext = false;
   private soundGenerator: SoundGenerator;
   private settings: SoundSettings;
   private ambienceSource: AudioBufferSourceNode | null = null;
@@ -249,7 +251,9 @@ export class SoundEffectsManager {
   private getAudioContext(): AudioContext {
     if (!this.audioContext) {
       // Share the page's single context instead of creating another.
-      this.audioContext = getSharedAudioContext() ?? new (window.AudioContext || (window as any).webkitAudioContext)();
+      const shared = getSharedAudioContext();
+      this.ownsContext = !shared;
+      this.audioContext = shared ?? new (window.AudioContext || (window as any).webkitAudioContext)();
     }
     return this.audioContext;
   }
@@ -444,9 +448,13 @@ export class SoundEffectsManager {
    */
   dispose(): void {
     this.stopAmbience();
-    if (this.audioContext) {
-      this.audioContext.close();
+    // Closing the page-wide context would silence speech and music and leave
+    // sharedAudio handing out a closed context; close only a fallback we made.
+    if (this.ownsContext && this.audioContext && this.audioContext.state !== 'closed') {
+      void this.audioContext.close();
     }
+    this.audioContext = null;
+    this.ownsContext = false;
     this.soundCache.clear();
   }
 }
