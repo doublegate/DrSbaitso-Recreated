@@ -8,11 +8,18 @@ describe('persona voices (ref-docs/05, 06, 09)', () => {
     expect(CHARACTERS.map((c) => [c.id, c.voiceName, c.ttsCase, c.processing])).toEqual([
       ['sbaitso', 'Charon', 'upper', 'sbaitso'],
       ['eliza', 'Kore', 'sentence', 'clean'],
-      ['hal9000', 'Algieba', 'sentence', 'hal'],
+      ['hal9000', 'Alnilam', 'sentence', 'hal'],
       ['joshua', 'Iapetus', 'sentence', 'wopr'],
       ['parry', 'Orus', 'sentence', 'clean'],
     ]);
     for (const c of CHARACTERS) expect(c.voiceStyle.length).toBeGreaterThan(20);
+  });
+
+  it('directs HAL with the documented session direction (ref-docs/09 2.1), in qualities only', () => {
+    const style = byId('hal9000').voiceStyle;
+    for (const quality of ['mid-Atlantic', 'close to the microphone', 'sincere', 'concerned', 'never rise']) {
+      expect(style).toContain(quality);
+    }
   });
 
   it('keeps Dr. Sbaitso on the classic profile voice', () => {

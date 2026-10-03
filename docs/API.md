@@ -244,7 +244,7 @@ Built-in personas are `CHARACTERS` in [`src/constants.ts`](../src/constants.ts):
 | --- | --- | --- | --- |
 | `sbaitso` | `Charon` (replaced by the profile's voice) | `upper` | `sbaitso` |
 | `eliza` | `Kore` | `sentence` | `clean` |
-| `hal9000` | `Algieba` | `sentence` | `hal` |
+| `hal9000` | `Alnilam` | `sentence` | `hal` |
 | `joshua` | `Iapetus` | `sentence` | `wopr` |
 | `parry` | `Orus` | `sentence` | `clean` |
 

@@ -288,7 +288,7 @@ describe('handleTts', () => {
   const voiceOf = (req: any) => req.config.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName;
 
   it.each([
-    ['hal9000', 'Algieba'],
+    ['hal9000', 'Alnilam'],
     ['joshua', 'Iapetus'],
     ['eliza', 'Kore'],
     ['parry', 'Orus'],
@@ -301,7 +301,7 @@ describe('handleTts', () => {
   it('ignores voice profiles for personas other than Dr. Sbaitso', async () => {
     const client = makeClient(audioOk);
     await handleTts({ characterId: 'hal9000', text: 'HI.', voiceProfile: 'glitchy' }, client, MODELS);
-    expect(voiceOf(client.calls[0])).toBe('Algieba');
+    expect(voiceOf(client.calls[0])).toBe('Alnilam');
     expect(client.calls[0].contents[0].parts[0].speechMetadata.style).not.toMatch(/glitchy/);
   });
 

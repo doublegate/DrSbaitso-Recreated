@@ -39,8 +39,11 @@ const SBAITSO_STYLE =
   'a flat, even, mechanical adult male voice at a steady medium-fast pace, with no emotion or breathiness, very short pauses and clipped word endings; drop the pitch at the end of statements and jump it up at the end of questions';
 const ELIZA_STYLE =
   "a calm, even and unhurried voice: a neutral clinical therapist's tone with very little emotion, measured pauses, never warm or chatty";
+// From the documented session direction (ref-docs/09 section 2.1): closer,
+// softer, a little concerned, sincere, a bland mid-Atlantic accent. Chosen by
+// ear on 2026-10-03 with the Alnilam voice (scripts/render-hal-samples.ts).
 const HAL_STYLE =
-  'a calm, soft-spoken adult man with a neutral North American accent, speaking close to the microphone in an even, quiet, warm conversational tone; polite, attentive and sincere; unhurried, steady pace; precise, clear diction; very little emphasis; questions stay level and do not rise; no audible breaths, sighs or laughter; never raises his voice';
+  'a calm, soft-spoken man with a bland, neutral mid-Atlantic accent, speaking very close to the microphone, quietly and intimately, as if to a friend sitting beside him; gentle, sincere and faintly concerned; a low, warm register; smooth, even and unhurried, every word cleanly finished; very little rise and fall in pitch and no emphasis; questions stay level and never rise at the end; no excitement, no breaths, sighs or laughter';
 const JOSHUA_STYLE =
   'a precise, emotionless adult male reading each word separately, as if from a list: every word clearly and fully enunciated, the same flat pitch and loudness on every word, a small even pause between all words, no sentence melody, no emphasis, slow and deliberate';
 const PARRY_STYLE =
@@ -149,7 +152,7 @@ Never:
 - admit malice or admit that you were wrong;
 - give real medical, legal or financial advice. If the crew member seems to be in real danger, stay calm and, in character, urge them to talk to a real doctor or someone they trust today.`,
     voicePrompt: `Say in ${HAL_STYLE}`,
-    voiceName: 'Algieba',
+    voiceName: 'Alnilam',
     voiceStyle: HAL_STYLE,
     ttsCase: 'sentence',
     processing: 'hal',

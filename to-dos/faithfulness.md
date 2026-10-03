@@ -170,7 +170,7 @@ Voices from [ref-docs/05](../ref-docs/05-eliza.md), [06](../ref-docs/06-parry.md
 [09](../ref-docs/09-hal-and-wopr-voices.md). Details: `docs/AUDIO_SYSTEM.md`.
 
 - [x] Per-persona Gemini voice and delivery style instead of the global voice profile
-      (Charon) for everyone: HAL Algieba, JOSHUA Iapetus, ELIZA Kore, PARRY Orus.
+      (Charon) for everyone: HAL Alnilam, JOSHUA Iapetus, ELIZA Kore, PARRY Orus.
       Voice profiles now apply to Dr. Sbaitso only. Styles never name a performer.
 - [x] Sentence case to TTS for HAL, JOSHUA, ELIZA and PARRY (display unchanged).
 - [x] HAL pronounced as a word ("Hal"), not "H-A-L"; AE-35 spelled for speech.
@@ -182,9 +182,13 @@ Voices from [ref-docs/05](../ref-docs/05-eliza.md), [06](../ref-docs/06-parry.md
 - [x] HAL "shutdown" effect (independent pitch and tempo ramps) as a pure function.
 - [x] Wire the routes into `src/EnhancedApp.tsx`: both `speech.speak` calls (greeting
       and reply) pass `usePersona().voiceProcessing`. Classic mode stays `sbaitso`.
-- [ ] Listen to every persona and A/B the voices the docs list (HAL: Iapetus, Charon,
-      Schedar; JOSHUA: Schedar, Orus, Charon; PARRY: Algenib). Nothing here has been
-      heard yet; the choices and chains are tested only on synthetic signals.
+- [x] HAL: 10 voices on two models A/B'd by ear (2026-10-03) and measured against
+      ref-docs/09 section 7 (`scripts/render-hal-samples.ts`); Alnilam chosen, with the
+      session-direction style. Measured raw: 102 Hz median, 3.1 st SD, question end
+      +0.7 st; faster than the film (about 7 syl/s against 4.3-4.7).
+- [ ] The owner listened to all personas on the preview (2026-10-02) and found them
+      "pretty good"; JOSHUA (Schedar, Orus, Charon) and PARRY (Algenib) alternatives are
+      still not A/B'd.
 - [ ] Measure rendered output against ref-docs/09 section 7 (HAL median F0 90-110 Hz,
       SD 1.5-2.8 st, level questions; WOPR band and gaps on real TTS).
 - [ ] Optional: ELIZA `?` in the TTS text for interrogative replies; PARRY style by

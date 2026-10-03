@@ -82,6 +82,13 @@ repairs every feature that existed in code but could not be reached.
   conversations are saved in this browser, which feeds search, replay and insights;
   turning it off erases them. Before this, nothing was ever saved, so those panels
   were always empty. Export now always works on the current conversation.
+- **HAL 9000's voice, chosen by ear against the film measurements.** Ten Gemini
+  voices on two models were rendered with direction text built from the documented
+  recording-session direction (closer, softer, sincere, faintly concerned, a bland
+  mid-Atlantic accent, level questions) and scored against `ref-docs/09`'s measured
+  targets; HAL now uses **Alnilam** with that direction. `scripts/render-hal-samples.ts`
+  regenerates the comparison; `src/utils/psola.ts` (TD-PSOLA pitch narrowing, kept
+  for experiments) is not in the app's chain.
 - **Voice profile selector** (Enhanced mode, status bar, while Dr. Sbaitso is
   active): CLASSIC, DEEP or SLIGHTLY GLITCHY, remembered across visits under the
   same storage key the Google AI Studio version used.
@@ -188,7 +195,7 @@ repairs every feature that existed in code but could not be reached.
   |---|---|---|---|
   | Dr. Sbaitso | Charon (or the chosen voice profile) | as written | the measured vintage chain, per audio mode |
   | ELIZA | Kore | sentence case | clean |
-  | HAL 9000 | Algieba | sentence case | HAL chain |
+  | HAL 9000 | Alnilam | sentence case | HAL chain |
   | JOSHUA | Iapetus | sentence case | WOPR chain |
   | PARRY | Orus | sentence case | clean |
 

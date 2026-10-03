@@ -95,7 +95,7 @@ selector applies to the `sbaitso` route only. Sources: `ref-docs/05-eliza.md` an
 |---|---|---|---|---|
 | Dr. Sbaitso | Charon, or the chosen `VOICE_PROFILES` voice | as written (capitals) | `sbaitso` | `modern`: none; others: vintage chain |
 | ELIZA | Kore | sentence case | `clean` | none |
-| HAL 9000 | Algieba | sentence case | `hal` | HAL chain |
+| HAL 9000 | Alnilam | sentence case | `hal` | HAL chain |
 | JOSHUA / WOPR | Iapetus | sentence case | `wopr` | WOPR chain |
 | PARRY | Orus | sentence case | `clean` | none |
 | Custom characters | Charon (fixed) | as written | `sbaitso` | as Dr. Sbaitso |
