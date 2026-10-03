@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Classic screen: each letter of the name is spoken as it is typed, about 0.06 s after
+  its echo, as in the original (ref-docs/04 section 1). The 26 letters are rendered
+  once in Dr. Sbaitso's voice and kept in the browser (IndexedDB, keyed by the voice),
+  so later key presses play at once. The first visit fetches them in the background,
+  two at a time and at most ten a minute so the doctor's own speech keeps its share of
+  the proxy's rate limit; until a letter is cached it is silent. Spaces and rejected
+  characters are silent, and a new key cuts the previous letter.
+
 ## [2.0.0] - 2026-10-02
 
 A full audit and rebuild. The deployed 1.11 app crashed right after name entry and

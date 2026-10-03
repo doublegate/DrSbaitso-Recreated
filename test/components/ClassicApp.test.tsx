@@ -4,6 +4,21 @@ import userEvent from '@testing-library/user-event';
 import ClassicApp from '@/components/classic/ClassicApp';
 import { __resetSharedAudioForTests, getSharedAudioContext } from '@/utils/sharedAudio';
 
+// The spoken alphabet is replaced by spies: its own tests are in
+// test/utils/letterVoice.test.ts, and the real warm-up would add 26 TTS
+// requests to every count below.
+const letters = vi.hoisted(() => ({
+  warmLetterCache: vi.fn(() => Promise.resolve()),
+  playLetter: vi.fn((..._args: unknown[]) => true),
+}));
+vi.mock('@/utils/letterVoice', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/letterVoice')>()),
+  warmLetterCache: letters.warmLetterCache,
+  playLetter: letters.playLetter,
+}));
+/** The letters played so far, in order. */
+const played = () => letters.playLetter.mock.calls.map(([ch]) => ch);
+
 const json = (body: unknown, status = 200) =>
   Promise.resolve(new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } }));
 
@@ -38,6 +53,8 @@ describe('ClassicApp', () => {
 
   beforeEach(() => {
     __resetSharedAudioForTests();
+    letters.warmLetterCache.mockClear();
+    letters.playLetter.mockClear();
     fetchMock.mockReset();
     fetchMock.mockImplementation((url: string) =>
       url === '/api/tts' ? json({ audio: 'AAAAAA==' }) : json({ text: 'WHY DO YOU FEEL THAT WAY?' }),
@@ -303,6 +320,51 @@ describe('ClassicApp', () => {
     const spoken = JSON.parse(tts[0][1].body as string).text as string;
     expect(spoken).toMatch(/DOCTOR SBAITSO.*BY CREATIVE LABS.*PLEASE ENTER YOUR NAME/i);
     expect(screenText()).toContain('Please enter your name ...');
+  });
+
+  describe('spoken name letters (ref-docs/04 section 1)', () => {
+    it('speaks each accepted letter of the name about 60 ms after its echo, and nothing else', async () => {
+      const user = userEvent.setup({ delay: 120 });
+      render(<ClassicApp seed={1} />);
+      const name = screen.getByLabelText('Please enter your name');
+      await user.type(name, 'b');
+      await waitFor(() => expect(played()).toEqual(['b']));
+      await user.type(name, 'o 2B');
+      await waitFor(() => expect(played()).toEqual(['b', 'o', 'B']));
+      expect(letters.playLetter.mock.calls[0][1]).toEqual(
+        expect.objectContaining({ speak: expect.any(Function), stop: expect.any(Function) }),
+      );
+    });
+
+    it('starts warming the letters at the name prompt', async () => {
+      const user = userEvent.setup();
+      render(<ClassicApp seed={1} />);
+      await user.type(screen.getByLabelText('Please enter your name'), 'a');
+      expect(letters.warmLetterCache).toHaveBeenCalled();
+    });
+
+    it('starts warming as soon as the name prompt is shown when audio is already unlocked', async () => {
+      getSharedAudioContext();
+      render(<ClassicApp seed={1} />);
+      await waitFor(() => expect(phase()).toBe('name'));
+      await waitFor(() => expect(letters.warmLetterCache).toHaveBeenCalled());
+    });
+
+    it('a new key cuts a letter that has not started yet', async () => {
+      const user = userEvent.setup({ delay: 0 });
+      render(<ClassicApp seed={1} />);
+      await user.type(screen.getByLabelText('Please enter your name'), 'ab');
+      await waitFor(() => expect(played()).toEqual(['b']));
+    });
+
+    it('is silent outside the name prompt', async () => {
+      const user = userEvent.setup({ delay: 120 });
+      await startSession(user, 'al');
+      letters.playLetter.mockClear();
+      await user.type(input(), 'hello');
+      await new Promise((r) => setTimeout(r, 150));
+      expect(played()).toEqual([]);
+    }, 40_000);
   });
 
   it('.WIDTH 40 switches to a 40-column screen', async () => {
