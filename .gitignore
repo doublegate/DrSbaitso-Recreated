@@ -40,3 +40,6 @@ reports/
 # Playwright output
 test-results/
 playwright-report/
+
+# Locally rendered voice comparisons (scripts/render-*-samples.ts)
+voice-samples/
