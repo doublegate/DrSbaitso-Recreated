@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- Post-release corrections: the test count at the 2.0.0 tag is 1,425 (the docs said
+  1,415, measured before the review fixes in #9); CONTRIBUTING now documents the
+  Prettier format gate and the `[Unreleased]` CHANGELOG step; the README links the
+  GitHub releases; the v2.0.0 tag item in the remediation list is ticked.
+
 ## [2.0.0] - 2026-10-03
 
 A full audit and rebuild. The deployed 1.11 app crashed right after name entry and

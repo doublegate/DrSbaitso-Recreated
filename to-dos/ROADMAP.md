@@ -109,7 +109,7 @@ Dr. Sbaitso Recreated aims to be the definitive modern recreation of the classic
 - Local engines for all five personas; Gemini only for open conversation
 - Per-persona voices and audio chains; voice measured against the original
 - Every half-wired 1.x feature repaired; one service worker; opt-in history
-- TypeScript strict, oxlint, Prettier, Vitest (1,415 tests), Playwright, CI
+- TypeScript strict, oxlint, Prettier, Vitest (1,425 tests), Playwright, CI
 
 ---
 
@@ -417,7 +417,7 @@ adopted.
 
 ### v2.0.0 Achievements
 
-- ✅ **1,415 unit and integration tests** (Vitest), 72.9% line coverage, thresholds enforced
+- ✅ **1,425 unit and integration tests** (Vitest), 72.9% line coverage, thresholds enforced
 - ✅ **15 end-to-end tests** (Playwright, `/api` mocked), including the production CSP
 - ✅ **0 vulnerabilities** (`npm audit --omit=dev`), no key-shaped strings in the build
 - ✅ **TypeScript strict**, oxlint, Prettier, CI with actions pinned by SHA

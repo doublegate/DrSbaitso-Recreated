@@ -25,7 +25,8 @@ Web recreation of the 1991 Sound Blaster "Dr. Sbaitso" AI therapist: React 19 + 
 Vercel project `dr-sbaitso-recreated`, team `doublegate-projects`. Five personas (Dr. Sbaitso,
 ELIZA, HAL 9000, JOSHUA/WOPR, PARRY) plus user-created custom characters.
 
-**Status:** v2.0.0 released 2026-10-03 (PR #8, tag `v2.0.0`), live in Production.
+**Status:** v2.0.0 released 2026-10-03 (PRs #8 and #9; annotated tag `v2.0.0` on `e52c5ca`), live in
+Production. Release notes: GitHub release `v2.0.0`.
 - Plan: `~/.claude/plans/ethereal-popping-beaver.md`; all phases (0-9) done.
 - Work on a branch off `main` and merge through a PR; new history goes under `[Unreleased]`.
 - Open work: `to-dos/faithfulness.md` (2.x items are listed in `to-dos/ROADMAP.md`).
