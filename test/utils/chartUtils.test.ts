@@ -19,8 +19,8 @@ const createMockCanvas = () => {
     writable: true,
     value: {
       clientWidth: 600,
-      clientHeight: 400
-    }
+      clientHeight: 400,
+    },
   });
 
   return { canvas, ctx };
@@ -33,7 +33,7 @@ describe('chartUtils', () => {
       const data = [
         { label: 'Day 1', value: 10, series: 'Series A' },
         { label: 'Day 2', value: 20, series: 'Series A' },
-        { label: 'Day 3', value: 15, series: 'Series A' }
+        { label: 'Day 3', value: 15, series: 'Series A' },
       ];
       const options = { width: 600, height: 300 };
 
@@ -66,7 +66,7 @@ describe('chartUtils', () => {
         { label: 'Day 1', value: 10, series: 'Series A' },
         { label: 'Day 1', value: 15, series: 'Series B' },
         { label: 'Day 2', value: 20, series: 'Series A' },
-        { label: 'Day 2', value: 25, series: 'Series B' }
+        { label: 'Day 2', value: 25, series: 'Series B' },
       ];
       const options = { width: 600, height: 300 };
 
@@ -79,7 +79,7 @@ describe('chartUtils', () => {
       const { canvas } = createMockCanvas();
       const data = [
         { label: 'Category A', value: 30 },
-        { label: 'Category B', value: 70 }
+        { label: 'Category B', value: 70 },
       ];
       const options = { width: 300, height: 300 };
 
@@ -97,7 +97,7 @@ describe('chartUtils', () => {
       const { canvas } = createMockCanvas();
       const data = [
         { label: 'Category A', value: 0 },
-        { label: 'Category B', value: 0 }
+        { label: 'Category B', value: 0 },
       ];
       const options = { width: 300, height: 300 };
 
@@ -111,7 +111,7 @@ describe('chartUtils', () => {
       const words = [
         { word: 'happy', count: 10, sentiment: 1 },
         { word: 'sad', count: 5, sentiment: -1 },
-        { word: 'okay', count: 3, sentiment: 0 }
+        { word: 'okay', count: 3, sentiment: 0 },
       ];
       const options = { width: 600, height: 300 };
 
@@ -129,7 +129,7 @@ describe('chartUtils', () => {
       const { canvas } = createMockCanvas();
       const words = [
         { word: 'frequent', count: 100, sentiment: 0 },
-        { word: 'rare', count: 1, sentiment: 0 }
+        { word: 'rare', count: 1, sentiment: 0 },
       ];
       const options = { width: 600, height: 300 };
 
@@ -184,7 +184,7 @@ describe('chartUtils', () => {
       const options = {
         width: 300,
         height: 300,
-        colors: ['#ff0000', '#00ff00', '#0000ff']
+        colors: ['#ff0000', '#00ff00', '#0000ff'],
       };
 
       expect(() => drawLineChart(canvas, data, options)).not.toThrow();
@@ -197,7 +197,7 @@ describe('chartUtils', () => {
       const options = {
         width: 300,
         height: 300,
-        backgroundColor: '#000000'
+        backgroundColor: '#000000',
       };
 
       expect(() => drawLineChart(canvas, data, options)).not.toThrow();
@@ -209,7 +209,7 @@ describe('chartUtils', () => {
       const options = {
         width: 300,
         height: 300,
-        textColor: '#ffffff'
+        textColor: '#ffffff',
       };
 
       expect(() => drawLineChart(canvas, data, options)).not.toThrow();

@@ -1,0 +1,13 @@
+# Prose and research are hand-formatted; generated output is not ours to format.
+*.md
+docs/
+ref-docs/
+to-dos/
+public/
+dist/
+coverage/
+reports/
+playwright-report/
+test-results/
+.claude/
+package-lock.json

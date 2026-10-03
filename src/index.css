@@ -1,0 +1,435 @@
+@import 'tailwindcss' source(none);
+
+/* Scan the whole application source tree plus index.html (not docs/, which
+   would add stray classes). Whole directories, not file names: listing
+   individual files once dropped every class used only in a renamed file. */
+@source '../index.html';
+@source '.';
+
+@theme {
+  --animate-slide-up: slide-up 0.3s ease-out;
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(1rem);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+/*
+  Active retro theme. Defaults are the DOS Blue theme; App writes the selected
+  theme's colours onto <html> at runtime (see applyThemeVariables in App.tsx).
+*/
+:root {
+  --color-primary: #3b82f6;
+  --color-background: #1e3a8a;
+  --color-text: #ffffff;
+  --color-border: #60a5fa;
+  --color-accent: #fbbf24;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+body {
+  font-family: 'Courier New', Courier, monospace;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior: none;
+  /* Disable tap highlight on mobile */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Controls should not be selected by accidental long-presses. */
+button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Custom scrollbar for desktop */
+::-webkit-scrollbar {
+  width: 12px;
+}
+::-webkit-scrollbar-track {
+  background: #1e3a8a;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 6px;
+  border: 3px solid #1e3a8a;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 767px) {
+  body {
+    font-size: 14px;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  /* Hide scrollbar on mobile for cleaner look */
+  * {
+    scrollbar-width: thin;
+  }
+}
+
+/* Touch-friendly button minimum size */
+button,
+input[type='button'],
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Prevent iOS zoom on input focus */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Accessibility Enhancements (v1.4.0) */
+
+/* Font Size Controls */
+:root[data-font-size='small'] {
+  font-size: 12px;
+}
+:root[data-font-size='medium'] {
+  font-size: 16px;
+}
+:root[data-font-size='large'] {
+  font-size: 20px;
+}
+:root[data-font-size='x-large'] {
+  font-size: 24px;
+}
+
+/* High Contrast Mode: overrides the active theme's colours (the theme writes
+   them inline on <html>, so these need !important to win). */
+.high-contrast {
+  --color-background: #000000 !important;
+  --color-text: #ffffff !important;
+  --color-accent: #ffff00 !important;
+  --color-border: #ffffff !important;
+  --color-primary: #ffffff !important;
+  --text-primary: #ffffff;
+  --text-secondary: #ffff00;
+  --bg-primary: #000000;
+  --bg-secondary: #1a1a1a;
+  --border-color: #ffffff;
+}
+.high-contrast body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+.high-contrast button,
+.high-contrast input,
+.high-contrast select {
+  border-width: 3px !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Reduced Motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Focus Indicators - Default (3px outline) */
+.user-is-tabbing *:focus {
+  outline: 3px solid #fbbf24 !important;
+  outline-offset: 2px !important;
+}
+
+/* Focus Indicators - Thick (5px outline) */
+:root[data-focus-style='thick'] .user-is-tabbing *:focus {
+  outline-width: 5px !important;
+  outline-offset: 3px !important;
+}
+
+/* Focus Indicators - Underline */
+:root[data-focus-style='underline'] .user-is-tabbing *:focus {
+  outline: none !important;
+  border-bottom: 4px solid #fbbf24 !important;
+  padding-bottom: 2px;
+}
+
+/* The hint is positioned against its own control. */
+.show-keyboard-hints button[data-keyboard-hint],
+.show-keyboard-hints a[data-keyboard-hint] {
+  position: relative;
+}
+
+/* Keyboard Navigation Hints (only on elements that carry one; otherwise
+   every focused button drew an empty bordered box) */
+.show-keyboard-hints button[data-keyboard-hint]::after,
+.show-keyboard-hints a[data-keyboard-hint]::after {
+  content: attr(data-keyboard-hint);
+  /* Empty alt text: generated content is otherwise part of the accessible
+     name, so CLASSIC would be announced as "CLASSIC Alt+Shift+X". */
+  content: attr(data-keyboard-hint) / '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e3a8a;
+  color: #fbbf24;
+  padding: 2px 6px;
+  font-size: 10px;
+  border: 1px solid #fbbf24;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.show-keyboard-hints button[data-keyboard-hint]:focus::after,
+.show-keyboard-hints a[data-keyboard-hint]:focus::after {
+  opacity: 1;
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip Navigation Links */
+.skip-nav a:focus {
+  clip: auto;
+  height: auto;
+  width: auto;
+  overflow: visible;
+}
+
+/* ------------------------------------------------------------------------
+   Classic mode: DOS 80x25 text screen (see ref-docs/03-screen-and-ui.md).
+   IBM VGA 9x16 font: The Ultimate Oldschool PC Font Pack by VileR,
+   CC BY-SA 4.0 (public/fonts/LICENSE-oldschool-pc-font-pack.txt).
+   ------------------------------------------------------------------------ */
+@font-face {
+  font-family: 'IBM VGA 9x16';
+  src: url('/fonts/Web437_IBM_VGA_9x16.woff') format('woff');
+  font-display: block;
+}
+
+.dos-overscan {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.dos-screen {
+  position: relative;
+  flex: none;
+  font-family: 'IBM VGA 9x16', monospace;
+  font-size: 16px;
+  line-height: 16px;
+  white-space: pre;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  text-rendering: optimizeSpeed;
+  transform-origin: center;
+  image-rendering: pixelated;
+  user-select: text;
+}
+
+.dos-row {
+  height: 16px;
+}
+
+/* DOS underline cursor: hard on/off blink, 114 ms on and 114 ms off (8 + 8
+   frames at 70 Hz, measured in DOSBox-X; ref-docs/04 section 7). */
+.dos-cursor {
+  position: absolute;
+  left: calc(var(--col) * 9px);
+  top: calc(var(--row) * 16px + 14px);
+  width: 9px;
+  height: 2px;
+  background: #ffffff;
+  animation: dos-blink 228ms steps(1, end) infinite;
+}
+
+@keyframes dos-blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.reduce-motion .dos-cursor {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dos-cursor {
+    animation: none;
+  }
+}
+
+/* The real input is invisible but focused, so typing, mobile keyboards and
+   screen readers work; what it holds is drawn on the DOS screen. */
+.dos-hidden-input {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  font-size: 16px; /* prevents iOS zoom on focus */
+  border: 0;
+  padding: 0;
+}
+
+.dos-mode-link:focus {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  padding: 4px 8px;
+  background: #000;
+  color: #ffff55;
+  font-family: 'IBM VGA 9x16', monospace;
+  border: 1px solid #ffff55;
+}
+
+/* ------------------------------------------------------------------------
+   Enhanced mode controls. Built on the --color-* theme variables so every
+   theme (and high contrast) restyles them.
+   ------------------------------------------------------------------------ */
+@layer components {
+  .enh-select {
+    background: var(--color-background);
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
+    padding: 0.125rem 0.5rem;
+    min-height: 32px;
+  }
+  .enh-select:focus-visible,
+  .enh-menu-trigger:focus-visible,
+  .enh-menu-item:focus-visible,
+  .enh-icon-button:focus-visible,
+  .enh-send-button:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  .enh-menu-trigger {
+    border: 2px solid var(--color-border);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    min-height: 36px;
+  }
+  .enh-menu-trigger[aria-expanded='true'],
+  .enh-menu-trigger:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .enh-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 40;
+    min-width: 16rem;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-background);
+    border: 2px solid var(--color-accent);
+    box-shadow: 4px 4px 0 rgb(0 0 0 / 0.5);
+    padding: 0.25rem;
+  }
+  .enh-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.5rem;
+    min-height: 36px;
+    font-size: 0.875rem;
+    text-align: left;
+  }
+  .enh-menu-item:hover:not(:disabled),
+  .enh-menu-item:focus-visible {
+    background: var(--color-accent);
+    color: var(--color-background);
+  }
+  .enh-menu-item[aria-pressed='true']::after {
+    content: 'ON';
+    font-size: 0.7rem;
+    border: 1px solid currentColor;
+    padding: 0 0.25rem;
+  }
+  .enh-menu-item:disabled {
+    opacity: 0.4;
+  }
+  .enh-kbd {
+    font-size: 0.7rem;
+    opacity: 0.75;
+    white-space: nowrap;
+  }
+  .enh-icon-button {
+    border: 2px solid var(--color-border);
+    min-width: 40px;
+    min-height: 36px;
+  }
+  .enh-icon-button[aria-pressed='true'] {
+    border-color: var(--color-accent);
+  }
+  .enh-send-button {
+    border: 2px solid var(--color-accent);
+    color: var(--color-accent);
+    padding: 0.25rem 1rem;
+    min-height: 36px;
+    font-weight: 700;
+  }
+  .enh-send-button:disabled {
+    opacity: 0.4;
+  }
+}
+
+/* The menu list spans the full width on narrow screens. */
+@media (max-width: 640px) {
+  .enh-menu {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    min-width: 0;
+  }
+}

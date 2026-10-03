@@ -1,10 +1,9 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <!-- Mobile-optimized viewport settings (v1.2.0) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -29,234 +28,17 @@
     <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
 
     <!-- Accessibility meta tags (v1.4.0) -->
-    <meta name="description" content="Dr. Sbaitso Recreated - A modern web-based recreation of the classic 1991 AI therapist with enhanced accessibility features and offline support" />
-    <title>Dr. Sbaitso Recreated - AI Therapist (1991)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body {
-        font-family: 'Courier New', Courier, monospace;
-        /* Prevent text selection on mobile */
-        -webkit-user-select: none;
-        user-select: none;
-        /* Prevent pull-to-refresh on mobile */
-        overscroll-behavior: none;
-        /* Disable tap highlight on mobile */
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      /* Allow text selection only in input fields and message content */
-      input, textarea, .message-text {
-        -webkit-user-select: text;
-        user-select: text;
-      }
-
-      /* Custom scrollbar for desktop */
-      ::-webkit-scrollbar {
-        width: 12px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #1e3a8a;
-      }
-      ::-webkit-scrollbar-thumb {
-        background-color: #d1d5db;
-        border-radius: 6px;
-        border: 3px solid #1e3a8a;
-      }
-
-      /* Mobile-specific styles */
-      @media (max-width: 767px) {
-        body {
-          font-size: 14px;
-        }
-        ::-webkit-scrollbar {
-          width: 6px;
-        }
-        /* Hide scrollbar on mobile for cleaner look */
-        * {
-          scrollbar-width: thin;
-        }
-      }
-
-      /* Touch-friendly button minimum size */
-      button, input[type="button"], .touch-target {
-        min-height: 44px;
-        min-width: 44px;
-      }
-
-      /* Prevent iOS zoom on input focus */
-      @media (max-width: 767px) {
-        input, textarea, select {
-          font-size: 16px !important;
-        }
-      }
-
-      /* Accessibility Enhancements (v1.4.0) */
-
-      /* Font Size Controls */
-      :root[data-font-size="small"] {
-        font-size: 12px;
-      }
-      :root[data-font-size="medium"] {
-        font-size: 16px;
-      }
-      :root[data-font-size="large"] {
-        font-size: 20px;
-      }
-      :root[data-font-size="x-large"] {
-        font-size: 24px;
-      }
-
-      /* High Contrast Mode */
-      .high-contrast {
-        --text-primary: #ffffff;
-        --text-secondary: #ffff00;
-        --bg-primary: #000000;
-        --bg-secondary: #1a1a1a;
-        --border-color: #ffffff;
-      }
-      .high-contrast body {
-        background-color: var(--bg-primary);
-        color: var(--text-primary);
-      }
-      .high-contrast button,
-      .high-contrast input,
-      .high-contrast select {
-        border-width: 3px !important;
-        border-color: var(--border-color) !important;
-      }
-
-      /* Reduced Motion */
-      .reduce-motion *,
-      .reduce-motion *::before,
-      .reduce-motion *::after {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.001ms !important;
-        scroll-behavior: auto !important;
-      }
-
-      /* Focus Indicators - Default (3px outline) */
-      .user-is-tabbing *:focus {
-        outline: 3px solid #fbbf24 !important;
-        outline-offset: 2px !important;
-      }
-
-      /* Focus Indicators - Thick (5px outline) */
-      :root[data-focus-style="thick"] .user-is-tabbing *:focus {
-        outline-width: 5px !important;
-        outline-offset: 3px !important;
-      }
-
-      /* Focus Indicators - Underline */
-      :root[data-focus-style="underline"] .user-is-tabbing *:focus {
-        outline: none !important;
-        border-bottom: 4px solid #fbbf24 !important;
-        padding-bottom: 2px;
-      }
-
-      /* Keyboard Navigation Hints */
-      .show-keyboard-hints button::after,
-      .show-keyboard-hints a::after {
-        content: attr(data-keyboard-hint);
-        position: absolute;
-        bottom: -20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #1e3a8a;
-        color: #fbbf24;
-        padding: 2px 6px;
-        font-size: 10px;
-        border: 1px solid #fbbf24;
-        opacity: 0;
-        pointer-events: none;
-        white-space: nowrap;
-        transition: opacity 0.2s;
-      }
-      .show-keyboard-hints button:focus::after,
-      .show-keyboard-hints a:focus::after {
-        opacity: 1;
-      }
-
-      /* Screen Reader Only */
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border-width: 0;
-      }
-
-      /* Skip Navigation Links */
-      .skip-nav a:focus {
-        clip: auto;
-        height: auto;
-        width: auto;
-        overflow: visible;
-      }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^2.24.0",
-    "react": "https://aistudiocdn.com/react@^19.3.0",
-    "react/": "https://aistudiocdn.com/react@^19.3.0/",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.3.0/"
-  }
-}
-</script>
-</head>
+    <meta
+      name="description"
+      content="Dr. Sbaitso Recreated - A web recreation of the Sound Blaster AI therapist (1990-1992), with its original screen and voice, more classic chatbots, and offline support"
+    />
+    <title>Dr. Sbaitso Recreated</title>
+  </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <!-- Skip navigation anchor points (v1.4.0) -->
     <div id="skip-to-main"></div>
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-
-    <!-- Service Worker Registration (v1.11.0 - Option B1) -->
-    <script>
-      // Register service worker for PWA offline support
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js')
-            .then((registration) => {
-              console.log('[PWA] Service Worker registered successfully:', registration.scope);
-
-              // Check for updates every hour
-              setInterval(() => {
-                registration.update();
-              }, 60 * 60 * 1000);
-
-              // Handle service worker updates
-              registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('[PWA] New service worker available. Refresh to update.');
-                    // Optionally show a notification to the user
-                    if (confirm('A new version of Dr. Sbaitso is available. Reload to update?')) {
-                      newWorker.postMessage({ type: 'SKIP_WAITING' });
-                    }
-                  }
-                });
-              });
-            })
-            .catch((error) => {
-              console.error('[PWA] Service Worker registration failed:', error);
-            });
-
-          // Handle service worker controller change
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('[PWA] Service Worker controller changed, reloading page...');
-            window.location.reload();
-          });
-        });
-      } else {
-        console.warn('[PWA] Service Workers not supported in this browser');
-      }
-    </script>
+    <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

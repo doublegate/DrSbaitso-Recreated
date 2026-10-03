@@ -1,114 +1,132 @@
 {
   "name": "Dr. Sbaitso Recreated",
   "short_name": "Dr. Sbaitso",
-  "description": "A modern web-based recreation of the classic 1991 AI therapist program with authentic retro experience",
+  "description": "The 1990s Sound Blaster AI therapist, rebuilt for the web with Google Gemini",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000080",
   "theme_color": "#000080",
   "orientation": "any",
-  "categories": ["entertainment", "health", "utilities"],
+  "categories": [
+    "entertainment",
+    "health",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-128x128.png",
       "sizes": "128x128",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-144x144.png",
       "sizes": "144x144",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-152x152.png",
       "sizes": "152x152",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-384x384.png",
       "sizes": "384x384",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "/screenshots/desktop-1.png",
+      "src": "/screenshots/classic-wide.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Dr. Sbaitso conversation interface"
+      "label": "The classic 80x25 Dr. Sbaitso screen"
     },
     {
-      "src": "/screenshots/mobile-1.png",
-      "sizes": "540x720",
+      "src": "/screenshots/enhanced-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Enhanced mode with personas, menus and settings"
+    },
+    {
+      "src": "/screenshots/classic-narrow.png",
+      "sizes": "412x915",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Dr. Sbaitso on mobile"
+      "label": "The classic screen on a phone"
+    },
+    {
+      "src": "/screenshots/enhanced-narrow.png",
+      "sizes": "412x915",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Enhanced mode on a phone"
     }
   ],
   "shortcuts": [
     {
-      "name": "New Conversation",
-      "short_name": "New Chat",
-      "description": "Start a new therapy session",
-      "url": "/?action=new",
-      "icons": [
-        {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "name": "Classic Screen",
+      "short_name": "Classic",
+      "description": "The original 80x25 Dr. Sbaitso screen",
+      "url": "/?mode=classic",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Settings",
-      "short_name": "Settings",
-      "description": "Configure audio, themes, and accessibility",
-      "url": "/?action=settings",
-      "icons": [
-        {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "name": "Enhanced Mode",
+      "short_name": "Enhanced",
+      "description": "All personas, themes and panels",
+      "url": "/?mode=enhanced",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
   "share_target": {
     "action": "/share",
-    "method": "POST",
-    "enctype": "multipart/form-data",
+    "method": "GET",
     "params": {
       "title": "title",
-      "text": "text"
+      "text": "text",
+      "url": "url"
     }
   },
   "related_applications": [],

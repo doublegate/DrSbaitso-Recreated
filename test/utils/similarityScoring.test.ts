@@ -5,15 +5,11 @@ import {
   findSimilarSessions,
   clusterConversations,
   detectRecurringPatterns,
-  getSimilarityAnalysisSummary
+  getSimilarityAnalysisSummary,
 } from '@/utils/similarityScoring';
 
 describe('similarityScoring', () => {
-  const createMockSession = (
-    id: string,
-    messages: string[],
-    characterId: string = 'sbaitso'
-  ): ConversationSession => ({
+  const createMockSession = (id: string, messages: string[], characterId: string = 'sbaitso'): ConversationSession => ({
     id,
     name: 'Test Session',
     characterId,
@@ -24,23 +20,17 @@ describe('similarityScoring', () => {
     messages: messages.map((text, index) => ({
       text,
       author: index % 2 === 0 ? 'user' : 'dr',
-      timestamp: Date.now() + index * 1000
+      timestamp: Date.now() + index * 1000,
     })),
     messageCount: messages.length,
-    glitchCount: 0
+    glitchCount: 0,
   });
 
   describe('calculateSessionSimilarity', () => {
     it('should return high similarity for identical sessions', () => {
-      const session1 = createMockSession('1', [
-        'I am feeling anxious today',
-        'Tell me about your anxiety'
-      ]);
+      const session1 = createMockSession('1', ['I am feeling anxious today', 'Tell me about your anxiety']);
 
-      const session2 = createMockSession('2', [
-        'I am feeling anxious today',
-        'Tell me about your anxiety'
-      ]);
+      const session2 = createMockSession('2', ['I am feeling anxious today', 'Tell me about your anxiety']);
 
       const result = calculateSessionSimilarity(session1, session2);
 
@@ -49,13 +39,9 @@ describe('similarityScoring', () => {
     });
 
     it('should return low similarity for different sessions', () => {
-      const session1 = createMockSession('1', [
-        'I love programming and coding'
-      ]);
+      const session1 = createMockSession('1', ['I love programming and coding']);
 
-      const session2 = createMockSession('2', [
-        'I am sad about my family'
-      ]);
+      const session2 = createMockSession('2', ['I am sad about my family']);
 
       const result = calculateSessionSimilarity(session1, session2);
 
@@ -63,13 +49,9 @@ describe('similarityScoring', () => {
     });
 
     it('should compare topic similarity', () => {
-      const session1 = createMockSession('1', [
-        'mental health anxiety stress'
-      ]);
+      const session1 = createMockSession('1', ['mental health anxiety stress']);
 
-      const session2 = createMockSession('2', [
-        'mental health depression worry'
-      ]);
+      const session2 = createMockSession('2', ['mental health depression worry']);
 
       const result = calculateSessionSimilarity(session1, session2);
 
@@ -131,14 +113,12 @@ describe('similarityScoring', () => {
 
   describe('findSimilarSessions', () => {
     it('should find similar sessions', () => {
-      const target = createMockSession('target', [
-        'I am anxious about my health'
-      ]);
+      const target = createMockSession('target', ['I am anxious about my health']);
 
       const allSessions = [
         createMockSession('1', ['I am worried about my health']),
         createMockSession('2', ['I love programming']),
-        createMockSession('3', ['Health anxiety is common'])
+        createMockSession('3', ['Health anxiety is common']),
       ];
 
       const result = findSimilarSessions(target, allSessions, 5);
@@ -149,22 +129,17 @@ describe('similarityScoring', () => {
 
     it('should exclude target session from results', () => {
       const target = createMockSession('target', ['test']);
-      const allSessions = [
-        target,
-        createMockSession('1', ['test'])
-      ];
+      const allSessions = [target, createMockSession('1', ['test'])];
 
       const result = findSimilarSessions(target, allSessions, 5);
 
-      expect(result.every(r => r.sessionId1 !== 'target' && r.sessionId2 !== 'target')).toBe(false);
-      expect(result.every(r => r.sessionId2 !== 'target')).toBe(true);
+      expect(result.every((r) => r.sessionId1 !== 'target' && r.sessionId2 !== 'target')).toBe(false);
+      expect(result.every((r) => r.sessionId2 !== 'target')).toBe(true);
     });
 
     it('should limit results to specified count', () => {
       const target = createMockSession('target', ['test']);
-      const allSessions = Array.from({ length: 10 }, (_, i) =>
-        createMockSession(`${i}`, ['test'])
-      );
+      const allSessions = Array.from({ length: 10 }, (_, i) => createMockSession(`${i}`, ['test']));
 
       const result = findSimilarSessions(target, allSessions, 3);
 
@@ -176,7 +151,7 @@ describe('similarityScoring', () => {
       const allSessions = [
         createMockSession('1', ['completely different topic']),
         createMockSession('2', ['health anxiety stress']),
-        createMockSession('3', ['health'])
+        createMockSession('3', ['health']),
       ];
 
       const result = findSimilarSessions(target, allSessions, 5);
@@ -193,19 +168,19 @@ describe('similarityScoring', () => {
         createMockSession('1', ['health anxiety stress']),
         createMockSession('2', ['health worry concern']),
         createMockSession('3', ['programming code software']),
-        createMockSession('4', ['programming development technology'])
+        createMockSession('4', ['programming development technology']),
       ];
 
       const result = clusterConversations(sessions, 40);
 
       expect(result.length).toBeGreaterThan(0);
-      expect(result.every(cluster => cluster.sessions.length > 0)).toBe(true);
+      expect(result.every((cluster) => cluster.sessions.length > 0)).toBe(true);
     });
 
     it('should include common topics in clusters', () => {
       const sessions = [
         createMockSession('1', ['health health health']),
-        createMockSession('2', ['health health health'])
+        createMockSession('2', ['health health health']),
       ];
 
       const result = clusterConversations(sessions, 50);
@@ -216,28 +191,22 @@ describe('similarityScoring', () => {
     });
 
     it('should calculate average sentiment for clusters', () => {
-      const sessions = [
-        createMockSession('1', ['I am happy']),
-        createMockSession('2', ['I am sad'])
-      ];
+      const sessions = [createMockSession('1', ['I am happy']), createMockSession('2', ['I am sad'])];
 
       const result = clusterConversations(sessions, 30);
 
-      result.forEach(cluster => {
+      result.forEach((cluster) => {
         expect(cluster.averageSentiment).toBeDefined();
         expect(typeof cluster.averageSentiment).toBe('number');
       });
     });
 
     it('should identify dominant emotion in clusters', () => {
-      const sessions = [
-        createMockSession('1', ['happy joyful']),
-        createMockSession('2', ['happy excited'])
-      ];
+      const sessions = [createMockSession('1', ['happy joyful']), createMockSession('2', ['happy excited'])];
 
       const result = clusterConversations(sessions, 30);
 
-      result.forEach(cluster => {
+      result.forEach((cluster) => {
         expect(cluster.dominantEmotion).toBeDefined();
         expect(typeof cluster.dominantEmotion).toBe('string');
       });
@@ -250,9 +219,7 @@ describe('similarityScoring', () => {
     });
 
     it('should sort clusters by size', () => {
-      const sessions = Array.from({ length: 10 }, (_, i) =>
-        createMockSession(`${i}`, ['test message'])
-      );
+      const sessions = Array.from({ length: 10 }, (_, i) => createMockSession(`${i}`, ['test message']));
 
       const result = clusterConversations(sessions, 70);
 
@@ -267,13 +234,13 @@ describe('similarityScoring', () => {
       const sessions = [
         createMockSession('1', ['I feel anxious about this']),
         createMockSession('2', ['I feel anxious about that']),
-        createMockSession('3', ['I feel anxious about everything'])
+        createMockSession('3', ['I feel anxious about everything']),
       ];
 
       const result = detectRecurringPatterns(sessions, 3);
 
       expect(result.length).toBeGreaterThan(0);
-      const anxiousPattern = result.find(p => p.pattern.includes('feel anxious'));
+      const anxiousPattern = result.find((p) => p.pattern.includes('feel anxious'));
       expect(anxiousPattern).toBeDefined();
     });
 
@@ -281,25 +248,22 @@ describe('similarityScoring', () => {
       const sessions = [
         createMockSession('1', ['mental health']),
         createMockSession('2', ['mental health']),
-        createMockSession('3', ['mental health'])
+        createMockSession('3', ['mental health']),
       ];
 
       const result = detectRecurringPatterns(sessions, 3);
 
-      const mentalHealthPattern = result.find(p => p.pattern === 'mental health');
+      const mentalHealthPattern = result.find((p) => p.pattern === 'mental health');
       expect(mentalHealthPattern).toBeDefined();
       expect(mentalHealthPattern!.occurrences).toBeGreaterThanOrEqual(3);
     });
 
     it('should calculate confidence scores', () => {
-      const sessions = [
-        createMockSession('1', ['common phrase']),
-        createMockSession('2', ['common phrase'])
-      ];
+      const sessions = [createMockSession('1', ['common phrase']), createMockSession('2', ['common phrase'])];
 
       const result = detectRecurringPatterns(sessions, 2);
 
-      result.forEach(pattern => {
+      result.forEach((pattern) => {
         expect(pattern.confidence).toBeGreaterThanOrEqual(0);
         expect(pattern.confidence).toBeLessThanOrEqual(100);
       });
@@ -309,7 +273,7 @@ describe('similarityScoring', () => {
       const sessions = [
         createMockSession('session-1', ['test pattern']),
         createMockSession('session-2', ['test pattern']),
-        createMockSession('session-3', ['test pattern'])
+        createMockSession('session-3', ['test pattern']),
       ];
 
       const result = detectRecurringPatterns(sessions, 3);
@@ -324,19 +288,17 @@ describe('similarityScoring', () => {
       const sessions = [
         createMockSession('1', ['rare phrase']),
         createMockSession('2', ['common common common']),
-        createMockSession('3', ['common common common'])
+        createMockSession('3', ['common common common']),
       ];
 
       const result = detectRecurringPatterns(sessions, 2);
 
-      const rarePattern = result.find(p => p.pattern === 'rare phrase');
+      const rarePattern = result.find((p) => p.pattern === 'rare phrase');
       expect(rarePattern).toBeUndefined();
     });
 
     it('should limit results to top patterns', () => {
-      const sessions = Array.from({ length: 100 }, (_, i) =>
-        createMockSession(`${i}`, [`pattern${i % 25} word`])
-      );
+      const sessions = Array.from({ length: 100 }, (_, i) => createMockSession(`${i}`, [`pattern${i % 25} word`]));
 
       const result = detectRecurringPatterns(sessions, 3);
 
@@ -344,9 +306,7 @@ describe('similarityScoring', () => {
     });
 
     it('should sort by confidence', () => {
-      const sessions = Array.from({ length: 10 }, (_, i) =>
-        createMockSession(`${i}`, ['test phrase'])
-      );
+      const sessions = Array.from({ length: 10 }, (_, i) => createMockSession(`${i}`, ['test phrase']));
 
       const result = detectRecurringPatterns(sessions, 3);
 
@@ -364,10 +324,7 @@ describe('similarityScoring', () => {
     });
 
     it('should include cluster information', () => {
-      const sessions = [
-        createMockSession('1', ['health anxiety']),
-        createMockSession('2', ['health worry'])
-      ];
+      const sessions = [createMockSession('1', ['health anxiety']), createMockSession('2', ['health worry'])];
 
       const summary = getSimilarityAnalysisSummary(sessions);
 
@@ -378,7 +335,7 @@ describe('similarityScoring', () => {
       const sessions = [
         createMockSession('1', ['feel anxious']),
         createMockSession('2', ['feel anxious']),
-        createMockSession('3', ['feel anxious'])
+        createMockSession('3', ['feel anxious']),
       ];
 
       const summary = getSimilarityAnalysisSummary(sessions);

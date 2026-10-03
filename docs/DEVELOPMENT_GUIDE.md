@@ -1,8 +1,6 @@
 # Dr. Sbaitso Recreated - Development Guide
 
-**Version**: 1.9.0
-**Last Updated**: November 2025
-**Maintainer**: Development Team
+See also [API.md](API.md) (server API and module reference) and [TESTING.md](TESTING.md).
 
 ---
 
@@ -26,8 +24,8 @@
 
 ### Prerequisites
 
-- **Node.js**: v18.0.0 or higher (LTS recommended)
-- **npm**: v9.0.0 or higher
+- **Node.js**: 22.12 or higher (`engines` in `package.json`); 24 recommended, and CI uses 24
+- **npm**: the version bundled with Node
 - **Git**: v2.30.0 or higher
 - **Modern Browser**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
 
@@ -38,6 +36,12 @@ Create a `.env.local` file in the project root:
 ```env
 GEMINI_API_KEY=your_api_key_here_from_google_ai_studio
 ```
+
+The key is read only on the server side. On Vercel the Functions in `api/` read it; locally the
+dev server's `/api` middleware reads it. It never reaches the browser bundle, and
+`npm run check:secrets` fails the build check if `dist/` contains anything shaped like one. Optional
+model overrides (`GEMINI_CHAT_MODEL`, `GEMINI_TTS_MODEL`, `GEMINI_CHAT_FALLBACK_MODELS`,
+`GEMINI_TTS_FALLBACK_MODELS`) are described in [API.md](API.md#22-environment-variables).
 
 **Obtaining a Gemini API Key:**
 1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
@@ -52,11 +56,12 @@ GEMINI_API_KEY=your_api_key_here_from_google_ai_studio
 git clone https://github.com/doublegate/DrSbaitso-Recreated.git
 cd DrSbaitso-Recreated
 
-# Install dependencies
-npm install
+# Install dependencies (exactly as locked)
+npm ci
 
 # Verify installation
 npm run typecheck
+npm run lint
 
 # Start development server
 npm run dev
@@ -66,15 +71,16 @@ The application will be available at `http://localhost:3000`.
 
 ### IDE Recommendations
 
+The linter is **oxlint** (`.oxlintrc.json`), not ESLint. TypeScript 7 has no JS API, so
+typescript-eslint cannot run. There is no formatter configuration in the repository; match the
+surrounding code.
+
 **Visual Studio Code** (recommended):
-- Install ESLint extension
-- Install Prettier extension
-- Install TypeScript Vue Plugin
-- Use workspace settings (`.vscode/settings.json`)
+- Install the oxc extension (oxlint diagnostics)
+- Use the workspace TypeScript version
 
 **WebStorm**:
 - Enable TypeScript support
-- Configure ESLint
 - Enable React JSX support
 
 ---
@@ -83,74 +89,50 @@ The application will be available at `http://localhost:3000`.
 
 ```
 DrSbaitso-Recreated/
-├── components/          # React components (lazy-loaded)
-│   ├── AccessibilityPanel.tsx
-│   ├── AdvancedExporter.tsx
-│   ├── AudioVisualizer.tsx
-│   ├── CharacterCreator.tsx
-│   ├── ConversationInsights.tsx
-│   ├── ConversationReplay.tsx
-│   ├── ConversationSearch.tsx
-│   ├── OnboardingTutorial.tsx
-│   ├── SoundSettingsPanel.tsx  # v1.9.0
-│   ├── SkipNav.tsx
-│   └── ThemeCustomizer.tsx
-├── hooks/               # Custom React hooks
-│   ├── useAccessibility.ts
-│   ├── useFocusTrap.ts
-│   ├── useKeyboardShortcuts.ts
-│   ├── useMediaQuery.ts
-│   ├── usePWA.ts
-│   ├── useScreenReader.ts
-│   ├── useSoundEffects.ts      # v1.9.0
-│   ├── useTouchGestures.ts
-│   └── useVoiceControl.ts
-├── services/            # External API integrations
-│   ├── geminiService.ts        # Google Gemini AI (chat + TTS)
-│   └── cloudSync.ts            # Firebase cloud synchronization
-├── utils/               # Utility functions
-│   ├── accessibilityManager.ts
-│   ├── advancedExport.ts
-│   ├── audio.ts
-│   ├── audioWorklet.ts
-│   ├── chartUtils.ts
-│   ├── cloudSync.ts
-│   ├── exportConversation.ts
-│   ├── insightEngine.ts        # v1.9.0 - Pattern detection
-│   ├── sentimentAnalysis.ts
-│   ├── sessionManager.ts
-│   ├── soundEffects.ts         # v1.9.0 - Audio system
-│   ├── speechRecognition.ts
-│   ├── themeValidator.ts
-│   ├── vintageAudioProcessing.ts
-│   └── voiceCommands.ts
-├── test/                # Vitest unit tests
-│   ├── components/
-│   ├── hooks/
-│   ├── services/
-│   └── utils/
-├── public/              # Static assets
-│   ├── icons/           # PWA icons
-│   ├── audio-processor.worklet.js
-│   └── manifest.json
-├── docs/                # Documentation
-├── App.tsx              # Main application component
-├── constants.ts         # Configuration constants
-├── types.ts             # TypeScript type definitions
-├── index.tsx            # Application entry point
-├── vite.config.ts       # Vite build configuration
-└── vitest.config.ts     # Vitest test configuration
+├── api/                    # Vercel Functions: the only code that holds the Gemini key
+│   ├── chat.ts             # POST /api/chat
+│   ├── tts.ts              # POST /api/tts
+│   └── _lib/               # gemini.ts (validation, fallback, TTS), http.ts (serve, rate limit)
+├── src/
+│   ├── index.tsx           # Entry point
+│   ├── App.tsx             # Chooses the classic screen or the enhanced UI (Alt+Shift+X)
+│   ├── EnhancedApp.tsx     # Enhanced UI (lazy-loaded)
+│   ├── constants.ts        # CHARACTERS, VOICE_PROFILES, THEMES, AUDIO_MODES
+│   ├── types.ts
+│   ├── sw.ts               # Service worker, served as /sw.js (docs/PWA.md)
+│   ├── components/         # Panels and dialogs; classic/ (ClassicApp, DosScreen), enhanced/
+│   ├── engine/             # Local persona engines: sbaitso, eliza, parry, hal, joshua, personaTurn.ts
+│   ├── hooks/              # useSpeechPlayer, useSessionHistory, useVoiceControl, ...
+│   ├── services/           # geminiService.ts: browser client for /api
+│   └── utils/              # audio, sharedAudio, voiceRoutes, personaVoices, sessionManager,
+│                           # soundPackStore, cloudSync, shortcuts, ...
+├── test/                   # Vitest (docs/TESTING.md)
+├── e2e/                    # Playwright, /api mocked
+├── public/                 # Icons, fonts, manifest, audio worklet, legacy service-worker.js kill switch
+├── ref-docs/               # Sourced research on the original program
+├── docs/
+├── vite.config.ts          # Build, PWA plugin, dev /api middleware (port 3000)
+├── vitest.config.ts
+├── playwright.config.ts
+└── vercel.json             # Function limits, SPA rewrite, security headers (CSP)
 ```
 
 ### Key Architectural Decisions
 
-**Component Lazy Loading**: All non-critical components use `React.lazy()` to reduce initial bundle size.
+**Server proxy for Gemini**: the browser calls `/api/chat` and `/api/tts`. Personas are resolved
+server-side by id, inputs are validated and capped, and the key never ships to the client. See
+[API.md](API.md).
 
-**State Management**: Local state with React hooks (no Redux/Zustand) - localStorage for persistence.
+**Hybrid personas**: each persona's scripted behaviour runs in a deterministic local engine
+(`src/engine/`). The model only handles open conversation.
 
-**API Integration**: Single service file per external API (Gemini, Firebase).
+**Component Lazy Loading**: the enhanced UI and non-critical panels use `React.lazy()` to reduce
+the initial bundle size.
 
-**Type Safety**: Strict TypeScript with explicit typing for all public APIs.
+**State Management**: local state with React hooks (no Redux/Zustand). Settings use
+`localStorage`, session history is opt-in, and sound packs live in IndexedDB.
+
+**Type Safety**: strict TypeScript with explicit typing for all public APIs.
 
 ---
 
@@ -167,38 +149,43 @@ npm run dev
 - Hot Module Replacement (HMR)
 - Fast Refresh for React
 - Source maps enabled
-- TypeScript type checking
-- Port: 3000 (configurable)
+- `/api/chat` and `/api/tts` served by the same modules as on Vercel, reading `.env.local`
+- Port: 3000
+
+Type errors are not reported by the dev server; run `npm run typecheck`.
 
 ### Production Build
 
 ```bash
-# Build optimized production bundle
+# Build optimized production bundle (Vite 8 / Rolldown)
 npm run build
 
-# Preview production build locally
+# Preview production build locally (port 4173; there is no /api in preview)
 npm run preview
+
+# Bundle report into reports/ (gitignored)
+npm run analyze
 ```
 
 **Build Optimization:**
-- Code splitting per component
+- Code splitting per lazy component, plus a `react-vendor` chunk
 - Tree shaking unused code
-- Minification (Terser)
-- CSS optimization
-- Asset compression
+- Minification (Vite defaults)
+- Chunk size warning limit: 300 KB
 
-### Type Checking
+### Type Checking and Lint
 
 ```bash
-# Run TypeScript compiler (no emit)
-npm run typecheck
+npm run typecheck   # tsc --noEmit on tsconfig.json, tsconfig.node.json, tsconfig.test.json, tsconfig.sw.json
+npm run lint        # oxlint; React hooks rules are errors
 ```
-
-Runs `tsc --noEmit` to verify type correctness without generating files.
 
 ---
 
 ## Testing Strategy
+
+The full guide is [TESTING.md](TESTING.md): configuration, layout, mocks, gotchas, the e2e suite
+and CI.
 
 ### Test Framework Stack
 
@@ -206,47 +193,30 @@ Runs `tsc --noEmit` to verify type correctness without generating files.
 - **React Testing Library**: Component testing utilities
 - **jsdom**: DOM environment simulation
 - **@vitest/coverage-v8**: Code coverage reporting
+- **Playwright**: end-to-end tests (Chromium) against the production build, with `/api` mocked
 
 ### Running Tests
 
 ```bash
-# Run all tests
-npm test
-
-# Run tests in UI mode (recommended)
-npm run test:ui
-
-# Run tests once (CI mode)
-npm run test:run
-
-# Generate coverage report
-npm run test:coverage
+npm test                 # watch mode
+npm run test:ui          # Vitest UI
+npm run test:run         # once; also enforces the performance budgets
+npm run test:coverage    # once with coverage thresholds
+npm run test:e2e         # Playwright
+npx vitest run test/api/gemini.test.ts -t "fallback"   # a single file or test
 ```
 
-### Coverage Goals
+### Coverage
 
-- **Overall**: 80%+ coverage
-- **New Features**: 90%+ coverage (v1.9.0 requirement)
-- **Critical Paths**: 100% coverage (user input, AI response, audio playback)
+Thresholds in `vitest.config.ts` are a ratchet set just below measured coverage (currently lines
+67, statements 66, functions 57, branches 60). Raise them as coverage grows and never lower them.
+New code should come with tests; a bug fix should come with a test that reproduces the bug.
 
 ### Test Organization
 
-```
-test/
-├── components/          # Component integration tests
-│   ├── App.test.tsx
-│   ├── SoundSettingsPanel.test.tsx  # v1.9.0
-│   └── OnboardingTutorial.test.tsx
-├── hooks/               # Custom hook tests
-│   ├── useSoundEffects.test.ts      # v1.9.0
-│   └── useVoiceControl.test.ts
-├── services/            # API service tests
-│   └── geminiService.test.ts
-└── utils/               # Utility function tests
-    ├── insightEngine.test.ts        # v1.9.0
-    ├── soundEffects.test.ts         # v1.9.0
-    └── sentimentAnalysis.test.ts
-```
+Tests live in `test/`, mirroring `src/` and `api/` (`test/api`, `test/engine`, `test/hooks`,
+`test/components`, `test/utils`, `test/services`, `test/integration`). End-to-end specs are in
+`e2e/`.
 
 ### Writing Tests
 
@@ -295,19 +265,21 @@ describe('myUtilityFunction', () => {
 ### Mocking External APIs
 
 ```typescript
-// Mock Gemini API
+// Mock the browser client (components, hooks)
 vi.mock('../services/geminiService', () => ({
-  getDrSbaitsoResponse: vi.fn().mockResolvedValue('HELLO USER'),
-  synthesizeSpeech: vi.fn().mockResolvedValue('base64_audio_data'),
+  getAIResponse: vi.fn().mockResolvedValue('HELLO USER'),
+  synthesizeSpeech: vi.fn().mockResolvedValue(''),
+  resetChat: vi.fn(),
 }));
 
-// Mock Web Audio API
-global.AudioContext = vi.fn().mockImplementation(() => ({
-  createBuffer: vi.fn(),
-  createBufferSource: vi.fn(),
-  destination: {},
-}));
+// Or stub fetch to exercise the client itself (call resetAllChats() between tests)
+vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ text: 'HELLO' }))));
 ```
+
+Server code takes an injected client: call `handleChat` / `handleTts` with a fake
+`{ models: { generateContent } }`, or `serve(request, handler, { env, createClient })`.
+`test/setup.ts` already stubs Web Audio, Speech Recognition, `matchMedia`, the observers and
+storage.
 
 ---
 
@@ -423,7 +395,7 @@ export default function MyFeature({ isOpen, onClose, data }: MyFeatureProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="bg-blue-900 border-4 border-gray-400 p-6 max-w-4xl w-full">
         <h2 className="text-2xl font-bold text-white mb-4">MY FEATURE</h2>
         {/* Feature content */}
@@ -434,10 +406,10 @@ export default function MyFeature({ isOpen, onClose, data }: MyFeatureProps) {
 }
 ```
 
-**Step 3: Lazy Load in App.tsx**
+**Step 3: Lazy Load Where the Panel Is Opened**
 
 ```typescript
-// App.tsx
+// In the UI that opens the panel (the enhanced UI for most panels)
 const MyFeature = lazy(() => import('./components/MyFeature'));
 
 // In component:
@@ -457,13 +429,22 @@ const [showMyFeature, setShowMyFeature] = useState(false);
 
 **Step 4: Add Keyboard Shortcut (Optional)**
 
+Global shortcuts are defined once in `src/utils/shortcuts.ts`, which is the single source for the
+key handler, button labels and help text. Every shortcut is Alt+Shift+<key>, matched on the
+physical key (`code`), because Ctrl/Cmd combinations collide with browser shortcuts.
+
 ```typescript
-// App.tsx - in keyboard handler useEffect
-if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+// src/utils/shortcuts.ts: add an id to ShortcutId and an entry to APP_SHORTCUTS
+{ id: 'myFeature', code: 'KeyF', description: 'My feature' },
+
+// In the key handler
+if (matchShortcut(e) === 'myFeature') {
   e.preventDefault();
   setShowMyFeature(true);
 }
 ```
+
+Show the binding in the UI with `shortcutLabel('myFeature')`.
 
 **Step 5: Write Tests**
 
@@ -488,7 +469,9 @@ describe('MyFeature', () => {
 
 ### Character Configuration
 
-Characters are defined in `constants.ts`:
+Characters are defined in `src/constants.ts`. The server imports the same list and resolves a
+persona's prompt and voice by `id`, so a new entry works for both `/api/chat` and `/api/tts`
+without other server changes.
 
 ```typescript
 export const CHARACTERS: CharacterPersonality[] = [
@@ -496,12 +479,12 @@ export const CHARACTERS: CharacterPersonality[] = [
     id: 'mycharacter',
     name: 'My Character',
     description: 'Brief description (1-2 sentences)',
-    systemInstruction: `You are My Character, a [description].
-    ALWAYS RESPOND IN ALL CAPS. // Or specify other constraints
-    Your personality traits: [list traits]
-    Knowledge cutoff: [year]
-    Glitch messages: [if applicable]`,
-    voicePrompt: 'Say in a [describe voice style]'
+    systemInstruction: `You are My Character, a [description]. ...`,
+    voiceName: 'Kore',            // a Gemini prebuilt voice
+    voiceStyle: 'a calm, even voice ...',   // delivery direction, sent as speechMetadata.style
+    voicePrompt: 'Say in a calm, even voice ...',   // deprecated; keep equal to `Say in ${voiceStyle}`
+    ttsCase: 'sentence',          // 'upper' sends text verbatim; 'sentence' de-capitalises ALL CAPS for TTS
+    processing: 'clean',          // browser audio route: 'sbaitso' | 'clean' | 'hal' | 'wopr'
   }
 ];
 ```
@@ -514,29 +497,25 @@ export const CHARACTERS: CharacterPersonality[] = [
    - Personality traits
    - Conversation style
 
-2. **Include Glitch Behavior** (optional):
-   ```typescript
-   systemInstruction: `...
-   Occasionally, you experience 'glitches'. When this happens, insert:
-   SYSTEM DIAGNOSTIC: [message]
-   After the glitch, return to normal conversation.`
-   ```
+2. **Keep scripted behaviour local**: glitches, commands and canned sequences belong in a local
+   engine under `src/engine/`, not in the prompt. For example, Dr. Sbaitso's parity error is
+   scripted in `src/engine/sbaitso`, and the model never emits it. If an engine prepends a
+   `[SESSION: ...]` line, the prompt must read those exact field names, and a test should pin the
+   two together.
 
-3. **Voice Prompt Engineering**:
-   - Specify tone (monotone, energetic, calm)
-   - Reference era/technology (1960s computer, 1991 8-bit)
-   - Include unique characteristics
+3. **Voice style**:
+   - Describe qualities only (tone, pace, pitch, pauses)
+   - Never name a film character or actor; that asks the model to imitate a real performance
+   - Pronunciation fixes go in `applyPronunciation` in `api/_lib/gemini.ts`
 
 ### Testing New Characters
 
 ```bash
+npx vitest run test/constants.test.ts test/api   # persona invariants and server resolution
 npm run dev
-# Navigate to character selector
-# Test conversation with new character
-# Verify:
-# - Responses match personality
-# - Voice synthesis works
-# - Glitches appear (if configured)
+# Choose the persona in the enhanced UI (PERSONA: selector) and verify:
+# - Responses match the personality
+# - Voice synthesis works with the chosen voice and processing route
 ```
 
 ---
@@ -545,7 +524,7 @@ npm run dev
 
 ### Theme Structure
 
-Themes are defined in `constants.ts`:
+Themes are defined in `src/constants.ts`:
 
 ```typescript
 export const THEMES: Theme[] = [
@@ -579,16 +558,13 @@ export const THEMES: Theme[] = [
 
 ### Theme Application
 
-Themes apply via CSS variables dynamically:
+Themes apply via CSS custom properties. `applyThemeVariables(colors, target?)` in
+`src/utils/themeVariables.ts` publishes each colour as `--color-<name>` on
+`document.documentElement`, so styles that use `var(--color-text)` and similar follow the active
+theme.
 
 ```typescript
-// In component or hook:
-useEffect(() => {
-  const root = document.documentElement;
-  root.style.setProperty('--color-primary', theme.colors.primary);
-  root.style.setProperty('--color-background', theme.colors.background);
-  // ... other colors
-}, [theme]);
+useEffect(() => applyThemeVariables(theme.colors), [theme]);
 ```
 
 ---
@@ -613,26 +589,30 @@ console.timeEnd('MyComponent Render');
 ### Common Issues
 
 **1. Audio Context Suspended**
-```typescript
-// Fix: Resume on user interaction
-audioContext.resume().then(() => {
-  console.log('AudioContext resumed');
-});
-```
 
-**2. TypeScript Errors**
+All audio shares one `AudioContext` (`src/utils/sharedAudio.ts`). Browsers start it suspended
+until a user gesture. `ensureAudioReady()` resumes it and loads the bit-crusher worklet; call it
+from a gesture handler, or before playback.
+
+**2. `/api` Errors in Development**
+
+`503 NOT_CONFIGURED` means `.env.local` has no `GEMINI_API_KEY`. `429` and `503` from Gemini are
+common on the default model; the server falls back to the next model automatically (see
+[API.md](API.md#23-model-fallback-and-time-budget)). To probe the key or list models, run
+`node --env-file=.env.local` with a small script.
+
+**3. TypeScript Errors**
 ```bash
-# Clear cache and reinstall
-rm -rf node_modules package-lock.json
-npm install
+# Reinstall exactly what the lockfile pins
+rm -rf node_modules
+npm ci
 npm run typecheck
 ```
 
-**3. Build Failures**
+**4. Build Failures or Bundle Size**
 ```bash
-# Check bundle size
 npm run build
-# Analyze with visualizer
+npm run analyze   # report in reports/bundle-stats.html
 ```
 
 ---
@@ -641,26 +621,26 @@ npm run build
 
 ### 1. Forgetting to Lazy Load Large Components
 
-**❌ Wrong:**
+**Wrong:**
 ```typescript
 import HeavyComponent from './components/HeavyComponent';
 ```
 
-**✅ Correct:**
+**Correct:**
 ```typescript
 const HeavyComponent = lazy(() => import('./components/HeavyComponent'));
 ```
 
 ### 2. Missing Dependency Arrays in useEffect
 
-**❌ Wrong:**
+**Wrong:**
 ```typescript
 useEffect(() => {
   fetchData(userId); // userId not in deps
 });
 ```
 
-**✅ Correct:**
+**Correct:**
 ```typescript
 useEffect(() => {
   fetchData(userId);
@@ -669,16 +649,17 @@ useEffect(() => {
 
 ### 3. Not Handling Async Errors
 
-**❌ Wrong:**
+**Wrong:**
 ```typescript
-const response = await geminiService.getResponse(text);
+const response = await getAIResponse(text, characterId);
 ```
 
-**✅ Correct:**
+**Correct:**
 ```typescript
 try {
-  const response = await geminiService.getResponse(text);
+  const response = await getAIResponse(text, characterId);
 } catch (error) {
+  // GeminiServiceError: error.code is RATE_LIMITED, UNAVAILABLE, NETWORK_ERROR, ...
   console.error('Failed to get response:', error);
   // Graceful fallback
 }
@@ -697,19 +678,20 @@ try {
 
 2. **Make Changes**:
    - Follow code style guide
-   - Write tests (90%+ coverage for new code)
+   - Write tests with the change; coverage must not fall below the thresholds
    - Update documentation
 
 3. **Verify Quality**:
    ```bash
+   npm run lint       # oxlint, no errors
    npm run typecheck  # No errors
-   npm test           # All tests pass
+   npm run test:run   # All tests pass
    npm run build      # Build succeeds
    ```
 
 4. **Commit Conventions**:
    ```
-   feat: Add conversation pattern detection engine (v1.9.0)
+   feat: Add conversation pattern detection engine
    fix: Resolve audio playback issue on Safari
    docs: Update development guide with testing section
    test: Add tests for sound effects manager
@@ -724,7 +706,7 @@ try {
 
 - [ ] TypeScript compiles without errors
 - [ ] All tests pass (existing + new)
-- [ ] Code coverage ≥90% for new code
+- [ ] Coverage thresholds still met (`npm run test:coverage`)
 - [ ] Bundle size impact <50 KB
 - [ ] Accessibility: keyboard navigation works
 - [ ] Documentation updated
@@ -742,5 +724,5 @@ try {
 
 ---
 
-**End of Development Guide** - v1.9.0
+**End of Development Guide**
 *For additional help, see docs/TROUBLESHOOTING.md or open an issue on GitHub*

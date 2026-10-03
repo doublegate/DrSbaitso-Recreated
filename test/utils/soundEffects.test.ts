@@ -539,11 +539,7 @@ describe('soundEffects', () => {
     });
 
     it('should handle concurrent sound playback', async () => {
-      const promises = [
-        manager.playSound('keypress'),
-        manager.playSound('error'),
-        manager.playSound('success'),
-      ];
+      const promises = [manager.playSound('keypress'), manager.playSound('error'), manager.playSound('success')];
 
       await Promise.all(promises);
 
@@ -560,12 +556,7 @@ describe('soundEffects', () => {
     });
 
     it('should handle all sound pack types', () => {
-      const packs: Array<SoundSettings['selectedSoundPack']> = [
-        'dos-pc',
-        'apple-ii',
-        'commodore-64',
-        'modern-synth',
-      ];
+      const packs: Array<SoundSettings['selectedSoundPack']> = ['dos-pc', 'apple-ii', 'commodore-64', 'modern-synth'];
 
       packs.forEach((pack) => {
         manager.updateSettings({ selectedSoundPack: pack });

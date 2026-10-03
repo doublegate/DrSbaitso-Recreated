@@ -9,7 +9,7 @@ import {
   parseShareCode,
   getSoundPackSize,
   cloneSoundPack,
-  mergeSoundPacks
+  mergeSoundPacks,
 } from '@/utils/soundPackFormat';
 
 describe('soundPackFormat', () => {
@@ -21,7 +21,7 @@ describe('soundPackFormat', () => {
       description: 'A test sound pack',
       created: Date.now(),
       updated: Date.now(),
-      tags: ['test']
+      tags: ['test'],
     },
     sounds: [
       {
@@ -30,16 +30,16 @@ describe('soundPackFormat', () => {
         description: 'A test sound',
         audioData: btoa('test audio data'),
         duration: 1000,
-        volume: 100
-      }
+        volume: 100,
+      },
     ],
     triggers: [
       {
         event: 'message_sent',
         soundId: 'test-sound',
-        probability: 100
-      }
-    ]
+        probability: 100,
+      },
+    ],
   });
 
   describe('validateSoundPack', () => {
@@ -63,7 +63,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('metadata'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('metadata'))).toBe(true);
     });
 
     it('should require pack name', () => {
@@ -72,7 +72,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('name'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('name'))).toBe(true);
     });
 
     it('should require author name', () => {
@@ -81,7 +81,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Author'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Author'))).toBe(true);
     });
 
     it('should validate version format', () => {
@@ -90,7 +90,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Version'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Version'))).toBe(true);
     });
 
     it('should accept valid semantic versions', () => {
@@ -107,7 +107,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Sounds'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Sounds'))).toBe(true);
     });
 
     it('should require at least one sound', () => {
@@ -116,7 +116,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('At least one sound'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('At least one sound'))).toBe(true);
     });
 
     it('should validate sound IDs', () => {
@@ -125,7 +125,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('lowercase letters'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('lowercase letters'))).toBe(true);
     });
 
     it('should detect duplicate sound IDs', () => {
@@ -134,7 +134,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Duplicate ID'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Duplicate ID'))).toBe(true);
     });
 
     it('should validate sound names', () => {
@@ -143,7 +143,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Name is required'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Name is required'))).toBe(true);
     });
 
     it('should validate audio data is base64', () => {
@@ -152,7 +152,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('base64'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('base64'))).toBe(true);
     });
 
     it('should validate sound duration', () => {
@@ -161,7 +161,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Duration'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Duration'))).toBe(true);
     });
 
     it('should validate sound volume range', () => {
@@ -170,7 +170,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Volume'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Volume'))).toBe(true);
     });
 
     it('should require triggers array', () => {
@@ -179,7 +179,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Triggers'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Triggers'))).toBe(true);
     });
 
     it('should validate trigger event types', () => {
@@ -188,7 +188,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Invalid event'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Invalid event'))).toBe(true);
     });
 
     it('should validate trigger sound references', () => {
@@ -197,7 +197,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('non-existent'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('non-existent'))).toBe(true);
     });
 
     it('should validate trigger probability range', () => {
@@ -206,7 +206,7 @@ describe('soundPackFormat', () => {
       const result = validateSoundPack(pack);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Probability'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Probability'))).toBe(true);
     });
 
     it('should generate warnings for long descriptions', () => {
@@ -323,7 +323,7 @@ describe('soundPackFormat', () => {
         description: '',
         audioData: btoa('more audio data'),
         duration: 1000,
-        volume: 100
+        volume: 100,
       });
       const size2 = getSoundPackSize(pack2);
 
@@ -375,7 +375,7 @@ describe('soundPackFormat', () => {
       const merged = mergeSoundPacks([pack1, pack2], 'Merger');
 
       // Should have unique IDs
-      const ids = merged.sounds.map(s => s.id);
+      const ids = merged.sounds.map((s) => s.id);
       const uniqueIds = new Set(ids);
       expect(uniqueIds.size).toBe(ids.length);
     });

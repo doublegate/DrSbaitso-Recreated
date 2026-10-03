@@ -5,7 +5,7 @@ import {
   analyzeMultiSessionTopicEvolution,
   getTopicEvolutionSummary,
   formatTopicName,
-  getTopicColor
+  getTopicColor,
 } from '@/utils/topicEvolution';
 
 describe('topicEvolution', () => {
@@ -20,10 +20,10 @@ describe('topicEvolution', () => {
     messages: messages.map((msg, index) => ({
       text: msg.text,
       author: index % 2 === 0 ? 'user' : 'dr',
-      timestamp: msg.timestamp || Date.now() + index * 1000
+      timestamp: msg.timestamp || Date.now() + index * 1000,
     })),
     messageCount: messages.length,
-    glitchCount: 0
+    glitchCount: 0,
   });
 
   describe('analyzeTopicEvolution', () => {
@@ -31,11 +31,11 @@ describe('topicEvolution', () => {
       const session = createMockSession([
         { text: 'I have been feeling a lot of anxiety lately' },
         { text: 'Tell me more about your anxiety' },
-        { text: 'My stress levels are very high' }
+        { text: 'My stress levels are very high' },
       ]);
 
       const result = analyzeTopicEvolution(session);
-      const mentalHealthTimeline = result.timelines.find(t => t.topic === 'mental_health');
+      const mentalHealthTimeline = result.timelines.find((t) => t.topic === 'mental_health');
 
       expect(mentalHealthTimeline).toBeDefined();
       expect(mentalHealthTimeline!.totalMentions).toBeGreaterThan(0);
@@ -45,11 +45,11 @@ describe('topicEvolution', () => {
       const session = createMockSession([
         { text: 'My relationship with my family is strained' },
         { text: 'How is your relationship with your partner?' },
-        { text: 'My friend is having marriage problems' }
+        { text: 'My friend is having marriage problems' },
       ]);
 
       const result = analyzeTopicEvolution(session);
-      const relationshipTimeline = result.timelines.find(t => t.topic === 'relationships');
+      const relationshipTimeline = result.timelines.find((t) => t.topic === 'relationships');
 
       expect(relationshipTimeline).toBeDefined();
       expect(relationshipTimeline!.totalMentions).toBeGreaterThan(0);
@@ -59,11 +59,11 @@ describe('topicEvolution', () => {
       const session = createMockSession([
         { text: 'My job is very stressful' },
         { text: 'I have a big project deadline coming up' },
-        { text: 'My boss expects too much from me' }
+        { text: 'My boss expects too much from me' },
       ]);
 
       const result = analyzeTopicEvolution(session);
-      const workTimeline = result.timelines.find(t => t.topic === 'work_career');
+      const workTimeline = result.timelines.find((t) => t.topic === 'work_career');
 
       expect(workTimeline).toBeDefined();
       expect(workTimeline!.totalMentions).toBeGreaterThan(0);
@@ -73,11 +73,11 @@ describe('topicEvolution', () => {
       const session = createMockSession([
         { text: 'I am worried about my health', timestamp: 1000 },
         { text: 'My health is improving', timestamp: 2000 },
-        { text: 'I saw a doctor about my health', timestamp: 3000 }
+        { text: 'I saw a doctor about my health', timestamp: 3000 },
       ]);
 
       const result = analyzeTopicEvolution(session);
-      const healthTimeline = result.timelines.find(t => t.topic === 'health');
+      const healthTimeline = result.timelines.find((t) => t.topic === 'health');
 
       expect(healthTimeline).toBeDefined();
       expect(healthTimeline!.occurrences).toHaveLength(3);
@@ -88,11 +88,11 @@ describe('topicEvolution', () => {
     it('should calculate peak and average intensity', () => {
       const session = createMockSession([
         { text: 'health health health' }, // High intensity
-        { text: 'health' } // Lower intensity
+        { text: 'health' }, // Lower intensity
       ]);
 
       const result = analyzeTopicEvolution(session);
-      const healthTimeline = result.timelines.find(t => t.topic === 'health');
+      const healthTimeline = result.timelines.find((t) => t.topic === 'health');
 
       expect(healthTimeline).toBeDefined();
       expect(healthTimeline!.peakIntensity).toBeGreaterThan(0);
@@ -103,20 +103,20 @@ describe('topicEvolution', () => {
       const session = createMockSession([
         { text: 'I am worried about my health', timestamp: 1000 },
         { text: 'OK', timestamp: 2000 },
-        { text: 'Now I need to talk about my job', timestamp: 3000 }
+        { text: 'Now I need to talk about my job', timestamp: 3000 },
       ]);
 
       const result = analyzeTopicEvolution(session);
 
       expect(result.transitions.length).toBeGreaterThan(0);
-      expect(result.transitions.some(t => t.transitionType === 'shift')).toBe(true);
+      expect(result.transitions.some((t) => t.transitionType === 'shift')).toBe(true);
     });
 
     it('should identify dominant topics', () => {
       const session = createMockSession([
         { text: 'mental health anxiety stress worry' },
         { text: 'more mental health discussion' },
-        { text: 'relationship family' }
+        { text: 'relationship family' },
       ]);
 
       const result = analyzeTopicEvolution(session);
@@ -137,10 +137,7 @@ describe('topicEvolution', () => {
     });
 
     it('should handle session with no topics', () => {
-      const session = createMockSession([
-        { text: 'hello' },
-        { text: 'goodbye' }
-      ]);
+      const session = createMockSession([{ text: 'hello' }, { text: 'goodbye' }]);
 
       const result = analyzeTopicEvolution(session);
 
@@ -149,18 +146,13 @@ describe('topicEvolution', () => {
     });
 
     it('should sort timelines by total mentions', () => {
-      const session = createMockSession([
-        { text: 'health health health health' },
-        { text: 'work' }
-      ]);
+      const session = createMockSession([{ text: 'health health health health' }, { text: 'work' }]);
 
       const result = analyzeTopicEvolution(session);
 
       if (result.timelines.length > 1) {
         for (let i = 1; i < result.timelines.length; i++) {
-          expect(result.timelines[i - 1].totalMentions).toBeGreaterThanOrEqual(
-            result.timelines[i].totalMentions
-          );
+          expect(result.timelines[i - 1].totalMentions).toBeGreaterThanOrEqual(result.timelines[i].totalMentions);
         }
       }
     });
@@ -168,16 +160,12 @@ describe('topicEvolution', () => {
 
   describe('analyzeMultiSessionTopicEvolution', () => {
     it('should merge multiple sessions chronologically', () => {
-      const session1 = createMockSession([
-        { text: 'health topic in first session', timestamp: 1000 }
-      ]);
+      const session1 = createMockSession([{ text: 'health topic in first session', timestamp: 1000 }]);
 
-      const session2 = createMockSession([
-        { text: 'health topic in second session', timestamp: 2000 }
-      ]);
+      const session2 = createMockSession([{ text: 'health topic in second session', timestamp: 2000 }]);
 
       const result = analyzeMultiSessionTopicEvolution([session1, session2]);
-      const healthTimeline = result.timelines.find(t => t.topic === 'health');
+      const healthTimeline = result.timelines.find((t) => t.topic === 'health');
 
       expect(healthTimeline).toBeDefined();
       expect(healthTimeline!.totalMentions).toBeGreaterThanOrEqual(2);
@@ -198,7 +186,7 @@ describe('topicEvolution', () => {
         transitions: [],
         dominantTopics: ['mental_health', 'relationships'],
         emergingTopics: [],
-        decliningTopics: []
+        decliningTopics: [],
       };
 
       const summary = getTopicEvolutionSummary(evolution);
@@ -213,7 +201,7 @@ describe('topicEvolution', () => {
         transitions: [],
         dominantTopics: [],
         emergingTopics: ['technology'],
-        decliningTopics: []
+        decliningTopics: [],
       };
 
       const summary = getTopicEvolutionSummary(evolution);
@@ -228,7 +216,7 @@ describe('topicEvolution', () => {
         transitions: [],
         dominantTopics: [],
         emergingTopics: [],
-        decliningTopics: ['work_career']
+        decliningTopics: ['work_career'],
       };
 
       const summary = getTopicEvolutionSummary(evolution);
@@ -241,11 +229,17 @@ describe('topicEvolution', () => {
       const evolution = {
         timelines: [],
         transitions: [
-          { fromTopic: 'health', toTopic: 'work_career', timestamp: 1000, messageIndex: 0, transitionType: 'shift' as const }
+          {
+            fromTopic: 'health',
+            toTopic: 'work_career',
+            timestamp: 1000,
+            messageIndex: 0,
+            transitionType: 'shift' as const,
+          },
         ],
         dominantTopics: [],
         emergingTopics: [],
-        decliningTopics: []
+        decliningTopics: [],
       };
 
       const summary = getTopicEvolutionSummary(evolution);

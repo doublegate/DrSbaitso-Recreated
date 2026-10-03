@@ -376,3 +376,34 @@ describe('SessionManager', () => {
     });
   });
 });
+
+describe('SessionManager.mergeSessions (untrusted input)', () => {
+  beforeEach(() => localStorage.clear());
+
+  const valid = () => ({
+    ...SessionManager.createSession('sbaitso', 'dos-blue', 'authentic'),
+    id: 'ok',
+    updatedAt: 5,
+    messages: [{ author: 'user' as const, text: 'hi' }],
+    messageCount: 1,
+  });
+
+  it('drops records that are not conversation sessions', () => {
+    const junk = [
+      null,
+      'session',
+      { id: 7, updatedAt: 1, messages: [] },
+      { id: 'no-time', messages: [] },
+      { id: 'bad-messages', updatedAt: 1, messages: 'hi' },
+      { id: 'bad-author', updatedAt: 1, messages: [{ author: 'admin', text: 'x' }] },
+      { id: 'bad-text', updatedAt: 1, messages: [{ author: 'user', text: 42 }] },
+    ];
+    const written = SessionManager.mergeSessions([...junk, valid()] as unknown as ConversationSession[]);
+    expect(written).toBe(1);
+    expect(SessionManager.getAllSessions().map((s) => s.id)).toEqual(['ok']);
+  });
+
+  it('ignores input that is not an array', () => {
+    expect(SessionManager.mergeSessions({} as unknown as ConversationSession[])).toBe(0);
+  });
+});

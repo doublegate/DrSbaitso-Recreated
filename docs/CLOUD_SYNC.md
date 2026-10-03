@@ -1,351 +1,105 @@
-# Cloud Sync Guide
+# Cloud Sync
 
-Firebase-powered cross-device session synchronization for Dr. Sbaitso Recreated.
+Cloud sync copies the conversations you keep with **SAVE HISTORY** to a Firebase project
+that **you** own, and merges newer ones back. It is optional, off by default, and
+Enhanced mode only. Nothing leaves the browser unless you set it up and turn it on.
 
-**Version**: 1.7.0
-**Last Updated**: 2025-10-30
-**Status**: ⚠️ Requires Firebase Project Setup
+## What is synced
 
----
+| Data | Synced |
+|---|---|
+| Conversations saved with SAVE HISTORY (status bar) | Yes |
+| Anything while SAVE HISTORY is off | No: there is nothing to upload |
+| Settings, themes, custom characters, sound packs, statistics | No |
 
-## Table of Contents
+The app ships no Firebase project and no Firebase key. The whole Firestore document is
+limited to about 1 MB.
 
-1. [Overview](#overview)
-2. [Features](#features)
-3. [Setup](#setup)
-4. [Usage](#usage)
-5. [Security](#security)
-6. [Troubleshooting](#troubleshooting)
+## Setting up your Firebase project
 
----
+1. In the [Firebase console](https://console.firebase.google.com/), create a project.
+2. **Authentication > Sign-in method**: enable **Anonymous**.
+3. **Firestore Database**: create a database, then set rules so each user reaches only
+   their own document:
 
-## Overview
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{userId} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+       }
+     }
+   }
+   ```
 
-Cloud Sync enables you to:
-- ☁️ Save conversations to the cloud
-- 📱 Access from any device
-- 🔄 Real-time synchronization
-- 📴 Offline-first with automatic sync
-- 🔒 Encrypted data transmission
+4. **Project settings > Your apps**: add a Web app and copy its config.
+5. **Authentication > Settings > Authorized domains**: add the domain you use the app on.
 
-### How It Works
+A Firebase web config is not a secret (it identifies the project; the rules above
+protect the data), but it is still yours: it is stored only in this browser.
 
-1. **Sign In**: Anonymous or authenticated
-2. **Auto-Sync**: Runs every 60 seconds (configurable)
-3. **Conflict Resolution**: Last-write-wins strategy
-4. **Offline Support**: Changes queued and synced when online
+## Using it
 
----
+1. Open **SETTINGS > Cloud sync**.
+2. Paste the web config into **Firebase web config**: the object, JSON, or the console's
+   JavaScript snippet all work. `apiKey`, `authDomain`, `projectId` and `appId` are
+   required and checked for shape. Press **CONNECT**.
+3. Press **SIGN IN ANONYMOUSLY**.
+4. Tick **Enable Cloud Sync**. Optionally untick **Auto-Sync** or change the interval
+   (10-300 seconds, default 60).
+5. **SYNC NOW** runs one round immediately.
 
-## Features
+The config and options are kept in localStorage (`cloudSyncFirebaseConfig`,
+`cloudSyncOptions`), so the next visit reconnects when the panel is opened.
 
-### Synchronized Data
+## How a sync round works
 
-- ✅ Conversation sessions
-- ✅ App settings (theme, audio, etc.)
-- ✅ Statistics and usage data
-- ✅ Custom characters
-- ❌ Temporary UI state (not synced)
+1. Download the document `users/<uid>` from Firestore.
+2. Compare its `updatedAt` with the newest local conversation's `updatedAt`.
+3. If the local copy is newer (or there is no cloud copy), upload it.
+4. Otherwise merge the cloud conversations into local history: unknown ones are added,
+   and a conversation replaces the local one only if its `updatedAt` is newer. Records
+   that do not look like conversations are ignored. A screen-reader message says how many
+   were restored.
 
-### Sync Modes
+Conflicts are last-write-wins; there is no manual resolution. Firestore's persistent
+local cache is enabled, so reads and writes survive brief disconnects.
 
-| Mode | Description | Use Case |
-|------|-------------|----------|
-| **Auto-Sync** | Syncs every N seconds | Real-time collaboration |
-| **Manual Sync** | Sync on demand | Controlled updates |
-| **Offline Queue** | Syncs when online | Unreliable connections |
+## Limitations
 
----
-
-## Setup
-
-### 1. Create Firebase Project
-
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Click **Add Project**
-3. Enter project name: `dr-sbaitso-sync`
-4. Disable Google Analytics (optional)
-5. Click **Create Project**
-
-### 2. Enable Firestore
-
-1. In Firebase Console, go to **Firestore Database**
-2. Click **Create Database**
-3. Start in **Production Mode**
-4. Choose location (closest to users)
-5. Click **Enable**
-
-### 3. Configure Security Rules
-
-In Firestore → Rules tab:
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
-```
-
-This ensures users can only access their own data.
-
-### 4. Get Firebase Config
-
-1. Project Settings (⚙️) → General
-2. Scroll to **Your apps**
-3. Click **</> Web**
-4. Register app: `Dr. Sbaitso Web`
-5. Copy Firebase config object:
-
-```javascript
-{
-  apiKey: "AIza...",
-  authDomain: "dr-sbaitso-sync.firebaseapp.com",
-  projectId: "dr-sbaitso-sync",
-  storageBucket: "dr-sbaitso-sync.appspot.com",
-  messagingSenderId: "123...",
-  appId: "1:123..."
-}
-```
-
-### 5. Add Config to App
-
-**Option A: Environment Variables** (Recommended for production)
-
-Create `.env.local`:
-```bash
-VITE_FIREBASE_API_KEY=AIza...
-VITE_FIREBASE_PROJECT_ID=dr-sbaitso-sync
-```
-
-**Option B: Hardcode** (Development only)
-
-In App.tsx or settings component, call:
-```typescript
-await cloudSync.initialize({
-  apiKey: 'AIza...',
-  projectId: 'dr-sbaitso-sync',
-  // ... other config
-});
-```
-
----
-
-## Usage
-
-### Enable Cloud Sync
-
-1. Open Dr. Sbaitso
-2. Click **☁️ Cloud Sync** button (header)
-3. Click **SIGN IN ANONYMOUSLY**
-4. Toggle **Enable Cloud Sync**
-5. Configure auto-sync settings
-
-### Manual Sync
-
-1. Open Cloud Sync Settings
-2. Click **🔄 SYNC NOW**
-3. Wait for confirmation
-
-### Auto-Sync Configuration
-
-```typescript
-// Sync every 30 seconds
-cloudSync.updateOptions({
-  autoSync: true,
-  syncInterval: 30000, // milliseconds
-});
-```
-
-### Programmatic Usage
-
-```typescript
-import { CloudSync } from '@/utils/cloudSync';
-
-const sync = CloudSync.getInstance();
-
-// Initialize
-await sync.initialize(firebaseConfig);
-
-// Sign in
-await sync.signInAnonymously();
-
-// Upload data
-await sync.uploadData({
-  sessions: getAllSessions(),
-  settings: getSettings(),
-  stats: getStats(),
-  customCharacters: getCustomCharacters(),
-  updatedAt: Date.now(),
-  deviceId: getDeviceId(),
-});
-
-// Download data
-const cloudData = await sync.downloadData();
-
-// Bidirectional sync
-const result = await sync.syncData(localData);
-if (result) {
-  // Cloud data was newer, apply it
-  applySyncData(result);
-}
-
-// Listen for remote changes
-const unsubscribe = await sync.subscribeToChanges((data) => {
-  console.log('Remote change detected:', data);
-  applySyncData(data);
-});
-
-// Clean up
-unsubscribe();
-```
-
----
+- **Auto-sync runs only while the Cloud sync panel is open.** Closing the panel releases
+  the connection; it reconnects from the saved config the next time it is opened.
+- **Anonymous accounts belong to one browser profile.** Another device, another browser,
+  or clearing site data signs in as a new, empty user, so the data is not shared across
+  devices. In practice cloud sync is a backup for one browser.
+- Turning SAVE HISTORY off erases local history but not the cloud copy; delete the
+  document in the Firebase console if you want it gone.
 
 ## Security
 
-### Data Encryption
-
-- ✅ **In Transit**: HTTPS/TLS encryption
-- ✅ **At Rest**: Firebase encryption
-- ⚠️ **Client-Side**: Data readable by user (as designed)
-
-### Authentication
-
-**Anonymous Sign-In**:
-- No email/password required
-- Unique ID per browser
-- Data tied to anonymous user
-
-**Future**: Email/password, Google Sign-In
-
-### Firebase Security Rules
-
-Current rules ensure:
-- Users can only read/write their own data
-- Authentication required for all operations
-- No public read/write access
-
-### Best Practices
-
-1. **Never commit API keys** to version control
-2. **Use environment variables** in production
-3. **Enable App Check** for production (prevents abuse)
-4. **Monitor usage** in Firebase Console
-5. **Set up billing alerts** to prevent overages
-
----
+- Firebase loads from npm as a lazy chunk, only when you connect.
+- The Content-Security-Policy allows connections only to the site itself and the Firebase
+  hosts (`firestore.googleapis.com`, `identitytoolkit.googleapis.com`,
+  `securetoken.googleapis.com`, `firebaseinstallations.googleapis.com`).
+- Data is protected in transit by TLS and at rest by Firebase; it is not end-to-end
+  encrypted. Anyone with access to your Firebase project can read it.
 
 ## Troubleshooting
 
-### Sync Not Working
+| Message or symptom | Fix |
+|---|---|
+| "Invalid Firebase web config: ..." | The message lists each missing or malformed field |
+| Sign-in fails | Enable Anonymous sign-in, and add the app's domain to the authorized domains |
+| "Missing or insufficient permissions" | Check the Firestore rules above |
+| "Too much data to sync" | The document limit is about 1 MB; delete old conversations |
+| Nothing syncs | SAVE HISTORY must be on, and the panel must stay open for auto-sync |
 
-**Problem**: Data not syncing
+## Implementation
 
-**Solutions**:
-1. Check internet connection
-2. Verify Firebase config is correct
-3. Ensure user is signed in (`isAuthenticated` = true)
-4. Check Firestore security rules
-5. Look for errors in browser console
-
-### Authentication Failed
-
-**Problem**: Sign-in fails
-
-**Solutions**:
-1. Enable Anonymous Authentication in Firebase Console:
-   - Authentication → Sign-in method
-   - Anonymous → Enable
-2. Verify Firebase config (apiKey, projectId)
-3. Check for CORS issues (production domain whitelisted?)
-
-### Quota Exceeded
-
-**Problem**: Firebase free tier limits exceeded
-
-**Limits** (Free Spark Plan):
-- Firestore reads: 50,000/day
-- Firestore writes: 20,000/day
-- Storage: 1 GB
-
-**Solutions**:
-1. Reduce sync frequency (increase `syncInterval`)
-2. Disable auto-sync
-3. Upgrade to Firebase Blaze plan (pay-as-you-go)
-
-### Conflicts
-
-**Problem**: Data conflicts between devices
-
-**Current Behavior**: Last-write-wins (newer data overwrites older)
-
-**Future**: Manual conflict resolution option
-
-### Data Loss
-
-**Problem**: Synced data disappeared
-
-**Prevention**:
-1. Export conversations regularly
-2. Don't rely solely on cloud sync for backups
-3. Use local storage as primary
-4. Cloud sync as secondary backup
-
----
-
-## Firebase Costs
-
-### Free Tier (Spark Plan)
-
-- Reads: 50,000/day
-- Writes: 20,000/day
-- Deletes: 20,000/day
-- Storage: 1 GB
-
-**Typical Usage**:
-- 1 sync/minute = 1,440 writes/day
-- 10 sessions = ~10 KB storage
-- Well within free limits for personal use
-
-### Paid Tier (Blaze Plan)
-
-- $0.06 per 100,000 reads
-- $0.18 per 100,000 writes
-- $0.02 per 100,000 deletes
-- $0.18/GB/month storage
-
-**Estimated Cost** (1,000 users):
-- 1M writes/month = $1.80
-- 500 MB storage = $0.09
-- **Total**: ~$2/month
-
----
-
-## Roadmap
-
-### Planned Features
-
-- [ ] Email/password authentication
-- [ ] Google Sign-In integration
-- [ ] Selective sync (choose what to sync)
-- [ ] Conflict resolution UI
-- [ ] Shared conversations (collaborate)
-- [ ] Export to cloud storage (Google Drive, Dropbox)
-- [ ] End-to-end encryption option
-
----
-
-## Resources
-
-- [Firebase Documentation](https://firebase.google.com/docs)
-- [Firestore Security Rules](https://firebase.google.com/docs/firestore/security/get-started)
-- [Firebase Authentication](https://firebase.google.com/docs/auth)
-- [Firebase Pricing](https://firebase.google.com/pricing)
-
----
-
-**Note**: Cloud Sync is an **optional** feature. Dr. Sbaitso works fully offline without it.
+| File | Role |
+|---|---|
+| `src/utils/cloudSync.ts` | `CloudSync` singleton: config parsing and validation, auth, upload, download, last-write-wins, auto-sync timer |
+| `src/hooks/useCloudSync.ts` | React state from `CloudSync` events; disposes the instance when the last user unmounts |
+| `src/components/CloudSyncPanel.tsx`, `CloudSyncSettings.tsx` | The panel; `EnhancedPanels` supplies the saved sessions and merges what comes back |
+| `src/utils/sessionManager.ts` | `mergeSessions`: validation and per-conversation merge |

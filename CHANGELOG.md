@@ -7,7 +7,537 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-02
+
+A full audit and rebuild. The deployed 1.11 app crashed right after name entry and
+leaked its Gemini API key in the client bundle; 2.0 fixes both, moves Gemini behind
+a server proxy, makes the classic DOS screen the default (faithful to the original
+as measured in DOSBox), gives every persona a local engine and its own voice, and
+repairs every feature that existed in code but could not be reached.
+
+**Upgrading from 1.x**
+
+- Set `GEMINI_API_KEY` as a server environment variable (Vercel: Production and
+  Preview). The browser no longer uses a key at all; a missing key gives an
+  in-character "SYSTEM NOT CONFIGURED" message.
+- The app opens on the classic screen. Alt+Shift+X or `?mode=enhanced` switches;
+  the choice is remembered.
+- Keyboard shortcuts are now Alt+Shift+<key> (several Ctrl shortcuts clashed with
+  the browser). Each menu item shows its shortcut.
+- Conversation history is off by default (SAVE HISTORY turns it on). Sound packs
+  move from localStorage to IndexedDB automatically.
+- Browsers that installed the 1.x service worker are moved to the new one on their
+  next visit; no action is needed.
+
+### Security
+- **Content-Security-Policy in production.** Scripts load only from the site
+  itself (no inline code, eval or CDN), connections go only to the site and the
+  Firebase hosts optional cloud sync uses, and the page cannot be framed. The
+  policy is defined once (`src/utils/security.ts`), deployed by `vercel.json`, and
+  an end-to-end test runs both screens under it and fails on any violation.
+- **The Gemini API key no longer reaches the browser.** It was inlined into the
+  client bundle by Vite `define` and was readable on the live site (the key has been
+  rotated). Chat and speech now go through server-side Vercel Functions
+  (`api/chat.ts`, `api/tts.ts`). They validate and size-cap input, rate-limit per
+  client, and never echo upstream error details. **`GEMINI_API_KEY` must now be set
+  as a Vercel environment variable** (see `.env.example`).
+- Security headers on every response (HSTS, `X-Frame-Options`, `nosniff`,
+  Referrer-Policy, Permissions-Policy) via `vercel.json`.
+- The dev server binds to `localhost` by default instead of `0.0.0.0`.
+- The bundle-analysis report is no longer written into `dist/` and published.
+
+### Added
+- **Classic mode, now the default.** A faithful recreation of the original v2.20
+  screen: an 80x25 DOS text display in the IBM VGA 9x16 font, scaled by whole
+  numbers. It has the exact VGA palette, the box-drawn banner, and the inline
+  `Please enter your name ...` prompt with the original's letters-only name rule.
+  The greeting matches v2.20 wording and spacing, followed by a yellow `>` prompt
+  and a hard-blinking underline cursor. The previous interface remains available
+  as **Enhanced mode** (Alt+Shift+X, or `?mode=enhanced`). Screen readers get a
+  transcript and a labelled input. Details: `ref-docs/03-screen-and-ui.md`.
+- **The original's commands and behaviour in classic mode.** Every line goes to a
+  local engine first (`src/engine/sbaitso`, built from the original binaries'
+  strings), and only open conversation reaches Gemini:
+  - commands: `HELP` (paged with M), `R`, `SAY`, `CALC`/`WHAT IS`, `AUTHOR` and
+    `SHUT UP`;
+  - dot commands: `.WIDTH 40/80`, `.COLOR`, `.PROMPT`, `.ECHO`, `.PITCH`, `.SPEED`,
+    `.TONE`, `.VOLUME`, `.PARAM` and `.QUIT`;
+  - replies to empty Enter, and handling of short, garbage and repeated input;
+  - escalating replies to bad language, ending in the parity-error flood;
+  - `BYE`, `QUIT` and `.QUIT`, then the `<C>ontinue <N>ew patient <Q>uit` menu. Q
+    quits to a DOS prompt, and Enter runs the program again.
+
+  Behaviour the sources could not confirm is marked as a guess in the code.
+- **Persona selector** (Enhanced mode). Choose Dr. Sbaitso, ELIZA, HAL 9000,
+  JOSHUA/WOPR, PARRY or your own characters. Each persona keeps its own conversation
+  memory, and the log marks each switch. The voice command "talk to ELIZA" now works;
+  before, it only printed to the console. Custom characters made in the Character
+  Creator can now be used in chat, and their preview works; it previously always
+  failed.
+- **Themes persist and apply** (Enhanced mode: THEME selector). Saving a custom theme
+  now applies and remembers it, and the "cycle theme" voice command works. Before, the
+  theme was fixed to DOS Blue and custom themes were discarded.
+- **Opt-in session history** (Enhanced mode: "SAVE HISTORY"). It is off by default,
+  honouring the greeting's "MEMORY CONTENTS WILL BE WIPED OFF". When on,
+  conversations are saved in this browser, which feeds search, replay and insights;
+  turning it off erases them. Before this, nothing was ever saved, so those panels
+  were always empty. Export now always works on the current conversation.
+- **HAL 9000's voice, chosen by ear against the film measurements.** Ten Gemini
+  voices on two models were rendered with direction text built from the documented
+  recording-session direction (closer, softer, sincere, faintly concerned, a bland
+  mid-Atlantic accent, level questions) and scored against `ref-docs/09`'s measured
+  targets; HAL now uses **Alnilam** with that direction. `scripts/render-hal-samples.ts`
+  regenerates the comparison; `src/utils/psola.ts` (TD-PSOLA pitch narrowing, kept
+  for experiments) is not in the app's chain.
+- **Classic screen speaks each name letter.** Each letter of the name is spoken as it is typed, about 0.06 s after
+  its echo, as in the original (ref-docs/04 section 1). The 26 letters are rendered
+  once in Dr. Sbaitso's voice and kept in the browser (IndexedDB, keyed by the voice),
+  so later key presses play at once. The first visit fetches them in the background,
+  two at a time and at most ten a minute so the doctor's own speech keeps its share of
+  the proxy's rate limit; until a letter is cached it is silent. Spaces and rejected
+  characters are silent, and a new key cuts the previous letter.
+- **Cloud sync describes itself honestly.** It is a per-browser cloud backup of the
+  conversations kept with SAVE HISTORY (anonymous sign-in gives each browser its own
+  account); the panel no longer promises cross-device sync or that settings and
+  characters are included.
+- **All-time totals in Insights** (conversations, messages, average length,
+  glitches, time talking, most used persona). Each conversation is counted once when
+  it ends, only while SAVE HISTORY is on; turning history off erases the totals too.
+  The statistics code existed but was never called.
+- **Custom characters use their glitch messages.** Now and then (about one reply in
+  eight) a custom character adds one of the glitch lines set in the Character
+  Creator, with the glitch sound; the field was saved but never used.
+- **Two accessibility settings now do something.** "Screen reader optimized" (and
+  Reduced motion) show each reply whole, without the typing animation, and
+  "Keyboard navigation hints" shows a control's shortcut when it has focus. Both
+  were toggles with no effect.
+- **HAL's shutdown sounds like the film's.** When HAL is disconnected, "Daisy Bell"
+  slows down and sinks about an octave as it goes, with pitch and tempo on their
+  own curves (the documented two-pass Eltro method), and fades out at the end.
+- **Voice profile selector** (Enhanced mode, status bar, while Dr. Sbaitso is
+  active): CLASSIC, DEEP or SLIGHTLY GLITCHY, remembered across visits under the
+  same storage key the Google AI Studio version used.
+- **Dr. Sbaitso's commands work in Enhanced mode too.** HELP, CALC, SAY, R, BYE,
+  the dot commands, short and repeated input and the parity sequence are answered
+  by his local engine, as on the classic screen; only open conversation goes to
+  the model.
+- **Personas answer through their engines in Enhanced mode**
+  (`src/engine/personaTurn.ts`). ELIZA replies entirely offline from the 1965
+  script. JOSHUA starts at `LOGON:` and plays its games locally. HAL handles the
+  pod bay doors and the shutdown himself. PARRY's engine decides each move and
+  the model only phrases it, with a written fallback line if the call fails. Open
+  conversation goes to the model with each engine's session line. Boards and lists
+  are printed but not spoken, and long printouts scroll at terminal speed. Clear
+  conversation resets the persona's engine.
+- **Sound packs play and save properly.** The active pack now sounds on startup,
+  send, receive, errors, glitches, persona switches and theme changes; before, no
+  event ever reached it. New packs are saved to IndexedDB, and if a save fails the
+  creator stays open and shows why instead of closing silently.
+- **Cloud sync is reachable** from SETTINGS > Cloud sync. It uploads only the
+  conversations kept with SAVE HISTORY (nothing while that is off), and newer
+  conversations from the cloud are merged into the history.
+- The development server uses the same Content-Security-Policy as production,
+  relaxed only for hot reloading.
+- `npm run check:secrets`: fails if the built `dist/` contains anything shaped like
+  a Google API key.
+- **Enhanced mode layout.** The row of about twenty unlabelled emoji buttons is
+  replaced by four labelled menus (CONVERSATION, VISUALS, SOUND, SETTINGS), each item
+  showing its keyboard shortcut, plus a CLASSIC button. The menus support Escape,
+  arrow keys and click-away, and return focus to their button. The input line gains
+  a microphone and a SEND button, and audio mode, theme and the history switch move
+  into a status bar under it. The layout stacks on phones.
+- `LICENSE` (MIT; the README had always claimed MIT, but there was no licence file)
+  and `THIRD_PARTY_NOTICES.md` (the bundled CC BY-SA 4.0 font).
+- `ref-docs/`: sourced research on the original program.
+- `docs/adr/`: architecture decision records for the v2 design (server proxy,
+  service worker, hybrid engines, classic default, voice pipeline, history and
+  third-party content).
+- **Model fallback.** When a model is overloaded (503), out of quota (429) or slow,
+  the proxy tries the next one within a 50-second budget. The defaults are
+  `gemini-3.8-flash` (then 3.7, 3.5, flash-latest) for chat and `gemini-3.8-flash-tts`
+  (then the lite TTS model) for speech. All model ids can be overridden through
+  environment variables.
+- **Voice profiles** (`classic` Charon, `deep` Fenrir, `glitchy` Puck), ported from
+  the Google AI Studio version of the app and accepted by `/api/tts`.
+- Voice commands for the music player and the sound-pack manager.
+- `npm run lint` (oxlint, with React hooks, accessibility and test rules) and
+  `npm run analyze` (bundle report on demand).
+- **Local Dr. Sbaitso engine** (`src/engine/sbaitso/`), the deterministic half of a
+  hybrid design: the original's commands and canned behaviours are answered locally,
+  and only open conversation goes to Gemini. Built from the v2.20 string table
+  (`ref-docs/01`): `HELP` (three pages, `M` for more), `R`, `SAY`, `CALC` and
+  `WHAT IS <sum>` (a safe evaluator, no `eval`), `AUTHOR`, `SHUT UP`, `BYE` and the
+  `<C>ontinue <N>ew patient <Q>uit` exit menu, the dot commands (`.QUIT`, `.TONE`,
+  `.VOLUME`, `.PITCH`, `.SPEED`, `.PARAM`, `.ECHO`, `.PROMPT`, `.WIDTH`, `.COLOR`,
+  `.MASTER`, `.READ`) with the original range errors, escalating empty-Enter nags,
+  short, garbage and repeated input, profanity strikes ending in the real
+  `PARITY ERR ... RECOVERED / PHEW!   THAT WAS CLOSE!` sequence, and the age prompt.
+  Also the exact v2.20 greeting layout and the name rules (letters and spaces only,
+  `NAME TOO LONG`). Pure functions with 98% test coverage; not yet wired into the UI.
+- **Local ELIZA engine** (`src/engine/eliza/`): Weizenbaum's algorithm as the 1965
+  MAD-SLIP source runs it, loaded with the public-domain (CC0) 1965 DOCTOR script
+  (`.TAPE. 100`), so ELIZA needs no model call for text. It has ranked keywords,
+  `0`/`n` decomposition with DLIST tag classes, per-rule cycling reassembly,
+  substitutions (I/YOU, MY/YOUR ...), delimiters `.` `,` and `BUT`, the MEMORY queue
+  recalled on every fourth input and chosen by the original SLIP mid-square hash, and
+  the NONE fallback. It reproduces, line for line, the original program running this
+  script on emulated CTSS. Output is ALL CAPS with no `?`. The 1966 CACM script is
+  still under ACM copyright and is not shipped (`THIRD_PARTY_NOTICES.md`). Pure
+  functions; ELIZA in Enhanced mode now answers through it.
+- **Local PARRY engine** (`src/engine/parry/`), the hybrid design from
+  `ref-docs/06-parry.md`: a pure engine owns Colby's Fear/Anger/Mistrust/Hurt
+  state (published rise and decay equations, WEAK/MILD/STRONG versions), the
+  weighted flare graph, the bookie story (told only to a non-threatening listener),
+  the Mafia delusion (MILD/STRONG only) and the exits (BYE at extreme affect, after
+  5 swear inputs or 9 repetitive ones). It decides what PARRY does each turn;
+  `buildParryPrompt` asks Gemini to phrase exactly one line for that decision from
+  a fixed persona, and a newly written line bank covers offline use. Seeded and
+  deterministic; reimplemented from the papers, nothing taken from the unlicensed
+  source. Wired into Enhanced mode.
+- **Local JOSHUA/WOPR engine** (`src/engine/joshua/`), the same hybrid design for the
+  Enhanced-mode persona (`ref-docs/08`): a `LOGON:` prompt that greets any logon
+  (the backdoor word is `JOSHUA`) with "GREETINGS, PROFESSOR FALKEN." and "SHALL WE
+  PLAY A GAME?"; `LIST GAMES` and `HELP GAMES`; choosing GLOBAL THERMONUCLEAR WAR
+  gets a chess counter-offer, then the UNITED STATES / SOVIET UNION side menu; a real
+  tic-tac-toe game (perfect minimax, seeded tie-breaks) and a zero-player mode in
+  which JOSHUA plays itself to a draw every time, runs the war scenarios, reaches the
+  film's conclusion and offers chess. That lesson sets `learnedFutility`, which is
+  sent to the model with every turn so the conclusion cannot appear earlier. Pure
+  and seeded; wired into Enhanced mode.
+- **Local HAL 9000 layer** (`src/engine/hal/`, `ref-docs/07`): a one-per-session
+  pod-bay-door refusal ("I'm sorry, <name>. I'm afraid I can't do that."),
+  increasingly gentle "I'm sorry, <name>" refusals of requests to disconnect or shut
+  HAL down, and on the third such request a `shutdown` ending: a calm plea, "I'm
+  afraid", the regression to HAL's first-day greeting and the public-domain "Daisy
+  Bell" (1892), with the index at which to start the slow-down effect. Everything
+  else goes to the model with the user's name and the attempt count. Wired into
+  Enhanced mode.
+- **Per-persona voices.** Each persona has its own Gemini voice, delivery
+  direction, TTS casing and playback chain (`CHARACTERS[].voiceName`, `voiceStyle`,
+  `ttsCase`, `processing`), from `ref-docs/05`, `06` and `09`:
+
+  | Persona | Voice | Text to TTS | Playback |
+  |---|---|---|---|
+  | Dr. Sbaitso | Charon (or the chosen voice profile) | as written | the measured vintage chain, per audio mode |
+  | ELIZA | Kore | sentence case | clean |
+  | HAL 9000 | Alnilam | sentence case | HAL chain |
+  | JOSHUA | Iapetus | sentence case | WOPR chain |
+  | PARRY | Orus | sentence case | clean |
+
+  - **HAL chain** (`processHalVoice`): breath gate, a pitch-preserving WSOLA
+    slow-down (0.88, or measured from the text to land at 4.3-4.7 syllables per
+    second), 50 Hz high-pass, +2 dB low shelf at 150 Hz, 2.5:1 compression. No
+    crush, resampling, reverb or pitch flattening: HAL was a human voice slowed
+    on an Eltro rate changer. `halShutdown` implements the disconnection effect
+    (independent pitch and tempo ramps) for later use.
+  - **WOPR chain** (`processWoprVoice`): words split at energy dips, each
+    re-pitched by LPC to one flat pitch (90 Hz with seeded steps to 79/68 Hz; the
+    last word 128 Hz on "?", 79 on ".", 105 on "!"), even word loudness, 5 ms
+    spliced edges, 80/110/250 ms gaps at words/commas/sentence ends, band-limited
+    to 220 Hz-3.8 kHz. Fricatives keep their own LPC residual, not synthetic noise.
+  - Style prompts describe qualities only and never name a performer or film
+    character.
+  - Enhanced mode plays each persona's greeting and replies through its route;
+    the classic screen stays on the Sbaitso chain.
+
+### Testing
+- **End-to-end tests rewritten.** The old specs wrapped 74 checks in
+  `if (isVisible)` guards, so they could pass without testing anything, and they
+  called the real Gemini API. The new suite (`e2e/`) mocks `/api`, asserts every
+  step, and covers the classic screen (greeting, model reply, CALC, the parity
+  flood, the exit menu) and Enhanced mode (layout, menus, panels, templates, ELIZA
+  and JOSHUA answering locally, switching screens).
+- **Continuous integration** (`.github/workflows/ci.yml`): lint, typecheck, unit
+  tests, coverage, build, the bundle key check, `npm audit` and Playwright on every
+  push to `main` and every pull request.
+- Coverage thresholds raised to the measured level (about 67% of lines). Timing
+  budgets for the audio chains are skipped under coverage instrumentation and
+  enforced in the plain test run.
+
+### Fixed
+- **Classic mode now behaves like the original program as it runs in DOSBox.**
+  The 1992 program was run in an emulator and its screen and sound measured
+  (`ref-docs/04-dosbox-verification.md`); classic mode was corrected to match:
+  - The doctor's lines appear whole, one at a time: each is printed, then spoken,
+    and the next appears when the speech ends. Pressing a key cuts the speech
+    short; the remaining lines appear silently and the key is kept for your answer.
+  - Replies start at the left edge (only the greeting is indented). Each turn is
+    your line in yellow, the reply, a blank row and a new `>`. After `R` and after
+    dot commands nothing extra is printed.
+  - The title box stays at the top while the conversation scrolls beneath it, and
+    the bottom row stays empty.
+  - The cursor blinks faster (about four times a second) and shows only while the
+    doctor is waiting for you.
+  - Bad language gets the original's replies in the original order. The parity
+    error is now a fast flood of `PARITY ERR` lines with a falling buzz, ending in
+    `PARITY ERR ... RECOVERED` and the word `PARITY`; the invented "PHEW! THAT WAS
+    CLOSE!" ending is gone.
+  - Pressing Enter on an empty line gets a random reply, sometimes just `ENTER`,
+    and no longer escalates to an offer to quit.
+  - `.QUIT` says goodbye with your name and shows the Continue / New patient / Quit
+    menu; `QUIT` shows the menu at once; `EXIT` is not a command. The menu appears
+    right under the goodbye. New patient keeps the title box and asks for a name
+    without the introduction; Quit leaves the title box above the DOS prompt.
+  - `CALC 2+3` prints ` =  5` and `WHAT IS 12*4` prints `12*4 =  48`, with no
+    `Computer:` label unless `.PROMPT ON` is set. `SAY` prints what it says.
+  - When sound is already enabled (for example when you run the program again
+    after quitting), it starts by saying "Doctor Sbaitso, by Creative Labs" and
+    then asks your name aloud. Browsers keep sound off until you first type, so
+    the very first start is silent.
+- **Page scrolled by 20px and clipped the top of the frame** in Enhanced mode. The
+  hidden screen-reader announcer sat in the page flow below the app; it is now fixed
+  in place.
+- **Classic screen, three more DOSBox corrections.** HELP replaces the screen
+  (page 1 without the banner), `.WIDTH` and `.COLOR` clear the rows below the
+  banner, and an Enter pressed while the doctor speaks is taken as the next input
+  instead of being lost.
+- **The classic screen was cropped on phones.** It only ever scaled up, so on a
+  screen narrower than 720 pixels both sides were cut off; it now shrinks to fit.
+- **Speech at another sample rate would have played at the wrong pitch.** The
+  server reported the rate but the browser always decoded 24 kHz; the server now
+  converts any other rate to 24 kHz, so the client contract always holds.
+- **The API functions crashed on Vercel** (found on the 2.0 preview): a shared
+  file imported a module without the `.js` extension that native Node modules
+  require. A test now walks the functions' import graph and fails on any such import.
+- **Long conversations stopped working.** Each persona's history was resent in
+  full every turn, so after enough turns every request exceeded the size limit and
+  failed. Only the history the server uses is sent now.
+- **Music player.** Changing the tempo while playing had no effect, Sad and Tense
+  sounded the same, and Auto did not follow the conversation; Auto now turns minor
+  when the conversation turns negative. Closing the music engine could have closed
+  the page's shared audio, silencing speech.
+- **Accessibility and help.** "Skip to settings" led nowhere and the name screen
+  offered skip links to missing elements; the classic cursor ignored the system's
+  reduced-motion setting; "show statistics" opened search instead of insights; the
+  voice help described a microphone button that is gone; and the tour pointed at
+  a character button and offered a text export that do not exist.
+- **Request size limit measured in bytes.** The 64 KiB body cap counted
+  characters, so multibyte text could exceed it; the body is now read as a
+  stream and rejected as soon as it passes the limit.
+- **Cloud data is checked before it is merged.** Conversations downloaded by cloud
+  sync must look like conversations; anything else is ignored. The "manual"
+  conflict option, which was saved but never applied, is gone.
+- **Error codes from the server are checked.** Two codes were missing from the
+  client's list, and unknown codes are now reported as UNKNOWN.
+- **Sharing to the app and the app shortcuts work.** The share target posted to a
+  page that did not exist and the shortcuts opened actions nothing read. Shared
+  text now lands, unsent, on the input line of either screen, and the shortcuts
+  open the classic screen or Enhanced mode.
+- **Swipe back on touch screens** (Enhanced mode): swiping right closes the panel
+  opened last.
+- **Enhanced mode shows OFFLINE** in the status bar when the browser has no
+  connection, since replies and speech need it. The unused `usePWA` hook and
+  `PWAPrompts` component, which duplicated the install and update prompts, are gone.
+- **App name and dates.** The page title, description, onboarding and audio-mode
+  names called the original a 1991 program (it shipped in 1990 and 1992), and the
+  audio modes listed sample rates and filters the voice chain no longer uses.
+- **New app icons** in the original's palette and VGA font, with proper
+  maskable versions; the old icon said "EST. 1991" and drew "Dr." over "S".
+- **Search and Insights explained nothing when empty.** With history off (the
+  default) they now say that SAVE HISTORY keeps conversations, instead of an
+  empty list or "start some conversations".
+- **Floating panels covered the menus.** With the topic diagram open, the header
+  menus could not be clicked; the header now stays on top.
+- **Conversation templates could not be chosen from the keyboard.** The cards are
+  now focusable buttons that respond to Enter and Space.
+- **An empty yellow box appeared under any focused button** while keyboard hints were
+  on. Hints now render only on elements that define one.
+- **Crash right after name entry.** `<InstallPrompt />` was rendered without its
+  props, threw, and the error screen replaced the app. It now appears only when the
+  browser actually offers installation.
+- **Endless re-render loop.** `useVoiceControl` re-rendered forever from the moment
+  the app mounted (in tests, a 4 GB heap filled in about 35 seconds). Voice
+  recognisers were also rebuilt on every render, so voice control and voice input
+  could not work.
+- **Missing app in key-less builds.** Without a key, the build compiled to a
+  top-level `throw`, and the bundler dropped the entire app.
+- **Speech with current models.** Speech uses `gemini-3.8-flash-tts`, whose WAV
+  output is converted to the PCM the player expects. The old preview TTS model has
+  been dropped from Google's supported list.
+- **Doubled characters in development.** The reply typewriter mutated React state,
+  so every character appeared twice.
+- **Lost replies.** A reply was deleted if its audio could not be played. Speech
+  failures now never remove text the user has already read. The greeting continues
+  in text-only mode on any speech failure (previously only on rate limits).
+- **Clearer error messages.** Chat errors now explain the cause (rate limited,
+  busy, offline, not configured) instead of a random fault message.
+- **Audio modes.** "Modern" audio was still bit-crushed and sped up; every mode
+  added a second crush on top of vintage processing. Each mode now uses its own
+  settings.
+- **Audio resources.** There is now a single shared AudioContext (it had been up to
+  four, never closed). The audio worklet is awaited before first use, and worklet
+  nodes are released after each utterance instead of piling up.
+- **Audio visualizer and "stop audio".** Both now receive the playing source; they
+  were no-ops.
+- **Emotion panel crash.** Opening the emotion panel after typing threw: the panel
+  read a data shape the detector never returns. It also now backfills history.
+- **CSV exports.** CSV exports threw `RangeError`, and the print/Markdown exports
+  showed "Invalid Date" for sessions created by the session manager.
+- **Stale closures in hooks.** Voice input, the onboarding tutorial, replay
+  shortcuts and the insights charts all called handlers from earlier renders. They
+  use `useEffectEvent` or refs now.
+- **Templates.** They run through the normal reply flow (loading state, typing,
+  speech) instead of racing the user's input.
+- **Clear conversation.** Clearing the conversation now also clears the model's
+  memory, as the greeting promises.
+- **Styling.** Three modals rendered unstyled because their `--color-*` theme
+  variables were never defined. The undefined `animate-slide-up` animation is now
+  defined too.
+- **Zoom and copy.** The page blocked zooming (WCAG 1.4.4) and prevented selecting
+  or copying conversation text.
+- **Profiler.** `performanceProfiler` shadowed the global `performance` API.
+- **Accessibility.** The conversation log was a live region that re-announced every
+  typed character (every 40 ms). It is now quiet, and each finished reply is
+  announced once whenever "announce messages" is on, which is the default. The
+  keyboard-navigation detector that enables focus outlines was never started. High
+  contrast mode now overrides the theme colours. The voice-help dialog has dialog
+  semantics, a focus trap and Escape to close. The toolbar wraps on narrow screens
+  instead of overflowing.
+- **Hands-free voice control.** It now resumes listening after the browser ends
+  recognition because of silence. Before, it went deaf while still showing
+  "listening".
+- **Music player panel.** Reopening the panel shows the music's real state.
+  Music keeps playing after the panel closes, and the panel used to show OFF
+  while it played.
+- **Dr. Sbaitso's name is spoken as two syllables, "SBAYT-so"**, as the original
+  engine says it, instead of "SUH-BAIT-SO". "DR." is read as "DOCTOR" rather than
+  spelled. His TTS style now asks for a flat, even, medium-fast male read instead
+  of "very deep ... 8-bit": the original's pitch is an ordinary low male voice, and
+  the audio processing supplies the 8-bit sound. The `deep` voice profile is
+  labelled as an enhancement, not the original voice. See
+  `ref-docs/02-voice-and-audio.md`.
+- **The Authentic and Ultra voices are no longer pitched up 10%.** They played at
+  1.1x, and `playbackRate` raises pitch as well as speed. Every mode now plays at
+  1.0x. Ultra no longer adds a 6-bit crush on top: the original was full 8-bit.
+- **The vintage audio chain models the measured original instead of guesses.**
+  Authentic and Ultra resample to 8475 Hz (not 11.025 kHz), normalise to the
+  original's level, quantise as unsigned 8-bit, and play back through
+  sample-and-hold, as the Sound Blaster DAC did, rather than smooth
+  interpolation. The band is now 80 Hz to 3.8 kHz (Ultra: the SB Pro's 3.2 kHz),
+  with a -8 dB high shelf from 1.2 kHz for the original's dark "Bass" tone. The
+  old 300 Hz high-pass cut the low end the original had, and its 5 kHz low-pass
+  sat above the Nyquist limit and did nothing. The random-noise "aliasing" and
+  one-sample "pre-echo" effects are gone: neither is something the hardware did.
+  The chain no longer needs `OfflineAudioContext` and is deterministic.
+- **Sound packs.** Uploaded WAV/MP3/OGG files were stored as raw file bytes and then
+  played as headerless PCM: noise, or a `RangeError` on an odd byte count. They are
+  now decoded by the browser and stored as 24 kHz mono PCM16; packs saved by older
+  versions are recognised and decoded as files. Packs live in IndexedDB instead of
+  localStorage (one pack could exhaust the quota) and are migrated automatically.
+  Imported JSON and share codes are schema-checked and size-capped, base64
+  encoding no longer builds strings byte by byte, copying uses the Clipboard API,
+  and the active pack is remembered across reloads. A new `glitch` trigger joins
+  the existing events.
+- **Onboarding tour.** Its steps pointed at element ids that do not exist, and two
+  steps waited for a click or keystroke the modal overlay made impossible, so the
+  tour could not get past step 2. Steps now target the enhanced UI's
+  `data-tour-id` hooks, sit next to the highlighted control, and fall back to a
+  centred card when a control is absent. The false "a sample conversation has been
+  loaded" claim is gone, and shortcut text is generated from `utils/shortcuts.ts`.
+- **"PDF" export.** It downloaded an `.html` file. It is now **PDF (via print
+  dialog)**: the print-ready document opens the browser's print dialog, where
+  "Save as PDF" produces the PDF. The HTML download remains a separate option, and
+  the batch "PDF" format is now labelled "HTML (print-ready)". Downloads no longer
+  revoke their object URL immediately, which cancelled them in Firefox and Safari.
+  Every interpolated field (session title, names, theme, ids) is HTML-escaped; the
+  standalone HTML export left the title unescaped. The two export modules are
+  consolidated: `exportConversation.ts` is now a thin adapter over
+  `advancedExport.ts`.
+- **Cloud sync internals.** It could not have connected: the Firebase config was
+  built from an API key plus placeholder `messagingSenderId`/`appId` values. It now
+  takes the full web config the Firebase console shows (pasted as an object, JSON
+  or the console snippet) and validates `apiKey`, `authDomain`, `projectId` and
+  `appId`. Offline caching uses `initializeFirestore` with `persistentLocalCache`
+  instead of the deprecated `enableIndexedDbPersistence`. The auth listener,
+  timers and window listeners are released on teardown. Auto-sync used to emit an
+  `auto-sync-trigger` event nobody listened to; it now syncs data from a registered
+  provider and reports newer cloud data. Last-write-wins compared a Firestore
+  server Timestamp object with a number; both sides are now milliseconds. A new
+  `CloudSyncPanel` wraps the settings UI and hook. Firebase stays a lazily loaded
+  chunk (a test rejects static imports).
+- **Performance profiler.** Nothing loaded it, it logged every measurement to the
+  console, overlapping async calls of one method overwrote each other, and "Core
+  Web Vitals" covered only FCP and TTFB. Timings are now aggregated per name
+  (count, average, min, max) and mirrored to the User Timing API; the `profile`
+  decorator supports both legacy and standard decorators; LCP, CLS and INP are
+  observed with `PerformanceObserver`. Development builds load it automatically and
+  print a console report (`window.sbaitsoProfiler.report()` on demand); in
+  production, `?profile=1` enables it and adds a small on-screen vitals overlay. It
+  is a separate lazy chunk, absent from normal page loads.
+- **HAL was spelled out as "H-A-L".** The film always says the name as a word;
+  TTS now gets "Hal", and "AE-35" as "A E thirty-five".
+- **Every persona sounded like Dr. Sbaitso.** All of them used the global voice
+  profile (Charon) and, once integrated, the 8475 Hz / 8-bit / LPC chain in the
+  default audio mode. Voice profiles and the audio mode now apply to Dr. Sbaitso
+  only (see "Per-persona voices").
+
 ### Changed
+- **Enhanced mode restructured** with no visible change: the turn pipeline, panel
+  state and shortcuts are hooks (`useChatPipeline`, `usePanels`,
+  `useGlobalShortcuts`), and the screen is split into components under
+  `src/components/enhanced/`. `EnhancedApp.tsx` went from 1,180 to 262 lines.
+- **HAL 9000 and JOSHUA persona prompts rewritten from the research** (`ref-docs/07`,
+  `ref-docs/08`). HAL now writes in sentence case (he is a spoken character; the
+  capitals had no basis in the film). He is courteous, uses the user's first name,
+  answers in one to three sentences, apologises before he refuses, and never admits
+  an error. He grows gentler under pressure, and can calmly say he is afraid or enjoys
+  his work. The AE-35 is no longer a verbal tic. JOSHUA keeps the upper-case
+  terminal, addresses the user as PROFESSOR FALKEN, frames everything as a game,
+  offers chess when war is proposed, asks which side, and cannot tell simulation from
+  reality. It no longer quotes "the only winning move" from the first turn: the prompt
+  allows the line only when the session tag says the tic-tac-toe lesson has happened.
+  Neither prompt names an actor or quotes more than a short signature line.
+- **Custom characters** keep their own voice prompt as the TTS style but now use
+  a fixed default voice (Charon); voice profiles no longer apply to them.
+- `CharacterPersonality.voicePrompt` is deprecated in favour of `voiceStyle` and
+  kept equal to `Say in <voiceStyle>`.
+- **Dr. Sbaitso persona rebuilt from the original program.** The prompt no longer
+  asks for catchphrases and glitches the original never had ("TELL ME MORE ABOUT
+  YOUR PROBLEMS", "PLEASE ELABORATE", "PARITY CHECKING", "IRQ CONFLICT"). It now
+  uses the v2.20 program's real lines and cheeky register, dates it 1990-1992
+  rather than 1991, spells initialisms for the speech chip ("C P U"), and tells the
+  model never to produce parity errors, which the local engine owns. The generic
+  error messages and the glitch counter dropped the invented IRQ / parity-checking
+  strings too; the counter now counts the real `PARITY ERR` sequence.
+- **Authentic and Ultra flatten the pitch like the original engine.** A new LPC
+  resynthesis stage (`src/utils/lpcMonotone.ts`) replaces Gemini's intonation
+  with the original's: about 92 Hz held per syllable with small steps between
+  syllables, a fall to about 75 Hz at a period, and a rise to about 150 Hz at a
+  question mark or 125 Hz at an exclamation mark. `useSpeechPlayer().speak(audio,
+  text)` takes the spoken text to choose the ending. It replaces the
+  `pitchVarianceReduction` setting, which no code ever read; presets toggle it
+  with `pitchFlattening`. Subtle stays a light, non-authentic filter, and Modern
+  is unchanged.
+- `docs/AUDIO_SYSTEM.md` describes the new chain, and `docs/DECTALK_RESEARCH.md`
+  is corrected: the engine is First Byte SmoothTalker 3.5, built from stored
+  pitch periods of a real voice (not rule-only, sample-free synthesis);
+  `BLASTER.DRV` is only Creative's output driver; the rate is 8475 Hz.
+- **One service worker, built by vite-plugin-pwa.** It replaces two hand-written
+  workers (`service-worker.js`, the registered one, and the unused `sw.js`). The
+  new worker precaches the real hashed build output, so every deploy refreshes
+  it. It never caches `/api`, and it serves deep links offline. Updates now wait
+  for the user ("A NEW VERSION IS AVAILABLE": RELOAD / LATER). The old worker
+  reloaded the page by itself on first visit and on every update, which lost the
+  conversation; it also never noticed new deploys, because its cache version
+  string never changed. `/service-worker.js` is now a kill switch that cleans up
+  browsers which installed the old worker. See `docs/PWA.md`.
+- The web app manifest no longer lists two screenshots that did not exist, and its
+  icons declare `any` and `maskable` purposes separately.
+- **Keyboard shortcuts are now Alt+Shift+&lt;key&gt;** (Option+Shift on macOS); see
+  `docs/KEYBOARD_SHORTCUTS.md`. The old Ctrl/Cmd combinations clashed with
+  browser shortcuts: select all, paste as plain text, DevTools, reopen tab and
+  private window. Ctrl+Shift+V was also bound to two actions at once.
+- **Tailwind v4, compiled at build time.** The Tailwind v3 Play CDN (meant for
+  development only) has been replaced by Tailwind v4 through `@tailwindcss/vite`.
+  The leftover AI Studio import map is gone.
+- **TypeScript.** The project now typechecks with `strict: true` and 0 errors; it
+  had 64 errors before. `tsconfig` is split into browser app, Node/functions and
+  tests.
+- **Install and audit.** The `@grpc/grpc-js` override clears the remaining
+  firebase advisories (`npm audit`: 0). `.npmrc` `legacy-peer-deps` was removed, and
+  `engines.node` is now `>=22.12.0`.
+
+### Changed (dependency consolidation, PR #7)
 - **Dependencies brought to latest compatible versions** (consolidates Dependabot PR #6,
   the `jws` 4.0.0 -> 4.0.1 security fix, which the regenerated lockfile now resolves
   as 4.0.1). `npm audit`: 22 vulnerabilities (3 critical, 14 high) -> 0.
@@ -21,25 +551,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `@testing-library/dom` 10.4 added explicitly), `@testing-library/jest-dom` 6 -> 7,
     `jsdom` 23 -> 30, `happy-dom` 20.0 -> 20.14, `@playwright/test` 1.56 -> 1.63,
     `@types/node` 22 -> 26.
-- **Vite 8 migration**: Rolldown removed the object form of `manualChunks`, so the
-  `react-vendor` and `gemini-vendor` chunks are now declared as
-  `build.rolldownOptions.output.codeSplitting.groups`; `__dirname` in `vite.config.ts`
-  became `import.meta.dirname`.
-- **TypeScript 7**: `strict` now defaults to `true`; `tsconfig.json` sets
-  `"strict": false` explicitly to keep the checking the project has always had
-  (typecheck output is identical before and after the upgrade).
+- **Vite 8 migration**: Rolldown removed the object form of `manualChunks`, so vendor
+  chunks are declared as `build.rolldownOptions.output.codeSplitting.groups`
+  (the `gemini-vendor` chunk was later removed along with the client-side SDK);
+  `__dirname` in `vite.config.ts` became `import.meta.dirname`.
+- **TypeScript 7** (strict was briefly pinned off; see Changed above for the move to
+  `strict: true`).
 - **Node.js 22.22.2+ (or 24.15+ / 26+)** is now required for development (jsdom 30
   and jest-dom 7);
   Vite 8 alone needs 20.19+.
-
-### Planned
-- Backend API proxy for production security
-- Additional retro voice options (Pico, Kali, Aoede)
-- Email/password authentication for cloud sync
-- Shared conversations and collaboration features
-- Custom template creation UI
-- Advanced NLP-based topic analysis
-- Real-time collaboration features
 
 ## [1.11.0] - 2025-11-19
 
@@ -169,7 +689,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
-- **CHANGELOG-v1.11.0.md**: Comprehensive 400+ line release notes with detailed feature documentation
+- **CHANGELOG-v1.11.0.md** (now `docs/history/`): Comprehensive 400+ line release notes with detailed feature documentation
 - **CLAUDE.md**: Updated with v1.11.0 component documentation and feature summary
 - **Updated test patterns**: Documented incremental rerender patterns for useEffect-based components
 
@@ -207,6 +727,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Keyboard hints no longer change control names.** The hint drawn after a control
+  (for example Alt+Shift+X on CLASSIC) was part of its accessible name, so screen
+  readers and voice control heard "CLASSIC Alt+Shift+X". It now has empty alt text.
 - **VoiceInput test warnings**: Resolved Vitest mock constructor warnings
 - **Test cleanup issues**: Fixed window property deletion failures in test environment
 - **EmotionVisualizer test assertions**: Fixed tests to work with incremental state updates
@@ -254,7 +777,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **DEVELOPMENT_GUIDE.md** (~3,200 words): Environment setup, project structure, testing strategies, code style guide, component creation, character/theme tutorials, debugging techniques, contributing guidelines
 - **API_REFERENCE.md** (~2,800 words): Gemini AI integration, utility functions, custom hooks, component APIs, type definitions with code examples
 - **PERFORMANCE.md** (~2,400 words): Bundle optimization, lazy loading patterns, code splitting, Lighthouse scores, Core Web Vitals, profiling techniques
-- **FEATURES_V1.9.0.md** (~3,500 words): Feature overviews, user guides, technical details, configuration options, troubleshooting, known limitations
+- **FEATURES_V1.9.0.md** (now `docs/history/`, ~3,500 words): Feature overviews, user guides, technical details, configuration options, troubleshooting, known limitations
 
 ### Technical Implementation
 

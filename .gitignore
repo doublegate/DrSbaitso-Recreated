@@ -27,3 +27,19 @@ dist-ssr
 .env.local
 .vercel
 coverage/
+
+# Bundle analysis output (npm run analyze)
+reports/
+
+# Vitest 5 output directory
+.vitest/
+
+# Agent worktrees (Claude Code)
+.claude/worktrees/
+
+# Playwright output
+test-results/
+playwright-report/
+
+# Locally rendered voice comparisons (scripts/render-*-samples.ts)
+voice-samples/
