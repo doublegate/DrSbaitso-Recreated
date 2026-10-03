@@ -89,6 +89,13 @@ repairs every feature that existed in code but could not be reached.
   targets; HAL now uses **Alnilam** with that direction. `scripts/render-hal-samples.ts`
   regenerates the comparison; `src/utils/psola.ts` (TD-PSOLA pitch narrowing, kept
   for experiments) is not in the app's chain.
+- **Classic screen speaks each name letter.** Each letter of the name is spoken as it is typed, about 0.06 s after
+  its echo, as in the original (ref-docs/04 section 1). The 26 letters are rendered
+  once in Dr. Sbaitso's voice and kept in the browser (IndexedDB, keyed by the voice),
+  so later key presses play at once. The first visit fetches them in the background,
+  two at a time and at most ten a minute so the doctor's own speech keeps its share of
+  the proxy's rate limit; until a letter is cached it is silent. Spaces and rejected
+  characters are silent, and a new key cuts the previous letter.
 - **Cloud sync describes itself honestly.** It is a per-browser cloud backup of the
   conversations kept with SAVE HISTORY (anonymous sign-in gives each browser its own
   account); the panel no longer promises cross-device sync or that settings and

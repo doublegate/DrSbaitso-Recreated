@@ -15,6 +15,10 @@ DOSBox (`ref-docs/04-dosbox-verification.md`).
 - **Start-up**: the banner, the inline `Please enter your name ...` prompt (letters and
   spaces only, `NAME TOO LONG` for long names), then the v2.20 greeting and a yellow `>`
   prompt with a blinking underline cursor.
+- **Name letters**: each letter typed at the name prompt is spoken just after its echo,
+  as in the original. The alphabet is rendered once in Dr. Sbaitso's voice and kept in
+  the browser (`src/utils/letterVoice.ts`); on a first visit it loads in the background
+  (26 small requests, at most ten a minute) and letters are silent until they arrive.
 - **Speech**: each line is printed, then spoken; the next appears when the speech
   reaches it. A key press cuts the speech and the remaining lines print silently.
 - **Commands** answered by the local engine (`src/engine/sbaitso/`), not the model:

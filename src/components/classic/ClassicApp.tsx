@@ -18,6 +18,8 @@
  * - The banner is pinned; rows 5-23 scroll and row 24 stays blank.
  * - The cursor shows only while waiting at `>`.
  * - BYE / QUIT / .QUIT lead to the C/N/Q menu on the next row.
+ * - Each letter typed at the name prompt is spoken about 0.06 s after its
+ *   echo, from a browser-side cache of the alphabet (utils/letterVoice).
  */
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import DosScreen from './DosScreen';
@@ -29,6 +31,7 @@ import { ensureAudioReady, getSharedAudioContext, peekSharedAudioContext } from 
 import { playParityTone } from '../../utils/audio';
 import { cueOffsets } from '../../utils/speechCues';
 import { retroErrorMessage } from '../../utils/retroErrors';
+import { isSpokenLetter, playLetter, warmLetterCache } from '../../utils/letterVoice';
 import {
   CALC_LABEL,
   DEFAULT_SETTINGS,
@@ -38,6 +41,7 @@ import {
   createSbaitsoState,
   exitMenuText,
   greetingLines,
+  isNameCharAllowed,
   processInput,
   recordReply,
   resolveExitChoice,
@@ -59,6 +63,8 @@ const DOS_BLACK = 0;
 /** What the original says before the name prompt (CONFIRMED (DOSBox)). */
 const INTRO_SPEECH = ['DOCTOR SBAITSO.', 'BY CREATIVE LABS.'];
 const NAME_PROMPT_SPEECH = 'PLEASE ENTER YOUR NAME.';
+/** A typed name letter is spoken this long after its echo (ref-docs/04 section 1). */
+const LETTER_DELAY_MS = 60;
 
 type Phase = 'intro' | 'name' | 'busy' | 'chat' | 'menu' | 'dos';
 
@@ -100,12 +106,16 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
   /** Cuts the speech of the cues being played; set while they play. */
   const cutSpeech = useRef<(() => void) | null>(null);
   const speech = useSpeechPlayer('authentic');
+  // A second player for the name letters, so cutting a letter never cuts the doctor.
+  const letterSpeech = useSpeechPlayer('authentic');
+  const letterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { announce } = useScreenReader();
 
   useEffect(() => {
     unmounted.current = false;
     return () => {
       unmounted.current = true;
+      if (letterTimer.current) clearTimeout(letterTimer.current);
     };
   }, []);
 
@@ -198,6 +208,32 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
   /** Speaks without printing (R, .ECHO). */
   const speakOnly = (spoken: string) => playCues([{ spoken }]);
 
+  /** Cuts the name letter that is playing or about to play. */
+  const cutLetter = () => {
+    if (letterTimer.current) clearTimeout(letterTimer.current);
+    letterTimer.current = null;
+    letterSpeech.stop();
+  };
+
+  /**
+   * A change to the name: a letter A-Z that was typed is spoken shortly after
+   * its echo, if the alphabet is cached; anything else is silent. Typing is
+   * never held up, and each change cuts the letter before it.
+   */
+  const changeName = (next: string) => {
+    const typed = insertedChar(input, next);
+    setInput(next);
+    cutLetter();
+    // A key press is a user gesture, so audio can be created here; the
+    // alphabet is fetched in the background only where it can be played.
+    if (getSharedAudioContext()) void warmLetterCache();
+    if (typed === null || !isSpokenLetter(typed) || !isNameCharAllowed(typed)) return;
+    letterTimer.current = setTimeout(() => {
+      letterTimer.current = null;
+      if (!unmounted.current) playLetter(typed, letterSpeech);
+    }, LETTER_DELAY_MS);
+  };
+
   /** The name prompt, printed and spoken; with `intro`, preceded by the spoken title. */
   const askName = async (intro: boolean) => {
     const prompt: Cue = { show: () => setPhase('name'), spoken: NAME_PROMPT_SPEECH };
@@ -207,6 +243,7 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
       setPhase('name');
       return;
     }
+    void warmLetterCache();
     setPhase(intro ? 'intro' : 'name');
     await playCues(intro ? [...INTRO_SPEECH.map((spoken) => ({ spoken })), prompt] : [prompt]);
   };
@@ -233,6 +270,7 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
   };
 
   const submitName = async () => {
+    cutLetter();
     const result = validateName(input);
     const typed = input;
     setInput('');
@@ -484,7 +522,10 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
         autoCapitalize="characters"
         spellCheck={false}
         aria-busy={phase === 'busy' || phase === 'intro'}
-        onChange={(e) => phase !== 'menu' && phase !== 'intro' && setInput(e.target.value)}
+        onChange={(e) => {
+          if (phase === 'name') changeName(e.target.value);
+          else if (phase !== 'menu' && phase !== 'intro') setInput(e.target.value);
+        }}
         onKeyDown={onKeyDown}
       />
       {onSwitchMode && (
@@ -494,6 +535,14 @@ export default function ClassicApp({ onSwitchMode, seed, floodMs = FLOOD_MS, ini
       )}
     </main>
   );
+}
+
+/** The one character typed to turn `prev` into `next`, or null for any other edit. */
+function insertedChar(prev: string, next: string): string | null {
+  if (next.length !== prev.length + 1) return null;
+  let i = 0;
+  while (i < prev.length && prev[i] === next[i]) i++;
+  return next.slice(0, i) + next.slice(i + 1) === prev ? next[i] : null;
 }
 
 /** Rows at the bottom that are entirely blank (padding below the cursor line). */

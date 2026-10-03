@@ -72,7 +72,9 @@ that module; wiring it into `src/App.tsx` is still pending.
 - [ ] Name entry: letters and spaces only, a length limit, each letter spoken as it is
       typed, and "Doctor Sbaitso" spoken first. (Rules done: `validateName`,
       `isNameCharAllowed`, `NAME_ERROR_TEXT`; the limit of 20 is a guess. The spoken
-      title is done when audio is already unlocked; per-letter speech is open.)
+      title is done when audio is already unlocked. Per-letter speech is done
+      (`src/utils/letterVoice.ts`, a browser cache of the alphabet); a letter typed
+      before its clip is cached is silent.)
 - [x] Exit: `BYE` / `QUIT` / `.QUIT` → `<C>ontinue <N>ew patient <Q>uit` on the next
       row. (Classic screen: C continues, N re-asks the name without the intro, Q leaves
       the banner above a `C:\SB>` prompt.)
@@ -121,7 +123,8 @@ Still open:
 - [x] HELP page 1 clears the whole screen, banner included; pages 2 and 3 redraw the
       banner and replace the rows below it.
 - [x] `.WIDTH` and `.COLOR` clear the area below the banner and restart at row 6.
-- [ ] Each letter of the name is spoken as it is typed.
+- [x] Each letter of the name is spoken as it is typed, about 0.06 s after its echo
+      (cached alphabet, `src/utils/letterVoice.ts`; silent until the cache is warm).
 - [x] Enhanced-mode toggle that restores the toolbar, panels and persona selector (Alt+Shift+X, `?mode=`).
 
 ## Personas
