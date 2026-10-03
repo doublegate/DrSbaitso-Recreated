@@ -21,8 +21,9 @@ key or network access.
 
 One-time setup for e2e: `npx playwright install chromium`. On Linux CI, add `--with-deps`.
 
-Size at commit `340dcf2` (2026-10-02), from `npx vitest run`: 80 test files, 1289 tests. The e2e
-suite has 14 tests in 3 spec files.
+Size at release v2.0.0 (2026-10-03), from `npx vitest run`: 96 test files, 1,415 tests (4
+skipped). Coverage 72.9% lines, 72.3% statements, 63.1% functions, 66.5% branches; the
+thresholds sit just below that. The e2e suite has 15 tests in 3 spec files.
 
 ### Running a subset
 

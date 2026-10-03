@@ -1,14 +1,17 @@
 # Dr. Sbaitso Recreated - Product Roadmap
 
-> **Last Updated**: November 19, 2025
-> **Current Version**: v1.11.0
-> **Status**: Production Ready
+> **Last Updated**: October 3, 2026
+> **Current Version**: v2.0.0
+> **Status**: Released (see [CHANGELOG](../CHANGELOG.md))
+>
+> Open work for 2.x is tracked in [faithfulness.md](faithfulness.md). The sections after
+> the release history are the 1.x-era plan, kept as an unscheduled ideas backlog.
 
 ---
 
 ## Vision
 
-Dr. Sbaitso Recreated aims to be the definitive modern recreation of the classic 1991 AI therapist, combining authentic retro aesthetics with cutting-edge AI technology, accessibility features, and production-grade reliability.
+Dr. Sbaitso Recreated aims to be the definitive modern recreation of the classic 1990-1992 AI therapist, combining authentic retro aesthetics with cutting-edge AI technology, accessibility features, and production-grade reliability.
 
 ---
 
@@ -87,7 +90,7 @@ Dr. Sbaitso Recreated aims to be the definitive modern recreation of the classic
 - Achievement system
 - Enhanced conversation analysis
 
-### ✅ v1.11.0 - Production Ready (Complete - CURRENT)
+### ✅ v1.11.0 - Production Ready (Complete)
 - Voice Input UI component (Web Speech API)
 - Emotion Visualizer with sentiment analysis
 - Topic Flow Diagram (D3.js)
@@ -100,10 +103,28 @@ Dr. Sbaitso Recreated aims to be the definitive modern recreation of the classic
 
 ---
 
-## Current Focus: v1.12.0 - Test Execution & Monitoring
+### ✅ v2.0.0 - Audit and Rebuild (Complete - CURRENT, 2026-10-03)
+- Gemini behind Vercel Functions; the API key never reaches the browser; strict CSP
+- Classic 80x25 screen by default, matched to v2.20 running in DOSBox
+- Local engines for all five personas; Gemini only for open conversation
+- Per-persona voices and audio chains; voice measured against the original
+- Every half-wired 1.x feature repaired; one service worker; opt-in history
+- TypeScript strict, oxlint, Prettier, Vitest (1,415 tests), Playwright, CI
 
-**Target Release**: Q1 2026
-**Status**: Planning
+---
+
+## Next: 2.x
+
+- PARRY's voice (owner decision pending)
+- Measure the WOPR voice chain on real TTS against ref-docs/09
+- Promote remaining lint "warn" categories to errors; keep ratcheting coverage
+- Optional "bring your own SBTALKER" emulation mode
+
+---
+
+## Backlog (1.x plan, not scheduled): Test Execution & Monitoring
+
+**Status**: Ideas only
 **Priority**: High
 
 ### Goals
@@ -153,7 +174,7 @@ Dr. Sbaitso Recreated aims to be the definitive modern recreation of the classic
 
 ---
 
-## Upcoming: v1.13.0 - Enhanced Templates & Customization
+## Backlog (1.x plan, not scheduled): Enhanced Templates & Customization
 
 **Target Release**: Q1-Q2 2026
 **Priority**: Medium
@@ -194,10 +215,10 @@ Dr. Sbaitso Recreated aims to be the definitive modern recreation of the classic
 
 ---
 
-## Future: v2.0.0 - Backend & Collaboration (Major Release)
+## Backlog (1.x plan, not scheduled): Backend & Collaboration
 
-**Target Release**: Q2-Q3 2026
-**Priority**: High (Breaking Changes)
+Planned for 2.0 under the 1.x roadmap; 2.0 became the audit rebuild instead. A small
+server now exists (`api/`), so parts of this are cheaper than when it was written.
 
 ### Backend Infrastructure
 
@@ -424,7 +445,7 @@ This roadmap is updated quarterly based on:
 - Market trends and user needs
 - Strategic business goals
 
-**Next Review**: February 2026
+**Next Review**: after the next 2.x release
 
 ---
 

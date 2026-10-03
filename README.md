@@ -4,6 +4,7 @@
 > screen and behaviour, with Google Gemini for open conversation and speech.
 
 [![Live demo](https://img.shields.io/badge/demo-dr--sbaitso--recreated.vercel.app-0000AA)](https://dr-sbaitso-recreated.vercel.app)
+[![Release](https://img.shields.io/github/v/release/doublegate/DrSbaitso-Recreated)](https://github.com/doublegate/DrSbaitso-Recreated/releases/latest)
 [![CI](https://github.com/doublegate/DrSbaitso-Recreated/actions/workflows/ci.yml/badge.svg)](https://github.com/doublegate/DrSbaitso-Recreated/actions/workflows/ci.yml)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7%20(strict)-3178C6?logo=typescript)

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0] - 2026-10-02
+## [2.0.0] - 2026-10-03
 
 A full audit and rebuild. The deployed 1.11 app crashed right after name entry and
 leaked its Gemini API key in the client bundle; 2.0 fixes both, moves Gemini behind
@@ -472,6 +472,12 @@ repairs every feature that existed in code but could not be reached.
   only (see "Per-persona voices").
 
 ### Changed
+- Coverage thresholds raised to the 2.0.0 level (lines and statements 72%, functions
+  63%, branches 66%).
+- `.gitignore` covers every `.env` file except the tracked `.env.example`, plus
+  TypeScript build info, the ESLint cache and setup backups.
+- The roadmap reflects the released 2.0.0; the 1.x plan is kept as an unscheduled
+  backlog.
 - **Enhanced mode restructured** with no visible change: the turn pipeline, panel
   state and shortcuts are hooks (`useChatPipeline`, `usePanels`,
   `useGlobalShortcuts`), and the screen is split into components under
@@ -2267,12 +2273,14 @@ Not applicable (initial release)
 
 ## Links
 
-- [GitHub Repository](https://github.com/yourusername/DrSbaitso-Recreated)
-- [Issue Tracker](https://github.com/yourusername/DrSbaitso-Recreated/issues)
+- [GitHub Repository](https://github.com/doublegate/DrSbaitso-Recreated)
+- [Issue Tracker](https://github.com/doublegate/DrSbaitso-Recreated/issues)
 - [Documentation](docs/)
 - [Gemini API](https://ai.google.dev/docs)
 
 ---
 
-**[Unreleased]**: https://github.com/yourusername/DrSbaitso-Recreated/compare/v1.0.0...HEAD
-**[1.0.0]**: https://github.com/yourusername/DrSbaitso-Recreated/releases/tag/v1.0.0
+**[Unreleased]**: https://github.com/doublegate/DrSbaitso-Recreated/compare/v2.0.0...HEAD
+**[2.0.0]**: https://github.com/doublegate/DrSbaitso-Recreated/releases/tag/v2.0.0
+
+Versions before 2.0.0 were never tagged; their entries are kept as written at the time.

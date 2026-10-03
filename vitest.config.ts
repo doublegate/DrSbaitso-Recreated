@@ -23,10 +23,10 @@ export default defineConfig({
       // at about 45/45/37/37). Raise these as coverage grows; never lower them to
       // make a change pass.
       thresholds: {
-        lines: 69,
-        statements: 69,
-        functions: 59,
-        branches: 62,
+        lines: 72,
+        statements: 72,
+        functions: 63,
+        branches: 66,
       },
     },
   },

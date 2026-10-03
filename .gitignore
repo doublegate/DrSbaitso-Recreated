@@ -23,8 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Gemini API Key
-.env.local
+# Environment files: never commit keys (.env.example is the tracked template)
+.env
+.env.*
+!.env.example
 .vercel
 coverage/
 
@@ -43,3 +45,8 @@ playwright-report/
 
 # Locally rendered voice comparisons (scripts/render-*-samples.ts)
 voice-samples/
+
+# Tool caches and backups
+*.tsbuildinfo
+.eslintcache
+*.mc-bak
