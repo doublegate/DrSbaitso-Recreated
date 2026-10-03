@@ -27,7 +27,7 @@ your problems, just like the DOS program that shipped with Creative Labs sound c
   computer personalities, each with its own local engine and voice: ELIZA (the 1965
   script, entirely offline), HAL 9000, JOSHUA/WOPR (with tic-tac-toe) and PARRY.
   It also has your own characters, themes, visualisations, templates, export,
-  sound packs, voice input, and opt-in conversation history with optional cloud sync.
+  sound packs, voice input, and opt-in conversation history with an optional cloud backup.
 
 ## Features
 

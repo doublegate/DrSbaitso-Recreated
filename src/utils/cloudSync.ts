@@ -1,6 +1,6 @@
 /**
  * Cloud Sync Utility
- * Firebase Firestore integration for cross-device session synchronization
+ * Firebase Firestore backup of saved conversations (anonymous auth: one account per browser profile)
  *
  * - The user supplies their own Firebase web app config (validated by
  *   {@link parseFirebaseConfig}); nothing is hard-coded.

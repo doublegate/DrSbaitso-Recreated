@@ -89,6 +89,10 @@ repairs every feature that existed in code but could not be reached.
   targets; HAL now uses **Alnilam** with that direction. `scripts/render-hal-samples.ts`
   regenerates the comparison; `src/utils/psola.ts` (TD-PSOLA pitch narrowing, kept
   for experiments) is not in the app's chain.
+- **Cloud sync describes itself honestly.** It is a per-browser cloud backup of the
+  conversations kept with SAVE HISTORY (anonymous sign-in gives each browser its own
+  account); the panel no longer promises cross-device sync or that settings and
+  characters are included.
 - **All-time totals in Insights** (conversations, messages, average length,
   glitches, time talking, most used persona). Each conversation is counted once when
   it ends, only while SAVE HISTORY is on; turning history off erases the totals too.

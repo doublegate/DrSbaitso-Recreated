@@ -34,6 +34,14 @@ describe('CloudSyncPanel', () => {
     await CloudSync.resetForTests();
   });
 
+  it('describes itself as a backup for this browser, not cross-device sync', () => {
+    renderPanel();
+    const text = document.body.textContent ?? '';
+    expect(text).not.toMatch(/across devices|any device/i);
+    expect(text).toMatch(/backup/i);
+    expect(text).toMatch(/does not sync between devices/i);
+  });
+
   it('asks for a Firebase config first and explains invalid input', async () => {
     renderPanel();
     fireEvent.change(screen.getByLabelText('Firebase web config:'), { target: { value: '{ apiKey: "x" }' } });

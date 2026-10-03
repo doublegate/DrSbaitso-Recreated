@@ -229,7 +229,7 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
             <div style={{ paddingLeft: '20px' }}>
               {!isAuthenticated ? (
                 <div>
-                  <p style={{ marginBottom: '12px' }}>Sign in to enable cloud synchronization across devices.</p>
+                  <p style={{ marginBottom: '12px' }}>Sign in to back up this browser's saved conversations.</p>
                   <button
                     onClick={onSignIn}
                     style={{
@@ -361,8 +361,8 @@ export const CloudSyncSettings: React.FC<CloudSyncSettingsProps> = ({
               <strong>What is Cloud Sync?</strong>
             </p>
             <p>
-              Cloud Sync allows you to save your conversations, settings, and custom characters to the cloud. Access
-              your data from any device by signing in.
+              Cloud Sync is a cloud backup of the conversations kept with SAVE HISTORY, stored in your own Firebase
+              project. It does not sync between devices: the anonymous account belongs to this browser profile.
             </p>
             <p style={{ marginTop: '12px' }}>
               <strong>Privacy:</strong> Data travels over HTTPS and is stored at users/&#123;uid&#125; in your own
