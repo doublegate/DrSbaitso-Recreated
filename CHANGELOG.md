@@ -89,6 +89,10 @@ repairs every feature that existed in code but could not be reached.
   targets; HAL now uses **Alnilam** with that direction. `scripts/render-hal-samples.ts`
   regenerates the comparison; `src/utils/psola.ts` (TD-PSOLA pitch narrowing, kept
   for experiments) is not in the app's chain.
+- **Two accessibility settings now do something.** "Screen reader optimized" (and
+  Reduced motion) show each reply whole, without the typing animation, and
+  "Keyboard navigation hints" shows a control's shortcut when it has focus. Both
+  were toggles with no effect.
 - **HAL's shutdown sounds like the film's.** When HAL is disconnected, "Daisy Bell"
   slows down and sinks about an octave as it goes, with pitch and tempo on their
   own curves (the documented two-pass Eltro method), and fades out at the end.

@@ -83,6 +83,7 @@ export default function MenuGroup({ label, items }: { label: string; items: Menu
                 item.onSelect();
               }}
               className="enh-menu-item"
+              data-keyboard-hint={item.shortcut}
             >
               {item.icon && (
                 <span aria-hidden="true" className="w-5 inline-block">

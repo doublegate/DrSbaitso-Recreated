@@ -328,4 +328,14 @@ describe('useChatPipeline', () => {
     const last = vi.mocked(deps.speech.speak).mock.calls.at(-1)!;
     expect(last[2]).toMatchObject({ processing: 'hal', slowdownFrom: expect.any(Number) });
   });
+
+  it('shows the reply whole, with no typing animation, when instant replies are on', async () => {
+    const { result } = await startSession(makeDeps({ instantReplies: true }));
+    const timers = vi.spyOn(globalThis, 'setTimeout');
+    await settle(result.current.sendMessage('I feel sad today'));
+    expect(result.current.messages.at(-1)).toMatchObject({ author: 'dr', text: 'TELL ME MORE.' });
+    // The typewriter waits once per character; whole replies need no per-character timer.
+    expect(timers.mock.calls.length).toBeLessThan(5);
+    timers.mockRestore();
+  });
 });

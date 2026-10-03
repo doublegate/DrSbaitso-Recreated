@@ -167,6 +167,19 @@ describe('App', () => {
     expect(skipTargets().filter((href) => !document.querySelector(href))).toEqual([]);
   }, 30_000);
 
+  it('labels controls that have a shortcut with a keyboard hint', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await user.type(await screen.findByPlaceholderText('TYPE NAME AND PRESS ENTER'), 'ALICE{Enter}');
+    await waitFor(() => expect(document.getElementById('chat-input')).not.toBeNull(), { timeout: 15_000 });
+    expect(screen.getByRole('button', { name: 'Speak instead of typing' })).toHaveAttribute(
+      'data-keyboard-hint',
+      'Alt+Shift+V',
+    );
+    await user.click(screen.getByRole('button', { name: 'SOUND' }));
+    expect(screen.getByRole('button', { name: /Music player/ })).toHaveAttribute('data-keyboard-hint', 'Alt+Shift+M');
+  }, 30_000);
+
   it('marks the keyboard user once Tab is pressed (focus outlines)', async () => {
     const user = userEvent.setup();
     renderApp();

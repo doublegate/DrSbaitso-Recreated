@@ -69,6 +69,8 @@ export default function EnhancedApp({
     soundEffects,
     announce,
     announceMessages: accessibilitySettings.announceMessages,
+    // Screen-reader optimized (and reduced motion) skip the typing animation.
+    instantReplies: accessibilitySettings.screenReaderOptimized || accessibilitySettings.reducedMotion,
   });
   const { userName, messages, isLoading, isGreeting, isPreparingGreeting } = chat;
   // The music player's 'auto' mood follows the conversation.

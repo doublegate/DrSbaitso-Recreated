@@ -230,6 +230,7 @@ export default function EnhancedHeader({
             type="button"
             onClick={onSwitchMode}
             className="enh-menu-trigger"
+            data-keyboard-hint={shortcutLabel('switchMode')}
             title={`Switch to the classic screen (${shortcutLabel('switchMode')})`}
           >
             CLASSIC

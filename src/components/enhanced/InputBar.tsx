@@ -54,6 +54,7 @@ export default function InputBar({
         type="button"
         onClick={onToggleVoiceInput}
         className="enh-icon-button"
+        data-keyboard-hint={shortcutLabel('voiceInput')}
         data-tour-id="voice-input"
         aria-label="Speak instead of typing"
         aria-pressed={voiceInputOpen}

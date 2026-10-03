@@ -71,6 +71,8 @@ export interface ChatPipelineDeps {
   announce: (message: string) => void;
   /** Accessibility setting: announce each finished reply. */
   announceMessages: boolean;
+  /** Show replies whole, with no typing animation (screen-reader or reduced-motion settings). */
+  instantReplies?: boolean;
 }
 
 export function useChatPipeline({
@@ -81,6 +83,7 @@ export function useChatPipeline({
   soundEffects,
   announce,
   announceMessages,
+  instantReplies = false,
 }: ChatPipelineDeps) {
   const { persona, chatOptions, speechOptions, formatReply, voiceProcessing } = personaState;
   const characterId = persona.id;
@@ -238,7 +241,10 @@ export function useChatPipeline({
       }
       // Long printouts (JOSHUA's self-play lesson) scroll at terminal speed.
       const typingDelay = reply.length > LONG_PRINTOUT_CHARS ? FAST_TYPING_DELAY_MS : TYPING_DELAY_MS;
-      for (let i = 0; i < reply.length; i++) {
+      if (instantReplies) {
+        setMessages((prev) => [...prev.slice(0, -1), { ...prev[prev.length - 1], text: reply }]);
+      }
+      for (let i = 0; !instantReplies && i < reply.length; i++) {
         await sleep(typingDelay);
         if (unmountedRef.current) return true;
         // Set the visible prefix rather than appending: the updater must be
