@@ -2,7 +2,7 @@
 ## Historical and Technical Analysis for Authentic Recreation
 
 **Research Date:** October 30, 2025
-**Purpose:** To accurately recreate the original 1991 Dr. Sbaitso voice synthesis technology
+**Purpose:** To accurately recreate the original Dr. Sbaitso (1990; v2.20, 1992) voice synthesis technology
 
 > **Superseded by [`ref-docs/02-voice-and-audio.md`](../ref-docs/02-voice-and-audio.md) and
 > [`ref-docs/01-history-and-behavior.md`](../ref-docs/01-history-and-behavior.md).** Kept for
@@ -29,7 +29,8 @@
   First Byte's retail successor; "a version of Monologue" is a loose label)
 - **Driver:** `BLASTER.DRV`, Creative's 9.9 KB output driver only (it programs the DSP and DMA)
 - **Hardware:** Sound Blaster 8-bit ISA sound cards (1989-1991)
-- **Release Date:** Late 1991 (distributed with Sound Blaster cards)
+- **Release Date:** 1990 (v1.01, distributed with Sound Blaster cards); v2.20 in 1992
+  ([ref-docs/01](../ref-docs/01-history-and-behavior.md))
 
 ---
 

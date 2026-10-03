@@ -19,7 +19,7 @@ Byte's patents). Everything else is a factual correction to make either way.
 
 ## Facts to correct (no decision needed)
 
-- [ ] Dates: the program shipped in 1990 (v1.01) and 1992 (v2.20). Fix "1991" in the
+- [x] Dates: the program shipped in 1990 (v1.01) and 1992 (v2.20). Fix "1991" in the
       README, the persona prompt and the docs. ([ref-docs/01](../ref-docs/01-history-and-behavior.md))
 - [x] Speech engine: First Byte **SmoothTalker 3.5**, which stores single pitch periods
       of a real voice. `docs/DECTALK_RESEARCH.md` calls it rule-based and sample-free.
@@ -69,7 +69,7 @@ that module; wiring it into `src/App.tsx` is still pending.
       wording corrected from ref-docs/04.)
 - [x] Persona prompt rebuilt from the original's register (its real lines, spelled-out
       initialisms such as "C P U") instead of invented catchphrases.
-- [ ] Name entry: letters and spaces only, a length limit, each letter spoken as it is
+- [x] Name entry: letters and spaces only, a length limit, each letter spoken as it is
       typed, and "Doctor Sbaitso" spoken first. (Rules done: `validateName`,
       `isNameCharAllowed`, `NAME_ERROR_TEXT`; the limit of 20 is a guess. The spoken
       title is done when audio is already unlocked. Per-letter speech is done
@@ -82,7 +82,7 @@ that module; wiring it into `src/App.tsx` is still pending.
 
 ## Screen (decided: classic default + enhanced toggle)
 
-- [ ] An 80x25 DOS text screen: `#0000AA` background, white text, `#FFFF55` prompt and
+- [x] An 80x25 DOS text screen: `#0000AA` background, white text, `#FFFF55` prompt and
       title, a box-drawn banner, and the IBM VGA font (VileR, CC BY-SA 4.0, attribution
       required).
 - [x] Mixed-case `Please enter your name ...` on row 6; one-space indent on the
@@ -189,11 +189,13 @@ Voices from [ref-docs/05](../ref-docs/05-eliza.md), [06](../ref-docs/06-parry.md
       ref-docs/09 section 7 (`scripts/render-hal-samples.ts`); Alnilam chosen, with the
       session-direction style. Measured raw: 102 Hz median, 3.1 st SD, question end
       +0.7 st; faster than the film (about 7 syl/s against 4.3-4.7).
-- [ ] The owner listened to all personas on the preview (2026-10-02) and found them
-      "pretty good"; JOSHUA (Schedar, Orus, Charon) and PARRY (Algenib) alternatives are
-      still not A/B'd.
-- [ ] Measure rendered output against ref-docs/09 section 7 (HAL median F0 90-110 Hz,
-      SD 1.5-2.8 st, level questions; WOPR band and gaps on real TTS).
+- [x] The owner listened to all personas on the preview (2026-10-02) and found them
+      "pretty good"; JOSHUA is kept as is (2026-10-03).
+- [ ] PARRY's voice: the owner has not decided what it should sound like yet.
+- [ ] Measure rendered output against ref-docs/09 section 7: WOPR band and gaps on
+      real TTS. (HAL is measured, see above; TD-PSOLA in `src/utils/psola.ts` can
+      narrow its pitch but is not in the chain, by the owner's choice of the raw voice.)
 - [ ] Optional: ELIZA `?` in the TTS text for interrogative replies; PARRY style by
-      affect (Fear/Anger) once the PARRY engine exists; HAL shutdown easter egg;
+      affect (Fear/Anger) once the PARRY engine exists; HAL shutdown easter egg (done:
+      local engine plus a slowing voice, `halShutdownRamp`);
       JOSHUA terminal colours and print blips.
