@@ -255,6 +255,18 @@ repairs every feature that existed in code but could not be reached.
   enforced in the plain test run.
 
 ### Fixed
+- **Sound-effect cleanup no longer closes the shared audio context.**
+  `SoundEffectsManager.dispose()` closed whatever context it held, which is normally
+  the page's single shared one, silencing speech and music and leaving the shared
+  module handing out a closed context. It now closes only a fallback context it
+  created itself (PR #8 review).
+- **Stored custom themes with invalid colours are rejected.** The check accepted any
+  3-8 digit hex value, so `#12345` passed although browsers ignore it. Only the CSS
+  lengths 3, 4, 6 and 8 are accepted now (PR #8 review).
+- **Imported and cloud sessions are checked against the whole session shape.** A
+  record such as `{ id, updatedAt, messages: [] }` passed the old check and could crash
+  replay, which reads `name` and `characterId`. Every required field is now validated
+  (PR #8 review).
 - **Classic mode now behaves like the original program as it runs in DOSBox.**
   The 1992 program was run in an emulator and its screen and sound measured
   (`ref-docs/04-dosbox-verification.md`); classic mode was corrected to match:
@@ -2280,7 +2292,7 @@ Not applicable (initial release)
 
 ---
 
-**[Unreleased]**: https://github.com/doublegate/DrSbaitso-Recreated/compare/v2.0.0...HEAD
-**[2.0.0]**: https://github.com/doublegate/DrSbaitso-Recreated/releases/tag/v2.0.0
-
 Versions before 2.0.0 were never tagged; their entries are kept as written at the time.
+
+[Unreleased]: https://github.com/doublegate/DrSbaitso-Recreated/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/doublegate/DrSbaitso-Recreated/releases/tag/v2.0.0

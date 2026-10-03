@@ -383,13 +383,20 @@ server now exists (`api/`), so parts of this are cheaper than when it was writte
 
 ## Deprecation Timeline
 
-### Deprecated in v2.0.0
+### Changed in v2.0.0 (what actually shipped)
 
-- **Client-side API calls**: Moved to backend proxy for security
-- **LocalStorage-only persistence**: Migrated to database with LocalStorage fallback
-- **Anonymous usage**: User accounts required for advanced features
+- **Client-side API calls**: removed. Gemini is reached only through the `/api`
+  functions, and the browser never holds a key.
+- **Persistence**: still browser-local. History is opt-in (SAVE HISTORY) and stored in
+  this browser; sound packs moved from localStorage to IndexedDB. There is no server
+  database.
+- **Accounts**: none. The optional cloud backup uses anonymous Firebase sign-in, so
+  each browser profile is its own account.
 
-### Removed in v3.0.0
+The 1.x plan proposed a database and required user accounts for 2.0. Neither was
+adopted.
+
+### Proposed for a later major version (1.x plan, not scheduled)
 
 - **ScriptProcessorNode fallback**: All browsers will support AudioWorklet
 - **Legacy theme format**: Old theme JSON format replaced with new schema
@@ -408,7 +415,14 @@ server now exists (`api/`), so parts of this are cheaper than when it was writte
 - ✅ **5.96s build time**
 - ✅ **260.95 KB bundle size**
 
-### v1.12.0 Targets
+### v2.0.0 Achievements
+
+- ✅ **1,415 unit and integration tests** (Vitest), 72.9% line coverage, thresholds enforced
+- ✅ **15 end-to-end tests** (Playwright, `/api` mocked), including the production CSP
+- ✅ **0 vulnerabilities** (`npm audit --omit=dev`), no key-shaped strings in the build
+- ✅ **TypeScript strict**, oxlint, Prettier, CI with actions pinned by SHA
+
+### Backlog targets (1.x plan, not scheduled, never measured)
 
 - 🎯 **100% E2E test pass rate**
 - 🎯 **Lighthouse score 95+** (Performance, Accessibility, Best Practices, SEO)
@@ -416,7 +430,7 @@ server now exists (`api/`), so parts of this are cheaper than when it was writte
 - 🎯 **Error rate**: <0.1% of sessions
 - 🎯 **Test coverage**: 85%+ across all modules
 
-### v2.0.0 Targets
+### Further 1.x-era targets (not adopted; there is no telemetry to measure them)
 
 - 🎯 **10,000+ active users**
 - 🎯 **99.9% uptime** (SLA)
