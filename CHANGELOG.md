@@ -89,6 +89,13 @@ repairs every feature that existed in code but could not be reached.
   targets; HAL now uses **Alnilam** with that direction. `scripts/render-hal-samples.ts`
   regenerates the comparison; `src/utils/psola.ts` (TD-PSOLA pitch narrowing, kept
   for experiments) is not in the app's chain.
+- **All-time totals in Insights** (conversations, messages, average length,
+  glitches, time talking, most used persona). Each conversation is counted once when
+  it ends, only while SAVE HISTORY is on; turning history off erases the totals too.
+  The statistics code existed but was never called.
+- **Custom characters use their glitch messages.** Now and then (about one reply in
+  eight) a custom character adds one of the glitch lines set in the Character
+  Creator, with the glitch sound; the field was saved but never used.
 - **Two accessibility settings now do something.** "Screen reader optimized" (and
   Reduced motion) show each reply whole, without the typing animation, and
   "Keyboard navigation hints" shows a control's shortcut when it has focus. Both

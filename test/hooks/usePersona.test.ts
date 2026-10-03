@@ -121,4 +121,12 @@ describe('usePersona', () => {
       expect(renderHook(() => usePersona()).result.current.voiceProfile).toBe('classic');
     });
   });
+
+  it("exposes a custom character's glitch messages, and none for built-ins", () => {
+    localStorage.setItem(CUSTOM_CHARACTERS_KEY, JSON.stringify([{ ...robo, glitchMessages: ['BUS ERROR'] }]));
+    const { result } = renderHook(() => usePersona());
+    expect(result.current.glitchMessages).toEqual([]);
+    act(() => result.current.selectPersona('custom_robo'));
+    expect(result.current.glitchMessages).toEqual(['BUS ERROR']);
+  });
 });

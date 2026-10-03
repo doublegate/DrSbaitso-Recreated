@@ -25,6 +25,8 @@ export const TYPING_DELAY_MS = 40;
 export const LONG_PRINTOUT_CHARS = 400;
 export const FAST_TYPING_DELAY_MS = 4;
 export const GREETING_LINE_DELAY_MS = 800;
+/** Chance that a custom character adds one of its glitch lines to a reply. */
+export const CUSTOM_GLITCH_CHANCE = 0.12;
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
@@ -61,7 +63,8 @@ export interface ChatPipelineDeps {
   personaState: Pick<
     PersonaState,
     'persona' | 'personas' | 'selectPersona' | 'chatOptions' | 'speechOptions' | 'formatReply' | 'voiceProcessing'
-  >;
+  > &
+    Partial<Pick<PersonaState, 'glitchMessages'>>;
   /** Plays synthesised speech (hooks/useSpeechPlayer). */
   speech: Pick<ReturnType<typeof useSpeechPlayer>, 'speak'>;
   /** True while speech is muted: replies are shown but not synthesised. */
@@ -73,6 +76,8 @@ export interface ChatPipelineDeps {
   announceMessages: boolean;
   /** Show replies whole, with no typing animation (screen-reader or reduced-motion settings). */
   instantReplies?: boolean;
+  /** Random source for custom-character glitches (tests pass a fixed one). */
+  random?: () => number;
 }
 
 export function useChatPipeline({
@@ -84,6 +89,7 @@ export function useChatPipeline({
   announce,
   announceMessages,
   instantReplies = false,
+  random = Math.random,
 }: ChatPipelineDeps) {
   const { persona, chatOptions, speechOptions, formatReply, voiceProcessing } = personaState;
   const characterId = persona.id;
@@ -186,6 +192,7 @@ export function useChatPipeline({
     try {
       if (plan.kind === 'ignore') return false;
       let reply: string;
+      let customGlitch = false;
       try {
         if (plan.kind === 'local') {
           reply = plan.lines.join('\n');
@@ -200,6 +207,12 @@ export function useChatPipeline({
           if (plan.onReply) enginesRef.current = plan.onReply(enginesRef.current, reply);
         } else {
           reply = formatReply(await getAIResponse(trimmed, characterId, chatOptions));
+          // A custom character's own glitch line, now and then (Character Creator).
+          const glitches = personaState.glitchMessages ?? [];
+          if (glitches.length > 0 && random() < CUSTOM_GLITCH_CHANCE) {
+            reply = `${reply}\n${glitches[Math.floor(random() * glitches.length)]}`;
+            customGlitch = true;
+          }
         }
       } catch (error) {
         console.error('Reply failed:', error);
@@ -216,7 +229,7 @@ export function useChatPipeline({
 
       // The original's parity text (the model is told never to emit it, but the
       // same check counts glitches in saved sessions).
-      if (isParityText(reply)) {
+      if (customGlitch || isParityText(reply)) {
         const ctx = getSharedAudioContext();
         if (ctx) playGlitchSound(ctx);
         void playSoundPackEvent('glitch');

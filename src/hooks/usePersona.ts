@@ -128,6 +128,9 @@ export function usePersona() {
   /** Playback processing route: pass to useSpeechPlayer's speak(). Custom characters keep the Sbaitso chain. */
   const voiceProcessing: VoiceProcessing = custom ? 'sbaitso' : voiceProcessingFor(persona.id);
 
+  /** A custom character's glitch lines, used now and then after a reply (none for built-ins). */
+  const glitchMessages = custom?.glitchMessages ?? [];
+
   /** Applies a custom character's chosen letter case to a reply. */
   const formatReply = (text: string) => {
     if (custom?.responseStyle === 'uppercase') return text.toUpperCase();
@@ -148,6 +151,7 @@ export function usePersona() {
     voiceProfile,
     setVoiceProfile,
     voiceProfileApplies,
+    glitchMessages,
     formatReply,
   };
 }

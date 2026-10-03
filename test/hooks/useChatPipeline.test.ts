@@ -338,4 +338,32 @@ describe('useChatPipeline', () => {
     expect(timers.mock.calls.length).toBeLessThan(5);
     timers.mockRestore();
   });
+
+  describe("custom characters' glitch messages", () => {
+    const custom = { id: 'custom_robo', name: 'ROBO', description: '', isCustom: true };
+    const withGlitches = (random: () => number) =>
+      makeDeps({
+        personaState: {
+          ...makeDeps().personaState,
+          persona: custom,
+          personas: [...personas, custom],
+          glitchMessages: ['MEMORY FAULT 0x1F'],
+        },
+        random,
+      });
+
+    it("now and then adds one of the character's glitch lines, with the glitch sound", async () => {
+      const { result } = await startSession(withGlitches(() => 0));
+      vi.mocked(playSoundPackEvent).mockClear();
+      await settle(result.current.sendMessage('how are you today'));
+      expect(result.current.messages.at(-1)?.text).toBe('TELL ME MORE.\nMEMORY FAULT 0x1F');
+      expect(playSoundPackEvent).toHaveBeenCalledWith('glitch');
+    });
+
+    it('usually answers without one', async () => {
+      const { result } = await startSession(withGlitches(() => 0.99));
+      await settle(result.current.sendMessage('how are you today'));
+      expect(result.current.messages.at(-1)?.text).toBe('TELL ME MORE.');
+    });
+  });
 });
