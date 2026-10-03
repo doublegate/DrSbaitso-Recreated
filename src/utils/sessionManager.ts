@@ -10,6 +10,18 @@ const STATS_KEY = 'sbaitso_stats';
 
 const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 
+/** A message, including its optional fields when present (export and insights read them). */
+function isMessage(value: unknown): value is Message {
+  if (typeof value !== 'object' || value === null) return false;
+  const m = value as Record<string, unknown>;
+  return (
+    (m.author === 'user' || m.author === 'dr') &&
+    typeof m.text === 'string' &&
+    (m.timestamp === undefined || isFiniteNumber(m.timestamp)) &&
+    (m.characterId === undefined || typeof m.characterId === 'string')
+  );
+}
+
 /**
  * Structural check for a session from outside this browser (cloud backup,
  * import). It checks the whole required contract, not just the fields merge
@@ -32,13 +44,7 @@ export function isConversationSession(value: unknown): value is ConversationSess
     (v.startedAt === undefined || isFiniteNumber(v.startedAt)) &&
     (v.endedAt === undefined || isFiniteNumber(v.endedAt)) &&
     Array.isArray(v.messages) &&
-    v.messages.every(
-      (m: unknown) =>
-        typeof m === 'object' &&
-        m !== null &&
-        ((m as Message).author === 'user' || (m as Message).author === 'dr') &&
-        typeof (m as Message).text === 'string',
-    )
+    v.messages.every(isMessage)
   );
 }
 

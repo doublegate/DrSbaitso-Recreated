@@ -265,8 +265,9 @@ repairs every feature that existed in code but could not be reached.
   lengths 3, 4, 6 and 8 are accepted now (PR #8 review).
 - **Imported and cloud sessions are checked against the whole session shape.** A
   record such as `{ id, updatedAt, messages: [] }` passed the old check and could crash
-  replay, which reads `name` and `characterId`. Every required field is now validated
-  (PR #8 review).
+  replay, which reads `name` and `characterId`. Every required field is now validated,
+  and so are a message's optional `timestamp` and `characterId` when present (PR #8
+  and #9 reviews).
 - **Classic mode now behaves like the original program as it runs in DOSBox.**
   The 1992 program was run in an emulator and its screen and sound measured
   (`ref-docs/04-dosbox-verification.md`); classic mode was corrected to match:
