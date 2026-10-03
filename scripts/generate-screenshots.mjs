@@ -4,8 +4,9 @@
  *   npm run build && node scripts/generate-screenshots.mjs
  *
  * Serves dist/ with `vite preview`, mocks /api so no key is needed, and writes
- * public/screenshots/{classic,enhanced}-{wide,narrow}.png. The manifest lists
- * these files; regenerate them whenever either screen changes visibly.
+ * public/screenshots/{classic,enhanced}-{wide,narrow}.png (listed in the manifest)
+ * and docs/images/classic-screen.png (the README image, the classic screen alone
+ * at 2x). Regenerate them whenever either screen changes visibly.
  */
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
@@ -83,6 +84,7 @@ async function enhanced(browser, size) {
 
 await waitForServer();
 mkdirSync(outDir, { recursive: true });
+mkdirSync(path.join(root, 'docs/images'), { recursive: true });
 const browser = await chromium.launch();
 try {
   for (const [form, size] of Object.entries(SIZES)) {
@@ -92,6 +94,15 @@ try {
       await page.close();
     }
   }
+  // README image: the classic screen alone at exactly 2x (crisp font), no overscan border.
+  const page = await classic(browser, { width: 1600, height: 900 });
+  const box = await page.locator('[data-dos-screen]').boundingBox();
+  if (!box) throw new Error('classic screen not found');
+  await page.screenshot({
+    path: path.join(root, 'docs/images/classic-screen.png'),
+    clip: { x: Math.round(box.x), y: Math.round(box.y), width: Math.round(box.width), height: Math.round(box.height) },
+  });
+  await page.close();
 } finally {
   await browser.close();
   stop();

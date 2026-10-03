@@ -9,7 +9,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-7%20(strict)-3178C6?logo=typescript)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-![The classic screen](public/screenshots/classic-wide.png)
+![The classic 80x25 Dr. Sbaitso screen](docs/images/classic-screen.png)
 
 Type your name, and DOCTOR SBAITSO greets you in his flat 8-bit voice and asks about
 your problems, just like the DOS program that shipped with Creative Labs sound cards.
