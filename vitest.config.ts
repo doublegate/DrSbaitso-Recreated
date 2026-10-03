@@ -18,15 +18,15 @@ export default defineConfig({
       // (the previous setup reported 87% by ignoring untested files).
       include: ['src/**/*.{ts,tsx}', 'api/**/*.ts'],
       exclude: ['src/sw.ts', '**/*.test.{ts,tsx}', '**/*.d.ts'],
-      // Ratchet: set just below the measured coverage (2026-10-02, release 2.0.0:
-      // 70.2% lines, 69.5% statements, 59.7% functions, 63.2% branches; it started
-      // at about 45/45/37/37). Raise these as coverage grows; never lower them to
+      // Ratchet: set just below the measured coverage (2026-10-03, release 2.0.0:
+      // 72.94% lines, 72.27% statements, 63.11% functions, 66.54% branches; it
+      // started at about 45/45/37/37). Raise these as coverage grows; never lower them to
       // make a change pass.
       thresholds: {
-        lines: 69,
-        statements: 69,
-        functions: 59,
-        branches: 62,
+        lines: 72,
+        statements: 72,
+        functions: 63,
+        branches: 66,
       },
     },
   },

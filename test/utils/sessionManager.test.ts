@@ -397,10 +397,28 @@ describe('SessionManager.mergeSessions (untrusted input)', () => {
       { id: 'bad-messages', updatedAt: 1, messages: 'hi' },
       { id: 'bad-author', updatedAt: 1, messages: [{ author: 'admin', text: 'x' }] },
       { id: 'bad-text', updatedAt: 1, messages: [{ author: 'user', text: 42 }] },
+      // Structurally plausible but missing the rest of the contract (replay reads name and characterId).
+      { id: 'incomplete', updatedAt: 1, messages: [] },
+      { ...valid(), id: 'no-character', characterId: undefined },
+      { ...valid(), id: 'bad-name', name: 7 },
+      { ...valid(), id: 'bad-created', createdAt: 'yesterday' },
+      { ...valid(), id: 'bad-count', messageCount: Number.NaN },
+      // Optional message fields are checked when present (export and insights read them).
+      { ...valid(), id: 'bad-msg-time', messages: [{ author: 'user', text: 'x', timestamp: 'yesterday' }] },
+      { ...valid(), id: 'bad-msg-char', messages: [{ author: 'dr', text: 'x', characterId: 9 }] },
     ];
     const written = SessionManager.mergeSessions([...junk, valid()] as unknown as ConversationSession[]);
     expect(written).toBe(1);
     expect(SessionManager.getAllSessions().map((s) => s.id)).toEqual(['ok']);
+  });
+
+  it('keeps messages whose optional timestamp and characterId are well formed', () => {
+    const session = {
+      ...valid(),
+      id: 'with-optional',
+      messages: [{ author: 'dr' as const, text: 'HELLO', timestamp: 3, characterId: 'sbaitso' }],
+    };
+    expect(SessionManager.mergeSessions([session])).toBe(1);
   });
 
   it('ignores input that is not an array', () => {

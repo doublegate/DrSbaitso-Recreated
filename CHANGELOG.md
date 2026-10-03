@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0] - 2026-10-02
+## [2.0.0] - 2026-10-03
 
 A full audit and rebuild. The deployed 1.11 app crashed right after name entry and
 leaked its Gemini API key in the client bundle; 2.0 fixes both, moves Gemini behind
@@ -255,6 +255,19 @@ repairs every feature that existed in code but could not be reached.
   enforced in the plain test run.
 
 ### Fixed
+- **Sound-effect cleanup no longer closes the shared audio context.**
+  `SoundEffectsManager.dispose()` closed whatever context it held, which is normally
+  the page's single shared one, silencing speech and music and leaving the shared
+  module handing out a closed context. It now closes only a fallback context it
+  created itself (PR #8 review).
+- **Stored custom themes with invalid colours are rejected.** The check accepted any
+  3-8 digit hex value, so `#12345` passed although browsers ignore it. Only the CSS
+  lengths 3, 4, 6 and 8 are accepted now (PR #8 review).
+- **Imported and cloud sessions are checked against the whole session shape.** A
+  record such as `{ id, updatedAt, messages: [] }` passed the old check and could crash
+  replay, which reads `name` and `characterId`. Every required field is now validated,
+  and so are a message's optional `timestamp` and `characterId` when present (PR #8
+  and #9 reviews).
 - **Classic mode now behaves like the original program as it runs in DOSBox.**
   The 1992 program was run in an emulator and its screen and sound measured
   (`ref-docs/04-dosbox-verification.md`); classic mode was corrected to match:
@@ -472,6 +485,12 @@ repairs every feature that existed in code but could not be reached.
   only (see "Per-persona voices").
 
 ### Changed
+- Coverage thresholds raised to the 2.0.0 level (lines and statements 72%, functions
+  63%, branches 66%).
+- `.gitignore` covers every `.env` file except the tracked `.env.example`, plus
+  TypeScript build info, the ESLint cache and setup backups.
+- The roadmap reflects the released 2.0.0; the 1.x plan is kept as an unscheduled
+  backlog.
 - **Enhanced mode restructured** with no visible change: the turn pipeline, panel
   state and shortcuts are hooks (`useChatPipeline`, `usePanels`,
   `useGlobalShortcuts`), and the screen is split into components under
@@ -2267,12 +2286,14 @@ Not applicable (initial release)
 
 ## Links
 
-- [GitHub Repository](https://github.com/yourusername/DrSbaitso-Recreated)
-- [Issue Tracker](https://github.com/yourusername/DrSbaitso-Recreated/issues)
+- [GitHub Repository](https://github.com/doublegate/DrSbaitso-Recreated)
+- [Issue Tracker](https://github.com/doublegate/DrSbaitso-Recreated/issues)
 - [Documentation](docs/)
 - [Gemini API](https://ai.google.dev/docs)
 
 ---
 
-**[Unreleased]**: https://github.com/yourusername/DrSbaitso-Recreated/compare/v1.0.0...HEAD
-**[1.0.0]**: https://github.com/yourusername/DrSbaitso-Recreated/releases/tag/v1.0.0
+Versions before 2.0.0 were never tagged; their entries are kept as written at the time.
+
+[Unreleased]: https://github.com/doublegate/DrSbaitso-Recreated/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/doublegate/DrSbaitso-Recreated/releases/tag/v2.0.0

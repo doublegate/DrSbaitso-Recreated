@@ -12,7 +12,9 @@ export const THEME_KEY = 'sbaitso_theme';
 export const CUSTOM_THEMES_KEY = 'sbaitso_custom_themes';
 
 const COLOR_KEYS = ['primary', 'background', 'text', 'border', 'accent'] as const;
-const isHex = (v: unknown) => typeof v === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(v);
+// The lengths CSS accepts (#rgb, #rgba, #rrggbb, #rrggbbaa); a 5- or 7-digit value would pass a
+// {3,8} range but be ignored by the browser.
+const isHex = (v: unknown) => typeof v === 'string' && /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v);
 
 function loadCustomThemes(): CustomTheme[] {
   try {

@@ -8,23 +8,43 @@ const CURRENT_SESSION_KEY = 'sbaitso_current_session';
 const SETTINGS_KEY = 'sbaitso_settings';
 const STATS_KEY = 'sbaitso_stats';
 
-/** Minimal structural check for a session from outside this browser. */
+const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+
+/** A message, including its optional fields when present (export and insights read them). */
+function isMessage(value: unknown): value is Message {
+  if (typeof value !== 'object' || value === null) return false;
+  const m = value as Record<string, unknown>;
+  return (
+    (m.author === 'user' || m.author === 'dr') &&
+    typeof m.text === 'string' &&
+    (m.timestamp === undefined || isFiniteNumber(m.timestamp)) &&
+    (m.characterId === undefined || typeof m.characterId === 'string')
+  );
+}
+
+/**
+ * Structural check for a session from outside this browser (cloud backup,
+ * import). It checks the whole required contract, not just the fields merge
+ * uses: replay, export and insights read name, characterId and the counts.
+ */
 export function isConversationSession(value: unknown): value is ConversationSession {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
   return (
     typeof v.id === 'string' &&
     v.id.length > 0 &&
-    typeof v.updatedAt === 'number' &&
-    Number.isFinite(v.updatedAt) &&
+    typeof v.name === 'string' &&
+    typeof v.characterId === 'string' &&
+    typeof v.themeId === 'string' &&
+    typeof v.audioQualityId === 'string' &&
+    isFiniteNumber(v.createdAt) &&
+    isFiniteNumber(v.updatedAt) &&
+    isFiniteNumber(v.messageCount) &&
+    isFiniteNumber(v.glitchCount) &&
+    (v.startedAt === undefined || isFiniteNumber(v.startedAt)) &&
+    (v.endedAt === undefined || isFiniteNumber(v.endedAt)) &&
     Array.isArray(v.messages) &&
-    v.messages.every(
-      (m: unknown) =>
-        typeof m === 'object' &&
-        m !== null &&
-        ((m as Message).author === 'user' || (m as Message).author === 'dr') &&
-        typeof (m as Message).text === 'string',
-    )
+    v.messages.every(isMessage)
   );
 }
 
