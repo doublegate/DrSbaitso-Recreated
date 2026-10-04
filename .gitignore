@@ -50,3 +50,9 @@ voice-samples/
 *.tsbuildinfo
 .eslintcache
 *.mc-bak
+
+# Voice research inputs: a SmoothTalker clone and captures of the original (never commit)
+scripts/research/voice/st/
+scripts/research/voice/**/*.wav
+scripts/research/voice/.venv/
+__pycache__/

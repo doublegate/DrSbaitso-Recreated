@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/research/voice/`: the seven Python scripts that measured the original voice for
+  `ref-docs/02` (F0, bands, pauses, engine settings, DSP rate, pronunciation equivalence),
+  with a README covering setup. They need a SmoothTalker emulation clone and your own
+  captures, and neither is redistributed. Record: `docs/SALVAGE_MANIFEST.md`.
+
 ### Documentation
 
 - Post-release corrections: the test count at the 2.0.0 tag is 1,425 (the docs said
