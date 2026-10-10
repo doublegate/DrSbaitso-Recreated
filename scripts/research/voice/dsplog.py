@@ -13,6 +13,7 @@ log=collections.Counter(); sizes=[]
 orig=c._SoundBlaster._dsp
 def d(self,v):
     if not self.pending: log[hex(v)]+=1
+    else: log[f'param_{hex(v)}']+=1
     orig(self,v)
 c._SoundBlaster._dsp=d
 oa=c._SoundBlaster._arm
@@ -20,4 +21,4 @@ def a(self,l): sizes.append(l); oa(self,l)
 c._SoundBlaster._arm=a
 e=c.Engine(os.path.join(ST,'synthDrivers','_smoothtalker_engine','engine.bin'))
 p,sr=e.speak("HELLO, MY NAME IS DOCTOR SBAITSO.")
-print(dict(log)); print('blocks',len(sizes),'sizes',sorted(set(sizes))[:10])
+print(dict(log)); print('rate', sr, 'blocks',len(sizes),'sizes',sorted(set(sizes))[:10])

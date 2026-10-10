@@ -96,6 +96,7 @@ model overrides are listed in [`.env.example`](.env.example). See
 - [CHANGELOG.md](CHANGELOG.md): release history; [Releases](https://github.com/doublegate/DrSbaitso-Recreated/releases) for tagged versions and notes
 - [docs/](docs): architecture, API, testing, deployment, troubleshooting and feature guides
 - [ref-docs/](ref-docs): sourced research on the original program and the other personas
+- [scripts/research/](scripts/research/): salvaged voice analysis and DSP tooling
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute
 - [to-dos/](to-dos): roadmap and open work
 

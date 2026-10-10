@@ -30,7 +30,7 @@ were salvaged from the v2.0 research scratch so the measurements can be reproduc
   binaries: research use only. The `.gitignore` keeps WAVs here out of git.
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install numpy scipy
+python3 -m venv .venv && .venv/bin/pip install numpy scipy unicorn==2.0.1.post1
 git clone https://github.com/joshknnd1982/smoothTalker-sbaitso /path/to/st
 SMOOTHTALKER_DIR=/path/to/st .venv/bin/python scripts/research/voice/sweep.py
 .venv/bin/python scripts/research/voice/an.py /path/to/capture.wav
