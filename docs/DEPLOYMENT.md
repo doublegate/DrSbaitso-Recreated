@@ -7,7 +7,7 @@ repository configures everything below.
 
 ## Requirements
 
-- Node.js 22.12 or newer (24 recommended; Vercel builds on 24.x via `engines`)
+- Node.js 24.12 or newer (Vercel builds on 24.x via `engines`)
 - A Gemini API key from <https://aistudio.google.com/apikey>
 
 ## Environment variables
@@ -114,4 +114,4 @@ deployment, and select **Promote to Production** (or **Instant Rollback**).
 | Replies say "SYSTEM NOT CONFIGURED" | `GEMINI_API_KEY` is missing from this environment (check Preview vs Production) |
 | Replies say "SYSTEM OVERLOAD" or "PROCESSOR IS BUSY" | Gemini quota or overload on every configured model; wait, or add fallback models |
 | Text but no voice | Speech is degrading on purpose: TTS failed (quota) or audio could not play; the text is kept |
-| Build warns about Node | Use Node 22.12+; Vercel follows `engines` in `package.json` |
+| Build warns about Node | Use Node 24.12+; Vercel follows `engines` in `package.json` |

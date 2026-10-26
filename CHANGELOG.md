@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Consolidated dependency and workflow updates: upgraded `firebase` to `^13.1.0`,
+  `vite-plugin-pwa` to `^2.0.0`, `@google/genai` to `^2.31.0`, `react` and `react-dom`
+  to `^19.3.1`, `vite` to `^8.3.5`, `vitest` (`@vitest/coverage-v8`, `@vitest/ui`) to
+  `^5.0.5`, `@playwright/test` to `^1.64.1`, `jsdom` to `^30.1.3`, `oxlint` to `^1.89.0`,
+  `prettier` to `3.9.10`, and SHA-pinned GitHub Actions (`actions/setup-node` v7.1.0,
+  `actions/upload-artifact` v7.0.2). Raised minimum Node.js engine requirement to
+  `>=24.12.0` to match Firebase 13.
+
 ### Added
 
 - `scripts/research/voice/`: the seven Python scripts that measured the original voice for

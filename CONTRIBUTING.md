@@ -48,7 +48,7 @@ If you experience or witness unacceptable behavior, please report it by opening 
 
 ### Prerequisites
 
-- **Node.js**: 22.12 or higher (24 recommended; CI uses 24)
+- **Node.js**: 24.12 or higher (CI uses 24)
 - **npm**: the version bundled with Node
 - **Git**: Version 2.x or higher
 - **Gemini API Key**: Get one free at [Google AI Studio](https://aistudio.google.com/apikey)

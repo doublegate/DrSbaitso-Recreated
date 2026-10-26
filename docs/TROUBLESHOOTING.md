@@ -89,7 +89,7 @@ Other cases:
 
 | Problem | Fix |
 |---|---|
-| `npm ci` fails or tests crash on startup | Use Node 22.12 or newer (24 recommended); jsdom 30 needs it |
+| `npm ci` fails or tests crash on startup | Use Node 24.12 or newer; Firebase 13 and jsdom 30 need it |
 | Port 3000 in use | `npm run dev -- --port 3001` |
 | The dev server is not reachable from another device | It binds to `localhost`; use `npm run dev -- --host` |
 | The dev server logs CSP violations | The dev CSP matches production (relaxed only for hot reloading); new external hosts must be added in `src/utils/security.ts` and `vercel.json` |

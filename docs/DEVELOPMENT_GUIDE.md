@@ -24,7 +24,7 @@ See also [API.md](API.md) (server API and module reference) and [TESTING.md](TES
 
 ### Prerequisites
 
-- **Node.js**: 22.12 or higher (`engines` in `package.json`); 24 recommended, and CI uses 24
+- **Node.js**: 24.12 or higher (`engines` in `package.json`; CI uses 24)
 - **npm**: the version bundled with Node
 - **Git**: v2.30.0 or higher
 - **Modern Browser**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
