@@ -50,7 +50,7 @@ See [docs/FEATURES.md](docs/FEATURES.md) and
 
 ## Quick start
 
-Requires Node.js 22.12+ (24 recommended) and a [Gemini API key](https://aistudio.google.com/apikey).
+Requires Node.js 24.12+ and a [Gemini API key](https://aistudio.google.com/apikey).
 
 ```bash
 git clone https://github.com/doublegate/DrSbaitso-Recreated.git
